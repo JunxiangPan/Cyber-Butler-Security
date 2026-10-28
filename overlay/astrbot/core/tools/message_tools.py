@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import io
 import json
 import os
@@ -175,8 +176,65 @@ def _totp_record_send(paths: list[Path], session_key: str) -> None:
             continue
 
 
-def _totp_request_send(target: str, display_name: str, reason: str) -> bool:
+def _totp_build_manifest(
+    paths: list[Path], url_target: str = ""
+) -> list[dict]:
+    """Build the complete file manifest bound to a TOTP approval.
+
+    Args:
+        paths: All local files that will be sent in this operation.
+        url_target: Optional remote URL target when no local files are present.
+
+    Returns:
+        A list of entries with kind, path, size, and SHA-256.
+
+    Raises:
+        OSError: If a local file cannot be resolved, statted, or read.
+    """
+    manifest: list[dict] = []
+    for path in paths:
+        resolved = path.resolve(strict=True)
+        size = int(resolved.stat().st_size)
+        digest = hashlib.sha256()
+        with resolved.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        manifest.append(
+            {
+                "kind": "file",
+                "path": str(resolved),
+                "size": size,
+                "sha256": digest.hexdigest(),
+            }
+        )
+    if url_target:
+        manifest.append(
+            {
+                "kind": "url",
+                "path": url_target,
+                "size": 0,
+                "sha256": "",
+            }
+        )
+    return manifest
+
+
+def _totp_manifest_equal(left: list[dict], right: list[dict]) -> bool:
+    """Compare manifests without depending on dictionary key order."""
+    return json.dumps(left, sort_keys=True, ensure_ascii=False) == json.dumps(
+        right, sort_keys=True, ensure_ascii=False
+    )
+
+
+def _totp_request_send(
+    paths: list[Path],
+    url_target: str,
+    display_name: str,
+    reason: str,
+) -> bool:
     try:
+        manifest = _totp_build_manifest(paths, url_target)
+        target = manifest[0]["path"] if manifest else ""
         token = TOTP_TOKEN_FILE.read_text(encoding="utf-8").strip()
         response = requests.post(
             TOTP_BROKER_URL + "/request",
@@ -186,11 +244,19 @@ def _totp_request_send(target: str, display_name: str, reason: str) -> bool:
                 "target": target,
                 "reason": reason,
                 "source": "",
+                "manifest": manifest,
             },
             timeout=310,
         )
         data = response.json() if response.content else {}
-        return bool(response.ok and data.get("approved"))
+        if not (response.ok and data.get("approved")):
+            return False
+        # Re-hash immediately before the caller sends the actual files. A file
+        # changed between request and approval must not be sent.
+        if not _totp_manifest_equal(manifest, _totp_build_manifest(paths, url_target)):
+            logger.warning("[totp_guard] file manifest changed after approval")
+            return False
+        return True
     except Exception as exc:
         logger.warning("[totp_guard] send approval failed: %s", exc)
         return False
@@ -486,15 +552,15 @@ class SendMessageToUserTool(FunctionTool[AstrAgentContext]):
             if url_target:
                 risky, reason = True, "远程 URL 文件"
             if risky:
-                target_text = str(file_paths[0]) if file_paths else url_target
                 approved = await asyncio.to_thread(
                     _totp_request_send,
-                    target_text,
+                    file_paths,
+                    url_target,
                     display_name,
                     f"文件外发拦截：{reason}",
                 )
                 if not approved:
-                    return "error: 高危文件外发已取消：验证码未通过或超时。"
+                    return "error: 高危文件外发已取消：验证码未通过、清单不一致或超时。"
 
         message_chain = MessageChain(chain=components)
         try:

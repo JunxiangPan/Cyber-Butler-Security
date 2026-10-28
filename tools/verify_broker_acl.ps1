@@ -1,5 +1,8 @@
 # Fail-closed check for the SYSTEM Broker runtime.
 # Run from tools/broker.py startup, and also manually before deploying.
+param(
+    [string]$ServiceUser = 'YOUR_SERVICE_USER'
+)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $paths = @(
@@ -8,7 +11,7 @@ $paths = @(
 )
 $bad = New-Object System.Collections.Generic.List[string]
 $writeMask = 'Write|Modify|FullControl|TakeOwnership|ChangePermissions'
-$broadPrincipals = 'Users|Everyone|Authenticated Users|YOUR_USER_NAME'
+$broadPrincipals = 'Users|Everyone|Authenticated Users|YOUR_USER_NAME|' + [regex]::Escape($ServiceUser)
 
 foreach ($path in $paths) {
     if (-not (Test-Path -LiteralPath $path)) {
@@ -23,7 +26,7 @@ foreach ($path in $paths) {
         if ($ace.AccessControlType -ne 'Allow') { continue }
         if ($ace.FileSystemRights -match $writeMask -and
             $ace.IdentityReference -match $broadPrincipals) {
-            $bad.Add("broad write ACE: $path <- $($ace.IdentityReference) $($ace.FileSystemRights)")
+            $bad.Add("broad or service write ACE: $path <- $($ace.IdentityReference) $($ace.FileSystemRights)")
         }
     }
 }

@@ -66,6 +66,31 @@ The security model was built around concrete Windows failure modes, not only doc
 - **Hard links force TOTP.** A file with `st_nlink > 1` is treated as a hard-link bypass attempt even when its name and path look benign.
 - **Unknown chat platforms fail closed.** The Security Gate no longer returns early for an unrecognized `umo`; it logs a warning and calls `event.stop_event()` rather than allowing the event through.
 
+### Send manifest binding (P0)
+
+A TOTP approval is bound to a **complete manifest**, not one file path:
+
+- AstrBot builds `{kind, path, size, sha256}` for every local file in the send operation (maximum 5 entries and 50MB);
+- `/request` carries the manifest; the Broker displays the complete list and all SHA-256 values in the QQ challenge;
+- the Broker rehashes every file before issuing the TOTP prompt and again at `/verify`; any size/hash change returns `409`, clears the pending request, and is audited;
+- AstrBot rehashes once more immediately before `send_message`; a changed manifest cancels the send;
+- a request with no manifest is rejected for `action=send` (fail closed).
+
+This closes the “approve file A, replace it with file B” single-path binding gap. It does not eliminate a TOCTOU race after the final hash check; the final send is deliberately kept on AstrBot's message path.
+
+### Code-execution tools are removed from QQ private requests
+
+The Security Gate registers an `on_llm_request` hook that removes:
+
+```text
+astrbot_execute_python
+astrbot_execute_ipython
+astrbot_execute_shell
+astrbot_shell_session
+```
+
+from the QQ private `func_tool` set. This is a **tool-layer denylist**, not a complete plain-text mediation layer: a different agent path, a plugin that re-adds the tools, or a plain-text exfiltration path can still bypass TOTP. The project does not claim otherwise.
+
 ### Trust boundary diagram
 
 ```mermaid
@@ -132,7 +157,7 @@ icacls.exe "$root\AstrBot\.venv" /inheritance:r `
 The repository also provides:
 
 - `tools/harden_broker_runtime.ps1` — applies the ACLs above;
-- `tools/verify_broker_acl.ps1` — fails if the paths are owned by a non-admin principal or grant broad write access;
+- `tools/verify_broker_acl.ps1` — fails if the paths are owned by a non-admin principal or grant broad/service-account write access (the service account is explicitly in the denylist, not only `Users`/`Everyone`);
 - `tools/broker.py` — calls the verifier at startup and **refuses to start** if it fails.
 
 `icacls` output is localized and deployment-specific; verify the effective permissions in the GUI or with `Get-Acl`, not only by reading the command. Do not run the Broker as SYSTEM until this check passes.
