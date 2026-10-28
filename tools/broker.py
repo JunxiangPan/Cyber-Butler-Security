@@ -83,6 +83,22 @@ def audit_failure(request_id: str, action: str, target: str, attempts: int) -> N
         log(f"audit write failed: {exc}")
 
 
+def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request_id,
+                "action": request.get("action"),
+                "target": request.get("target"),
+                "ok": False,
+                "result": result,
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"audit write failed: {exc}")
+
+
 def ensure_token() -> str:
     if not TOKEN_FILE.exists():
         token = secrets.token_urlsafe(32)
@@ -125,6 +141,84 @@ def inside_shared(path: Path) -> bool:
         return True
     except ValueError:
         return False
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _canonical_manifest(items) -> list[dict]:
+    """Validate a complete send manifest and recompute every local hash."""
+    if not isinstance(items, list) or not items:
+        raise ValueError("manifest is required")
+    if len(items) > 5:
+        raise ValueError("manifest has more than 5 entries")
+    canonical: list[dict] = []
+    total_bytes = 0
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError("manifest entry must be an object")
+        kind = str(item.get("kind", "file")).lower()
+        raw_path = str(item.get("path", "")).strip()
+        if not raw_path:
+            raise ValueError("manifest entry has no path")
+        if kind == "url":
+            if not raw_path.startswith(("http://", "https://")):
+                raise ValueError("manifest URL is invalid")
+            canonical.append(
+                {"kind": "url", "path": raw_path, "size": 0, "sha256": ""}
+            )
+            continue
+        if kind != "file":
+            raise ValueError("unsupported manifest entry kind")
+        path = Path(raw_path).resolve(strict=True)
+        if not path.is_file():
+            raise ValueError("manifest target is not a file")
+        size = int(path.stat().st_size)
+        total_bytes += size
+        if total_bytes > 50 * 1024 * 1024:
+            raise ValueError("manifest exceeds 50MB")
+        digest = _sha256_file(path)
+        expected = str(item.get("sha256", "")).lower()
+        expected_size = item.get("size")
+        if expected and expected != digest:
+            raise ValueError("manifest SHA-256 mismatch")
+        if expected_size is not None and int(expected_size) != size:
+            raise ValueError("manifest size mismatch")
+        canonical.append(
+            {"kind": "file", "path": str(path), "size": size, "sha256": digest}
+        )
+    return canonical
+
+
+def _manifest_equal(left: list[dict], right: list[dict]) -> bool:
+    return json.dumps(left, sort_keys=True, ensure_ascii=False) == json.dumps(
+        right, sort_keys=True, ensure_ascii=False
+    )
+
+
+def _fail_send_wait(request_id: str) -> None:
+    event = _send_events.get(request_id)
+    if event:
+        _send_results[request_id] = False
+        event.set()
+
+
+def _manifest_prompt(manifest: list[dict]) -> str:
+    lines = [f"哥，瑾言想发送 {len(manifest)} 个文件，请输入动态验证码。完整清单："]
+    for index, item in enumerate(manifest, 1):
+        if item["kind"] == "url":
+            lines.append(f"{index}. URL: {item['path']}")
+        else:
+            lines.append(
+                f"{index}. {Path(item['path']).name} | {item['size']} bytes | "
+                f"sha256={item['sha256']}"
+            )
+    return "\n".join(lines)
 
 
 def verify_code(code: str) -> str:
@@ -208,12 +302,20 @@ def run_request(payload: dict) -> tuple[int, dict]:
     action = str(payload.get("action", "")).strip().lower()
     target_text = str(payload.get("target", "")).strip()
     target = Path(target_text)
+    manifest: list[dict] | None = None
     if action not in {"delete", "overwrite", "send"}:
         return 400, {"ok": False, "error": "action must be delete, overwrite or send"}
     if action in {"delete", "overwrite"} and not inside_shared(target):
         return 403, {"ok": False, "error": "target outside shared folder"}
-    if action == "send" and not (target_text.startswith(("http://", "https://")) or target.exists()):
-        return 400, {"ok": False, "error": "send target does not exist"}
+    if action == "send":
+        try:
+            manifest = _canonical_manifest(payload.get("manifest"))
+        except (OSError, ValueError) as exc:
+            return 409, {"ok": False, "error": f"invalid send manifest: {exc}"}
+        target_text = manifest[0]["path"]
+        target = Path(target_text)
+        if not (target_text.startswith(("http://", "https://")) or target.exists()):
+            return 400, {"ok": False, "error": "send target does not exist"}
 
     event = None
     with _lock:
@@ -227,13 +329,14 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "source": str(payload.get("source", "")),
             "reason": str(payload.get("reason", ""))[:300],
             "deadline": time.monotonic() + TIMEOUT_SECONDS,
+            "manifest": manifest,
         }
         if action == "delete":
             prompt = f"哥，瑾言想删除 {target.name}，请输入动态验证码。"
         elif action == "overwrite":
             prompt = f"哥，瑾言想覆盖 {target.name}，请输入动态验证码。"
         else:
-            prompt = f"哥，瑾言想把 {target.name or target_text} 发给你，请输入动态验证码。"
+            prompt = _manifest_prompt(manifest or [])
         if not send_qq(prompt):
             _pending = None
             return 502, {"ok": False, "error": "QQ challenge send failed"}
@@ -301,6 +404,20 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 "attempts": attempts,
             }
         request = dict(_pending)
+        if request.get("action") == "send":
+            manifest = request.get("manifest")
+            try:
+                current = _canonical_manifest(manifest)
+            except (OSError, ValueError) as exc:
+                _pending = None
+                _audit_manifest_reject(request_id, request, f"manifest invalid at approval: {exc}")
+                _fail_send_wait(request_id)
+                return 409, {"ok": False, "error": f"file manifest changed: {exc}"}
+            if not _manifest_equal(manifest, current):
+                _pending = None
+                _audit_manifest_reject(request_id, request, "manifest changed at approval")
+                _fail_send_wait(request_id)
+                return 409, {"ok": False, "error": "file manifest changed before approval"}
         _pending = None
         if request.get("action") == "send":
             _send_results[request_id] = True

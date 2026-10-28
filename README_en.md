@@ -119,6 +119,7 @@ flowchart LR
 
 - Whitelisted directory + non-sensitive name + trusted owner → direct send.
 - Sensitive names, other paths, archives, URLs, or batch/size overflow → TOTP.
+- **TOTP is bound to a complete manifest** of every file path, size, and SHA-256. The Broker rehashes before approval, and AstrBot rehashes again immediately before sending; any mismatch aborts the send.
 - Prevents the AI from copying an external file into the whitelist and then sending it (owner check).
 
 ### 5. Prompt-Injection Gate
@@ -232,7 +233,7 @@ Not yet covered:
 
 ## Honest Coverage Gap: Python and Shell
 
-**`astrbot_execute_python` and shell execution can bypass TOTP.** The Broker only mediates the actions explicitly routed to it (destructive file operations and high-risk file egress). If a plugin or a model tool exposes arbitrary Python or a shell, it can perform actions without a TOTP challenge.
+**`astrbot_execute_python` and shell execution can bypass TOTP if they are available.** This release removes `astrbot_execute_python`, `astrbot_execute_ipython`, `astrbot_execute_shell`, and `astrbot_shell_session` from the QQ private `func_tool` set in the `on_llm_request` hook. If another plugin re-adds them, a different agent path exposes them, or a plain-text channel is used, TOTP is not a complete mediation layer.
 
 - Keep `astrbot_execute_python` / shell tools disabled unless the deployment truly needs them.
 - If they must be enabled, treat the agent as having code-execution authority and isolate it with OS-level controls, not with TOTP.

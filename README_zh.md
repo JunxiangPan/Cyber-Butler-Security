@@ -120,6 +120,7 @@ flowchart LR
 
 - 白名单目录 + 非敏感文件名 + 文件所有者可信 → 直接发送；
 - 敏感文件名、其他路径、压缩包、URL、批量/总量超限 → TOTP；
+- **TOTP 绑定完整清单**：本次发送全部文件的路径、大小、SHA-256；Broker 在批准前重算，AstrBot 在真正发送前再重算，任一不一致立即中止；
 - 防止 AI 先把外部文件复制进白名单目录再外发（检查文件所有者）。
 
 ### 5. 提示词注入双向门禁
@@ -254,11 +255,10 @@ python tools/sanitize_for_release.py . --strict
 
 ## 诚实边界：Python 与 Shell 会绕过 TOTP
 
-**`astrbot_execute_python` 和 shell 执行可以绕过 TOTP。** Broker 只接管显式路由给它的破坏性文件操作和高危文件外发；如果插件或模型工具暴露了任意 Python / Shell，它可以在没有 TOTP 的情况下执行动作。
+**如果 `astrbot_execute_python` 和 shell 工具仍可用，它们可以绕过 TOTP。** 本版本在 `on_llm_request` 阶段从 QQ 私聊 `func_tool` 中移除 `astrbot_execute_python`、`astrbot_execute_ipython`、`astrbot_execute_shell`、`astrbot_shell_session`。如果其他插件重新加入、其他 agent 路径暴露它们，或走纯文本通道，TOTP 仍不是完整的工具执行中介层。
 
-- 非必要时应关闭 `astrbot_execute_python` 和 Shell 工具；
-- 必须启用时，应把智能体视为拥有代码执行权限，并用操作系统隔离控制，而不是依赖 TOTP；
-- 不要把本项目宣传成“可完全沙箱化任意工具执行”的方案。
+- 不要把本项目宣传成“可完全沙箱化任意工具执行”的方案；
+- 必须启用代码工具时，应使用操作系统级隔离，而不是只依赖 TOTP。
 
 ## 安全测试与可复现性
 

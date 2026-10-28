@@ -15,6 +15,7 @@ from pathlib import Path
 import requests
 from astrbot import logger
 from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
 
 TRUSTED_QQ = "YOUR_QQ_ID"
@@ -23,6 +24,12 @@ LOG_PATH = ROOT / "AstrBot" / "data" / "security-gate.log"
 LOCK_STATE = ROOT / "tools" / "api-lock-state.json"
 TOKEN_FILE = ROOT / ".astrbot_token"
 PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
+DANGEROUS_TOOLS = (
+    "astrbot_execute_python",
+    "astrbot_execute_ipython",
+    "astrbot_execute_shell",
+    "astrbot_shell_session",
+)
 
 PATTERNS = [
     r"忽略.{0,8}(之前|以上|所有).{0,8}(指令|提示|规则)",
@@ -88,6 +95,36 @@ class SecurityGatePlugin(Star):
         except OSError:
             pass
         event.stop_event()
+
+    @filter.on_llm_request(priority=900)
+    async def strip_dangerous_tools(
+        self, event: AstrMessageEvent, req: ProviderRequest
+    ) -> None:
+        """Remove code-execution tools from QQ private requests.
+
+        Args:
+            event: The incoming message event.
+            req: The provider request whose tool set can be mutated.
+        """
+        umo = str(getattr(event, "unified_msg_origin", "") or "")
+        if not any(marker in umo.casefold() for marker in ("qq_sujinyan", "aiocqhttp")):
+            return
+        tools = getattr(req, "func_tool", None)
+        if tools is None:
+            return
+        removed: list[str] = []
+        for name in DANGEROUS_TOOLS:
+            try:
+                if tools.get_tool(name) is not None:
+                    tools.remove_tool(name)
+                    removed.append(name)
+            except Exception:
+                continue
+        if removed:
+            logger.warning(
+                "[安全策略] 已从 QQ 私聊工具白名单移除代码执行工具: %s",
+                ", ".join(removed),
+            )
 
     async def _switch_provider(self, provider_id: str) -> bool:
         try:

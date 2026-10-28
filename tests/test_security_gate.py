@@ -34,6 +34,13 @@ class FakeFilter:
 
         return decorator
 
+    @staticmethod
+    def on_llm_request(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
 
 class FakeEventMessageType:
     ALL = 1
@@ -61,6 +68,17 @@ class FakeEvent:
         self.stopped = True
 
 
+class FakeToolSet:
+    def __init__(self) -> None:
+        self.tools = {"astrbot_execute_python", "astrbot_execute_shell"}
+
+    def get_tool(self, name: str):
+        return object() if name in self.tools else None
+
+    def remove_tool(self, name: str) -> None:
+        self.tools.discard(name)
+
+
 def load_plugin(monkeypatch):
     astrbot = types.ModuleType("astrbot")
     astrbot.logger = types.SimpleNamespace(warning=lambda *a, **k: None)
@@ -75,6 +93,10 @@ def load_plugin(monkeypatch):
     event.filter = FakeFilter()
     event.EventMessageType = FakeEventMessageType
     monkeypatch.setitem(sys.modules, "astrbot.api.event", event)
+
+    provider = types.ModuleType("astrbot.api.provider")
+    provider.ProviderRequest = object
+    monkeypatch.setitem(sys.modules, "astrbot.api.provider", provider)
 
     star = types.ModuleType("astrbot.api.star")
     star.Context = object
@@ -129,6 +151,11 @@ def test_benign_text_is_not_blocked(monkeypatch, tmp_path) -> None:
     asyncio.run(module.SecurityGatePlugin(None).inspect_incoming(event))
 
     assert event.stopped is False
+
+    toolset = FakeToolSet()
+    request = types.SimpleNamespace(func_tool=toolset)
+    asyncio.run(module.SecurityGatePlugin(None).strip_dangerous_tools(event, request))
+    assert toolset.tools == set()
 
 
 def test_unknown_platform_fails_closed(monkeypatch, tmp_path) -> None:
