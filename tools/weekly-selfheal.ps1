@@ -1,8 +1,8 @@
-﻿$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Continue'
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\weekly-selfheal.log'
 $memoryFile = Join-Path $root 'tools\weekly-selfheal-memory.jsonl'
-$gameModeLog = Join-Path $root 'tools\game-mode.log'
+$gameModeLog = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹\game-mode.log'
 $gameList = Join-Path $root 'tools\game-list.txt'
 $tempDir = Join-Path $root 'AstrBot\data\temp'
 

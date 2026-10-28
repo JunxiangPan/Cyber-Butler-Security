@@ -1,8 +1,10 @@
 # One-shot elevated ACL hardening for the SYSTEM Broker runtime.
 # Run only during deployment, from an elevated PowerShell, after testing.
-# This intentionally removes inherited write access from the desktop user.
+# This intentionally removes inherited write access and grants the desktop
+# account read/execute only, so game-mode can still load its script.
 param(
-    [string]$ServiceUser = 'YOUR_SERVICE_USER'
+    [string]$ServiceUser = 'YOUR_SERVICE_USER',
+    [string]$DesktopUser = 'YOUR_USER_NAME'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +24,8 @@ foreach ($path in $paths) {
     icacls.exe $path /inheritance:r `
         /grant:r "SYSTEM:(OI)(CI)F" `
         /grant:r "*S-1-5-32-544:(OI)(CI)F" `
-        /grant:r "${ServiceUser}:(OI)(CI)RX" | Out-Null
+        /grant:r "${ServiceUser}:(OI)(CI)RX" `
+        /grant:r "${DesktopUser}:(OI)(CI)RX" | Out-Null
 }
 
 Write-Host 'Done. Re-run tools/verify_broker_acl.ps1 and restart the Broker.'

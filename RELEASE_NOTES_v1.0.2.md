@@ -141,3 +141,15 @@ Included:
 ## License
 
 AGPL-3.0. See [LICENSE](LICENSE) and [SECURITY.md](SECURITY.md).
+
+## Game-Mode Runtime Path Fix
+
+With `tools/` now read-only to the desktop account, game-mode runtime state was moved out of `tools/`:
+
+```text
+Desktop\大肥鱼专用文件夹\game-mode.log
+Desktop\大肥鱼专用文件夹\game-list.auto.txt
+Desktop\大肥鱼专用文件夹\game-library.auto.txt
+```
+
+The old `tools/game-mode.log` is migrated on upgrade. The desktop account is granted read/execute on `tools/` and `AstrBot/.venv` (not write), so game-mode and weekly self-heal can still load their scripts.
