@@ -36,6 +36,7 @@ if (-not (Test-Path -LiteralPath $RuntimeDir)) {
     New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
 }
 $LogFile = Join-Path $RuntimeDir "game-mode.log"
+$StateFile = Join-Path $RuntimeDir "game-mode.state.json"
 $MutexName = "Local\AstrBotGameMode"
 $OllamaApi = "http://127.0.0.1:11434"
 # After the 2026-10-28 service migration AstrBot runs as YOUR_SERVICE_USER from a
@@ -814,17 +815,12 @@ function Stop-OllamaModel {
         return
     }
 
-    $exe = Get-OllamaExe
-    if ($exe) {
-        Write-Log ("Stopping Ollama model: {0}" -f $Model)
-        & $exe stop $Model 2>&1 | Out-Null
-        Write-Log ("ollama stop exit code: {0}" -f $LASTEXITCODE)
-    } else {
-        Write-Log "ollama.exe not found; using HTTP unload only"
-    }
+    # Use the HTTP API only. The old synchronous `ollama stop` child process
+    # could be terminated together with the parent console (0xC000013A) and
+    # leave the monitor dead after GAME MODE ON; the HTTP keep_alive=0 call is
+    # sufficient to unload the model.
+    Write-Log ("Stopping Ollama model via HTTP: {0}" -f $Model)
 
-    # Always send keep_alive=0 as well. It covers a stale CLI path or a model
-    # that another client kept resident, and it is independent of AstrBot.
     try {
         $body = @{
             model = $Model
@@ -903,6 +899,15 @@ function Enter-GameMode {
     param($Games)
     $names = ($Games | ForEach-Object { "{0}({1})" -f $_.Name, $_.Id }) -join ", "
     Write-Log ("GAME MODE ON. Detected: {0}" -f $names)
+    try {
+        @{
+            active = $true
+            started_at = (Get-Date).ToString("o")
+            games = @($Games | ForEach-Object { @{ name = $_.Name; id = $_.Id } })
+        } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $StateFile -Encoding UTF8
+    } catch {
+        Write-Log ("State write failed: {0}" -f $_.Exception.Message)
+    }
     $script:LastGameSeen = Get-Date
     $script:GameProviderActive = Set-ChatProvider -ProviderId $ApiProvider
     if (-not $script:GameProviderActive) {
@@ -915,6 +920,14 @@ function Enter-GameMode {
 
 function Exit-GameMode {
     Write-Log "GAME MODE OFF. Restoring AstrBot priority and waking the model."
+    try {
+        @{
+            active = $false
+            ended_at = (Get-Date).ToString("o")
+        } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $StateFile -Encoding UTF8
+    } catch {
+        Write-Log ("State write failed: {0}" -f $_.Exception.Message)
+    }
     Set-AstrBotPriority -Low $false
     $woke = Wake-OllamaModel
     if ($woke) {

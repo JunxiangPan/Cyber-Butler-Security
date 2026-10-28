@@ -153,3 +153,9 @@ Desktop\大肥鱼专用文件夹\game-library.auto.txt
 ```
 
 The old `tools/game-mode.log` is migrated on upgrade. The desktop account is granted read/execute on `tools/` and `AstrBot/.venv` (not write), so game-mode and weekly self-heal can still load their scripts.
+
+## Game-Mode Exit Recovery
+
+- The monitor writes a shared state file on `GAME MODE ON` and clears it on `GAME MODE OFF`.
+- A `Game Mode Watchdog` task runs every minute. If the monitor process disappears, state is still active, and no game is running, it runs `-RestoreOnly`, reloads the model, and switches back to `local_qwen36`.
+- Model unload now uses only the Ollama HTTP API; the synchronous `ollama stop` child was removed because the monitor was found terminated with `0xC000013A` after `GAME MODE ON`.
