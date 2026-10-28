@@ -1,4 +1,4 @@
-# Recover a stale game-mode state if the monitor process was terminated.
+﻿# Recover a stale game-mode state if the monitor process was terminated.
 # Intended to run every minute from Task Scheduler as the desktop user.
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -36,6 +36,11 @@ if ($listOutput -notmatch 'No game processes detected') {
 Write-WatchdogLog 'monitor is gone and no game is detected; running RestoreOnly'
 $restoreOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $gameScript -RestoreOnly 2>&1 | Out-String)
 $restoreOutput.Trim() | ForEach-Object { Write-WatchdogLog $_ }
+
+if ($restoreOutput -notmatch 'Restore-only finished') {
+    Write-WatchdogLog 'RestoreOnly did not finish; keeping state active for the next check'
+    exit 1
+}
 
 try {
     @{
