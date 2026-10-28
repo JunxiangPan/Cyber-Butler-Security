@@ -142,16 +142,18 @@ $root = 'YOUR_PROJECT_PATH'
 takeown.exe /f "$root\tools" /a /r /d Y
 takeown.exe /f "$root\AstrBot\.venv" /a /r /d Y
 
-# 2) Broker runs as SYSTEM; the AstrBot service account only needs read/execute.
+# 2) Broker runs as SYSTEM; AstrBot and the desktop user need read/execute only.
 icacls.exe "$root\tools" /inheritance:r `
   /grant:r "SYSTEM:(OI)(CI)F" `
   /grant:r "*S-1-5-32-544:(OI)(CI)F" `
-  /grant:r "YOUR_SERVICE_USER:(OI)(CI)RX"
+  /grant:r "YOUR_SERVICE_USER:(OI)(CI)RX" `
+  /grant:r "YOUR_USER_NAME:(OI)(CI)RX"
 
 icacls.exe "$root\AstrBot\.venv" /inheritance:r `
   /grant:r "SYSTEM:(OI)(CI)F" `
   /grant:r "*S-1-5-32-544:(OI)(CI)F" `
-  /grant:r "YOUR_SERVICE_USER:(OI)(CI)RX"
+  /grant:r "YOUR_SERVICE_USER:(OI)(CI)RX" `
+  /grant:r "YOUR_USER_NAME:(OI)(CI)RX"
 ```
 
 The repository also provides:
