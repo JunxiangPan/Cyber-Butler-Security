@@ -1,0 +1,24 @@
+{
+  "_comment": "Pro deployment profile for a machine with a local Ollama model. This is a project profile, not a full AstrBot cmd_config.json. Replace YOUR_* values.",
+  "profile": "pro",
+  "local_model_enabled": true,
+  "fallback_to_cloud": true,
+  "ollama": {
+    "enabled": true,
+    "base_url": "http://127.0.0.1:11434",
+    "model": "YOUR_LOCAL_MODEL",
+    "context_tokens": 24576
+  },
+  "providers": {
+    "local": "local_qwen36",
+    "cloud": "deepseek"
+  },
+  "hardware": {
+    "recommended_vram_gb": 24,
+    "minimum_vram_gb": 16
+  },
+  "notes": [
+    "Ollama 11434 unreachable at startup -> local chat falls back to DeepSeek",
+    "Game mode skips model unload/reload when Ollama is not running"
+  ]
+}

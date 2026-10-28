@@ -1,0 +1,8 @@
+name: astrbot_plugin_totp_broker
+display_name: TOTP 高危文件 Broker
+desc: AI 只能提交删除/覆盖请求；SYSTEM broker 通过 QQ 要求主人输入 TOTP 动态码后才执行。
+help: 需要 tools/broker.py 以 SYSTEM 运行；二维码在桌面“苏瑾言TOTP.png”。
+version: v1.0.0
+author: local
+support_platforms:
+  - aiocqhttp

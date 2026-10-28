@@ -1,0 +1,8 @@
+name: astrbot_plugin_security_gate
+display_name: 双向提示词注入门禁
+desc: 主人 YOUR_QQ_ID 完全放行；其他 QQ 用户命中提示词注入、桌面/命令访问、删除等特征时，在进入 LLM 前直接拦截并记录日志。
+help: 无需配置。日志：AstrBot/data/security-gate.log
+version: v1.0.0
+author: local
+support_platforms:
+  - aiocqhttp
