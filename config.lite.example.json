@@ -1,0 +1,24 @@
+{
+  "_comment": "Lite API-only deployment profile: no Ollama, no local model, no GPU required. This is a project profile, not a full AstrBot cmd_config.json.",
+  "profile": "lite",
+  "local_model_enabled": false,
+  "fallback_to_cloud": true,
+  "ollama": {
+    "enabled": false,
+    "base_url": "",
+    "model": ""
+  },
+  "providers": {
+    "local": "",
+    "cloud": "deepseek"
+  },
+  "hardware": {
+    "recommended_vram_gb": 0,
+    "minimum_vram_gb": 0
+  },
+  "notes": [
+    "All chat is served by DeepSeek API",
+    "Game mode unload/reload is a no-op",
+    "ACL, Broker, TOTP, file egress and audit still apply"
+  ]
+}

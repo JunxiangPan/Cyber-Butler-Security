@@ -1,0 +1,8 @@
+name: astrbot_plugin_weather_tools
+display_name: 天气工具
+desc: 用 Open-Meteo 查新加坡/上海或任意城市的实时天气、未来三天降雨概率，并支持切换常驻城市。无需 API Key。
+help: 默认城市新加坡，第二城市上海；说“我回上海了”会让苏瑾言切换。
+version: v1.0.0
+author: local
+support_platforms:
+  - aiocqhttp

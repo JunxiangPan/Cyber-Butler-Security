@@ -1,0 +1,8 @@
+name: astrbot_plugin_cloud_fallback
+display_name: 本地模型优雅降级
+desc: 启动时检测 Ollama 11434 与 local_qwen36 配置；不可用则把私聊会话切到 DeepSeek，并记录“未检测到本地模型，已自动切换为纯云端模式”。
+help: 无需额外配置；API-only 用户不安装 Ollama 也能启动。
+version: v1.0.0
+author: local
+support_platforms:
+  - aiocqhttp

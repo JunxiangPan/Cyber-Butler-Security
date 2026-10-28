@@ -1,0 +1,104 @@
+# Secrets and credentials
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.dpapi
+.astrbot_token
+.astrbot_ws_token
+.snowluma_token
+broker_token.txt
+deepseek.key.dpapi
+totp_secret.dpapi
+totp_recovery.json
+qbittorrent*.txt
+*password*
+*secret*.txt
+
+# Runtime configuration
+*.json
+**/config.json
+**/cmd_config.json
+AstrBot/data/config/
+AstrBot/data/plugin_data/
+AstrBot/data/cmd_config.json
+AstrBot/data/cmd_config.json.*
+tools/snowluma_guard.json
+tools/api-lock-state.json
+
+# Databases and indexes
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.index
+*.bin
+*.gguf
+*.safetensors
+
+# AstrBot / SnowLuma runtime data
+AstrBot/data/
+data/
+**/data/plugin_data/
+**/logs/
+**/log/
+SnowLuma/logs/
+SnowLuma/data/
+SnowLuma/config/
+
+# Runtime state and generated files
+tools/broker/
+tools/playwright-profile/
+tools/playwright-output/
+tools/playwright-qa-profile/
+tools/playwright-qa-output/
+tools/*.log
+tools/*.jsonl
+tools/*.txt
+tools/*.png
+tools/*.jpg
+tools/*.zip
+tools/*.exe
+tools/*.dll
+tools/ffmpeg-*/
+tools/playwright-mcp/
+tools/qwen36-base.gguf
+backups/
+downloads/
+tmp*
+temp/
+AstrBot/data/temp/
+AstrBot/data/task_dbs/
+
+# Environments / dependencies
+.venv/
+**/.venv/
+venv/
+node_modules/
+**/node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Local test artifacts
+*.log
+logs-*.txt
+qz.out
+openapi_tmp.json
+audit_*.json
+test-*.txt
+
+# Deployment profile templates (safe, no secrets)
+!config.pro.example.json
+!config.lite.example.json

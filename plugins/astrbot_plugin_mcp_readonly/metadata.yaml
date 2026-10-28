@@ -1,0 +1,8 @@
+name: astrbot_plugin_mcp_readonly
+display_name: MCP 浏览器只读约束
+desc: 在 Playwright MCP 连接后，持续停用点击、输入、脚本执行、上传等写入类工具，只保留导航、快照和截图。
+help: 无需配置。只对 browser_* 工具生效。
+version: v1.0.0
+author: local
+support_platforms:
+  - aiocqhttp
