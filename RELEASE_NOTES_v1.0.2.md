@@ -159,3 +159,10 @@ The old `tools/game-mode.log` is migrated on upgrade. The desktop account is gra
 - The monitor writes a shared state file on `GAME MODE ON` and clears it on `GAME MODE OFF`.
 - A `Game Mode Watchdog` task runs every minute. If the monitor process disappears, state is still active, and no game is running, it runs `-RestoreOnly`, reloads the model, and switches back to `local_qwen36`.
 - Model unload now uses only the Ollama HTTP API; the synchronous `ollama stop` child was removed because the monitor was found terminated with `0xC000013A` after `GAME MODE ON`.
+
+## Silent Watchdog (No Console Flash)
+
+- The scheduled task now launches `wscript.exe` with `game-mode-watchdog.vbs` instead of calling `powershell.exe` directly.
+- The VBS uses `WScript.Shell.Run(..., 0, True)`: window style 0, hidden, and waits for the PowerShell watchdog to finish so Task Scheduler does not kill the recovery child.
+- The task is registered with `Hidden=True`.
+- Verified: the scheduled task runs, recovery starts and finishes, state returns to `active=false`, and the model/provider are restored.
