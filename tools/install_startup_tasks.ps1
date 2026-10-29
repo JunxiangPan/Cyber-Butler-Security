@@ -16,7 +16,7 @@ function Install-Task([string]$name, [string]$exe, [string]$args, [string]$workd
     Log ("installed " + $name)
 }
 
-Install-Task 'SnowLuma Startup' 'cmd.exe' ('/c "{0}"' -f (Join-Path $root 'start-bot.bat')) $root 'SnowLuma + guardian as YOUR_USER_NAME at logon'
+Install-Task 'SnowLuma Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\start-snowluma.ps1')) (Join-Path $root 'tools') 'SnowLuma + guardian as YOUR_USER_NAME at logon'
 Install-Task 'Ollama Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\start-ollama.ps1')) (Join-Path $root 'tools') 'Ollama + local model at logon'
 Install-Task 'Game Mode Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor as YOUR_USER_NAME at logon'
 

@@ -704,7 +704,7 @@ function Ensure-AstrBot {
         return $false
     }
 
-    # A process may already be booting (start-bot.bat); do not launch a duplicate.
+    # A process may already be booting (SnowLuma Startup); do not launch a duplicate.
     $procs = @(Get-AstrBotProcesses)
     if ($procs.Count -gt 0) {
         if (-not $script:AstrBotProcessWaitLogged) {

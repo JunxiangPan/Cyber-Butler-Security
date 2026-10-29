@@ -5,7 +5,6 @@ import json
 import os
 import re
 import shlex
-import time
 import uuid
 import asyncio
 from pathlib import Path
@@ -93,10 +92,6 @@ TOTP_ARCHIVE_SUFFIXES = {".zip", ".rar", ".7z", ".tar", ".gz", ".tgz"}
 TOTP_SESSION_SENDS: dict[str, dict] = {}
 TOTP_MAX_SENDS = 5
 TOTP_MAX_BYTES = 50 * 1024 * 1024
-
-
-def _totp_session_key(session: str) -> str:
-    return str(session or "")
 
 
 def _totp_file_owner(path: Path) -> str:
