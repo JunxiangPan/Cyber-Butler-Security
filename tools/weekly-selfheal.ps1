@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Continue'
+﻿$ErrorActionPreference = 'Continue'
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\weekly-selfheal.log'
 $memoryFile = Join-Path $root 'tools\weekly-selfheal-memory.jsonl'

@@ -1,4 +1,4 @@
-# Launch the long-running game-mode monitor as a detached child.
+﻿# Launch the long-running game-mode monitor as a detached child.
 # The scheduled task can then end successfully (LastTaskResult=0) without
 # keeping a long-running PowerShell process inside the task instance.
 $ErrorActionPreference = 'Stop'

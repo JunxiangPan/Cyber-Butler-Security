@@ -1,4 +1,4 @@
-# Fail-closed check for the SYSTEM Broker runtime.
+﻿# Fail-closed check for the SYSTEM Broker runtime.
 # Run from tools/broker.py startup, and also manually before deploying.
 param(
     [string]$ServiceUser = 'YOUR_SERVICE_USER'
