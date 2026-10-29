@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.3.1",
+  "version": "1.3.2",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -19,8 +19,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "95b9498053779002b0c1c0c4676dc918ccf15f616c5882230b2a690ea5d90593",
-      "size": 22434
+      "sha256": "1b61e33781156a7b8aca1fc7dae5840f462d86c0e7570c93ae35b316bff31e6a",
+      "size": 22533
     },
     {
       "path": "README_de.md",
@@ -143,13 +143,18 @@
       "size": 1643
     },
     {
+      "path": "RELEASE_NOTES_v1.3.2.md",
+      "sha256": "1991c5a04216a5ee3d275db22223b25acca33bf650f7440b9545804ab22ba209",
+      "size": 3320
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "10e2e117b01523891ca271a615ae36e9d5e52348fd7d642f66727602c1b8dcbe",
+      "sha256": "33158972a53877b421cfe2598b8d93cab169963a4964b45ee889e85349979018",
       "size": 6
     },
     {
@@ -358,6 +363,11 @@
       "size": 1195
     },
     {
+      "path": "tests/test_email_approval.py",
+      "sha256": "3f6eabbe47d2b6d9c70f98f8d43d636dd4bf43e539c156af26122bc30dbc017f",
+      "size": 907
+    },
+    {
       "path": "tests/test_media_bypass.py",
       "sha256": "9610806d36c72f49c20d39d8463a1236646a2027e8853f159f840148a28d09e2",
       "size": 1049
@@ -409,8 +419,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "c1ae82085cace1f5b992dd9d76e7d93f10efe93d23b9dc86f8f379d065ab9bb6",
-      "size": 24430
+      "sha256": "3edae87777b50de1d51aed9bf728342574ab7f625cdef70c73191b9e766af24b",
+      "size": 31694
     },
     {
       "path": "tools/build_update_manifest.py",
@@ -434,8 +444,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "e7b5108c0ab89552c5bdb45e2e4accd102cd82c6cc318041b61bb0bbb4aba8cb",
-      "size": 83784
+      "sha256": "07454818aa9b60bf140ec87aca7c745e0f28195e5d49f3f6e58eba55eeec6959",
+      "size": 85294
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -469,8 +479,8 @@
     },
     {
       "path": "tools/dashboard_errors.ps1",
-      "sha256": "9cdefce917643fbcb41be08e830b4538342af4a1b9dc50d602d0762da3a5fecd",
-      "size": 4236
+      "sha256": "6dca5dd10a6ed2bc39584db293fbcea448a53d32602894aaf6f3838abb82bd66",
+      "size": 4578
     },
     {
       "path": "tools/dashboard_game.ps1",
@@ -484,8 +494,8 @@
     },
     {
       "path": "tools/dashboard_modules.ps1",
-      "sha256": "5f1a56cc71bef82bc3ac5662c8c526274b9024507234d63169546f3edc229e7a",
-      "size": 12702
+      "sha256": "0c15e5deb86d63c02e67b31d2524d635d587216ff11284cdb8a41fc669def3bf",
+      "size": 15648
     },
     {
       "path": "tools/dashboard_persona.ps1",
@@ -566,6 +576,16 @@
       "path": "tools/dashboard_theme_light.xaml",
       "sha256": "67f4731bec1e544992cb23a7723cf9d6dd38115245f56ccbb4e8cc5412ad8708",
       "size": 1009
+    },
+    {
+      "path": "tools/email_approval.py",
+      "sha256": "9e0abf56cee3373f8a4e49d7c41cdfda7b3ea9b63c8c71ec77379a66758e0921",
+      "size": 5882
+    },
+    {
+      "path": "tools/email_secret_bridge.ps1",
+      "sha256": "6f9ffb0ef3664801a6cd36050095cebf5bbb3a4335c0f4fc7d64794a2574bb78",
+      "size": 850
     },
     {
       "path": "tools/game-mode-watchdog.ps1",
@@ -693,9 +713,29 @@
       "size": 2668
     },
     {
+      "path": "tools/send_email_stdin.py",
+      "sha256": "ac13efc2d25f0948bbce8d1aee04069e7f6f3dc7d9ececca852b1764a71d1caf",
+      "size": 1341
+    },
+    {
+      "path": "tools/send_email_test.py",
+      "sha256": "e5b20154d5951a4c1b18381e681b97f16e6fd3dbfc48f67475c78d89affd1303",
+      "size": 2462
+    },
+    {
+      "path": "tools/setup_email_secret.ps1",
+      "sha256": "5dbd24ef61cf2b905e6e1e1feb6fd0348e8d8fba8ee6a78ab6959c6252840449",
+      "size": 5625
+    },
+    {
       "path": "tools/setup_totp.py",
       "sha256": "d4b7abffd8ad5a4fdcb62df09da7b5bac14f2eb545d22ca2cc2380c579aee5ae",
       "size": 2867
+    },
+    {
+      "path": "tools/sign_release.py",
+      "sha256": "12e6e70120fcd877fd1ee0dad0571d328823e1571454a5edadfdabcca1104b6d",
+      "size": 1093
     },
     {
       "path": "tools/snowluma_guard.py",
@@ -739,8 +779,8 @@
     },
     {
       "path": "tools/update_merge.ps1",
-      "sha256": "1ed442e3f93f677f840c980b1d52701253e23628c5e785f2fd7f889af15f35bb",
-      "size": 25191
+      "sha256": "803467c5a8c5266b79a6c004fe519e508b6b01b6b1e04e8069acc3ed0e594265",
+      "size": 25789
     },
     {
       "path": "tools/update_merge_core.py",
@@ -751,6 +791,11 @@
       "path": "tools/verify_broker_acl.ps1",
       "sha256": "b6f9bc2beb62e1b0f6b39ab36df5b857697d526c8c6571c29e144a10740effa3",
       "size": 2384
+    },
+    {
+      "path": "tools/verify_release.py",
+      "sha256": "7444085d621eae69b01964040f78446f0aa676c5092b47c136f4f3beae97b929",
+      "size": 1196
     },
     {
       "path": "tools/weekly-selfheal.ps1",
