@@ -884,8 +884,8 @@
     },
     {
       "path": "webui/otp_mailer.py",
-      "sha256": "02a6c0c367c7e9a7b7e31a0d9b1d7841d2b52d53fbacab50bbf15e2d46ed0be4",
-      "size": 5937
+      "sha256": "9dc72beab9120a003871dc87b81c3ef5af539831541ccbf64414c6461051af74",
+      "size": 5953
     },
     {
       "path": "webui/requirements.txt",
