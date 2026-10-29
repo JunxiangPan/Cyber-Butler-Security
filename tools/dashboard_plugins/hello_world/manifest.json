@@ -1,0 +1,11 @@
+{
+  "id": "hello_world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "author": "Cyber-Butler",
+  "description": "最小可用控制台模块：验证 manifest、XAML、logic.ps1 的动态加载与异常隔离。",
+  "ui": "ui.xaml",
+  "logic": "logic.ps1",
+  "requires_dashboard": ">=1.2.0",
+  "default_enabled": true
+}

@@ -105,3 +105,6 @@ test-*.txt
 
 # Release update manifest
 !update-manifest.json
+
+# Dashboard module manifests are source, not runtime state
+!tools/dashboard_plugins/**/manifest.json
