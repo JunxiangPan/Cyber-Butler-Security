@@ -909,8 +909,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "4d03badcffa1b1ab5f7bb9a3ed9eee16e30b24dce5a3d7a4096dc8eb9e038173",
-      "size": 20734
+      "sha256": "3e3cdf37e791b09f7147921b9910890ee651ff01ff5bf37bfb3eded1eacc4ae4",
+      "size": 20489
     },
     {
       "path": "webui/static/error.js",
