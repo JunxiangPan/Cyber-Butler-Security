@@ -59,7 +59,7 @@ class AuthService:
         self.mailer = mailer
         self.limiter = RateLimiter()
 
-    async def request_otp(self, email: str, ip: str) -> None:
+    async def request_otp(self, email: str, ip: str, lang: str = "zh") -> None:
         email = email.strip().lower()
         if not self.limiter.allow("otp-ip:" + ip, 10, 300):
             raise RateLimited(300)
@@ -74,7 +74,7 @@ class AuthService:
         salt = secrets.token_hex(16)
         self.store.create_otp(email, code, salt, self.settings.otp_ttl_seconds)
         try:
-            await self.mailer.send(email, code, self.settings.otp_ttl_seconds)
+            await self.mailer.send(email, code, self.settings.otp_ttl_seconds, lang)
         except Exception as exc:
             logger.error("OTP mail delivery failed: %s", exc)
             raise MailerFailed("verification mail could not be sent") from exc

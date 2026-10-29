@@ -9,8 +9,15 @@
     localStorage.setItem("cb-theme", root.dataset.theme);
   });
 
+  const i18n = window.CBI18n;
+  if (!i18n) return;
+
   let csrf = "";
   let filePath = "";
+  let lastExpiry = 0;
+  let lastFileItem = null;
+  let statusState = { key: "", text: "", vars: null, kind: "" };
+  const tempHistory = { cpu: [], gpu: [] };
   const $ = (id) => document.getElementById(id);
   const account = $("accountEmail");
   const serviceList = $("serviceList");
@@ -21,7 +28,25 @@
   const chatStatus = $("chatStatus");
   const chatSend = $("chatSend");
   const chatLog = $("chatLog");
-  const tempHistory = { cpu: [], gpu: [] };
+
+  const CODE_KEYS = {
+    "chat.rate_limited": "chat.error.rate",
+    "chat.failed": "chat.error.failed",
+    "chat.empty": "chat.error.empty",
+    "files.denied": "files.error.denied",
+    "files.too_large": "files.error.tooLarge",
+    "files.blocked": "files.error.blocked",
+    "files.not_found": "files.error.notFound",
+    "auth.rate_limited": "auth.error.rate",
+    "auth.invalid_code": "auth.error.codeInvalid",
+    "auth.csrf_invalid": "chat.error.notReady",
+    "service.status_failed": "app.failed",
+    "service.temps_failed": "app.failed",
+    "service.plugins_failed": "app.failed",
+    "service.logs_failed": "dash.log.failed",
+    "service.usage_failed": "app.failed",
+    "service.backups_failed": "app.failed",
+  };
 
   const redirectIfUnauthorized = (response) => {
     if (response.status === 401) {
@@ -42,16 +67,56 @@
     if (node) node.textContent = value;
   };
 
-  const fmtTime = (epoch) => {
-    if (!epoch) return "—";
-    return new Date(epoch * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const errorText = (data, fallbackKey) => {
+    const mapped = data && data.code ? CODE_KEYS[data.code] : "";
+    if (mapped) return i18n.t(mapped);
+    if (data && data.message) return data.message;
+    return i18n.t(fallbackKey);
   };
 
-  const fmtSize = (bytes) => {
-    if (bytes == null) return "—";
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  const formatNumber = (value) => i18n.number(value);
+  const formatTime = (epochSeconds, opts = { hour: "2-digit", minute: "2-digit" }) => {
+    if (!epochSeconds) return i18n.t("app.none");
+    return i18n.formatDate(new Date(Number(epochSeconds) * 1000), opts);
+  };
+  const formatCost = (value) => {
+    try {
+      return new Intl.NumberFormat(i18n.locales[i18n.current], {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4,
+      }).format(Number(value));
+    } catch {
+      return Number(value).toFixed(4);
+    }
+  };
+
+  const renderStatusState = () => {
+    if (statusState.key) chatStatus.textContent = i18n.t(statusState.key, statusState.vars);
+    else chatStatus.textContent = statusState.text || "";
+    chatStatus.className = "chat-status" + (statusState.kind ? " " + statusState.kind : "");
+  };
+
+  const setChatStatus = (key, vars = null, kind = "") => {
+    statusState = { key, text: "", vars, kind };
+    renderStatusState();
+  };
+
+  const setChatError = (data, fallbackKey) => {
+    const mapped = data && data.code ? CODE_KEYS[data.code] : "";
+    if (mapped) {
+      setChatStatus(mapped, null, "error");
+    } else if (data && data.message) {
+      statusState = { key: "", text: data.message, vars: null, kind: "error" };
+      renderStatusState();
+    } else {
+      setChatStatus(fallbackKey, null, "error");
+    }
+  };
+
+  const renderSession = () => {
+    setText("sessionExpiry", lastExpiry
+      ? i18n.formatDate(new Date(lastExpiry * 1000), { dateStyle: "medium", timeStyle: "short" })
+      : i18n.t("app.none"));
   };
 
   const loadStatus = async () => {
@@ -67,11 +132,11 @@
       const label = document.createElement("span");
       label.textContent = name === "astrbot" ? "AstrBot" : name === "broker" ? "TOTP Broker" : "SnowLuma";
       const state = document.createElement("strong");
-      state.textContent = online ? "在线" : "离线";
+      state.textContent = i18n.t(online ? "dash.status.online" : "dash.status.offline");
       row.append(dot, label, state);
       serviceList.append(row);
     }
-    setText("statusUpdated", fmtTime(data.checked_at));
+    setText("statusUpdated", formatTime(data.checked_at));
   };
 
   const drawChart = () => {
@@ -85,10 +150,8 @@
       const y = height - pad - (Math.max(0, Math.min(100, value)) / 100) * plot;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(" ");
-    const cpuLine = $("cpuLine");
-    const gpuLine = $("gpuLine");
-    if (cpuLine) cpuLine.setAttribute("points", points(tempHistory.cpu));
-    if (gpuLine) gpuLine.setAttribute("points", points(tempHistory.gpu));
+    $("cpuLine")?.setAttribute("points", points(tempHistory.cpu));
+    $("gpuLine")?.setAttribute("points", points(tempHistory.gpu));
   };
 
   const loadTemps = async () => {
@@ -96,18 +159,21 @@
     const data = await getJson("/api/temps");
     if (!data) return;
     if (!data.ok) {
-      setText("tempSource", data.error ? "监控暂不可用：" + data.error : "监控暂不可用");
+      setText("tempSource", errorText(data, "dash.temp.unavailable"));
       return;
     }
-    setText("cpuValue", data.cpu == null ? "—" : data.cpu.toFixed(1) + " °C");
-    setText("gpuValue", data.gpu == null ? "—" : data.gpu.toFixed(1) + " °C");
-    setText("vramValue", data.vram_used != null && data.vram_total
-      ? `${Math.round(data.vram_used)} / ${Math.round(data.vram_total)} MB` : "—");
+    setText("cpuValue", data.cpu == null ? i18n.t("app.none") : `${formatNumber(Number(data.cpu).toFixed(1))} °C`);
+    setText("gpuValue", data.gpu == null ? i18n.t("app.none") : `${formatNumber(Number(data.gpu).toFixed(1))} °C`);
+    setText("vramValue", data.vram_used != null && data.vram_total != null
+      ? `${formatNumber(Math.round(data.vram_used))} / ${formatNumber(Math.round(data.vram_total))} ${i18n.t("app.mb")}`
+      : i18n.t("app.none"));
     if (data.cpu != null) { tempHistory.cpu.push(Number(data.cpu)); if (tempHistory.cpu.length > 30) tempHistory.cpu.shift(); }
     if (data.gpu != null) { tempHistory.gpu.push(Number(data.gpu)); if (tempHistory.gpu.length > 30) tempHistory.gpu.shift(); }
     drawChart();
-    setText("tempSource", (data.source || "传感器") + (data.gpu_load != null ? ` · GPU 占用 ${Math.round(data.gpu_load)}%` : ""));
-    setText("tempsUpdated", new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    const source = data.source || i18n.t("dash.temp.sourceFallback");
+    const load = data.gpu_load != null ? " · " + i18n.t("dash.temp.gpuLoad", { percent: formatNumber(Math.round(data.gpu_load)) }) : "";
+    setText("tempSource", source + load);
+    setText("tempsUpdated", i18n.formatDate(new Date(), { hour: "2-digit", minute: "2-digit" }));
   };
 
   const loadUsage = async () => {
@@ -115,20 +181,28 @@
     const data = await getJson("/api/usage");
     if (!data) return;
     if (!data.ok) {
-      setText("usageTokens", "读取失败");
+      setText("usageTokens", i18n.t("app.failed"));
       return;
     }
-    setText("usageTokens", Number(data.tokens || 0).toLocaleString());
-    setText("usageCalls", Number(data.calls || 0).toLocaleString());
-    setText("usageCost", data.pricing_configured ? "$" + Number(data.cost || 0).toFixed(4) : "未配置");
-    setText("usagePricingNote", data.pricing_configured ? "按配置费率估算" : "未配置：" + (data.unpriced || []).join(" / "));
+    setText("usageTokens", formatNumber(data.tokens || 0));
+    setText("usageCalls", i18n.t("dash.card.tokenNote", { calls: formatNumber(data.calls || 0) }));
+    if (data.pricing_configured) {
+      setText("usageCost", "$" + formatCost(data.cost || 0));
+      setText("usagePricingNote", i18n.t("dash.card.costNote"));
+    } else {
+      setText("usageCost", i18n.t("dash.card.costUnconfigured"));
+      setText("usagePricingNote", i18n.t("dash.card.costUnpriced", { providers: (data.unpriced || []).join(" / ") }));
+    }
     const providers = $("usageProviders");
     if (providers) {
       providers.replaceChildren();
       for (const item of data.providers || []) {
         const row = document.createElement("div");
         row.className = "usage-provider-row";
-        row.textContent = `${item.provider}: ${Number(item.tokens || 0).toLocaleString()} tokens`;
+        row.textContent = i18n.t("dash.usage.provider", {
+          provider: item.provider,
+          tokens: formatNumber(item.tokens || 0),
+        });
         providers.append(row);
       }
     }
@@ -140,24 +214,24 @@
     if (!data) return;
     pluginList.replaceChildren();
     if (!data.ok) {
-      setText("pluginCount", "读取失败");
+      setText("pluginCount", i18n.t("app.failed"));
       return;
     }
-    setText("pluginCount", `${data.count} 个`);
+    setText("pluginCount", i18n.t("dash.plugin.count", { count: formatNumber(data.count || 0) }));
     for (const item of (data.plugins || []).slice(0, 10)) {
       const li = document.createElement("li");
       const name = document.createElement("span");
-      name.textContent = item.display_name || item.name || "未命名";
+      name.textContent = item.display_name || item.name || i18n.t("dash.plugin.unnamed");
       const status = document.createElement("em");
       status.className = item.activated ? "on" : "off";
-      status.textContent = item.activated ? "启用" : "停用";
+      status.textContent = i18n.t(item.activated ? "dash.plugin.enabled" : "dash.plugin.disabled");
       li.append(name, status);
       pluginList.append(li);
     }
     if (!pluginList.children.length) {
       const li = document.createElement("li");
       li.className = "muted-line";
-      li.textContent = "没有插件数据";
+      li.textContent = i18n.t("dash.plugin.empty");
       pluginList.append(li);
     }
   };
@@ -168,10 +242,12 @@
     const data = await getJson(`/api/logs?name=${encodeURIComponent(name)}&lines=80`);
     if (!data) return;
     if (!data.ok) {
-      logView.textContent = "日志读取失败";
+      logView.textContent = errorText(data, "dash.log.failed");
       return;
     }
-    logView.textContent = data.available ? (data.lines.join("\n") || "（空）") : "日志文件不存在";
+    logView.textContent = data.available
+      ? (data.lines.join("\n") || i18n.t("dash.log.empty"))
+      : i18n.t("dash.log.missing");
     logView.scrollTop = logView.scrollHeight;
   };
 
@@ -180,25 +256,25 @@
     const data = await getJson("/api/backups");
     const list = $("backupList");
     if (!data || !data.ok || !list) {
-      setText("backupTotal", "读取失败");
+      setText("backupTotal", i18n.t("app.failed"));
       return;
     }
     list.replaceChildren();
-    setText("backupTotal", data.available ? fmtSize(data.total) : "无备份目录");
+    setText("backupTotal", data.available ? i18n.formatSize(data.total) : i18n.t("dash.backup.noDir"));
     for (const item of (data.items || []).slice(0, 12)) {
       const li = document.createElement("li");
       const name = document.createElement("span");
       name.textContent = item.name;
       name.title = item.name;
       const meta = document.createElement("em");
-      meta.textContent = `${item.kind === "directory" ? "目录" : "文件"} · ${fmtSize(item.size)}`;
+      meta.textContent = `${i18n.t(item.kind === "directory" ? "dash.backup.dir" : "dash.backup.file")} · ${i18n.formatSize(item.size)}`;
       li.append(name, meta);
       list.append(li);
     }
     if (!list.children.length) {
       const li = document.createElement("li");
       li.className = "muted-line";
-      li.textContent = "没有备份";
+      li.textContent = i18n.t("dash.backup.empty");
       list.append(li);
     }
   };
@@ -209,10 +285,24 @@
     const banner = $("securityBanner");
     if (!data || !banner) return;
     if (data.available && data.pending) {
-      const action = data.action === "delete" ? "删除" : data.action === "overwrite" ? "覆盖" : "发送";
-      const target = data.target_name ? `：${data.target_name}` : "";
-      const channel = data.channel === "email" ? "邮件审批" : "TOTP";
-      $("securityDetail").textContent = `${action}${target} · ${channel} · 剩余 ${data.remaining_seconds}s`;
+      const actions = {
+        delete: i18n.t("dash.security.action.delete"),
+        overwrite: i18n.t("dash.security.action.overwrite"),
+        send: i18n.t("dash.security.action.send"),
+      };
+      const channels = {
+        email: i18n.t("dash.security.channel.email"),
+        qq: i18n.t("dash.security.channel.qq"),
+      };
+      const target = data.target_name
+        ? i18n.t("dash.security.target", { target: data.target_name })
+        : "";
+      setText("securityDetail", i18n.t("dash.security.detail", {
+        action: actions[data.action] || actions.send,
+        target,
+        channel: channels[data.channel] || channels.qq,
+        seconds: formatNumber(data.remaining_seconds || 0),
+      }));
       banner.hidden = false;
     } else {
       banner.hidden = true;
@@ -232,18 +322,15 @@
   const sendChatMessage = async (message) => {
     const text = String(message || "").trim();
     if (!text) {
-      chatStatus.textContent = "先写一句话再发送。";
-      chatStatus.className = "chat-status error";
+      setChatStatus("chat.error.empty", null, "error");
       return;
     }
     if (!csrf) {
-      chatStatus.textContent = "会话未就绪，请刷新页面。";
-      chatStatus.className = "chat-status error";
+      setChatStatus("chat.error.notReady", null, "error");
       return;
     }
     chatSend.disabled = true;
-    chatStatus.textContent = "发送中…";
-    chatStatus.className = "chat-status";
+    setChatStatus("chat.sending");
     try {
       const response = await fetch("/api/chat/send", {
         method: "POST",
@@ -253,18 +340,15 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) {
-        chatStatus.textContent = data.message || "发送失败，请稍后再试。";
-        chatStatus.className = "chat-status error";
+        setChatError(data, "chat.error.failed");
         return;
       }
       appendBubble(text);
       chatText.value = "";
-      chatCount.textContent = "0 / 500";
-      chatStatus.textContent = "已发送。苏瑾言会在 QQ 回复你。";
-      chatStatus.className = "chat-status ok";
+      chatCount.textContent = i18n.t("chat.count", { count: formatNumber(0) });
+      setChatStatus("chat.sent", null, "ok");
     } catch {
-      chatStatus.textContent = "网络异常，请稍后再试。";
-      chatStatus.className = "chat-status error";
+      setChatStatus("chat.error.network", null, "error");
     } finally {
       chatSend.disabled = false;
     }
@@ -289,6 +373,13 @@
     if (modal) modal.hidden = true;
   };
 
+  const fileErrorFromResponse = (response, data) => {
+    if (data && data.code && CODE_KEYS[data.code]) return i18n.t(CODE_KEYS[data.code]);
+    if (data && data.message) return data.message;
+    if (response.status === 403) return i18n.t("files.error.denied");
+    return i18n.t("files.error");
+  };
+
   const openFile = async (item) => {
     const modal = $("fileModal");
     const title = $("fileTitle");
@@ -296,9 +387,10 @@
     const meta = $("fileMeta");
     const link = $("fileDownload");
     if (!modal || !title || !preview || !meta || !link) return;
+    lastFileItem = item;
     const url = `/api/files/download?path=${encodeURIComponent(item.path)}`;
     title.textContent = item.name;
-    meta.textContent = `${fmtSize(item.size)} · ${new Date(item.mtime * 1000).toLocaleString()}`;
+    meta.textContent = `${i18n.formatSize(item.size)} · ${i18n.t("files.modified")}: ${i18n.formatDate(new Date(item.mtime * 1000), { dateStyle: "medium", timeStyle: "short" })}`;
     link.href = url + "&download=1";
     link.setAttribute("download", item.name);
     preview.replaceChildren();
@@ -313,26 +405,26 @@
     }
     if (fileIsText(item.name)) {
       if (item.size > 1024 * 1024) {
-        preview.textContent = "文件较大，请直接下载查看。";
+        preview.textContent = i18n.t("files.preview.tooLarge");
         return;
       }
       try {
         const response = await fetch(url, { credentials: "same-origin", cache: "no-store" });
         if (redirectIfUnauthorized(response)) return;
         if (!response.ok) {
-          preview.textContent = "预览失败。";
+          const data = await response.json().catch(() => ({}));
+          preview.textContent = fileErrorFromResponse(response, data);
           return;
         }
-        const text = await response.text();
         const pre = document.createElement("pre");
-        pre.textContent = text;
+        pre.textContent = await response.text();
         preview.append(pre);
       } catch {
-        preview.textContent = "预览失败。";
+        preview.textContent = i18n.t("files.preview.failed");
       }
       return;
     }
-    preview.textContent = "此类型不支持在线预览，请使用下载按钮。";
+    preview.textContent = i18n.t("files.preview.unsupported");
   };
 
   const loadFiles = async (path) => {
@@ -351,7 +443,7 @@
     if (!response.ok || !data.ok) {
       const li = document.createElement("li");
       li.className = "muted-line";
-      li.textContent = "无法读取该目录。";
+      li.textContent = fileErrorFromResponse(response, data);
       list.append(li);
       return;
     }
@@ -369,7 +461,7 @@
       name.textContent = item.name;
       const size = document.createElement("span");
       size.className = "file-size";
-      size.textContent = item.is_dir ? "目录" : fmtSize(item.size);
+      size.textContent = item.is_dir ? i18n.t("files.dir") : i18n.formatSize(item.size);
       button.append(icon, name, size);
       button.addEventListener("click", () => {
         if (item.is_dir) loadFiles(item.path);
@@ -381,70 +473,91 @@
     if (!list.children.length) {
       const li = document.createElement("li");
       li.className = "muted-line";
-      li.textContent = "这个目录是空的，或文件类型被安全策略隐藏。";
+      li.textContent = i18n.t("files.empty");
       list.append(li);
     }
   };
 
-  $("logSelect")?.addEventListener("change", loadLogs);
-  chatText?.addEventListener("input", () => {
-    chatCount.textContent = `${chatText.value.length} / 500`;
-  });
-  chatSend?.addEventListener("click", () => sendChatMessage(chatText.value));
-  document.querySelectorAll("[data-shortcut]").forEach((button) => {
-    button.addEventListener("click", () => sendChatMessage(button.dataset.shortcut));
-  });
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    button.addEventListener("click", () => setTab(button.dataset.tab));
-  });
-  $("fileRefresh")?.addEventListener("click", () => loadFiles(filePath));
-  $("fileUp")?.addEventListener("click", () => {
-    const parts = filePath.split("/").filter(Boolean);
-    parts.pop();
-    loadFiles(parts.join("/"));
-  });
-  $("fileClose")?.addEventListener("click", closeFileModal);
-  $("fileModal")?.addEventListener("click", (event) => {
-    if (event.target === $("fileModal")) closeFileModal();
-  });
-
-  fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" })
-    .then((response) => {
-      if (redirectIfUnauthorized(response)) return null;
-      return response.json();
-    })
-    .then((data) => {
-      if (!data || !data.ok) return;
-      csrf = data.csrf;
-      account.textContent = data.email;
-      if (data.expires_at) setText("sessionExpiry", new Date(data.expires_at * 1000).toLocaleString());
-      loadStatus();
-      loadTemps();
-      loadUsage();
-      loadPlugins();
-      loadLogs();
-      loadBackups();
-      loadSecurity();
-    })
-    .catch(() => {});
-
-  document.getElementById("logoutButton")?.addEventListener("click", async () => {
-    if (!csrf) {
-      window.location.replace("/");
-      return;
+  const refreshAll = () => {
+    renderSession();
+    renderStatusState();
+    loadStatus();
+    loadTemps();
+    loadUsage();
+    loadPlugins();
+    loadLogs();
+    loadBackups();
+    loadSecurity();
+    if (!$("filesTab")?.hidden) loadFiles(filePath);
+    if (lastFileItem && !$("fileModal")?.hidden) {
+      const meta = $("fileMeta");
+      if (meta) {
+        meta.textContent = `${i18n.formatSize(lastFileItem.size)} · ${i18n.t("files.modified")}: ${i18n.formatDate(new Date(lastFileItem.mtime * 1000), { dateStyle: "medium", timeStyle: "short" })}`;
+      }
     }
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "X-CSRF-Token": csrf },
-    });
-    window.location.replace("/");
-  });
+  };
 
-  setInterval(loadStatus, 5000);
-  setInterval(loadTemps, 5000);
-  setInterval(loadSecurity, 5000);
-  setInterval(loadUsage, 60000);
-  setInterval(loadPlugins, 30000);
-  setInterval(loadBackups, 60000);
+  const initialize = async () => {
+    await (window.CBI18nReady || i18n.init());
+    window.addEventListener("cb:languagechange", refreshAll);
+    $("logSelect")?.addEventListener("change", loadLogs);
+    chatText?.addEventListener("input", () => {
+      chatCount.textContent = i18n.t("chat.count", { count: formatNumber(chatText.value.length) });
+    });
+    chatSend?.addEventListener("click", () => sendChatMessage(chatText.value));
+    document.querySelectorAll("[data-shortcut]").forEach((button) => {
+      button.addEventListener("click", () => sendChatMessage(i18n.t(button.dataset.shortcut)));
+    });
+    document.querySelectorAll(".tab-button").forEach((button) => {
+      button.addEventListener("click", () => setTab(button.dataset.tab));
+    });
+    $("fileRefresh")?.addEventListener("click", () => loadFiles(filePath));
+    $("fileUp")?.addEventListener("click", () => {
+      const parts = filePath.split("/").filter(Boolean);
+      parts.pop();
+      loadFiles(parts.join("/"));
+    });
+    $("fileClose")?.addEventListener("click", closeFileModal);
+    $("fileModal")?.addEventListener("click", (event) => {
+      if (event.target === $("fileModal")) closeFileModal();
+    });
+
+    fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" })
+      .then((response) => {
+        if (redirectIfUnauthorized(response)) return null;
+        return response.json();
+      })
+      .then((data) => {
+        if (!data || !data.ok) return;
+        csrf = data.csrf;
+        account.textContent = data.email;
+        lastExpiry = data.expires_at || 0;
+        renderSession();
+        chatCount.textContent = i18n.t("chat.count", { count: formatNumber(0) });
+        refreshAll();
+      })
+      .catch(() => {});
+
+    document.getElementById("logoutButton")?.addEventListener("click", async () => {
+      if (!csrf) {
+        window.location.replace("/");
+        return;
+      }
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf },
+      });
+      window.location.replace("/");
+    });
+
+    setInterval(loadStatus, 5000);
+    setInterval(loadTemps, 5000);
+    setInterval(loadSecurity, 5000);
+    setInterval(loadUsage, 60000);
+    setInterval(loadPlugins, 30000);
+    setInterval(loadBackups, 60000);
+  };
+
+  initialize();
 })();

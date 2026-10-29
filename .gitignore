@@ -18,6 +18,7 @@ qbittorrent*.txt
 
 # Runtime configuration
 *.json
+!webui/static/i18n/*.json
 !plugins/astrbot_plugin_webui_bridge/_conf_schema.json
 !webui/config.example.json
 **/config.json

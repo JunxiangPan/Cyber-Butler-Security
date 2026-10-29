@@ -17,7 +17,7 @@ class FakeMailer:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
 
-    async def send(self, email: str, code: str, ttl: int) -> None:
+    async def send(self, email: str, code: str, ttl: int, lang: str = "zh") -> None:
         self.sent.append((email, code))
 
 
@@ -70,7 +70,9 @@ def test_file_list_hides_executables_and_blocks_traversal(tmp_path: Path) -> Non
     assert "script.py" not in names
     assert "sub" in names
     for bad in ("..", "../", "C:/Windows/win.ini", "/etc/passwd", "sub/../../ok.txt"):
-        assert client.get("/api/files/list", params={"path": bad}).status_code == 403
+        denied = client.get("/api/files/list", params={"path": bad})
+        assert denied.status_code == 403
+        assert denied.json()["code"] == "files.denied"
     audit = (tmp_path / "data" / "files-audit.log").read_text(encoding="utf-8")
     assert "reason=" in audit
 
@@ -81,10 +83,12 @@ def test_file_download_is_read_only_and_limited(tmp_path: Path) -> None:
     ok = client.get("/api/files/download", params={"path": "ok.txt"})
     assert ok.status_code == 200
     assert ok.text == "hello"
-    assert client.get("/api/files/download", params={"path": "run.exe"}).status_code == 403
-    assert client.get("/api/files/download", params={"path": "script.py"}).status_code == 403
-    assert client.get("/api/files/download", params={"path": "big.bin"}).status_code == 403
-    assert client.get("/api/files/download", params={"path": "missing.txt"}).status_code == 403
+    blocked = client.get("/api/files/download", params={"path": "run.exe"})
+    assert blocked.status_code == 403
+    assert blocked.json()["code"] == "files.blocked"
+    assert client.get("/api/files/download", params={"path": "script.py"}).json()["code"] == "files.blocked"
+    assert client.get("/api/files/download", params={"path": "big.bin"}).json()["code"] == "files.too_large"
+    assert client.get("/api/files/download", params={"path": "missing.txt"}).json()["code"] == "files.not_found"
     assert client.post("/api/files/list").status_code == 405
 
 

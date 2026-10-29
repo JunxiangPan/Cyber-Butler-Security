@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title data-i18n="error.pageTitle"></title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/static/theme-phase2-extra.css">
+</head>
+<body class="dashboard-page" data-error-status="{{ status }}">
+  <div class="orb orb-one"></div>
+  <div class="orb orb-two"></div>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-dot"></span>
+      <span class="brand-name" data-i18n="app.name"></span>
+      <span class="brand-sub" data-i18n="app.console"></span>
+    </a>
+    <div class="top-actions">
+      <select class="language-select" data-language-select data-i18n-aria-label="app.language">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+      </select>
+      <button class="icon-button" id="themeToggle" type="button" data-i18n-aria-label="app.themeToggle">◐</button>
+    </div>
+  </header>
+  <main class="error-shell">
+    <section class="panel error-card">
+      <div class="error-code" id="errorCode">{{ status }}</div>
+      <h1 id="errorTitle"></h1>
+      <p id="errorMessage"></p>
+      <a class="primary error-back" href="/" data-i18n="error.back"></a>
+    </section>
+  </main>
+  <footer class="footer">
+    <span data-i18n="app.name"></span>
+    <span data-i18n="dash.footer"></span>
+  </footer>
+  <script src="/static/i18n.js" defer></script>
+  <script src="/static/error.js" defer></script>
+</body>
+</html>

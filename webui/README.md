@@ -72,3 +72,12 @@ next hardening step.
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests -q
 ```
+
+
+## Languages
+
+The Web UI follows the same eight-language set as the README and the WPF
+dictionary: `zh`, `en`, `ja`, `ko`, `es`, `fr`, `de`, `ru`. Locale files live
+under `webui/static/i18n/`; the selected locale is stored in
+`localStorage("cb-lang")`. OTP request bodies include `lang`, and the standalone
+mailer uses the same locale pack for the email subject and body.

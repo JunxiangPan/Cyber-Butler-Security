@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
-  <title>Cyber-Butler · 登录</title>
+  <title data-i18n="app.loginTitle"></title>
   <link rel="stylesheet" href="/static/theme.css">
 </head>
 <body class="auth-page">
@@ -14,61 +14,74 @@
   <header class="topbar">
     <a class="brand" href="/">
       <span class="brand-dot"></span>
-      <span class="brand-name">Cyber-Butler</span>
-      <span class="brand-sub">Web Console</span>
+      <span class="brand-name" data-i18n="app.name"></span>
+      <span class="brand-sub" data-i18n="app.console"></span>
     </a>
-    <button class="icon-button" id="themeToggle" type="button" aria-label="切换深色/浅色">◐</button>
+    <div class="top-actions">
+      <select class="language-select" data-language-select data-i18n-aria-label="app.language">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+      </select>
+      <button class="icon-button" id="themeToggle" type="button" data-i18n-aria-label="app.themeToggle">◐</button>
+    </div>
   </header>
 
   <main class="auth-shell">
     <section class="auth-copy">
-      <p class="eyebrow">PRIVATE CONTROL PLANE</p>
-      <h1>你的赛博管家，<br><span>现在在手机上。</span></h1>
-      <p class="lede">通过邮箱验证码登录。只读查看状态，发送普通消息；删除、恢复、重载等高危操作永远不在 Web 端出现。</p>
+      <p class="eyebrow" data-i18n="auth.eyebrow"></p>
+      <h1><span data-i18n="auth.hero1"></span><br><span data-i18n="auth.hero2"></span></h1>
+      <p class="lede" data-i18n="auth.lede"></p>
       <div class="trust-row">
-        <span class="trust-pill">Email OTP</span>
-        <span class="trust-pill">HttpOnly Session</span>
-        <span class="trust-pill">Read-only API</span>
+        <span class="trust-pill" data-i18n="auth.trustOtp"></span>
+        <span class="trust-pill" data-i18n="auth.trustSession"></span>
+        <span class="trust-pill" data-i18n="auth.trustReadonly"></span>
       </div>
     </section>
 
     <section class="auth-card" aria-labelledby="loginTitle">
       <div class="card-head">
         <span class="status-dot"></span>
-        <span>Phase 1 · 认证</span>
+        <span data-i18n="auth.cardPhase"></span>
       </div>
-      <h2 id="loginTitle">登录控制台</h2>
-      <p class="card-sub">验证码会发送到预设管理员邮箱，5 分钟内有效。</p>
+      <h2 id="loginTitle" data-i18n="auth.cardTitle"></h2>
+      <p class="card-sub" data-i18n="auth.cardSub"></p>
 
       <form id="emailStep" class="form-stack" autocomplete="on">
-        <label for="email">管理员邮箱</label>
+        <label for="email" data-i18n="auth.emailLabel"></label>
         <input id="email" name="email" type="email" inputmode="email" autocomplete="username"
-               placeholder="you@example.com" required>
-        <button id="sendCode" class="primary" type="submit">发送验证码</button>
+               data-i18n-placeholder="auth.emailPlaceholder" required>
+        <button id="sendCode" class="primary" type="submit" data-i18n="auth.sendCode"></button>
       </form>
 
       <form id="codeStep" class="form-stack" hidden>
-        <div class="sent-line">验证码已发送至 <strong id="sentEmail"></strong></div>
-        <label for="code">6 位验证码</label>
+        <div class="sent-line"><span data-i18n="auth.sentTo"></span> <strong id="sentEmail"></strong></div>
+        <label for="code" data-i18n="auth.codeLabel"></label>
         <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}"
-               maxlength="6" autocomplete="one-time-code" placeholder="000000" required>
-        <button id="verifyCode" class="primary" type="submit">登录</button>
+               maxlength="6" autocomplete="one-time-code" data-i18n-placeholder="auth.codePlaceholder" required>
+        <button id="verifyCode" class="primary" type="submit" data-i18n="auth.login"></button>
         <div class="form-foot">
-          <button id="resendCode" class="link-button" type="button">重新发送</button>
-          <button id="changeEmail" class="link-button" type="button">换个邮箱</button>
+          <button id="resendCode" class="link-button" type="button" data-i18n="auth.resend"></button>
+          <button id="changeEmail" class="link-button" type="button" data-i18n="auth.changeEmail"></button>
         </div>
       </form>
 
       <div id="authStatus" class="auth-status" role="status" aria-live="polite"></div>
-      <p class="fine-print">仅限预登记管理员邮箱。登录失败不会透露邮箱是否存在。</p>
+      <p class="fine-print" data-i18n="auth.finePrint"></p>
     </section>
   </main>
 
   <footer class="footer">
-    <span>Cyber-Butler Security</span>
-    <span>Phase {{ phase }} · Local / Private Network</span>
+    <span data-i18n="app.name"></span>
+    <span data-i18n="auth.footer"></span>
   </footer>
 
+  <script src="/static/i18n.js" defer></script>
   <script src="/static/login.js" defer></script>
 </body>
 </html>

@@ -4,11 +4,13 @@
   const preferred = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   root.dataset.theme = stored || preferred;
 
-  const toggle = document.getElementById("themeToggle");
-  toggle?.addEventListener("click", () => {
+  document.getElementById("themeToggle")?.addEventListener("click", () => {
     root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
     localStorage.setItem("cb-theme", root.dataset.theme);
   });
+
+  const i18n = window.CBI18n;
+  if (!i18n) return;
 
   const emailStep = document.getElementById("emailStep");
   const codeStep = document.getElementById("codeStep");
@@ -24,10 +26,43 @@
   let currentEmail = "";
   let countdownTimer = null;
   let remaining = 0;
+  let statusState = { key: "", text: "", vars: null, kind: "" };
 
-  const setStatus = (message, kind = "") => {
-    status.textContent = message;
-    status.className = "auth-status" + (kind ? " " + kind : "");
+  const CODE_KEYS = {
+    "auth.rate_limited": "auth.error.rate",
+    "auth.mailer_failed": "auth.error.mailer",
+    "auth.invalid_code": "auth.error.codeInvalid",
+    "auth.otp_sent": "auth.status.sent",
+    "auth.ok": "auth.status.success",
+  };
+
+  const codeKey = (data) => (data && data.code ? CODE_KEYS[data.code] || "" : "");
+
+  const renderStatus = () => {
+    if (statusState.key) {
+      status.textContent = i18n.t(statusState.key, statusState.vars);
+    } else {
+      status.textContent = statusState.text || "";
+    }
+    status.className = "auth-status" + (statusState.kind ? " " + statusState.kind : "");
+  };
+
+  const setStatus = (key, vars = null, kind = "") => {
+    statusState = { key, text: "", vars, kind };
+    renderStatus();
+  };
+
+  const setStatusFromResponse = (data, fallbackKey, kind) => {
+    if (data && data.code && i18n.has(data.code)) {
+      setStatus(data.code, null, kind);
+      return;
+    }
+    if (data && data.message) {
+      statusState = { key: "", text: data.message, vars: null, kind };
+      status.className = "auth-status" + (kind ? " " + kind : "");
+      return;
+    }
+    setStatus(fallbackKey, null, kind);
   };
 
   const postJson = async (url, body) => {
@@ -41,12 +76,18 @@
     return { response, data };
   };
 
+  const renderCountdown = () => {
+    resendButton.textContent = remaining > 0
+      ? i18n.t("auth.resendCountdown", { seconds: i18n.number(remaining) })
+      : i18n.t("auth.resend");
+  };
+
   const startCountdown = () => {
     remaining = 60;
     resendButton.disabled = true;
     clearInterval(countdownTimer);
     const tick = () => {
-      resendButton.textContent = remaining > 0 ? `重新发送（${remaining}s）` : "重新发送";
+      renderCountdown();
       if (remaining <= 0) {
         resendButton.disabled = false;
         clearInterval(countdownTimer);
@@ -61,16 +102,23 @@
   const requestCode = async () => {
     const email = emailInput.value.trim().toLowerCase();
     if (!email) {
-      setStatus("请输入管理员邮箱。", "error");
+      setStatus("auth.error.emailRequired", null, "error");
       return;
     }
-    setStatus("正在发送验证码…");
+    setStatus("auth.status.sending");
     sendButton.disabled = true;
     resendButton.disabled = true;
     try {
-      const { response, data } = await postJson("/api/auth/request-otp", { email });
+      const { response, data } = await postJson("/api/auth/request-otp", {
+        email,
+        lang: i18n.current,
+      });
       if (!response.ok) {
-        setStatus(data.message || "发送失败，请稍后重试。", "error");
+        const mapped = codeKey(data);
+        if (mapped) setStatus(mapped, null, "error");
+        else if (data && data.message) setStatusFromResponse(data, "auth.error.sendFailed", "error");
+        else if (response.status === 429) setStatus("auth.error.rate", null, "error");
+        else setStatus("auth.error.sendFailed", null, "error");
         return;
       }
       currentEmail = email;
@@ -79,10 +127,10 @@
       codeStep.hidden = false;
       codeInput.value = "";
       codeInput.focus();
-      setStatus(data.message || "验证码已发送。", "ok");
+      setStatus("auth.status.sent", null, "ok");
       startCountdown();
     } catch {
-      setStatus("网络异常，请稍后重试。", "error");
+      setStatus("auth.error.network", null, "error");
     } finally {
       sendButton.disabled = false;
     }
@@ -91,43 +139,62 @@
   const verifyCode = async () => {
     const code = codeInput.value.trim();
     if (!/^\d{6}$/.test(code)) {
-      setStatus("请输入 6 位数字验证码。", "error");
+      setStatus("auth.error.codeFormat", null, "error");
       return;
     }
-    setStatus("正在验证…");
+    setStatus("auth.status.verifying");
     verifyButton.disabled = true;
     try {
-      const { response, data } = await postJson("/api/auth/verify", { email: currentEmail, code });
+      const { response, data } = await postJson("/api/auth/verify", {
+        email: currentEmail,
+        code,
+        lang: i18n.current,
+      });
       if (!response.ok) {
-        setStatus(data.message || "验证码不正确。", "error");
+        const mapped = codeKey(data);
+        if (mapped) setStatus(mapped, null, "error");
+        else if (data && data.message) setStatusFromResponse(data, "auth.error.codeInvalid", "error");
+        else if (response.status === 429) setStatus("auth.error.rate", null, "error");
+        else setStatus("auth.error.codeInvalid", null, "error");
         return;
       }
-      setStatus("登录成功，正在进入控制台…", "ok");
+      setStatus("auth.status.success", null, "ok");
       window.location.replace("/");
     } catch {
-      setStatus("网络异常，请稍后重试。", "error");
+      setStatus("auth.error.network", null, "error");
     } finally {
       verifyButton.disabled = false;
     }
   };
 
-  emailStep?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    requestCode();
-  });
-  codeStep?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    verifyCode();
-  });
-  resendButton?.addEventListener("click", requestCode);
-  changeButton?.addEventListener("click", () => {
-    clearInterval(countdownTimer);
-    codeStep.hidden = true;
-    emailStep.hidden = false;
-    setStatus("");
-    emailInput.focus();
-  });
-  codeInput?.addEventListener("input", () => {
-    codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 6);
-  });
+  const initialize = async () => {
+    await (window.CBI18nReady || i18n.init());
+    renderStatus();
+    renderCountdown();
+    window.addEventListener("cb:languagechange", () => {
+      renderStatus();
+      renderCountdown();
+    });
+    emailStep?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      requestCode();
+    });
+    codeStep?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      verifyCode();
+    });
+    resendButton?.addEventListener("click", requestCode);
+    changeButton?.addEventListener("click", () => {
+      clearInterval(countdownTimer);
+      codeStep.hidden = true;
+      emailStep.hidden = false;
+      setStatus("");
+      emailInput.focus();
+    });
+    codeInput?.addEventListener("input", () => {
+      codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 6);
+    });
+  };
+
+  initialize();
 })();

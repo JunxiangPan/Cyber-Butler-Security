@@ -17,7 +17,7 @@ class FakeMailer:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
 
-    async def send(self, email: str, code: str, ttl: int) -> None:
+    async def send(self, email: str, code: str, ttl: int, lang: str = "zh") -> None:
         self.sent.append((email, code))
 
 

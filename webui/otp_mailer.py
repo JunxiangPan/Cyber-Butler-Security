@@ -20,6 +20,8 @@ DEFAULT_BRIDGE = BASE_DIR.parent / "tools" / "email_secret_bridge.ps1"
 DEFAULT_TOKEN = BASE_DIR / "data" / "mailer_token"
 CODE_RE = re.compile(r"^\d{6}$")
 LOG_PATH = BASE_DIR / "data" / "otp_mailer.log"
+I18N_DIR = BASE_DIR / "static" / "i18n"
+SUPPORTED_LANGS = {"zh", "en", "ja", "ko", "es", "fr", "de", "ru"}
 LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
@@ -42,16 +44,28 @@ def load_email_config(bridge: Path) -> dict:
     return json.loads(completed.stdout)
 
 
-def send_mail(config: dict, code: str, ttl: int) -> None:
+def load_email_strings(lang: str) -> dict:
+    code = lang if lang in SUPPORTED_LANGS else "zh"
+    for candidate in (code, "zh"):
+        path = I18N_DIR / f"{candidate}.json"
+        try:
+            return json.loads(path.read_text(encoding="utf-8")).get("strings", {})
+        except (OSError, ValueError):
+            continue
+    return {}
+
+
+def send_mail(config: dict, code: str, ttl: int, lang: str = "zh") -> None:
+    strings = load_email_strings(lang)
+    subject = strings.get("email.subject") or "Cyber-Butler"
+    body = strings.get("email.body") or "{code}"
+    minutes = max(1, ttl // 60)
+    body = body.replace("{code}", code).replace("{minutes}", str(minutes))
     message = EmailMessage()
     message["From"] = config["smtp_from"]
     message["To"] = config["approval_to"]
-    message["Subject"] = "[Cyber-Butler] Web 登录验证码"
-    message.set_content(
-        f"你的 Cyber-Butler Web 登录验证码是：{code}\n\n"
-        f"有效期 {max(1, ttl // 60)} 分钟，仅可使用一次。\n"
-        "如果这不是你发起的登录，请忽略本邮件并检查邮箱安全。"
-    )
+    message["Subject"] = subject
+    message.set_content(body)
     with smtplib.SMTP_SSL(
         config["smtp_host"], int(config["smtp_port"]), timeout=25,
         context=ssl.create_default_context(),
@@ -111,13 +125,14 @@ class Handler(BaseHTTPRequestHandler):
             email = str(payload.get("email", "")).strip().lower()
             code = str(payload.get("code", "")).strip()
             ttl = int(payload.get("ttl", 300))
+            lang = str(payload.get("lang", "zh"))
             if not CODE_RE.fullmatch(code):
                 raise ValueError("invalid code")
             config = load_email_config(self.bridge)
             if email != str(config["approval_to"]).strip().lower():
                 self._json(403, {"ok": False, "error": "recipient not allowed"})
                 return
-            send_mail(config, code, ttl)
+            send_mail(config, code, ttl, lang)
             logger.info("OTP mail sent to configured recipient")
             self._json(200, {"ok": True})
         except Exception as exc:

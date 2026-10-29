@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
-  <title>Cyber-Butler · 控制台</title>
+  <title data-i18n="app.dashboardTitle"></title>
   <link rel="stylesheet" href="/static/theme.css">
   <link rel="stylesheet" href="/static/theme-phase2.css">
   <link rel="stylesheet" href="/static/theme-phase2-extra.css">
@@ -16,13 +16,23 @@
   <header class="topbar">
     <a class="brand" href="/">
       <span class="brand-dot"></span>
-      <span class="brand-name">Cyber-Butler</span>
-      <span class="brand-sub">Web Console</span>
+      <span class="brand-name" data-i18n="app.name"></span>
+      <span class="brand-sub" data-i18n="app.console"></span>
     </a>
     <div class="top-actions">
-      <span class="online-pill"><span class="status-dot"></span> Phase 2</span>
-      <button class="icon-button" id="themeToggle" type="button" aria-label="切换深色/浅色">◐</button>
-      <button class="ghost-button" id="logoutButton" type="button">退出</button>
+      <span class="online-pill"><span class="status-dot"></span><span data-i18n="dash.phase"></span></span>
+      <select class="language-select" data-language-select data-i18n-aria-label="app.language">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+      </select>
+      <button class="icon-button" id="themeToggle" type="button" data-i18n-aria-label="app.themeToggle">◐</button>
+      <button class="ghost-button" id="logoutButton" type="button" data-i18n="dash.logout"></button>
     </div>
   </header>
 
@@ -30,56 +40,56 @@
     <section id="securityBanner" class="security-banner" hidden>
       <div class="security-icon">!</div>
       <div>
-        <strong>有高风险操作等待审批</strong>
-        <p id="securityDetail">请前往邮件或电脑确认。</p>
-        <p class="security-note">本页面不提供验证码输入，也不提供批准按钮。</p>
+        <strong data-i18n="dash.security.pendingTitle"></strong>
+        <p id="securityDetail"></p>
+        <p class="security-note" data-i18n="dash.security.pendingNote"></p>
       </div>
     </section>
 
     <section class="welcome">
-      <p class="eyebrow">SECURE SIDECAR · PHASE 2</p>
-      <h1>欢迎回来。</h1>
-      <p class="lede">只读查看硬件、用量、插件、日志和备份；聊天固定发给主人，苏瑾言在 QQ 回复。高危操作永远不在 Web 端执行。</p>
+      <p class="eyebrow" data-i18n="dash.eyebrow"></p>
+      <h1 data-i18n="dash.hero"></h1>
+      <p class="lede" data-i18n="dash.lede"></p>
     </section>
 
-    <nav class="tab-bar" aria-label="面板切换">
-      <button class="tab-button active" type="button" data-tab="monitor">监控</button>
-      <button class="tab-button" type="button" data-tab="files">我的大肥鱼文件</button>
+    <nav class="tab-bar" data-i18n-aria-label="dash.tabs">
+      <button class="tab-button active" type="button" data-tab="monitor" data-i18n="dash.tab.monitor"></button>
+      <button class="tab-button" type="button" data-tab="files" data-i18n="dash.tab.files"></button>
     </nav>
 
     <div id="monitorTab">
       <section class="stat-grid">
         <article class="stat-card">
-          <span class="stat-label">认证方式</span>
-          <strong>邮箱 OTP</strong>
-          <span class="stat-note">6 位 · 5 分钟 · 一次性</span>
+          <span class="stat-label" data-i18n="dash.card.auth"></span>
+          <strong data-i18n="dash.card.authValue"></strong>
+          <span class="stat-note" data-i18n="dash.card.authNote"></span>
         </article>
         <article class="stat-card">
-          <span class="stat-label">当前账户</span>
+          <span class="stat-label" data-i18n="dash.card.account"></span>
           <strong id="accountEmail">—</strong>
-          <span class="stat-note">仅限预登记管理员</span>
+          <span class="stat-note" data-i18n="dash.card.accountNote"></span>
         </article>
         <article class="stat-card">
-          <span class="stat-label">今日 Token</span>
+          <span class="stat-label" data-i18n="dash.card.token"></span>
           <strong id="usageTokens">—</strong>
-          <span class="stat-note"><span id="usageCalls">—</span> 次调用</span>
+          <span class="stat-note" id="usageCalls"></span>
         </article>
         <article class="stat-card">
-          <span class="stat-label">今日 API 费用</span>
+          <span class="stat-label" data-i18n="dash.card.cost"></span>
           <strong id="usageCost" class="accent">—</strong>
-          <span class="stat-note" id="usagePricingNote">按配置费率估算</span>
+          <span class="stat-note" id="usagePricingNote"></span>
         </article>
       </section>
 
       <section class="live-grid">
         <article class="panel temp-panel">
-          <div class="panel-head"><h2>温度趋势</h2><span id="tempsUpdated" class="panel-meta">—</span></div>
+          <div class="panel-head"><h2 data-i18n="dash.temp.title"></h2><span id="tempsUpdated" class="panel-meta">—</span></div>
           <div class="temp-readout">
-            <div><span>CPU</span><strong id="cpuValue">—</strong></div>
-            <div><span>GPU</span><strong id="gpuValue">—</strong></div>
-            <div><span>显存</span><strong id="vramValue">—</strong></div>
+            <div><span data-i18n="dash.temp.cpu"></span><strong id="cpuValue">—</strong></div>
+            <div><span data-i18n="dash.temp.gpu"></span><strong id="gpuValue">—</strong></div>
+            <div><span data-i18n="dash.temp.vram"></span><strong id="vramValue">—</strong></div>
           </div>
-          <svg id="tempChart" class="temp-chart" viewBox="0 0 600 170" preserveAspectRatio="none" role="img" aria-label="CPU 和 GPU 温度趋势">
+          <svg id="tempChart" class="temp-chart" viewBox="0 0 600 170" preserveAspectRatio="none" role="img" data-i18n-aria-label="dash.temp.chartAria">
             <line x1="0" y1="10" x2="600" y2="10" class="chart-grid"/>
             <line x1="0" y1="60" x2="600" y2="60" class="chart-grid"/>
             <line x1="0" y1="110" x2="600" y2="110" class="chart-grid"/>
@@ -87,64 +97,68 @@
             <polyline id="cpuLine" points="" class="chart-cpu"/>
             <polyline id="gpuLine" points="" class="chart-gpu"/>
           </svg>
-          <div class="chart-legend"><span class="cpu">CPU</span><span class="gpu">GPU</span><span id="tempSource" class="panel-meta">等待数据…</span></div>
-          <p class="panel-note">每 5 秒采样一次，仅保留当前页面最近 30 个点。</p>
+          <div class="chart-legend">
+            <span class="cpu" data-i18n="dash.temp.cpu"></span>
+            <span class="gpu" data-i18n="dash.temp.gpu"></span>
+            <span id="tempSource" class="panel-meta"></span>
+          </div>
+          <p class="panel-note" data-i18n="dash.temp.note"></p>
         </article>
 
         <article class="panel">
-          <div class="panel-head"><h2>系统状态</h2><span id="statusUpdated" class="panel-meta">—</span></div>
-          <div class="service-list" id="serviceList"><span class="muted-line">正在探测…</span></div>
+          <div class="panel-head"><h2 data-i18n="dash.status.title"></h2><span id="statusUpdated" class="panel-meta">—</span></div>
+          <div class="service-list" id="serviceList"><span class="muted-line" data-i18n="dash.status.probing"></span></div>
           <div class="usage-providers" id="usageProviders"></div>
         </article>
 
         <article class="panel plugin-panel">
-          <div class="panel-head"><h2>插件</h2><span id="pluginCount" class="panel-meta">—</span></div>
-          <ul class="plugin-list" id="pluginList"><li class="muted-line">正在读取…</li></ul>
+          <div class="panel-head"><h2 data-i18n="dash.plugin.title"></h2><span id="pluginCount" class="panel-meta">—</span></div>
+          <ul class="plugin-list" id="pluginList"><li class="muted-line" data-i18n="dash.log.loading"></li></ul>
         </article>
 
         <article class="panel log-panel">
           <div class="panel-head">
-            <h2>日志尾部</h2>
-            <select id="logSelect" aria-label="选择日志">
+            <h2 data-i18n="dash.log.title"></h2>
+            <select id="logSelect" data-i18n-aria-label="dash.log.select">
               <option value="astrbot">AstrBot</option>
               <option value="broker">Broker</option>
               <option value="dashboard">Dashboard</option>
               <option value="snowluma">SnowLuma</option>
             </select>
           </div>
-          <pre id="logView">正在读取…</pre>
+          <pre id="logView" data-i18n="dash.log.loading"></pre>
         </article>
 
         <article class="panel backup-panel">
-          <div class="panel-head"><h2>备份</h2><span id="backupTotal" class="panel-meta">只读</span></div>
-          <ul class="backup-list" id="backupList"><li class="muted-line">正在读取…</li></ul>
-          <p class="panel-note">只显示名称和大小；没有还原、删除或下载按钮。</p>
+          <div class="panel-head"><h2 data-i18n="dash.backup.title"></h2><span id="backupTotal" class="panel-meta"></span></div>
+          <ul class="backup-list" id="backupList"><li class="muted-line" data-i18n="dash.log.loading"></li></ul>
+          <p class="panel-note" data-i18n="dash.backup.note"></p>
         </article>
       </section>
 
       <section class="panel chat-panel">
-        <div class="panel-head"><h2>发给苏瑾言</h2><span class="panel-meta">固定主人入站 · 纯文本 · ≤500 字 · 5 次/分钟</span></div>
+        <div class="panel-head"><h2 data-i18n="chat.title"></h2><span class="panel-meta" data-i18n="chat.meta"></span></div>
         <div class="shortcut-row" id="shortcuts">
-          <button class="shortcut" type="button" data-shortcut="帮我查一下今天的天气。">查天气</button>
-          <button class="shortcut" type="button" data-shortcut="给我发个语音。">发个语音</button>
-          <button class="shortcut" type="button" data-shortcut="现在用的是本地模型还是云端模型？">模型状态</button>
+          <button class="shortcut" type="button" data-shortcut="chat.shortcutWeather" data-i18n="chat.shortcutWeather"></button>
+          <button class="shortcut" type="button" data-shortcut="chat.shortcutVoice" data-i18n="chat.shortcutVoice"></button>
+          <button class="shortcut" type="button" data-shortcut="chat.shortcutModel" data-i18n="chat.shortcutModel"></button>
         </div>
-        <div class="chat-log" id="chatLog"><p class="chat-empty">你发出的内容会显示在这里；苏瑾言的回复会发到 QQ。</p></div>
-        <textarea id="chatText" maxlength="500" rows="3" placeholder="写一句想说的话…" aria-label="聊天内容"></textarea>
+        <div class="chat-log" id="chatLog"><p class="chat-empty" data-i18n="chat.empty"></p></div>
+        <textarea id="chatText" maxlength="500" rows="3" data-i18n-placeholder="chat.placeholder" data-i18n-aria-label="chat.placeholder"></textarea>
         <div class="chat-foot">
-          <span id="chatCount" class="panel-meta">0 / 500</span>
-          <button id="chatSend" class="primary chat-send" type="button">发送</button>
+          <span id="chatCount" class="panel-meta"></span>
+          <button id="chatSend" class="primary chat-send" type="button" data-i18n="chat.send"></button>
         </div>
         <div id="chatStatus" class="chat-status" role="status" aria-live="polite"></div>
       </section>
 
       <section class="link-panel">
         <div>
-          <h3>安全提示</h3>
-          <p>Web 端不提供删除、恢复、重载、人格修改、文件写入或任意路径读取。审批验证码只去邮件或电脑确认。</p>
+          <h3 data-i18n="dash.link.title"></h3>
+          <p data-i18n="dash.link.text"></p>
         </div>
         <div class="session-meta">
-          <span>会话到期</span>
+          <span data-i18n="dash.session.expiry"></span>
           <strong id="sessionExpiry">—</strong>
         </div>
       </section>
@@ -153,16 +167,16 @@
     <div id="filesTab" hidden>
       <section class="panel files-panel">
         <div class="panel-head">
-          <h2>我的大肥鱼文件</h2>
-          <span class="panel-meta">只读 · 20MB 上限 · 可执行文件隐藏</span>
+          <h2 data-i18n="files.title"></h2>
+          <span class="panel-meta" data-i18n="files.meta"></span>
         </div>
         <div class="file-toolbar">
-          <button class="ghost-button" id="fileUp" type="button">↑ 上级</button>
+          <button class="ghost-button" id="fileUp" type="button" data-i18n="files.up"></button>
           <span class="file-path" id="filePath">/</span>
-          <button class="ghost-button" id="fileRefresh" type="button">刷新</button>
+          <button class="ghost-button" id="fileRefresh" type="button" data-i18n="files.refresh"></button>
         </div>
-        <ul class="file-list" id="fileList"><li class="muted-line">正在读取…</li></ul>
-        <p class="panel-note">此目录只读：没有写入、删除、上传、重命名或还原 API。列表会隐藏可执行脚本和敏感配置。</p>
+        <ul class="file-list" id="fileList"><li class="muted-line" data-i18n="files.loading"></li></ul>
+        <p class="panel-note" data-i18n="files.note"></p>
       </section>
     </div>
   </main>
@@ -170,22 +184,23 @@
   <div class="modal" id="fileModal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="fileTitle">
       <div class="panel-head">
-        <h2 id="fileTitle">预览</h2>
-        <button class="icon-button" id="fileClose" type="button" aria-label="关闭">×</button>
+        <h2 id="fileTitle"></h2>
+        <button class="icon-button" id="fileClose" type="button" data-i18n-aria-label="app.close">×</button>
       </div>
       <div id="filePreview" class="file-preview"></div>
       <div class="chat-foot">
         <span id="fileMeta" class="panel-meta"></span>
-        <a id="fileDownload" class="primary chat-send" href="#" download>下载</a>
+        <a id="fileDownload" class="primary chat-send" href="#" download data-i18n="files.download"></a>
       </div>
     </div>
   </div>
 
   <footer class="footer">
-    <span>Cyber-Butler Security</span>
-    <span>Phase {{ phase }} · Read-only + fixed chat</span>
+    <span data-i18n="app.name"></span>
+    <span data-i18n="dash.footer"></span>
   </footer>
 
+  <script src="/static/i18n.js" defer></script>
   <script src="/static/dashboard.js" defer></script>
 </body>
 </html>

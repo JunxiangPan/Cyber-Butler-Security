@@ -85,3 +85,41 @@
   .modal { padding: 10px; }
   .modal-card { max-height: 92vh; }
 }
+
+
+.language-select {
+  max-width: 150px;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--text);
+  padding: 0 8px;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+.top-actions { flex-wrap: wrap; justify-content: flex-end; }
+.error-shell { width: min(720px, calc(100% - 32px)); margin: 12vh auto 0; }
+.error-card { text-align: center; padding: 42px 24px; }
+.error-code { font-size: 56px; line-height: 1; font-weight: 800; letter-spacing: -0.05em; color: var(--accent); }
+.error-card h1 { margin: 16px 0 8px; font-size: clamp(24px, 4vw, 34px); }
+.error-card p { margin: 0 auto; max-width: 52ch; color: var(--muted); }
+.error-back { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; text-decoration: none; }
+.stat-card strong, .panel-head h2, .panel-note, .security-banner p, .security-banner strong,
+.trust-pill, .shortcut, .chat-bubble, .file-name, .backup-list span, .service-row span {
+  overflow-wrap: anywhere;
+}
+button, .shortcut, .tab-button, .file-button { min-width: 0; }
+.chat-send, .primary, .shortcut { white-space: normal; }
+@media (max-width: 560px) {
+  .top-actions { width: 100%; justify-content: flex-start; }
+  .language-select { max-width: 122px; }
+  .online-pill { display: none; }
+  .brand-sub { display: none; }
+  .error-shell { margin-top: 8vh; }
+  .error-card { padding: 30px 16px; }
+}
+
+.brand { flex-shrink: 0; white-space: nowrap; }
+.brand-name { white-space: nowrap; }

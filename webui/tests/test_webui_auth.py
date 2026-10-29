@@ -16,9 +16,11 @@ from settings import Settings  # noqa: E402
 class FakeMailer:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
+        self.langs: list[str] = []
 
-    async def send(self, email: str, code: str, ttl: int) -> None:
+    async def send(self, email: str, code: str, ttl: int, lang: str = "zh") -> None:
         self.sent.append((email, code))
+        self.langs.append(lang)
 
 
 def make_client(tmp_path: Path) -> tuple[TestClient, FakeMailer]:
@@ -123,3 +125,30 @@ def test_auto_cookie_secure_adapts_to_scheme(tmp_path: Path) -> None:
     response = https.post("/api/auth/verify", json={"email": "owner@example.com", "code": code})
     assert response.status_code == 200
     assert "secure" in response.headers["set-cookie"].lower()
+
+
+def test_otp_language_follows_request_and_falls_back(tmp_path: Path) -> None:
+    client, mailer = make_client(tmp_path / "lang")
+    assert client.post(
+        "/api/auth/request-otp", json={"email": "owner@example.com", "lang": "de"}
+    ).status_code == 200
+    assert mailer.langs[-1] == "de"
+    assert client.post(
+        "/api/auth/request-otp", json={"email": "owner@example.com", "lang": "not-a-language"}
+    ).status_code in (200, 429)
+    if len(mailer.langs) > 1:
+        assert mailer.langs[-1] == "zh"
+
+
+def test_localized_error_page_and_csp(tmp_path: Path) -> None:
+    client, _ = make_client(tmp_path / "errors")
+    page = client.get("/missing-page")
+    assert page.status_code == 404
+    assert 'data-error-status="404"' in page.text
+    assert "missing-page" not in page.text
+    api = client.get("/api/missing-endpoint")
+    assert api.status_code == 404
+    assert api.json()["code"] == "http.error"
+    csp = client.get("/").headers["content-security-policy"]
+    assert "unsafe-inline" not in csp
+    assert "unsafe-eval" not in csp
