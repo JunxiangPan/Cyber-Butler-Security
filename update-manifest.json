@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.2.1",
+  "version": "1.2.2",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -19,8 +19,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "399b2fabec8d328853d7fb2cac09214c47cae1927fc44c941781a95ef724b9ef",
-      "size": 21875
+      "sha256": "1eda5989441dd58b63d6592d3f471ea6d6fc308a9745e13776b670dbdcdd5a81",
+      "size": 22097
     },
     {
       "path": "README_de.md",
@@ -123,13 +123,18 @@
       "size": 2387
     },
     {
+      "path": "RELEASE_NOTES_v1.2.2.md",
+      "sha256": "c22b984335b72081f8aec0e6bf9e4c8b16bd50cecf1bc9a2de17f228debd27d0",
+      "size": 1431
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "6cf4e084b47f33c9b02ef79279d157833868f8f70514169a768be353ee328fea",
+      "sha256": "c62a5cc61ac4525935753f5ec284c0a052a4b1da4b3a3580dce2b7d77a2154ae",
       "size": 6
     },
     {
@@ -404,8 +409,8 @@
     },
     {
       "path": "tools/create_dashboard_shortcut.ps1",
-      "sha256": "3c406e9a0d7164a980c42ee7a4d90ffb3d25e9c604520997ed2759e9a5feab86",
-      "size": 1381
+      "sha256": "1e47e32a5d2cbaa4220f393041904462ac1e72b9ab80fada7ab2978f66e3576f",
+      "size": 1643
     },
     {
       "path": "tools/create_update_shortcut.ps1",
