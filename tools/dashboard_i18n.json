@@ -1170,6 +1170,126 @@
       "fr": "{0} personnages",
       "de": "{0} Personas",
       "ru": "{0} личностей"
+    },
+    {
+      "zh": "审批通道",
+      "en": "Approval channel",
+      "ja": "承認チャンネル",
+      "ko": "승인 채널",
+      "es": "Canal de aprobación",
+      "fr": "Canal d'approbation",
+      "de": "Genehmigungskanal",
+      "ru": "Канал одобрения"
+    },
+    {
+      "zh": "QQ（快捷模式，存在中间人风险）",
+      "en": "QQ (quick mode, MITM risk)",
+      "ja": "QQ (クイックモード、仲介業者のリスクあり)",
+      "ko": "QQ (빠른 모드, 중개인의 위험이 있습니다)",
+      "es": "QQ (modo rápido, existe riesgo de intermediarios)",
+      "fr": "QQ (mode rapide, il y a des risques d'intermédiaires)",
+      "de": "QQ (Schnellmodus, es besteht die Gefahr von Zwischenhändlern)",
+      "ru": "QQ (быстрый режим, есть риск посредников)"
+    },
+    {
+      "zh": "Email（带外审批，极致安全）",
+      "en": "Email (out-of-band, maximum safety)",
+      "ja": "電子メール (帯域外承認、非常に安全)",
+      "ko": "이메일(대역외 승인, 매우 안전함)",
+      "es": "Correo electrónico (aprobación fuera de banda, extremadamente seguro)",
+      "fr": "Email (approbation hors bande, extrêmement sécurisé)",
+      "de": "E-Mail (Out-of-Band-Genehmigung, extrem sicher)",
+      "ru": "Электронная почта (внешнее одобрение, чрезвычайно безопасно)"
+    },
+    {
+      "zh": "重启 Broker",
+      "en": "Restart Broker",
+      "ja": "ブローカーを再起動します",
+      "ko": "브로커 다시 시작",
+      "es": "Reiniciar corredor",
+      "fr": "Redémarrer le courtier",
+      "de": "Starten Sie den Broker neu",
+      "ru": "Перезапустить брокер"
+    },
+    {
+      "zh": "切换后需重启 Broker 生效；Email 模式需要先完成邮箱配置。",
+      "en": "Restart the Broker after switching; Email mode requires mailbox configuration.",
+      "ja": "切り替えを有効にするには、ブローカーを再起動する必要があります。電子メール モードでは、最初に電子メールの構成を完了する必要があります。",
+      "ko": "스위치를 적용하려면 브로커를 다시 시작해야 합니다. 이메일 모드에서는 먼저 이메일 구성을 완료해야 합니다.",
+      "es": "El corredor debe reiniciarse después de que el cambio surta efecto; el modo de correo electrónico debe completar primero la configuración del correo electrónico.",
+      "fr": "Le Broker doit être redémarré après le changement pour prendre effet ; le mode e-mail doit d'abord terminer la configuration de l'e-mail.",
+      "de": "Der Broker muss nach dem Wechsel neu gestartet werden, damit er wirksam wird. Im E-Mail-Modus muss zunächst die E-Mail-Konfiguration abgeschlossen werden.",
+      "ru": "Брокер необходимо перезапустить после переключения, чтобы оно вступило в силу; Режим электронной почты должен сначала завершить настройку электронной почты."
+    },
+    {
+      "zh": "⚠️ 请先完成邮箱配置！",
+      "en": "⚠️ Configure the mailbox first!",
+      "ja": "⚠️ まずメール設定を完了してください。",
+      "ko": "⚠️ 먼저 이메일 구성을 완료해주세요!",
+      "es": "⚠️ ¡Primero complete la configuración del correo electrónico!",
+      "fr": "⚠️ Veuillez d'abord compléter la configuration de l'e-mail !",
+      "de": "⚠️ Bitte schließen Sie zunächst die E-Mail-Konfiguration ab!",
+      "ru": "⚠️ Пожалуйста, сначала завершите настройку электронной почты!"
+    },
+    {
+      "zh": "审批通道已切换，需重启 Broker 生效。是否立即重启？",
+      "en": "Approval channel changed. Restart the Broker now to apply it?",
+      "ja": "承認チャネルが切り替えられたため、有効にするにはブローカーを再起動する必要があります。今すぐ再起動しますか?",
+      "ko": "승인 채널이 전환되었으며 적용하려면 브로커를 다시 시작해야 합니다. 지금 재부팅하시겠습니까?",
+      "es": "Se ha cambiado el canal de aprobación y es necesario reiniciar el corredor para que surta efecto. ¿Reiniciar ahora?",
+      "fr": "Le canal d'approbation a été changé et le courtier doit être redémarré pour prendre effet. Redémarrer maintenant ?",
+      "de": "Der Genehmigungskanal wurde geändert und der Broker muss neu gestartet werden, damit er wirksam wird. Jetzt neu starten?",
+      "ru": "Канал утверждения был переключен, и для вступления в силу необходимо перезапустить брокера. Перезагрузить сейчас?"
+    },
+    {
+      "zh": "审批通道保存失败，请查看日志。",
+      "en": "Could not save the approval channel; check the log.",
+      "ja": "承認チャネルの保存に失敗しました。ログを確認してください。",
+      "ko": "승인 채널을 저장하지 못했습니다. 로그를 확인하세요.",
+      "es": "No se pudo guardar el canal de aprobación; verifique el registro.",
+      "fr": "Le canal d'approbation n'a pas pu être enregistré, veuillez vérifier le journal.",
+      "de": "Der Genehmigungskanal konnte nicht gespeichert werden. Bitte überprüfen Sie das Protokoll.",
+      "ru": "Не удалось сохранить канал утверждения. Проверьте журнал."
+    },
+    {
+      "zh": "Broker 已重启。",
+      "en": "Broker restarted.",
+      "ja": "ブローカーが再起動されました。",
+      "ko": "브로커가 다시 시작되었습니다.",
+      "es": "El corredor se ha reiniciado.",
+      "fr": "Le courtier a été redémarré.",
+      "de": "Der Broker wurde neu gestartet.",
+      "ru": "Брокер перезапущен."
+    },
+    {
+      "zh": "重启 Broker 失败，请查看日志。",
+      "en": "Broker restart failed; check the log.",
+      "ja": "ブローカーの再起動に失敗しました。ログを確認してください。",
+      "ko": "브로커를 다시 시작하지 못했습니다. 로그를 확인하세요.",
+      "es": "No se pudo reiniciar Broker, verifique el registro.",
+      "fr": "Échec du redémarrage de Broker, veuillez vérifier le journal.",
+      "de": "Broker konnte nicht neu gestartet werden. Bitte überprüfen Sie das Protokoll.",
+      "ru": "Не удалось перезапустить брокер, проверьте журнал."
+    },
+    {
+      "zh": "重启 Broker 失败：",
+      "en": "Broker restart failed: ",
+      "ja": "ブローカーの再起動に失敗しました:",
+      "ko": "브로커 재시작 실패:",
+      "es": "Error al reiniciar el Broker:",
+      "fr": "Échec du redémarrage du courtier :",
+      "de": "Neustart des Brokers fehlgeschlagen:",
+      "ru": "Перезапустить брокер не удалось:"
+    },
+    {
+      "zh": "审批通道已保存，但 Broker 重启失败。",
+      "en": "Channel saved, but Broker restart failed.",
+      "ja": "承認チャネルは保存されましたが、ブローカーの再起動に失敗しました。",
+      "ko": "승인 채널이 저장되었지만 브로커를 다시 시작하지 못했습니다.",
+      "es": "Se guardó el canal de aprobación, pero el Broker no pudo reiniciarse.",
+      "fr": "Le canal d'approbation a été enregistré, mais le courtier n'a pas pu redémarrer.",
+      "de": "Der Genehmigungskanal wurde gespeichert, aber der Broker konnte nicht neu gestartet werden.",
+      "ru": "Канал одобрения был сохранен, но перезапустить Брокера не удалось."
     }
   ]
 }

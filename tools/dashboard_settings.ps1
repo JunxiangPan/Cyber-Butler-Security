@@ -325,6 +325,16 @@ function Revert-BgPreview {
     Set-UiBackground $preview.background $preview | Out-Null
 }
 
+function Get-BrokerApprovalChannel {
+    $path = Join-Path $script:ProjectRoot 'tools/broker_config.json'
+    try {
+        $cfg = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+        $channel = [string]$cfg.approval_channel
+        if ($channel -in @('qq', 'email')) { return $channel }
+    } catch { }
+    return 'qq'
+}
+
 function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $settings = Read-DashboardSettings
     $xaml = @'
@@ -339,7 +349,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <TextBlock Grid.Row="0" Text="设置" FontSize="22" FontWeight="SemiBold"/>
     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,0">
@@ -387,7 +397,17 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
       <ProgressBar x:Name="SettingsProgress" Height="8" IsIndeterminate="True" Visibility="Collapsed"/>
       <TextBlock x:Name="SettingsOperationStatus" Text="" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
     </StackPanel>
-    <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+    <TextBlock Grid.Row="12" Text="安全风控" FontWeight="SemiBold" FontSize="16" Margin="0,22,0,0"/>
+    <StackPanel Grid.Row="13" Orientation="Horizontal" Margin="0,12,0,0">
+      <TextBlock Text="审批通道" Width="130" VerticalAlignment="Center"/>
+      <ComboBox x:Name="ApprovalChannelCombo" Width="360">
+        <ComboBoxItem Content="QQ（快捷模式，存在中间人风险）" Tag="qq"/>
+        <ComboBoxItem Content="Email（带外审批，极致安全）" Tag="email"/>
+      </ComboBox>
+      <Button x:Name="RestartBrokerButton" Content="重启 Broker" Width="120" Height="30" Margin="8,0,0,0"/>
+    </StackPanel>
+    <TextBlock Grid.Row="14" x:Name="ApprovalChannelHint" Text="切换后需重启 Broker 生效；Email 模式需要先完成邮箱配置。" Margin="130,6,0,0" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+    <StackPanel Grid.Row="15" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
       <Button x:Name="SaveSettings" Content="保存设置" Width="110" Height="34" Margin="0,0,8,0"/>
       <Button x:Name="CloseSettings" Content="关闭" Width="90" Height="34"/>
     </StackPanel>
@@ -408,6 +428,8 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 $dlg.FindName('ThemeCombo').SelectedIndex = switch ($settings.theme) { 'dark' { 1 } 'system' { 2 } default { 0 } }
                 $dlg.FindName('LanguageCombo').SelectedIndex = if ($settings.language -eq 'en') { 1 } else { 0 }
                 $dlg.FindName('AnimToggle').IsChecked = [bool]$settings.enable_animated_bg
+                $smokeCombo = $dlg.FindName('ApprovalChannelCombo')
+                $smokeCombo.SelectedIndex = if ((Get-BrokerApprovalChannel) -eq 'email') { 1 } else { 0 }
                 if ($settings.background) { $dlg.FindName('BackgroundPath').Text = $settings.background }
                 Apply-Language $settings.language $dlg
                 $dlg.WindowStyle = 'None'
@@ -463,6 +485,11 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $downgradeButton = $dlg.FindName('DowngradeButton')
     $settingsProgress = $dlg.FindName('SettingsProgress')
     $operationStatus = $dlg.FindName('SettingsOperationStatus')
+    $approvalChannelCombo = $dlg.FindName('ApprovalChannelCombo')
+    $approvalChannelHint = $dlg.FindName('ApprovalChannelHint')
+    $restartBrokerButton = $dlg.FindName('RestartBrokerButton')
+    $currentChannel = Get-BrokerApprovalChannel
+    $approvalChannelCombo.SelectedIndex = if ($currentChannel -eq 'email') { 1 } else { 0 }
 
     $restoreChoices = @(Get-RestoreBackups)
     $restoreCombo.ItemsSource = $restoreChoices
@@ -670,7 +697,42 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
         }
     })
 
+    $restartBrokerButton.Add_Click({
+        try {
+            $code = Invoke-ElevatedAction 'RestartBroker'
+            if ($code -eq 0) {
+                [Windows.MessageBox]::Show($dlg, (T 'Broker 已重启。' 'Broker restarted.'), (T '审批通道' 'Approval channel'), 'OK', 'Information') | Out-Null
+            } else {
+                [Windows.MessageBox]::Show($dlg, (T '重启 Broker 失败，请查看日志。' 'Broker restart failed; check the log.'), (T '审批通道' 'Approval channel'), 'OK', 'Error') | Out-Null
+            }
+        } catch {
+            [Windows.MessageBox]::Show($dlg, ((T '重启 Broker 失败：' 'Broker restart failed: ') + $_.Exception.Message), (T '审批通道' 'Approval channel'), 'OK', 'Error') | Out-Null
+        }
+    })
+
     $dlg.FindName('SaveSettings').Add_Click({
+        $selectedChannel = if ([int]$approvalChannelCombo.SelectedIndex -eq 1) { 'email' } else { 'qq' }
+        $currentChannel = Get-BrokerApprovalChannel
+        if ($selectedChannel -ne $currentChannel) {
+            if ($selectedChannel -eq 'email' -and -not (Test-Path -LiteralPath 'C:\ProgramData\CyberButler\email_secret.json')) {
+                [Windows.MessageBox]::Show($dlg, (T '⚠️ 请先完成邮箱配置！' '⚠️ Configure the mailbox first!'), (T '安全风控' 'Security'), 'OK', 'Warning') | Out-Null
+                return
+            }
+            $changeCode = Invoke-ElevatedAction 'SetBrokerChannel' @{ Channel = $selectedChannel }
+            if ($changeCode -ne 0) {
+                [Windows.MessageBox]::Show($dlg, (T '审批通道保存失败，请查看日志。' 'Could not save the approval channel; check the log.'), (T '安全风控' 'Security'), 'OK', 'Error') | Out-Null
+                return
+            }
+            $choice = [Windows.MessageBox]::Show($dlg, (T '审批通道已切换，需重启 Broker 生效。是否立即重启？' 'Approval channel changed. Restart the Broker now to apply it?'), (T '审批通道' 'Approval channel'), 'YesNo', 'Question')
+            if ($choice -eq 'Yes') {
+                $restartCode = Invoke-ElevatedAction 'RestartBroker'
+                if ($restartCode -eq 0) {
+                    [Windows.MessageBox]::Show($dlg, (T 'Broker 已重启。' 'Broker restarted.'), (T '审批通道' 'Approval channel'), 'OK', 'Information') | Out-Null
+                } else {
+                    [Windows.MessageBox]::Show($dlg, (T '审批通道已保存，但 Broker 重启失败。' 'Channel saved, but Broker restart failed.'), (T '审批通道' 'Approval channel'), 'OK', 'Error') | Out-Null
+                }
+            }
+        }
         $settings.theme = [string](@('light', 'dark', 'system'))[[int]$themeCombo.SelectedIndex]
         $languageCodes = @('zh','en','ja','ko','es','fr','de','ru')
         $languageIndex = [int]$languageCombo.SelectedIndex

@@ -18,6 +18,7 @@ qbittorrent*.txt
 
 # Runtime configuration
 *.json
+!webui/config.example.json
 **/config.json
 **/cmd_config.json
 AstrBot/data/config/

@@ -11,13 +11,14 @@ prompt. Supported actions:
   SaveApiKey
 #>
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('RestartAstrBot', 'ReleaseVram', 'Fuse', 'ClearConversation', 'SaveApiKey')]
+    [Parameter(Mandatory = $true)][ValidateSet('RestartAstrBot', 'ReleaseVram', 'Fuse', 'ClearConversation', 'SaveApiKey', 'SetBrokerChannel', 'RestartBroker')]
     [string]$Action,
     [Parameter(Mandatory = $true)][string]$ProjectRoot,
     [string]$ConfirmationText = '',
     [string]$StatusFile = '',
     [string]$Umo = '',
-    [string]$SecretFile = ''
+    [string]$SecretFile = '',
+    [string]$Channel = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -209,6 +210,23 @@ finally:
             if ($LASTEXITCODE -ne 0) { throw 'API key save failed' }
             Write-ActionStatus 'done' 100 'API Key 已保存；重启 AstrBot 后生效'
             Write-ActionLog 'API key saved'
+        }
+        'SetBrokerChannel' {
+            if ($Channel -notin @('qq', 'email')) { throw 'Channel must be qq or email' }
+            $configPath = Join-Path $root 'tools\broker_config.json'
+            $payload = [ordered]@{ approval_channel = $Channel } | ConvertTo-Json -Compress
+            [IO.File]::WriteAllText($configPath, $payload, (New-Object Text.UTF8Encoding($false)))
+            Write-ActionStatus 'done' 100 ('审批通道已保存：' + $Channel)
+            Write-ActionLog ('broker approval channel saved: ' + $Channel)
+        }
+        'RestartBroker' {
+            Write-ActionStatus 'restarting' 30 '正在重启 Broker...'
+            $restart = Join-Path $PSScriptRoot 'restart_broker.ps1'
+            if (-not (Test-Path -LiteralPath $restart)) { throw 'restart_broker.ps1 is missing' }
+            & $restart
+            if (-not (Wait-Port 18090 30)) { throw 'Broker did not become healthy on 18090' }
+            Write-ActionStatus 'done' 100 'Broker 已重启'
+            Write-ActionLog 'Broker restarted successfully'
         }
     }
     exit 0

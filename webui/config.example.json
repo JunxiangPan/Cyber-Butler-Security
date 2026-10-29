@@ -1,0 +1,13 @@
+{
+  "admin_email": "owner@example.com",
+  "data_dir": "data",
+  "host": "127.0.0.1",
+  "port": 8765,
+  "mailer_url": "http://127.0.0.1:8766/send-otp",
+  "cookie_secure": false,
+  "session_days": 7,
+  "idle_hours": 8,
+  "otp_ttl_seconds": 300,
+  "otp_max_attempts": 5,
+  "allowed_hosts": ["127.0.0.1", "localhost"]
+}
