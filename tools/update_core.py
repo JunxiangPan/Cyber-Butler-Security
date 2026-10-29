@@ -44,6 +44,7 @@ ALLOWED_ROOT_FILES = {
     ".gitignore",
     "requirements-dev.txt",
     "pytest.ini",
+    "update-manifest.sig",
     "config.pro.example.json",
     "config.lite.example.json",
     "VERSION",
