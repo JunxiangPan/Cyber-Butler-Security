@@ -67,3 +67,12 @@ dashboard modules           3 official loaded; external module rejected with red
 - A reply must contain a six-digit TOTP; `TOTP +动态码` is not accepted.
 - The broker signature check requires `tools/verify_release.py` and
   `tools/update_pubkey.pem`; both are included.
+
+## CI fix (this build)
+
+- Removed `tools/send_email_test.py` (a Windows-only DPAPI helper that matched
+  pytest's `*_test.py` pattern and failed Linux collection with
+  `ModuleNotFoundError: win32crypt`). The SMTP test uses
+  `tools/send_email_stdin.py`, which is standard-library only.
+- Added `pytest.ini` with `testpaths = tests` and `python_files = test_*.py`,
+  so `pytest -q` never collects tools/ or platform-specific scripts.
