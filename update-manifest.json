@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.3.2",
+  "version": "1.3.3",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "d7187472272533d4877e1e89064690c54f4448b006fcc8e61c2367646f0b10d7",
-      "size": 1654
+      "sha256": "c18aa54d11afd015ab41e842d827d4b8cc809fd8bb9003110df0e02af5235087",
+      "size": 1689
     },
     {
       "path": "LICENSE",
@@ -148,13 +148,18 @@
       "size": 3755
     },
     {
+      "path": "RELEASE_NOTES_v1.3.3.md",
+      "sha256": "f6c7fd0b73b0516f2eebd07d7e0954ef59c208ba6c55313165ab9df1a0551e0a",
+      "size": 1612
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "33158972a53877b421cfe2598b8d93cab169963a4964b45ee889e85349979018",
+      "sha256": "a74a0cf84ef0b15e01e64746c3465813312b763796f4f6362b092f092dccb8b5",
       "size": 6
     },
     {
@@ -469,8 +474,8 @@
     },
     {
       "path": "tools/dashboard_actions.ps1",
-      "sha256": "9fe6ee567384edc4ebfed7afaf7d14cc0a173bedd16c08615b7a517213b3c1aa",
-      "size": 10127
+      "sha256": "8b90a20a343e119f2fb3a5a33b8ed387aeffdaa1f50a0353d5830b3b0e845275",
+      "size": 11267
     },
     {
       "path": "tools/dashboard_background.ps1",
@@ -494,8 +499,8 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "0d4b3bbfacccf6bac496ab169d377284378bc5543995575c8b1d1567782ae431",
-      "size": 49500
+      "sha256": "51bb77d4a4acbcd54f852b3b638dcda54226cebb59dffcf120812b01033600da",
+      "size": 57571
     },
     {
       "path": "tools/dashboard_modules.ps1",
@@ -564,8 +569,8 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "aaed53df7b20fc879e5181b8f11519746b00864c51bea089fb90001c8bce7d0b",
-      "size": 40567
+      "sha256": "035a2e6e56dbf8d2366f90d20ef5496c2aacdb38d156d05a72d7e62676e85ee0",
+      "size": 44993
     },
     {
       "path": "tools/dashboard_styles.xaml",
@@ -749,8 +754,8 @@
     },
     {
       "path": "tools/start-ollama.ps1",
-      "sha256": "f2b874c887fdb487ea654402a95798e70af1d86bdf1ab45df5e88a1db61aab67",
-      "size": 2505
+      "sha256": "d04dc01b65f9329997497bce312f97c8a9d11e4d0245b41f06d20effd47d72bb",
+      "size": 3110
     },
     {
       "path": "tools/start-snowluma.ps1",
