@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.2.3",
+  "version": "1.3.0",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -133,13 +133,18 @@
       "size": 1771
     },
     {
+      "path": "RELEASE_NOTES_v1.3.0.md",
+      "sha256": "31655507204bf2f6607a64c26573131a432289be47014ab84c0aaee637427562",
+      "size": 2662
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "d82f34ae9aa41bc4a0cb529a1ac0898fed09d6b479fb1cc44cb66c34f15ee84d",
+      "sha256": "64d23f858ef51b0f996e4966d4e27c0371b437e2d2787890b1f7ad22d4ec5663",
       "size": 6
     },
     {
@@ -424,8 +429,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "aa9ae2308a4de32b784bcc9c52331a7c567fc49b341e66c49840d2f234d31314",
-      "size": 70154
+      "sha256": "91c3a255c8cdb56b89831ed39a6fee96fcc336b4480b7906ca63d4b45aed100f",
+      "size": 82112
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -458,19 +463,29 @@
       "size": 6164
     },
     {
+      "path": "tools/dashboard_errors.ps1",
+      "sha256": "d471d32886b917511e16368b370677296bd46536878762b3f3d6b5f48a82a826",
+      "size": 3864
+    },
+    {
       "path": "tools/dashboard_game.ps1",
       "sha256": "84962ff9d25d1a0eda134c8a40d5478796d984b03f64a5932b3d3919eb4fd904",
       "size": 10873
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "20b27d03ee7993c7b4ade56d0c129078eb20560ae4000486b17f45fde99cd6af",
-      "size": 7509
+      "sha256": "4ba5bc460f925d6d7e470b2b84cd9b29ac5f523c13682da14de19f5c997104e8",
+      "size": 9503
     },
     {
       "path": "tools/dashboard_modules.ps1",
-      "sha256": "284e0eff3d5807fd823f9f3a4212065ed0efd69860c5d1a110cd08ba0dcef139",
-      "size": 12583
+      "sha256": "5f1a56cc71bef82bc3ac5662c8c526274b9024507234d63169546f3edc229e7a",
+      "size": 12702
+    },
+    {
+      "path": "tools/dashboard_persona.ps1",
+      "sha256": "7df7cf26b8a99863d91aa96fceb3d95b9700a3d1d766f1140e26587ed857e9c2",
+      "size": 4810
     },
     {
       "path": "tools/dashboard_plugins/hello_world/logic.ps1",
@@ -499,8 +514,8 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "5f1bb62c49a069f67f47c78bd855688cef2c79ac110deec7df62ef9ad302ba79",
-      "size": 37415
+      "sha256": "7fc85f7309e42613ad0291ca4b8684fe6e256ed7a9206bcc7b1fdfb485d7e049",
+      "size": 38469
     },
     {
       "path": "tools/dashboard_styles.xaml",
@@ -599,8 +614,8 @@
     },
     {
       "path": "tools/plugin_hub.ps1",
-      "sha256": "89225c55f4c9b6e05303a3db0ab1d1eb88928a3e3a2563e62355307c32d465bf",
-      "size": 12345
+      "sha256": "5a85c7cd01bd90cdb21a0f87cd3dc56a4febb8705224eb5795aea65518dd1be6",
+      "size": 12352
     },
     {
       "path": "tools/plugin_market.ps1",
