@@ -17,7 +17,7 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8765
     mailer_url: str = "http://127.0.0.1:8766/send-otp"
-    cookie_secure: bool = False
+    cookie_secure: bool | str = False
     session_days: int = 7
     idle_hours: int = 8
     otp_ttl_seconds: int = 300
@@ -60,13 +60,18 @@ class Settings:
         token_path = Path(token_file) if token_file else project_root / ".astrbot_token"
         if not token_path.is_absolute():
             token_path = project_root / token_path
+        raw_cookie_secure = raw.get("cookie_secure", False)
+        if isinstance(raw_cookie_secure, str) and raw_cookie_secure.strip().lower() == "auto":
+            cookie_secure: bool | str = "auto"
+        else:
+            cookie_secure = bool(raw_cookie_secure)
         settings = cls(
             admin_email=str(raw["admin_email"]).strip().lower(),
             data_dir=data_dir,
             host=str(raw.get("host") or "127.0.0.1"),
             port=int(raw.get("port") or 8765),
             mailer_url=str(raw.get("mailer_url") or "http://127.0.0.1:8766/send-otp"),
-            cookie_secure=bool(raw.get("cookie_secure", False)),
+            cookie_secure=cookie_secure,
             session_days=int(raw.get("session_days") or 7),
             idle_hours=int(raw.get("idle_hours") or 8),
             otp_ttl_seconds=int(raw.get("otp_ttl_seconds") or 300),

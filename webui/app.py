@@ -69,6 +69,15 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             response.headers["Cache-Control"] = "no-store"
         return response
 
+    def cookie_secure(request: Request) -> bool:
+        if settings.cookie_secure == "auto":
+            if request.url.scheme == "https":
+                return True
+            forwarded = request.headers.get("x-forwarded-proto", "").split(",")[0].strip().lower()
+            client = request.client.host if request.client else ""
+            return forwarded == "https" and client in {"127.0.0.1", "::1"}
+        return bool(settings.cookie_secure)
+
     def current_session(request: Request) -> dict | None:
         return auth.session(request.cookies.get(SESSION_COOKIE))
 
@@ -129,7 +138,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             value=token,
             max_age=settings.session_seconds,
             httponly=True,
-            secure=settings.cookie_secure,
+            secure=cookie_secure(request),
             samesite="strict",
             path="/",
         )
@@ -150,7 +159,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         if not secrets.compare_digest(provided, session["csrf"]):
             raise HTTPException(status_code=403, detail="invalid csrf token")
         auth.logout(request.cookies.get(SESSION_COOKIE))
-        response.delete_cookie(SESSION_COOKIE, path="/")
+        response.delete_cookie(SESSION_COOKIE, path="/", samesite="strict", secure=cookie_secure(request))
         return {"ok": True}
 
     @app.get("/api/summary")

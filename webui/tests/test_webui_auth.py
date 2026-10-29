@@ -101,3 +101,25 @@ def test_docs_and_openapi_are_disabled(tmp_path: Path) -> None:
     client, _ = make_client(tmp_path)
     assert client.get("/docs").status_code == 404
     assert client.get("/openapi.json").status_code == 404
+
+
+def test_auto_cookie_secure_adapts_to_scheme(tmp_path: Path) -> None:
+    def client_for(base_url: str):
+        settings = Settings(admin_email="owner@example.com", data_dir=tmp_path / ("auto-" + base_url.split(":")[0]), cookie_secure="auto")
+        settings.ensure_data()
+        mailer = FakeMailer()
+        return TestClient(create_app(settings, mailer), base_url=base_url), mailer
+
+    http, mailer = client_for("http://testserver")
+    http.post("/api/auth/request-otp", json={"email": "owner@example.com"})
+    code = mailer.sent[-1][1]
+    response = http.post("/api/auth/verify", json={"email": "owner@example.com", "code": code})
+    assert response.status_code == 200
+    assert "secure" not in response.headers["set-cookie"].lower()
+
+    https, mailer = client_for("https://testserver")
+    https.post("/api/auth/request-otp", json={"email": "owner@example.com"})
+    code = mailer.sent[-1][1]
+    response = https.post("/api/auth/verify", json={"email": "owner@example.com", "code": code})
+    assert response.status_code == 200
+    assert "secure" in response.headers["set-cookie"].lower()
