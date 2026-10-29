@@ -132,6 +132,8 @@ def _totp_path_risk(local_path: Path, session_key: str) -> tuple[bool, str]:
     except OSError:
         return True, "无法读取文件元数据"
     owner = _totp_file_owner(resolved).casefold()
+    if not owner:
+        return True, "无法确认文件所有者"
     if owner.endswith("YOUR_SERVICE_USER".casefold()):
         return True, "文件由AstrBot创建或拷贝"
     if TOTP_SENSITIVE.search(resolved.name):
@@ -531,12 +533,20 @@ class SendMessageToUserTool(FunctionTool[AstrAgentContext]):
         # outside the shared folder, sensitive names, archives, and batch/count
         # overflow require the SYSTEM broker + phone TOTP.
         session_key = str(target_session)
-        file_components = [c for c in components if isinstance(c, Comp.File)]
+        path_components = [
+            c
+            for c in components
+            if isinstance(c, (Comp.File, Comp.Image, Comp.Record, Comp.Video))
+        ]
         file_paths: list[Path] = []
         url_target = ""
         display_name = "文件"
-        for component in file_components:
-            raw_file = getattr(component, "file", "") or ""
+        for component in path_components:
+            raw_file = (
+                getattr(component, "file", "")
+                or getattr(component, "path", "")
+                or ""
+            )
             raw_url = getattr(component, "url", "") or ""
             name = getattr(component, "name", "") or "文件"
             display_name = name or display_name
@@ -544,7 +554,7 @@ class SendMessageToUserTool(FunctionTool[AstrAgentContext]):
                 file_paths.append(Path(str(raw_file)))
             elif raw_url:
                 url_target = str(raw_url)
-        if file_components:
+        if path_components:
             risky = False
             reason = ""
             if file_paths:
@@ -572,7 +582,7 @@ class SendMessageToUserTool(FunctionTool[AstrAgentContext]):
             return f"error: failed to send message to session {target_session}: {exc}"
         if not sent:
             return f"error: failed to find platform for session {target_session}."
-        if file_components and file_paths:
+        if path_components and file_paths:
             _totp_record_send(file_paths, session_key)
         if str(target_session) == current_session:
             context.context.event._has_send_oper = True
