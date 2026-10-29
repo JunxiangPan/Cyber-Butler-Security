@@ -26,10 +26,10 @@ PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
 LOCAL_PROVIDER = "local_qwen36"
 LOCAL_SOURCE = "ollama_local_source"
 CLOUD_PROVIDER = "deepseek"
-STARTUP_GRACE_SECONDS = 120
+STARTUP_GRACE_SECONDS = 90
 CHECK_INTERVAL_SECONDS = 10
 WARNING = "未检测到本地模型，已自动切换为纯云端模式"
-GRACE_WARNING = "Ollama 尚未就绪，进入 120 秒启动宽限期，暂不切换云端"
+GRACE_WARNING = "Ollama 尚未就绪，进入 90 秒启动宽限期，暂不切换云端"
 
 
 def _local_enabled() -> bool:

@@ -159,7 +159,7 @@ After a Windows reboot, Ollama and AstrBot start independently. The old fallback
 
 Changes:
 
-- 120-second startup grace while **local_qwen36 is enabled**;
+- 90-second startup grace while **local_qwen36 is enabled**;
 - periodic Ollama checks every 10 seconds during the grace;
 - one clear warning during the wait, but **no provider switch**;
 - only after the grace expires without Ollama does it fall back to DeepSeek;
