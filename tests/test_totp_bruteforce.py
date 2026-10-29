@@ -11,6 +11,8 @@ import broker
 def setup_function() -> None:
     broker._pending = None
     broker._verify_locked_until = 0.0
+    broker._global_failures = 0
+    broker._global_lock_until = 0.0
 
 
 def test_five_bad_attempts_lock_verification(monkeypatch, tmp_path) -> None:
@@ -37,6 +39,8 @@ def test_five_bad_attempts_lock_verification(monkeypatch, tmp_path) -> None:
     assert body["attempts"] == 5
     assert broker._pending is None
     assert broker._verify_locked_until > time.monotonic()
+    assert broker._global_failures == 5
+    assert broker._global_lock_until > time.monotonic()
 
     # A new request is rejected while the verification lock is active.
     status, _ = broker.run_request({"action": "delete", "target": "x"})

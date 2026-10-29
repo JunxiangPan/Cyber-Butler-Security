@@ -65,6 +65,10 @@ The security model was built around concrete Windows failure modes, not only doc
 - **Owner comparison is case-insensitive on both sides.** The ACL owner string is normalized with `casefold()` and compared with a casefolded service-account placeholder; a case-only rename must not bypass the TOTP rule.
 - **Hard links force TOTP.** A file with `st_nlink > 1` is treated as a hard-link bypass attempt even when its name and path look benign.
 - **Unknown chat platforms fail closed.** The Security Gate no longer returns early for an unrecognized `umo`; it logs a warning and calls `event.stop_event()` rather than allowing the event through.
+- **Media components are not a bypass.** `Comp.Image`, `Comp.Record`, and `Comp.Video` are collected together with `Comp.File`; every local path goes through `_totp_path_risk` and the complete manifest.
+- **Owner lookup failure is fail-closed.** An empty owner from `win32security` is treated as risky, not trusted.
+- **Broker send paths are shared-only.** `action=send` rejects URLs and any manifest entry outside the shared folder with `403`; approval is not offered for those paths.
+- **Security Gate state is writable.** `/lockapi` and `/unlockapi` write `AstrBot/data/security-gate-api-lock.json`, not the read-only `tools/` tree.
 
 ### Send manifest binding (P0)
 
@@ -185,6 +189,7 @@ The repository also provides:
 | Request binding | The code is accepted only for the pending `request_id`; a mismatched ID gets `404` |
 | Wrong code | `403 invalid verification code`; the pending request is **not** consumed |
 | Brute-force limit | Every failure increments `_pending["attempts"]`; the 5th failure clears pending, sets a 300-second lockout, returns `429`, and writes a failure audit record |
+| Global exponential backoff | `_global_failures` persists when a pending request expires; after 5 failures the lockout is 300s, then 600s, 1200s, up to 24h |
 | Locked verification | `/verify` and new `/request` calls return `429` while the lockout is active |
 | Expired challenge | `410`; pending state is cleared |
 | TOTP replay | SHA-256 digest cache with a 120-second TTL; a consumed code returns `403` |
@@ -281,6 +286,8 @@ The test suite includes:
 
 - `tests/test_acl_model.py` — explicit deny wins over allow; service-account read raises `PermissionError`;
 - `tests/test_broker_wrong_totp.py` — wrong code returns **403**, pending request is preserved;
+- `tests/test_broker_manifest.py` — no manifest 409, outside-folder 403, tamper 409, full-path prompt;
+- `tests/test_media_bypass.py` — Image/Record/Video enter the TOTP chain; owner failure is fail-closed;
 - `tests/test_totp_bruteforce.py` — five failures return **429**, clear pending state, and set a lockout;
 - `tests/test_totp_replay.py` — accepted TOTP and recovery codes cannot be replayed;
 - `tests/test_security_gate.py` — injection from a non-owner is stopped; unknown platforms fail closed; owner and benign text pass.

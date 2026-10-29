@@ -21,7 +21,7 @@ from astrbot.api.star import Context, Star, register
 TRUSTED_QQ = "YOUR_QQ_ID"
 ROOT = Path(__file__).resolve().parents[4]
 LOG_PATH = ROOT / "AstrBot" / "data" / "security-gate.log"
-LOCK_STATE = ROOT / "tools" / "api-lock-state.json"
+LOCK_STATE = ROOT / "AstrBot" / "data" / "security-gate-api-lock.json"
 TOKEN_FILE = ROOT / ".astrbot_token"
 PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
 DANGEROUS_TOOLS = (

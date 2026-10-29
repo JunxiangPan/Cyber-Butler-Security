@@ -42,8 +42,10 @@
 │   ├── conftest.py
 │   ├── test_acl_model.py       # 服务账户越权访问保险箱 → PermissionError
 │   ├── test_broker_wrong_totp.py
+│   ├── test_broker_manifest.py
 │   ├── test_totp_bruteforce.py
 │   ├── test_totp_replay.py
+│   ├── test_media_bypass.py
 │   └── test_security_gate.py  # 提示词注入拦截
 ├── overlay/                   # AstrBot 安全补丁（非完整 AstrBot）
 │   └── astrbot/
@@ -276,7 +278,7 @@ CI 在每次 push / pull request 时于 Ubuntu 和 Windows 运行同一套测试
 .github/workflows/security-tests.yml
 ```
 
-覆盖（共 11 项）：
+覆盖（共 17 项）：
 
 - 服务账户 ACL 显式拒绝（逻辑模型，不是 Windows 内核 ACL 测试）；
 - 错误 TOTP → 403，且不消耗待验证请求；
@@ -284,6 +286,9 @@ CI 在每次 push / pull request 时于 Ubuntu 和 Windows 运行同一套测试
 - TOTP / 恢复码防重放；
 - 提示词注入在进入模型前被拦截，主人豁免；
 - 未知聊天平台默认拦截（fail-closed）。
+- 发送清单：无清单拒绝、目录外拒绝、篡改 409、完整路径提示；
+- 图片/语音/视频路径统一进入 TOTP 链，owner 获取失败 fail-closed；
+- 全局指数退避锁定。
 
 ## 许可证
 

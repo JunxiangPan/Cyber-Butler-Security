@@ -65,8 +65,10 @@ flowchart LR
 │   ├── conftest.py
 │   ├── test_acl_model.py       # service account vault access -> PermissionError
 │   ├── test_broker_wrong_totp.py
+│   ├── test_broker_manifest.py
 │   ├── test_totp_bruteforce.py
 │   ├── test_totp_replay.py
+│   ├── test_media_bypass.py
 │   └── test_security_gate.py  # prompt-injection interception
 ├── overlay/                   # AstrBot security patches (not full AstrBot)
 │   └── astrbot/
@@ -255,7 +257,7 @@ CI runs the same tests on Ubuntu and Windows for every push and pull request:
 .github/workflows/security-tests.yml
 ```
 
-Included tests (11 total):
+Included tests (17 total):
 
 - explicit ACL deny for the service account (logic model, not kernel ACL);
 - wrong TOTP → HTTP 403 without consuming the pending request;
@@ -263,6 +265,9 @@ Included tests (11 total):
 - TOTP and recovery-code replay rejection;
 - prompt-injection blocking before the model, with owner exemption;
 - unknown chat platforms fail closed.
+- send manifest: no-manifest rejection, outside-folder rejection, tamper 409, full-path prompt;
+- media component collection (Image/Record/Video) and owner fail-closed;
+- global exponential TOTP lockout.
 
 ## License
 

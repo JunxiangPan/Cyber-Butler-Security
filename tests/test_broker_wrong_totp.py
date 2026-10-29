@@ -10,6 +10,8 @@ import broker
 def setup_function() -> None:
     broker._pending = None
     broker._verify_locked_until = 0.0
+    broker._global_failures = 0
+    broker._global_lock_until = 0.0
     broker._used_totp.clear()
 
 

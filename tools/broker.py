@@ -49,7 +49,11 @@ _used_totp: dict[str, float] = {}
 TOTP_REPLAY_TTL = 120
 TOTP_MAX_ATTEMPTS = 5
 VERIFY_LOCK_SECONDS = 300
+GLOBAL_LOCK_BASE_SECONDS = 300
+GLOBAL_LOCK_MAX_SECONDS = 86400
 _verify_locked_until = 0.0
+_global_failures = 0
+_global_lock_until = 0.0
 _pending: dict | None = None
 _send_events: dict[str, threading.Event] = {}
 _send_results: dict[str, bool] = {}
@@ -212,11 +216,13 @@ def _manifest_prompt(manifest: list[dict]) -> str:
     lines = [f"哥，瑾言想发送 {len(manifest)} 个文件，请输入动态验证码。完整清单："]
     for index, item in enumerate(manifest, 1):
         if item["kind"] == "url":
-            lines.append(f"{index}. URL: {item['path']}")
+            lines.append(f"{index}. URL: {item['path']} [OUTSIDE SHARED]")
         else:
+            path = Path(item["path"])
+            marker = "" if inside_shared(path) else " [OUTSIDE SHARED]"
             lines.append(
-                f"{index}. {Path(item['path']).name} | {item['size']} bytes | "
-                f"sha256={item['sha256']}"
+                f"{index}. {item['path']} | {item['size']} bytes | "
+                f"sha256={item['sha256']}{marker}"
             )
     return "\n".join(lines)
 
@@ -295,9 +301,25 @@ def timeout_watch(request_id: str) -> None:
             log(f"timeout: {request_id}")
 
 
+def _is_verification_locked() -> bool:
+    return time.monotonic() < max(_verify_locked_until, _global_lock_until)
+
+
+def _record_global_failure() -> float:
+    """Record a failure even if the pending request is later cleared/expired."""
+    global _global_failures, _global_lock_until
+    _global_failures += 1
+    if _global_failures < TOTP_MAX_ATTEMPTS:
+        return 0.0
+    exponent = max(0, _global_failures - TOTP_MAX_ATTEMPTS)
+    delay = min(GLOBAL_LOCK_BASE_SECONDS * (2 ** exponent), GLOBAL_LOCK_MAX_SECONDS)
+    _global_lock_until = max(_global_lock_until, time.monotonic() + delay)
+    return delay
+
+
 def run_request(payload: dict) -> tuple[int, dict]:
     global _pending
-    if time.monotonic() < _verify_locked_until:
+    if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     action = str(payload.get("action", "")).strip().lower()
     target_text = str(payload.get("target", "")).strip()
@@ -312,6 +334,16 @@ def run_request(payload: dict) -> tuple[int, dict]:
             manifest = _canonical_manifest(payload.get("manifest"))
         except (OSError, ValueError) as exc:
             return 409, {"ok": False, "error": f"invalid send manifest: {exc}"}
+        outside = [
+            item
+            for item in manifest
+            if item["kind"] != "file" or not inside_shared(Path(item["path"]))
+        ]
+        if outside:
+            return 403, {
+                "ok": False,
+                "error": "send manifest contains a path outside the shared folder",
+            }
         target_text = manifest[0]["path"]
         target = Path(target_text)
         if not (target_text.startswith(("http://", "https://")) or target.exists()):
@@ -364,10 +396,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
 
 def run_verify(payload: dict) -> tuple[int, dict]:
-    global _pending, _verify_locked_until
+    global _pending, _verify_locked_until, _global_failures, _global_lock_until
     request_id = str(payload.get("id", "")).strip()
     code = str(payload.get("code", "")).strip()
-    if time.monotonic() < _verify_locked_until:
+    if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     with _lock:
         if not _pending:
@@ -383,6 +415,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         if not code_type:
             attempts = int(_pending.get("attempts", 0)) + 1
             _pending["attempts"] = attempts
+            delay = _record_global_failure()
             audit_failure(
                 request_id,
                 str(_pending.get("action", "")),
@@ -392,7 +425,10 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             if attempts >= TOTP_MAX_ATTEMPTS:
                 _pending = None
                 _verify_locked_until = time.monotonic() + VERIFY_LOCK_SECONDS
-                log(f"verification locked after {attempts} failures: {request_id}")
+                log(
+                    f"verification locked after {attempts} failures: {request_id} "
+                    f"(global_failures={_global_failures}, backoff={delay:.0f}s)"
+                )
                 return 429, {
                     "ok": False,
                     "error": "too many invalid attempts; verification locked",
@@ -403,6 +439,8 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 "error": "invalid verification code",
                 "attempts": attempts,
             }
+        _global_failures = 0
+        _global_lock_until = 0.0
         request = dict(_pending)
         if request.get("action") == "send":
             manifest = request.get("manifest")
