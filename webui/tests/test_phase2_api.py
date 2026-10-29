@@ -9,7 +9,7 @@ BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE))
 
 from app import create_app  # noqa: E402
-from config import Settings  # noqa: E402
+from settings import Settings  # noqa: E402
 from services import WebServices  # noqa: E402
 
 

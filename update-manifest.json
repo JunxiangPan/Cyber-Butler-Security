@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "3f77acddfc3e7212b5050806057671e1120a2e53575c2235668faa7c2872677e",
-      "size": 1682
+      "sha256": "1d5e594139c863b74da2d70275cd5fa000d3ac61794a96641fe0ea8b24f733ea",
+      "size": 1725
     },
     {
       "path": "LICENSE",
@@ -814,7 +814,7 @@
     },
     {
       "path": "webui/README.md",
-      "sha256": "a5a6ca89d1acda6cc246355126e8efe046aa3377f3aafe02cfb0dfa4c7e3ed79",
+      "sha256": "6c23ca6bf7b40a8f42fb3b589f7db64c3f2655fb96ee08362da7b6f0792ec3bb",
       "size": 1935
     },
     {
@@ -826,6 +826,11 @@
       "path": "webui/auth.py",
       "sha256": "fbf003e85a3ec9977c6c8ef57bd592a20dc50c832419366d692874c8860d0de9",
       "size": 3783
+    },
+    {
+      "path": "webui/example-config.json",
+      "sha256": "700826d75795f089acc553ce0ffd27d75f8cfaf044bf52443be56fc373fce0f3",
+      "size": 624
     },
     {
       "path": "webui/mailer.py",

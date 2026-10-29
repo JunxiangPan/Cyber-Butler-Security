@@ -3,7 +3,7 @@ from __future__ import annotations
 import uvicorn
 
 from app import create_app
-from config import Settings
+from settings import Settings
 
 
 def main() -> None:

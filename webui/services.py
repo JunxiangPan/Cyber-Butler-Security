@@ -11,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-from config import Settings
+from settings import Settings
 
 
 class ServiceError(RuntimeError):

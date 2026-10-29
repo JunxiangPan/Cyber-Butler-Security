@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from auth import AuthService, InvalidCode, MailerFailed, RateLimited, RateLimiter, SESSION_COOKIE
-from config import Settings
+from settings import Settings
 from mailer import MailerClient
 from services import ServiceError, WebServices
 from store import Store

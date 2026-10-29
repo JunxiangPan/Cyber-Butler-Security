@@ -5,7 +5,7 @@ import secrets
 import time
 from collections import defaultdict, deque
 
-from config import Settings
+from settings import Settings
 from store import Store, otp_digest
 
 logger = logging.getLogger("cyberbutler.webui.auth")
