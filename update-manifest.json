@@ -134,8 +134,8 @@
     },
     {
       "path": "RELEASE_NOTES_v1.3.0.md",
-      "sha256": "31655507204bf2f6607a64c26573131a432289be47014ab84c0aaee637427562",
-      "size": 2662
+      "sha256": "ba8ca570fbbf46f9985ac32e0d4be52aff33ab61b996419fefa478db0e7e50af",
+      "size": 4220
     },
     {
       "path": "SECURITY.md",
@@ -429,8 +429,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "91c3a255c8cdb56b89831ed39a6fee96fcc336b4480b7906ca63d4b45aed100f",
-      "size": 82112
+      "sha256": "dc68527adf93c018cce3a11c76934eda2892cfe1a6ab1b8b058386c28efd62d3",
+      "size": 83007
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -464,8 +464,8 @@
     },
     {
       "path": "tools/dashboard_errors.ps1",
-      "sha256": "d471d32886b917511e16368b370677296bd46536878762b3f3d6b5f48a82a826",
-      "size": 3864
+      "sha256": "f08023fdf79c71e9eb70da715e7e8a21aee6631a2da5593f5f03cad8ce496dfe",
+      "size": 4236
     },
     {
       "path": "tools/dashboard_game.ps1",
@@ -474,8 +474,8 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "4ba5bc460f925d6d7e470b2b84cd9b29ac5f523c13682da14de19f5c997104e8",
-      "size": 9503
+      "sha256": "2a85204173712dead0279a472c24f5a48774a6da4f4192b3afd0615d4c3513b6",
+      "size": 11115
     },
     {
       "path": "tools/dashboard_modules.ps1",
@@ -503,6 +503,36 @@
       "size": 3358
     },
     {
+      "path": "tools/dashboard_plugins/quick_cmd/logic.ps1",
+      "sha256": "d732e8c67d77b24e500a79d3a9e163e0a6e00ddf5978cc81146a5ba211e55747",
+      "size": 3295
+    },
+    {
+      "path": "tools/dashboard_plugins/quick_cmd/manifest.json",
+      "sha256": "918a7edc9eebf893333594356ad4539fc6a330f56f1bc1e22035fb890cf20ff7",
+      "size": 362
+    },
+    {
+      "path": "tools/dashboard_plugins/quick_cmd/ui.xaml",
+      "sha256": "29c95409a100503b5078dd7abd43a6773d9d91e0c3c3d26c146574bf14dec085",
+      "size": 2094
+    },
+    {
+      "path": "tools/dashboard_plugins/sys_monitor/logic.ps1",
+      "sha256": "c0fc5b2bf26943f927eed2e35665b02ab89b075862ce86c815a805e124ef16ad",
+      "size": 4162
+    },
+    {
+      "path": "tools/dashboard_plugins/sys_monitor/manifest.json",
+      "sha256": "f3107e5c978f8414e6f5451b501662571eecd347e62ade0b2c9e25a2d8d35810",
+      "size": 323
+    },
+    {
+      "path": "tools/dashboard_plugins/sys_monitor/ui.xaml",
+      "sha256": "5654133ed5cabd6e8d814e809e33043ed2badb9e9e4fce45e5e71155662c721d",
+      "size": 2573
+    },
+    {
       "path": "tools/dashboard_restore.ps1",
       "sha256": "fe757776e04563713fafa2d928734a47286b1cf127ccb9a5c28db7235bf7d2c1",
       "size": 9648
@@ -514,8 +544,8 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "7fc85f7309e42613ad0291ca4b8684fe6e256ed7a9206bcc7b1fdfb485d7e049",
-      "size": 38469
+      "sha256": "661aee4a9b6267bc47a332619c4c84776c1fed5bc44f33e58de25e83ea5b7e49",
+      "size": 39370
     },
     {
       "path": "tools/dashboard_styles.xaml",
