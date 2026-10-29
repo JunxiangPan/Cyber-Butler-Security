@@ -130,4 +130,4 @@ Ollama 尚未加载模型
 → 会话切到 deepseek
 ```
 
-现在 `cloud_fallback` 已加入 **120 秒启动宽限期**，并修复了配置 BOM 读取问题；本地模型就绪后会继续使用 `local_qwen36`。
+现在 `cloud_fallback` 已加入 **90 秒启动宽限期**，并修复了配置 BOM 读取问题；本地模型就绪后会继续使用 `local_qwen36`。
