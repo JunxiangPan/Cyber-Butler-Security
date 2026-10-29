@@ -31,3 +31,27 @@ Verified live:
 - 17 tests passed.
 - UTF-8 notification delivered and SnowLuma log displays correct Chinese.
 - Boot self-check script parsed successfully.
+
+## Boot SelfCheck scheduled task
+
+Installed and verified as SYSTEM:
+
+```text
+TASK=Boot SelfCheck
+STATE=Ready
+PRINCIPAL=SYSTEM (ServiceAccount, Highest)
+TRIGGERS=AtStartup + AtLogOn, delay PT2M
+ACTION=powershell.exe ... boot-selfcheck.ps1
+TEST RESULT=0
+```
+
+Manual test log:
+
+```text
+[2026-10-29 09:21:48] boot self-check started
+[2026-10-29 09:21:48] local model already resident
+[2026-10-29 09:21:48] provider restore: ok
+[2026-10-29 09:21:48] boot self-check finished: {"ollama":true,"astrbot":true,"snowluma":true}
+```
+
+The temporary Startup VBS fallback was removed after the scheduled task was verified.
