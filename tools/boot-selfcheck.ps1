@@ -1,4 +1,4 @@
-# Boot self-check: wait for the stack, warm the local model and restore local routing.
+﻿# Boot self-check: wait for the stack, warm the local model and restore local routing.
 # Runs as SYSTEM at startup/logon; user-scoped SnowLuma/QQ tasks are started by name.
 $ErrorActionPreference = 'Continue'
 $root = 'YOUR_PROJECT_PATH'

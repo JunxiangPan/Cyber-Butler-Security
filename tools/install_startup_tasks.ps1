@@ -18,7 +18,7 @@ function Install-Task([string]$name, [string]$exe, [string]$args, [string]$workd
 
 Install-Task 'SnowLuma Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\start-snowluma.ps1')) (Join-Path $root 'tools') 'SnowLuma + guardian as YOUR_USER_NAME at logon'
 Install-Task 'Ollama Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\start-ollama.ps1')) (Join-Path $root 'tools') 'Ollama + local model at logon'
-Install-Task 'Game Mode Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor as YOUR_USER_NAME at logon'
+Install-Task 'Game Mode Startup' 'powershell.exe' ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as YOUR_USER_NAME at logon'
 
 # Remove the old Startup shortcuts so they cannot double-start SnowLuma/Ollama.
 $startup = 'YOUR_USER_PATH\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'

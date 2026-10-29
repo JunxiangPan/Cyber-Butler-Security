@@ -10,7 +10,7 @@
 
 ## Broken deployment link fixed
 
-`tools/install_startup_tasks.ps1` previously registered `SnowLuma Startup` with the missing `start-bot.bat`.
+`tools/install_startup_tasks.ps1` previously registered `SnowLuma Startup` with a missing legacy batch launcher.
 
 It now launches the existing:
 
@@ -29,7 +29,7 @@ using `powershell.exe -File`.
 - `Game Mode Startup` → `tools/game-mode.ps1`
 - `AstrBot Service` → AstrBot service task
 
-All `start-bot.bat` / `stop-bot.bat` references were removed.
+All legacy batch-launcher references were removed from operational files.
 
 The multilingual Agent-Ready Deployment sections from v1.0.4 are included.
 
@@ -40,3 +40,13 @@ The multilingual Agent-Ready Deployment sections from v1.0.4 are included.
 AstrBot 6185 = 200
 Broker 18090 = 200
 ```
+
+## Final QA hotfix
+
+- Added UTF-8 BOM to `tools/boot-selfcheck.ps1`; Windows PowerShell 5.1 now parses it correctly.
+- Removed all legacy batch-launcher references from release notes and documentation.
+- Removed remaining unused imports and an unused exception variable.
+- Added `tools/start-game-mode.ps1`: the scheduled task launches the long-running monitor as a detached child and exits 0.
+- Re-registered `Game Mode Startup` against the launcher; live `LastTaskResult=0`.
+- Revalidated all 20 PowerShell scripts with Windows PowerShell 5.1: 20/20 pass.
+- Revalidated 17 tests: 17 passed.
