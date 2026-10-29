@@ -1,4 +1,4 @@
-﻿"""SnowLuma watchdog and PC temperature/memory guard.
+"""SnowLuma watchdog and PC temperature/memory guard.
 
 Checks the SnowLuma WebUI/OneBot port, restarts SnowLuma with its bundled
 node.exe when it is down, and sends a short notification through AstrBot's
@@ -174,10 +174,17 @@ def notify(config: dict, text: str) -> bool:
     token = read_token(config)
     if token:
         try:
+            payload = json.dumps(
+                {"umo": umo, "message": text},
+                ensure_ascii=False,
+            ).encode("utf-8")
             response = requests.post(
                 f"{api}/api/v1/im/messages",
-                headers={"Authorization": f"Bearer {token}"},
-                json={"umo": umo, "message": text},
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                data=payload,
                 timeout=10,
             )
             if response.ok:
