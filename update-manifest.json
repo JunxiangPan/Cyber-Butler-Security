@@ -434,8 +434,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "a2341a56ace51be17234b4800b5551ec97e212f55fd1cddd49ed67235a70095f",
-      "size": 83757
+      "sha256": "e7b5108c0ab89552c5bdb45e2e4accd102cd82c6cc318041b61bb0bbb4aba8cb",
+      "size": 83784
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -479,8 +479,8 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "704f7500cd806fbb81eead7bd1b3ba7944134dc100a44c22eee4a19186daaf26",
-      "size": 49516
+      "sha256": "0d4b3bbfacccf6bac496ab169d377284378bc5543995575c8b1d1567782ae431",
+      "size": 49500
     },
     {
       "path": "tools/dashboard_modules.ps1",
