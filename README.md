@@ -155,6 +155,12 @@ The shortcut always targets
 the release tree. The running code, the `VERSION` file and the updater
 therefore stay in one install root.
 
+A SYSTEM scheduled task (`LibreHardwareMonitor Watchdog`) probes
+`http://127.0.0.1:18085/data.json` every five minutes and restarts
+LibreHardwareMonitor when it is down. Install it with
+`tools\install_lhm_watchdog.ps1 -ProjectRoot <install root>` from an elevated
+shell; it runs silently through `wscript //B` and starts at boot.
+
 The dashboard reads ports, GPU, provider configuration, audit JSONL, persona
 prompt and game lists, and supports the first reviewed write actions through
 UAC helpers. It is not an AstrBot plugin and is not registered as an LLM tool.
