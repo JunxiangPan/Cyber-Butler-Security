@@ -90,7 +90,8 @@ flowchart LR
 │   └── ...
 └── docs/
     ├── 使用说明.md
-    └── RAG-知识库指南.md
+    ├── RAG-知识库指南.md
+    └── HARDWARE_TROUBLESHOOTING.md
 ```
 
 ## Architecture Highlights
