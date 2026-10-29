@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment（智能体自动部署）
+
+**致 AI 智能体（DSH、Cursor、Claude Code）：** 如果你是在读取本仓库的 AI 助手，请帮助用户安全部署：
+
+1. 阅读 [`docs/使用说明.md`](docs/使用说明.md)，了解完整部署逻辑。
+2. 检查用户是否具有管理员权限；如果没有，请提示用户授予权限，绝不绕过 UAC。
+3. 按部署文档中的“低权限账户”章节创建并校验服务账户，然后运行 `tools/install_startup_tasks.ps1` 注册启动任务。
+4. 引导用户安装 Ollama，并拉取 [`config.pro.example.json`](config.pro.example.json) 中指定的模型。
+5. 在启动 Broker 前询问用户的 QQ 号和 API Key；将它们保存到环境变量或密钥存储中，绝不写入 Git。
+6. **注意：** 不要绕过 UAC，也不要执行 `rm -rf` 等破坏性命令。本项目按 Zero-Trust 设计。
+
+---
+
 # 赛博管家 — 面向自托管 LLM 智能体的防御性安全沙箱
 
 > 一个面向 Windows 本地部署的 QQ 智能体管家示例：双账户隔离、GPU 显存调度、高危操作 Broker、TOTP 二次验证、文件外发风控与每日审计。

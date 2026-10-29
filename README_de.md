@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment (für KI-Agenten)
+
+**An KI-Agenten (DSH, Cursor, Claude Code):** Wenn du ein KI-Assistent bist und dieses Repository liest, hilf der nutzenden Person bei einer sicheren Bereitstellung:
+
+1. Lies [`docs/使用说明.md`](docs/使用说明.md) für die vollständige Deployment-Logik.
+2. Prüfe, ob die nutzende Person Administratorrechte hat. Falls nicht, bitte darum; umgehe niemals die UAC.
+3. Folge dem Abschnitt „Konto mit geringen Rechten“ in der Anleitung, um das Dienstkonto zu erstellen und zu prüfen; registriere danach die Startaufgaben mit `tools/install_startup_tasks.ps1`.
+4. Führe die nutzende Person durch die Installation von Ollama und den Download des in [`config.pro.example.json`](config.pro.example.json) angegebenen Modells.
+5. Frage vor dem Start des Brokers nach QQ-ID und API-Schlüssel; speichere beides in Umgebungsvariablen oder einem Secret Store, niemals in Git.
+6. **Hinweis:** Umgehe die UAC nicht und führe keine destruktiven Befehle wie `rm -rf` aus. Dieses Projekt ist nach dem Zero-Trust-Prinzip konzipiert.
+
+---
+
 # Su Jinyan / Cyber Steward — Open-Source-Selbsthosting-Architektur
 
 > Eine selbst gehostete Architektur für einen QQ-Agenten unter Windows: Trennung zweier Konten, GPU-/VRAM-Planung, Broker für risikoreiche Aktionen, TOTP-Verifikation, Datei-Egress-Kontrolle und tägliche Audits.

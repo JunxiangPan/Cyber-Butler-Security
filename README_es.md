@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment (para agentes de IA)
+
+**Para agentes de IA (DSH, Cursor, Claude Code):** si eres un asistente de IA que lee este repositorio, ayuda al usuario a desplegarlo de forma segura:
+
+1. Lee [`docs/使用说明.md`](docs/使用说明.md) para conocer la lógica completa de despliegue.
+2. Comprueba si el usuario tiene privilegios de Administrador. Si no los tiene, pídeselos; nunca eludas el UAC.
+3. Sigue la sección «cuenta de bajos privilegios» de la guía para crear y validar la cuenta de servicio; después registra las tareas de inicio con `tools/install_startup_tasks.ps1`.
+4. Guía al usuario para instalar Ollama y descargar el modelo indicado en [`config.pro.example.json`](config.pro.example.json).
+5. Pide el QQ ID y la API key antes de iniciar el Broker; guárdalos en variables de entorno o en un almacén de secretos, nunca en Git.
+6. **Nota:** no eludas el UAC ni ejecutes comandos destructivos como `rm -rf`. Este proyecto se diseñó con Zero-Trust.
+
+---
+
 # Su Jinyan / Cyber Steward — Arquitectura autoalojada de código abierto
 
 > Arquitectura autoalojada para un agente de QQ en Windows: aislamiento de dos cuentas, planificación de GPU/VRAM, Broker de acciones de alto riesgo, verificación TOTP, control de salida de archivos y auditoría diaria.
