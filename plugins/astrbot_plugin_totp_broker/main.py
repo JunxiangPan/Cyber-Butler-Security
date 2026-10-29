@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 import requests
@@ -65,12 +66,17 @@ class TotpBrokerPlugin(Star):
         if not target:
             return "target 不能为空。"
         try:
-            response = self._post("/request", {
-                "action": action,
-                "target": target,
-                "source": source,
-                "reason": reason[:300],
-            })
+            response = await asyncio.to_thread(
+                self._post,
+                "/request",
+                {
+                    "action": action,
+                    "target": target,
+                    "source": source,
+                    "reason": reason[:300],
+                },
+                15,
+            )
             data = response.json()
         except Exception as exc:
             logger.warning("[totp_broker] request failed: %s", exc)
@@ -106,7 +112,9 @@ class TotpBrokerPlugin(Star):
         if not ((len(text) == 6 and text.isdigit()) or (len(text) == 8 and text.isalnum())):
             return
         try:
-            response = self._post("/verify", {"code": text}, timeout=20)
+            response = await asyncio.to_thread(
+                self._post, "/verify", {"code": text}, 20
+            )
             data = response.json()
         except Exception as exc:
             logger.warning("[totp_broker] verify transport failed: %s", exc)

@@ -42,9 +42,12 @@ UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
 HOST = "127.0.0.1"
 PORT = 18090
 TIMEOUT_SECONDS = 300
+REQUEST_RATE_LIMIT_SECONDS = 1.0
 
 _lock = threading.Lock()
 _replay_lock = threading.Lock()
+_request_rate_lock = threading.Lock()
+_last_request_at = 0.0
 _used_totp: dict[str, float] = {}
 TOTP_REPLAY_TTL = 120
 TOTP_MAX_ATTEMPTS = 5
@@ -334,16 +337,9 @@ def run_request(payload: dict) -> tuple[int, dict]:
             manifest = _canonical_manifest(payload.get("manifest"))
         except (OSError, ValueError) as exc:
             return 409, {"ok": False, "error": f"invalid send manifest: {exc}"}
-        outside = [
-            item
-            for item in manifest
-            if item["kind"] != "file" or not inside_shared(Path(item["path"]))
-        ]
-        if outside:
-            return 403, {
-                "ok": False,
-                "error": "send manifest contains a path outside the shared folder",
-            }
+        # The overlay deliberately routes URLs and files outside the shared
+        # folder through TOTP. Do not reject them here: the owner sees the
+        # complete manifest in the challenge and the approval is bound to it.
         target_text = manifest[0]["path"]
         target = Path(target_text)
         if not (target_text.startswith(("http://", "https://")) or target.exists()):
@@ -544,6 +540,13 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             if self.path == "/request":
+                with _request_rate_lock:
+                    global _last_request_at
+                    now = time.monotonic()
+                    if now - _last_request_at < REQUEST_RATE_LIMIT_SECONDS:
+                        self._json(429, {"ok": False, "error": "request rate limited"})
+                        return
+                    _last_request_at = now
                 status, body = run_request(payload)
             elif self.path == "/verify":
                 status, body = run_verify(payload)

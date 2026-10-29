@@ -1,4 +1,4 @@
-"""P0 Broker tests: send manifest binding, path restriction, tamper rejection."""
+"""P0 Broker tests: send manifest binding, URL/outside approval, tamper rejection."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ def setup_function() -> None:
     broker._verify_locked_until = 0.0
     broker._global_failures = 0
     broker._global_lock_until = 0.0
+    broker._last_request_at = 0.0
 
 
 def _entry(path: Path) -> dict:
@@ -35,12 +36,16 @@ def test_send_without_manifest_is_rejected(monkeypatch, tmp_path) -> None:
     assert "manifest" in body["error"]
 
 
-def test_send_outside_shared_folder_is_rejected(monkeypatch, tmp_path) -> None:
+def test_send_outside_shared_folder_is_challenged(monkeypatch, tmp_path) -> None:
     shared = tmp_path / "shared"
     shared.mkdir()
     outside = tmp_path / "outside.txt"
     outside.write_text("outside", encoding="utf-8")
+    audit = tmp_path / "audit.jsonl"
     monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(broker, "send_qq", lambda text: True)
 
     status, body = broker.run_request(
         {
@@ -50,8 +55,36 @@ def test_send_outside_shared_folder_is_rejected(monkeypatch, tmp_path) -> None:
         }
     )
 
-    assert status == 403
-    assert "outside" in body["error"]
+    # The owner must receive a challenge; the old 403 dead end is gone.
+    assert status == 408
+    assert body.get("approved") is False
+    assert broker._pending is None
+
+
+def test_send_url_is_challenged(monkeypatch, tmp_path) -> None:
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(broker, "send_qq", lambda text: True)
+
+    status, body = broker.run_request(
+        {
+            "action": "send",
+            "target": "https://example.com/image.png",
+            "manifest": [
+                {
+                    "kind": "url",
+                    "path": "https://example.com/image.png",
+                    "size": 0,
+                    "sha256": "",
+                }
+            ],
+        }
+    )
+
+    assert status == 408
+    assert body.get("approved") is False
+    assert broker._pending is None
 
 
 def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:

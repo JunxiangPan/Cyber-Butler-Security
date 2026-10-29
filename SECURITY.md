@@ -26,7 +26,7 @@ The security model was built around concrete Windows failure modes, not only doc
 ### Windows pitfalls found during the build
 
 1. **Cross-account file writes are not free.** The AstrBot service account could not create the Broker's TOTP state files under the desktop user's profile. The fix was a loopback-only HTTP Broker, not loosening the vault ACL.
-2. **DPAPI is user-bound.** A secret encrypted for one Windows principal cannot simply be decrypted by another. The Broker runs under the account that owns the DPAPI secret.
+2. **DPAPI here is machine-scoped.** `tools/setup_totp.py` uses `CRYPTPROTECT_LOCAL_MACHINE` (`0x4`), not the user profile scope. Any local principal that can read the DPAPI-wrapped secret can decrypt it; the vault ACL is therefore the primary boundary. Do not describe this layer as user-bound encryption.
 3. **Explicit deny wins.** An inherited allow on a parent directory is not enough to protect the vault; the service account needs an explicit deny ACE.
 4. **File ownership matters.** A benign filename does not make a file safe if the agent copied it into a whitelist. The egress guard checks the file owner, not only the path.
 5. **Localhost is not the same as “safe by default.”** Bind addresses can be changed and tunnels can be added. Both the Broker and the AstrBot dashboard reject non-loopback clients.
@@ -67,7 +67,7 @@ The security model was built around concrete Windows failure modes, not only doc
 - **Unknown chat platforms fail closed.** The Security Gate no longer returns early for an unrecognized `umo`; it logs a warning and calls `event.stop_event()` rather than allowing the event through.
 - **Media components are not a bypass.** `Comp.Image`, `Comp.Record`, and `Comp.Video` are collected together with `Comp.File`; every local path goes through `_totp_path_risk` and the complete manifest.
 - **Owner lookup failure is fail-closed.** An empty owner from `win32security` is treated as risky, not trusted.
-- **Broker send paths are shared-only.** `action=send` rejects URLs and any manifest entry outside the shared folder with `403`; approval is not offered for those paths.
+- **URLs and outside-shared paths take the TOTP path.** The overlay deliberately classifies remote URLs and local files outside the shared folder as risky. `action=send` now issues a challenge for the complete manifest and displays `[OUTSIDE SHARED]` / the URL in the prompt; approval is bound to that manifest. This removes the old dead end where the overlay requested approval and the Broker always returned `403`.
 - **Security Gate state is writable.** `/lockapi` and `/unlockapi` write `AstrBot/data/security-gate-api-lock.json`, not the read-only `tools/` tree.
 
 ### Send manifest binding (P0)
@@ -199,7 +199,7 @@ The repository also provides:
 
 ### Important residual risk
 
-The TOTP replay cache is **in memory**. It survives multiple requests in one Broker process, but it resets when the Broker restarts. A restart inside the same 30-second TOTP window could theoretically permit a code reuse if a new pending request is created. The one-pending-request rule and the short validity window substantially reduce, but do not mathematically eliminate, this risk. A future version should persist the digest ledger with the same TTL.
+The TOTP replay cache **and the verification lock state** are **in memory**. The replay cache, `_verify_locked_until`, `_global_failures`, `_global_lock_until`, and the pending request reset when the Broker restarts. A restart therefore clears a temporary lockout and can shorten the effective replay window. The one-pending-request rule and the 30-second TOTP window reduce, but do not eliminate, this risk; a future version should persist both the replay ledger and the lock/backoff state.
 
 Recovery codes are intentionally one-time; losing both the authenticator and the recovery file means losing the ability to approve destructive actions.
 
@@ -315,7 +315,7 @@ Not currently covered:
 - TOTP for Shell execution;
 - a Windows physical-confirmation dialog;
 - full mediation of third-party plugin side effects;
-- persistence of the TOTP replay ledger across Broker restarts;
+- persistence of the TOTP replay ledger, pending request, verification lock, and global backoff across Broker restarts;
 - platform-level QQ enforcement and account-ban risk.
 
 ### 7.1 Compromised phone / hijacked TOTP: the limit of this design
@@ -358,3 +358,13 @@ Contact the maintainer at `YOUR_SECURITY_EMAIL` with:
 - whether the issue is already public.
 
 Allow a reasonable disclosure window before publishing details.
+
+### Release sanitization residual
+
+The public tree still contains deployment-specific display literals: the platform
+identifier prefix, the persona display name, and the shared-folder name. They are
+not credentials, but a deployment that reuses the tree should replace them to
+avoid confusing the owner or inheriting one deployment's naming. The sanitizer
+now accepts `--platform`, `--agent-name`, and `--shared-folder`; these literals
+were not globally rewritten here because tests and runtime UMO/path defaults
+must be updated together.
