@@ -55,3 +55,32 @@ English screenshots: Persona & Memory / System Log / Agent Plugins / Market
 packaged tree: Hello World 1 -> 2 -> 3
 privacy scan: OK
 ```
+
+## Module 5 — Official dashboard plugins
+
+- **sys_monitor** (`tools/dashboard_plugins/sys_monitor`): a dedicated Live
+  Monitor tab. A 3-second DispatcherTimer reads
+  `http://127.0.0.1:18085/data.json`, filters sensors by the `°C` unit (so clock
+  and voltage values cannot masquerade as temperatures) and renders CPU, GPU
+  and VRAM progress bars. Verified at 61.5 °C / 44.0 °C / 5,603 of 24,564 MB.
+- **quick_cmd** (`tools/dashboard_plugins/quick_cmd`): a dedicated Quick
+  Command tab with a text box, Send, and one-click Morning / Local Model /
+  Check Temps buttons. Sends through the AstrBot Open API
+  (`/api/v1/im/messages`) to the owner's QQ chat; no shell is executed.
+
+## Module 6 — Trust boundary and privacy
+
+- The Console Modules tab now shows a yellow warning whenever a module id is
+  not one of the three official plugins:
+  “⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！”
+  (English translation included.)
+- **Copy Error Log** now runs `Protect-UiErrorText` before touching the
+  clipboard: `sk-…` keys become `[REDACTED_API_KEY]`, `key=…`/`token=…` values
+  become `[REDACTED]`, and Windows absolute paths become `[LOCAL_PATH]`.
+
+## Time machine English confirmation
+
+- The Restore / Reinstall / Downgrade confirmation titles and long warning
+  bodies are translated through `T()`; in English mode the custom confirmation
+  window, its OK button and all warning text are English. The Chinese and
+  English long texts are also listed in `dashboard_i18n.json`.

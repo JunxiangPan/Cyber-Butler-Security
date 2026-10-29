@@ -287,17 +287,20 @@ $xaml = @'
       <TabItem Header="控制台模块">
         <Grid Margin="14">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
-          <StackPanel Orientation="Horizontal">
+          <Border x:Name="ModuleTrustWarning" Grid.Row="0" Background="#FFF4CE" BorderBrush="#E0B400" BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,0,0,10" Visibility="Collapsed">
+            <TextBlock Text="⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！" Foreground="#5C4B00" TextWrapping="Wrap" FontWeight="SemiBold"/>
+          </Border>
+          <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Button x:Name="ModuleRefreshButton" Content="重新加载" Width="100" Height="32"/>
             <Button x:Name="ModuleEnableButton" Content="启用" Width="70" Height="32" Margin="8,0,0,0"/>
             <Button x:Name="ModuleDisableButton" Content="禁用" Width="70" Height="32" Margin="8,0,0,0"/>
             <Button x:Name="ModuleFolderButton" Content="打开模块目录" Width="120" Height="32" Margin="8,0,0,0"/>
             <TextBlock x:Name="ModuleStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
           </StackPanel>
-          <ListBox Grid.Row="1" x:Name="ModuleListBox" Margin="0,12,0,10" DisplayMemberPath="Display"/>
-          <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+          <ListBox Grid.Row="2" x:Name="ModuleListBox" Margin="0,12,0,10" DisplayMemberPath="Display"/>
+          <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
             <StackPanel>
               <TextBlock x:Name="ModuleDetailText" Text="第三方模块以本地 PowerShell 运行，请只启用可信来源。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
               <TextBlock Text="规范：tools\dashboard_plugins\&lt;id&gt;\manifest.json + ui.xaml + logic.ps1；禁用后不会加载对应 XAML 与脚本。"
@@ -407,6 +410,7 @@ $pluginDeleteButton = $window.FindName('PluginDeleteButton')
 $pluginResetButton = $window.FindName('PluginResetButton')
 $moduleListBox = $window.FindName('ModuleListBox')
 $moduleStatusText = $window.FindName('ModuleStatusText')
+$moduleTrustWarning = $window.FindName('ModuleTrustWarning')
 $moduleDetailText = $window.FindName('ModuleDetailText')
 $moduleRefreshButton = $window.FindName('ModuleRefreshButton')
 $moduleEnableButton = $window.FindName('ModuleEnableButton')
@@ -830,6 +834,11 @@ function Show-DashboardModuleList {
             Problem = $module.Problem
             Module  = $module
         })
+    }
+    $officialModuleIds = @('hello_world', 'sys_monitor', 'quick_cmd')
+    $thirdParty = @($scan.Modules | Where-Object { $_.Id -notin $officialModuleIds })
+    if ($moduleTrustWarning) {
+        $moduleTrustWarning.Visibility = if ($thirdParty.Count -gt 0) { 'Visible' } else { 'Collapsed' }
     }
     $moduleListBox.ItemsSource = @($view)
     if ($script:CurrentLanguage -eq 'en') {
@@ -1483,7 +1492,7 @@ if ($SmokeUi) {
     $window.Show()
     Wait-BgDispatcher 900
     $shots = New-Object System.Collections.ArrayList
-    foreach ($page in @(@{ Index = 2; Name = 'persona' }, @{ Index = 4; Name = 'plugins' }, @{ Index = 5; Name = 'modules' }, @{ Index = 6; Name = 'market' }, @{ Index = 7; Name = 'logs' })) {
+    foreach ($page in @(@{ Index = 2; Name = 'persona' }, @{ Index = 4; Name = 'plugins' }, @{ Index = 5; Name = 'modules' }, @{ Index = 6; Name = 'market' }, @{ Index = 7; Name = 'logs' }, @{ Index = 9; Name = 'quick' }, @{ Index = 10; Name = 'sysmon' })) {
         $mainTabs.SelectedIndex = [int]$page.Index
         Wait-BgDispatcher 450
         $shot = Save-BgScreenshot (Join-Path $env:TEMP ('cb-ui-' + $page.Name + '.png'))

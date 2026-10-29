@@ -436,6 +436,22 @@
     {
       "zh": "AstrBot 官方市场",
       "en": "AstrBot Official"
+    },
+    {
+      "zh": "⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！",
+      "en": "⚠️ Warning: dashboard modules run with the current user's highest privileges. Only install modules you trust!"
+    },
+    {
+      "zh": "回退到历史版本",
+      "en": "Downgrade to a Historical Version"
+    },
+    {
+      "zh": "⚠️ 将用所选发布版本覆盖目标目录的代码（包括本地改动）。\n聊天数据和配置会先做安全备份。\n\n输入 DOWNGRADE VERSION 继续：",
+      "en": "⚠️ The selected release will overwrite the target directory code, including local changes.\nChat data and configuration are backed up first.\n\nType DOWNGRADE VERSION to continue:"
+    },
+    {
+      "zh": "⚠️ 版本回退风险：\n\n- 将用所选版本覆盖目标目录的代码（包括本地改动）。\n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。\n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。\n- 回退后配置格式可能不兼容，建议先备份。\n\n输入 DOWNGRADE VERSION 继续：",
+      "en": "⚠️ Downgrade risks:\n\n- The selected version overwrites the target directory code, including local changes.\n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.\n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.\n- Configuration formats may be incompatible; back up first.\n\nType DOWNGRADE VERSION to continue:"
     }
   ]
 }

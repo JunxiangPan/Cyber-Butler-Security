@@ -515,7 +515,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $restoreButton.Add_Click({
         $choice = $restoreCombo.SelectedItem
         if (-not $choice) { [Windows.MessageBox]::Show('请先选择一个备份。', '恢复备份'); return }
-        $answer = Read-InputDialog '恢复备份' ("⚠️ 警告：恢复备份将完全覆盖当前的聊天记录和配置！`n请在操作前确保当前系统已关闭。`n`n输入 RESTORE DATA 继续：")
+        $answer = Read-InputDialog (T '恢复备份' 'Restore Backup') (T "⚠️ 警告：恢复备份将完全覆盖当前的聊天记录和配置！`n请在操作前确保当前系统已关闭。`n`n输入 RESTORE DATA 继续：" "⚠️ Restoring a backup completely overwrites the current chat history and configuration.`nMake sure the system is closed first.`n`nType RESTORE DATA to continue:")
         if ($answer -cne 'RESTORE DATA') { $operationStatus.Text = '已取消恢复。'; return }
         try {
             $restoreButton.IsEnabled = $false; $reinstallButton.IsEnabled = $false; $downgradeButton.IsEnabled = $false
@@ -542,7 +542,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 [Windows.MessageBox]::Show($dlg, '当前版本没有可用的 GitHub 发布资产。', '重装', 'OK', 'Warning') | Out-Null
                 return
             }
-            $answer = Read-InputDialog '重装当前版本' ("⚠️ 将用所选发布版本覆盖目标目录的代码（包括本地改动）。`n聊天数据和配置会先做安全备份。`n`n输入 DOWNGRADE VERSION 继续：") $dlg
+            $answer = Read-InputDialog (T '重装当前版本' 'Reinstall Current Version') (T "⚠️ 将用所选发布版本覆盖目标目录的代码（包括本地改动）。`n聊天数据和配置会先做安全备份。`n`n输入 DOWNGRADE VERSION 继续：" "⚠️ The selected release will overwrite the target directory code, including local changes.`nChat data and configuration are backed up first.`n`nType DOWNGRADE VERSION to continue:") $dlg
             Write-SettingsLog ('reinstall confirmation=' + $answer)
             if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消。'; return }
             $restoreButton.IsEnabled = $false; $reinstallButton.IsEnabled = $false; $downgradeButton.IsEnabled = $false
@@ -570,8 +570,8 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 [Windows.MessageBox]::Show($dlg, '请选择一个带发布资产的历史版本。', '版本回退', 'OK', 'Warning') | Out-Null
                 return
             }
-            $warning = "⚠️ 版本回退风险：`n`n- 将用所选版本覆盖目标目录的代码（包括本地改动）。`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续："
-            $answer = Read-InputDialog '回退到历史版本' $warning $dlg
+            $warning = if ($script:CurrentLanguage -eq 'en') { "⚠️ Downgrade risks:`n`n- The selected version overwrites the target directory code, including local changes.`n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.`n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.`n- Configuration formats may be incompatible; back up first.`n`nType DOWNGRADE VERSION to continue:" } else { "⚠️ 版本回退风险：`n`n- 将用所选版本覆盖目标目录的代码（包括本地改动）。`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续：" }
+            $answer = Read-InputDialog (T '回退到历史版本' 'Downgrade to a Historical Version') $warning $dlg
             Write-SettingsLog ('downgrade confirmation=' + $answer)
             if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消版本回退。'; return }
             $restoreButton.IsEnabled = $false; $reinstallButton.IsEnabled = $false; $downgradeButton.IsEnabled = $false

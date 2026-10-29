@@ -79,8 +79,16 @@ function Register-UiErrorBox {
     Update-UiErrorBox
 }
 
+function Protect-UiErrorText([string]$Text) {
+    $out = [string]$Text
+    $out = [regex]::Replace($out, 'sk-[A-Za-z0-9_-]{6,}', '[REDACTED_API_KEY]')
+    $out = [regex]::Replace($out, '(?i)(api[_-]?key|token|secret)\s*[:=]\s*[^\s,;]+', '$1=[REDACTED]')
+    $out = [regex]::Replace($out, '[A-Za-z]:[^\s]+', '[LOCAL_PATH]')
+    return $out
+}
+
 function Copy-UiErrorLog {
-    $text = Get-UiErrorText
+    $text = Protect-UiErrorText (Get-UiErrorText)
     if (-not $text) { return $false }
     for ($attempt = 0; $attempt -lt 5; $attempt++) {
         try {
