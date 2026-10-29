@@ -18,7 +18,7 @@ arbitrary-path endpoints exist.
 cd webui
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item config.example.json config.json
+Copy-Item example-config.json config.json
 ```
 
 Edit `webui/config.json`:
