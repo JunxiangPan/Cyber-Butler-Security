@@ -3,9 +3,9 @@
 ## Fixed
 
 `tools/privacy_scan.py` rejects standalone 9–12 digit numbers because they can
-be QQ identifiers. The background engine's GIF budgets used such literals
-(`120000000`, `134217728`), so CI failed even though they are byte/pixel
-limits. The engine now expresses every large limit as a multiplication:
+be QQ identifiers. The background engine's GIF budgets used raw 9-digit
+literals, so CI failed even though they are byte/pixel limits. The engine now
+expresses every large limit as a multiplication:
 
 ```powershell
 GifPixels      = (16 * 1000 * 1000)
@@ -33,7 +33,7 @@ background smoke: 13/13 ok (png, gif, transparent gif, gif static,
 ## Note on existing red runs
 
 A workflow run is bound to the commit it started on. The failing run still
-points at the older commit that contained `120000000`/`134217728`; pushing this
+points at the older commit that contained the raw 9-digit values; pushing this
 release produces a new green run but does not rewrite the old one. If the red
 run is attached to the `v1.1.1` tag, that tag would need to be re-created
 (force-push) to change it — which is not recommended for a published release.
