@@ -141,6 +141,7 @@ function Import-DashboardModule {
     }
 
     $tab = New-Object Windows.Controls.TabItem
+    $moduleId = [string]$Module.Id
     $tab.Header = $Module.Name
     $tab.Content = $root
     $tooltip = ('模块 v{0}' -f $Module.Version)
@@ -160,10 +161,24 @@ function Import-DashboardModule {
         Host        = $window
         ToolsRoot   = $ToolsRoot
         ProjectRoot = $script:ProjectRoot
+        Language    = [string]$script:CurrentLanguage
         State       = @{}
-        Log         = { param($message) Write-DashboardModuleLog ('[' + $Module.Id + '] ' + $message) }
-        T           = { param($zh, $en) if ($script:CurrentLanguage -eq 'en') { return $en } return $zh }
     }
+    # Closures capture only simple data and use cmdlets, so they work from any
+    # module scope and after the loader function has returned.
+    $logRef = @{ Id = [string]$Module.Id; File = [string]$script:DashboardModuleLogFile }
+    $langRef = @{ Value = [string]$script:CurrentLanguage }
+    $context.Log = ({
+        param($message)
+        try {
+            Add-Content -LiteralPath $logRef.File -Value ('[{0:yyyy-MM-dd HH:mm:ss}] [{1}] {2}' -f (Get-Date), $logRef.Id, $message) -Encoding UTF8
+        } catch { }
+    }).GetNewClosure()
+    $context.T = ({
+        param($zh, $en)
+        if ($langRef.Value -eq 'en') { return $en }
+        return $zh
+    }).GetNewClosure()
 
     if ($Module.LogicPath) {
         try {
