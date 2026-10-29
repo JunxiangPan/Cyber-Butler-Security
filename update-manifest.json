@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -19,8 +19,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "1eda5989441dd58b63d6592d3f471ea6d6fc308a9745e13776b670dbdcdd5a81",
-      "size": 22097
+      "sha256": "95b9498053779002b0c1c0c4676dc918ccf15f616c5882230b2a690ea5d90593",
+      "size": 22434
     },
     {
       "path": "README_de.md",
@@ -128,13 +128,18 @@
       "size": 1431
     },
     {
+      "path": "RELEASE_NOTES_v1.2.3.md",
+      "sha256": "8688cdb684706b2ffa92a528d1633c81cd6bd38dafc7adad7027b7dfa11dfed6",
+      "size": 1771
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "c62a5cc61ac4525935753f5ec284c0a052a4b1da4b3a3580dce2b7d77a2154ae",
+      "sha256": "d82f34ae9aa41bc4a0cb529a1ac0898fed09d6b479fb1cc44cb66c34f15ee84d",
       "size": 6
     },
     {
@@ -558,6 +563,11 @@
       "size": 1273
     },
     {
+      "path": "tools/install_lhm_watchdog.ps1",
+      "sha256": "eebcf92a0fdf51c4ffbc61580abb33817ae3415fcdf7b6759843542762cfcfc3",
+      "size": 5743
+    },
+    {
       "path": "tools/install_snow_task2.ps1",
       "sha256": "c57c5689b2138d8d7d32bff38ead7cfde5a33da3e0f1f96bd0794f89cdf48c6c",
       "size": 1701
@@ -571,6 +581,16 @@
       "path": "tools/install_weekly_task.ps1",
       "sha256": "c4ea7d4a8ae6ee34d0fce84b99db83c923e946c4988fa4e51e3ddf572792cb12",
       "size": 1853
+    },
+    {
+      "path": "tools/lhm-watchdog.ps1",
+      "sha256": "aa8d8e8f016e56919915fd2824341d0466bf28d46c893d40000ed011aefa4550",
+      "size": 3855
+    },
+    {
+      "path": "tools/lhm-watchdog.vbs",
+      "sha256": "9f2d548dd01f12a8929e6632529705ff173f7158a14ecff0f194cba596d8d625",
+      "size": 302
     },
     {
       "path": "tools/package_release.py",
