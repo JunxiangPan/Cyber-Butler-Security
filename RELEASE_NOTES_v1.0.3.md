@@ -174,3 +174,18 @@ Live verification:
 The private session remained `local_qwen36` and the local model stayed loaded.
 
 Hardware guide added: `docs/HARDWARE_TROUBLESHOOTING.md` (NVIDIA `VIDEO_TDR_ERROR` / 0x116 checklist).
+
+## Boot SelfCheck and Wallpaper Ignore
+
+- Added `wallpaperui`, `wallpaperengine`, and `wallpaper engine` to game-mode ignored processes.
+- Added `tools/boot-selfcheck.ps1`: waits for the 2-minute boot window, checks Ollama/AstrBot/SnowLuma, warms `sujinyan-chat-24k`, and restores `local_qwen36`.
+- Added `tools/install_boot_selfcheck.ps1` for an elevated scheduled task.
+- Added hidden `tools/boot-selfcheck.vbs` launcher for per-user Startup fallback when Task Scheduler registration is unavailable.
+- Boot log: `Desktop\大肥鱼专用文件夹\boot-selfcheck.log`.
+
+## Self-Healing Additions
+
+- **Wallpaper Engine false positive fixed:** `wallpaperui`, `wallpaperengine`, and `wallpaper engine` are now ignored by game-mode.
+- **Boot self-check:** `tools/boot-selfcheck.ps1` checks Ollama/AstrBot/SnowLuma, warms the local model, and restores `local_qwen36`. It is installed as a hidden startup launcher; an elevated `Boot SelfCheck` scheduled task installer is included.
+- **SnowLuma inbound-hook guard:** `snowluma_guard.py` now parses SnowLuma logs and restarts SnowLuma when an inbound `MsgPush` is seen but no `[Event]` private message is produced within 5 minutes. Pure idle periods do not trigger a restart.
+- Guard logs moved to `Desktop\大肥鱼专用文件夹\snowluma_guard.log` so the read-only `tools/` ACL no longer blocks startup.

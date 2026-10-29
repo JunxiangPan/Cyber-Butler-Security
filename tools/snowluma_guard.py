@@ -1,4 +1,4 @@
-"""SnowLuma watchdog and PC temperature/memory guard.
+﻿"""SnowLuma watchdog and PC temperature/memory guard.
 
 Checks the SnowLuma WebUI/OneBot port, restarts SnowLuma with its bundled
 node.exe when it is down, and sends a short notification through AstrBot's
@@ -30,8 +30,8 @@ import requests
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "tools" / "snowluma_guard.json"
-LOG_PATH = BASE_DIR / "tools" / "snowluma_guard.log"
-LOCK_PATH = BASE_DIR / "tools" / "snowluma_guard.lock"
+LOG_PATH = Path.home() / "Desktop" / "大肥鱼专用文件夹" / "snowluma_guard.log"
+LOCK_PATH = Path.home() / "Desktop" / "大肥鱼专用文件夹" / "snowluma_guard.lock"
 RESTART_LOG = BASE_DIR / "SnowLuma" / "logs" / "guardian-restart.log"
 
 DEFAULT_CONFIG = {
@@ -537,6 +537,48 @@ def restart_snowluma(config: dict) -> bool:
     return False
 
 
+def _read_inbound_log_times() -> tuple[float | None, float | None]:
+    """Return (last [Event] private timestamp, last message-push timestamp)."""
+    import datetime as _dt
+    log_dir = BASE_DIR / "SnowLuma" / "logs"
+    files = sorted(log_dir.glob("snowluma-*.log"))[-2:]
+    last_event = None
+    last_push = None
+    for path in files:
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-4000:]
+        except OSError:
+            continue
+        day = path.stem.replace("snowluma-", "")
+        try:
+            date = _dt.date.fromisoformat(day)
+        except ValueError:
+            continue
+        for line in lines:
+            m = re.match(r"^(\d{2}:\d{2}:\d{2})\s", line)
+            if not m:
+                continue
+            try:
+                ts = _dt.datetime.combine(date, _dt.time.fromisoformat(m.group(1))).timestamp()
+            except ValueError:
+                continue
+            if "[Event] 私聊" in line:
+                last_event = ts
+            if "MsgPush" in line or "Event0x210" in line:
+                last_push = ts
+    return last_event, last_push
+
+
+def inbound_hook_fake_dead(config: dict) -> bool:
+    """Detect inbound packets that did not become an [Event] within 5 minutes."""
+    last_event, last_push = _read_inbound_log_times()
+    if last_push is None:
+        return False
+    if last_event is not None and last_event >= last_push:
+        return False
+    return time.time() - last_push >= 300
+
+
 def check_snowluma(config: dict, restart: bool = True) -> bool:
     """Check SnowLuma and optionally restart it. Returns True when healthy."""
     sl = config["snowluma"]
@@ -649,6 +691,13 @@ def main() -> int:
                                 )
                     else:
                         logging.info("SnowLuma OK (port %s)", config["snowluma"]["port"])
+                        if inbound_hook_fake_dead(config):
+                            now2 = time.time()
+                            if now2 - last_restart >= int(config["snowluma"].get("restart_cooldown_seconds", 600)):
+                                logging.warning("SnowLuma inbound hook appears fake-dead; restarting")
+                                if restart_snowluma(config):
+                                    last_restart = now2
+                                    notify(config, "哥，SnowLuma 入站 Hook 疑似假死，瑾言已经重启了一次。")
                 except Exception:
                     logging.exception("SnowLuma check failed")
 
