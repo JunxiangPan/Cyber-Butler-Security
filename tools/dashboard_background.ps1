@@ -27,10 +27,10 @@ $script:BgLimits = @{
     GifBytes       = 96MB
     VideoBytes     = 256MB
     GifFrames      = 400
-    GifPixels      = 16000000
-    GifWorkPixels  = (120 * 1000 * 1000)
+    GifPixels      = (16 * 1000 * 1000)
+    GifWorkPixels  = (120 * 1024 * 1024)
     GifWidth       = 1280
-    GifBudgetBytes = 128MB
+    GifBudgetBytes = (128 * 1024 * 1024)
 }
 
 $script:BgState = @{
@@ -317,7 +317,7 @@ function New-BgImage([string]$Path) {
         $stream.Dispose()
     }
     if ($width -lt 1 -or $height -lt 1) { throw '图片尺寸无效' }
-    if ([long]$width * $height -gt 50000000) {
+    if ([long]$width * $height -gt (50 * 1000 * 1000)) {
         throw ('图片尺寸过大（' + $width + 'x' + $height + '）')
     }
 
