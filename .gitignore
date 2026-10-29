@@ -111,3 +111,6 @@ test-*.txt
 !tools/dashboard_plugins/**/manifest.json
 update-manifest.sig
 
+webui/.venv/
+webui/data/
+webui/config.json
