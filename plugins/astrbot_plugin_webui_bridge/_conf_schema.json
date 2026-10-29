@@ -1,0 +1,20 @@
+{
+  "enabled": {
+    "description": "启用 Web UI 入站桥接",
+    "type": "bool",
+    "default": true,
+    "hint": "仅接受已登录 Web UI 的入站文本，不接受任意收件人。"
+  },
+  "owner_id": {
+    "description": "固定主人 QQ 号",
+    "type": "string",
+    "default": "",
+    "hint": "Web UI 消息只会以这个 QQ 号的身份进入 AstrBot。"
+  },
+  "platform_id": {
+    "description": "QQ 平台适配器 ID",
+    "type": "string",
+    "default": "qq_sujinyan",
+    "hint": "必须是当前运行中的 aiocqhttp 平台 ID。"
+  }
+}
