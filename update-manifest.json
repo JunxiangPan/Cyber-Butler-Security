@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "4583646267da4f18038118423aa2c107c719f4bbae3428eeac00bb54f57bfb0f",
-      "size": 1532
+      "sha256": "af830d9fef0506b3637db8c52c0d242e78312009d773ccf9c0b966ec833ac01e",
+      "size": 1634
     },
     {
       "path": "LICENSE",
@@ -461,6 +461,11 @@
       "path": "tools/dashboard_plugins/hello_world/logic.ps1",
       "sha256": "acc74b834ab473d2b283ef52cefa13b6c355d6c98e6208382418bece683abc33",
       "size": 1151
+    },
+    {
+      "path": "tools/dashboard_plugins/hello_world/manifest.json",
+      "sha256": "8592eaf1f0f60215e0877f137575ee49211065884ce3cfef27295f7fb31415ea",
+      "size": 325
     },
     {
       "path": "tools/dashboard_plugins/hello_world/ui.xaml",
