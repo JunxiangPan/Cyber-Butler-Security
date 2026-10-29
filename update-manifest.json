@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -118,13 +118,18 @@
       "size": 3504
     },
     {
+      "path": "RELEASE_NOTES_v1.2.1.md",
+      "sha256": "389b3896d2b6f922ab08d5e1233134d8c2a730c3f68ac187255d942448b89381",
+      "size": 1547
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "1e5b51cde515396a9fa762909cf8ca6584ccc564b325d2eebeea76175fe95c4d",
+      "sha256": "6cf4e084b47f33c9b02ef79279d157833868f8f70514169a768be353ee328fea",
       "size": 6
     },
     {
@@ -434,8 +439,8 @@
     },
     {
       "path": "tools/dashboard_background.ps1",
-      "sha256": "4ce59439b0107d4d26d0c9a595c53e1923f43c164fc339ec69fcbed028351323",
-      "size": 41061
+      "sha256": "23d90b3a562896e8058ebf7d8f340a2c6f6f49c7c2cdf46610e2279eb08c1ec1",
+      "size": 41095
     },
     {
       "path": "tools/dashboard_core.ps1",
