@@ -133,7 +133,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(403, {"ok": False, "error": "recipient not allowed"})
                 return
             send_mail(config, code, ttl, lang)
-            logger.info("OTP mail sent to configured recipient")
+            logger.info("OTP mail sent to configured recipient (lang=%s)", lang)
             self._json(200, {"ok": True})
         except Exception as exc:
             logger.error("OTP mail failed: %s", exc)
