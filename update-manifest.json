@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.4.2",
+  "version": "1.4.3",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -168,13 +168,18 @@
       "size": 1979
     },
     {
+      "path": "RELEASE_NOTES_v1.4.3.md",
+      "sha256": "2d4bd0e7ab25db823cc9259bf8a5c000bba109e55898d653b7bbe2b9bb1170aa",
+      "size": 1593
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+      "sha256": "bd31e8d9cf8d14a1e9e3fdf3b9f6a524819aed0d1b14627523c6765767c7d8f1",
       "size": 6
     },
     {
@@ -211,6 +216,11 @@
       "path": "docs/RAG-知识库指南.md",
       "sha256": "1777db1cda2162c2acb5cfd25c40430a1706dcbfb224af19198ab9997edc1e7e",
       "size": 3007
+    },
+    {
+      "path": "docs/TAILSCALE_WEBUI.md",
+      "sha256": "e53aaddf17838450e87f07be7033a460a786a68a68e34e3e68d80abc79fa003e",
+      "size": 6784
     },
     {
       "path": "docs/使用说明.md",
@@ -844,8 +854,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "63da1a05f68ef4f094f99fe1369992ed8cd7fe3f92d6786a9e006de4ec7fa39e",
-      "size": 12133
+      "sha256": "c1b5fb85927774c7018582941dda9c3c78f4193f5eb52963de10939ab48c0966",
+      "size": 12637
     },
     {
       "path": "webui/auth.py",
@@ -854,8 +864,8 @@
     },
     {
       "path": "webui/example-config.json",
-      "sha256": "19a9262b1e6d28f4339f5c614c4975415d9862f061c1d7d299d3186d071f3bcb",
-      "size": 793
+      "sha256": "9ce0d868de79763eb028f3e4003ed691d52402f660f8b11d6daf905f02699729",
+      "size": 794
     },
     {
       "path": "webui/file_manager.py",
@@ -889,8 +899,8 @@
     },
     {
       "path": "webui/settings.py",
-      "sha256": "57eb30ef086d12e4c3a448e2faa77ca9fdd8c4cafe21b0db6cee6f476ff0593b",
-      "size": 4955
+      "sha256": "351e6cde8b8cf25a7814c58ca9f4293ca82996d44c287289aca2e3466898adef",
+      "size": 5205
     },
     {
       "path": "webui/static/dashboard.js",
@@ -944,8 +954,8 @@
     },
     {
       "path": "webui/tests/test_webui_auth.py",
-      "sha256": "2d75dd56a22e28afa4bbf867bfbd7f79db0a17be969b1e7c8db2d48bbf14e548",
-      "size": 3614
+      "sha256": "d240fbd95bffd8389e8f2ac0446c654c2c52d5059855b039efa03c81bfcfa3c8",
+      "size": 4722
     }
   ]
 }
