@@ -8,6 +8,7 @@ destructive/host-access language.
 
 from __future__ import annotations
 
+import asyncio
 import re
 import json
 from pathlib import Path
@@ -24,6 +25,8 @@ LOG_PATH = ROOT / "AstrBot" / "data" / "security-gate.log"
 LOCK_STATE = ROOT / "AstrBot" / "data" / "security-gate-api-lock.json"
 TOKEN_FILE = ROOT / ".astrbot_token"
 PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
+LOCAL_PROVIDER = "local_qwen36"
+API_PROVIDER = "deepseek"
 DANGEROUS_TOOLS = (
     "astrbot_execute_python",
     "astrbot_execute_ipython",
@@ -127,7 +130,15 @@ class SecurityGatePlugin(Star):
             )
 
     async def _switch_provider(self, provider_id: str) -> bool:
-        try:
+        """Switch the private session provider without blocking the event loop.
+
+        Args:
+            provider_id: Provider id to apply (local_qwen36 or deepseek).
+
+        Returns:
+            True when AstrBot accepted the switch, otherwise False.
+        """
+        def _request():
             token = TOKEN_FILE.read_text(encoding="utf-8").strip()
             response = requests.patch(
                 "http://127.0.0.1:6185/api/v1/sessions/provider",
@@ -139,7 +150,25 @@ class SecurityGatePlugin(Star):
                 },
                 timeout=15,
             )
-            return response.ok and response.json().get("status") == "ok"
+            return response
+
+        try:
+            response = await asyncio.to_thread(_request)
+            if not response.ok:
+                logger.warning(
+                    "[security_gate] provider switch HTTP %s: %s",
+                    response.status_code,
+                    response.text[:300],
+                )
+                return False
+            data = response.json()
+            if data.get("status") != "ok":
+                logger.warning(
+                    "[security_gate] provider switch rejected: %s",
+                    str(data)[:300],
+                )
+                return False
+            return True
         except Exception as exc:
             logger.warning("[security_gate] provider switch failed: %s", exc)
             return False
@@ -153,7 +182,7 @@ class SecurityGatePlugin(Star):
             json.dumps({"locked": True, "at": __import__("datetime").datetime.now().isoformat()}, ensure_ascii=False),
             encoding="utf-8",
         )
-        ok = await self._switch_provider("local_qwen36")
+        ok = await self._switch_provider(LOCAL_PROVIDER)
         await event.send(event.plain_result(
             "哥，API 已锁定，接下来全局走本地模型。" if ok else "哥，锁定状态记下了，但 provider 切换失败，请检查 AstrBot。"
         ))
@@ -167,7 +196,7 @@ class SecurityGatePlugin(Star):
             json.dumps({"locked": False, "at": __import__("datetime").datetime.now().isoformat()}, ensure_ascii=False),
             encoding="utf-8",
         )
-        ok = await self._switch_provider("deepseek")
+        ok = await self._switch_provider(API_PROVIDER)
         await event.send(event.plain_result(
             "哥，API 已解锁，恢复原来的智能路由。" if ok else "哥，解锁状态记下了，但 provider 切换失败，请检查 AstrBot。"
         ))
