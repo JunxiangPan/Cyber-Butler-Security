@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Cyber-Butler · 控制台</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/static/theme-phase2.css">
+</head>
+<body class="dashboard-page">
+  <div class="orb orb-one"></div>
+  <div class="orb orb-two"></div>
+
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-dot"></span>
+      <span class="brand-name">Cyber-Butler</span>
+      <span class="brand-sub">Web Console</span>
+    </a>
+    <div class="top-actions">
+      <span class="online-pill"><span class="status-dot"></span> Phase 2 已认证</span>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="切换深色/浅色">◐</button>
+      <button class="ghost-button" id="logoutButton" type="button">退出</button>
+    </div>
+  </header>
+
+  <main class="dashboard-shell">
+    <section class="welcome">
+      <p class="eyebrow">SECURE SIDECAR · PHASE 2</p>
+      <h1>欢迎回来。</h1>
+      <p class="lede">只读查看温度、服务状态、插件和日志；聊天固定发给主人，纯文本 500 字、每分钟最多 5 次。高危操作永远不在 Web 端出现。</p>
+    </section>
+
+    <section class="stat-grid">
+      <article class="stat-card">
+        <span class="stat-label">认证方式</span>
+        <strong>邮箱 OTP</strong>
+        <span class="stat-note">6 位 · 5 分钟 · 一次性</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">当前账户</span>
+        <strong id="accountEmail">—</strong>
+        <span class="stat-note">仅限预登记管理员</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">权限边界</span>
+        <strong class="accent">只读 + 固定聊天</strong>
+        <span class="stat-note">删除 / 恢复 / 重载 / 人格修改不在 Web 端</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">会话</span>
+        <strong>7 天</strong>
+        <span class="stat-note">8 小时无操作自动失效</span>
+      </article>
+    </section>
+
+    <section class="live-grid">
+      <article class="panel temp-panel">
+        <div class="panel-head"><h2>温度 / 显存</h2><span id="tempsUpdated" class="panel-meta">—</span></div>
+        <div class="meter-row"><span>CPU</span><strong id="cpuValue">—</strong></div>
+        <div class="meter"><div class="meter-fill" id="cpuBar"></div></div>
+        <div class="meter-row"><span>GPU</span><strong id="gpuValue">—</strong></div>
+        <div class="meter"><div class="meter-fill" id="gpuBar"></div></div>
+        <div class="meter-row"><span>显存</span><strong id="vramValue">—</strong></div>
+        <div class="meter"><div class="meter-fill" id="vramBar"></div></div>
+        <p class="panel-note" id="tempSource">等待数据…</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head"><h2>系统状态</h2><span id="statusUpdated" class="panel-meta">—</span></div>
+        <div class="service-list" id="serviceList">
+          <span class="muted-line">正在探测…</span>
+        </div>
+      </article>
+
+      <article class="panel plugin-panel">
+        <div class="panel-head"><h2>插件</h2><span id="pluginCount" class="panel-meta">—</span></div>
+        <ul class="plugin-list" id="pluginList"><li class="muted-line">正在读取…</li></ul>
+      </article>
+
+      <article class="panel log-panel">
+        <div class="panel-head">
+          <h2>日志尾部</h2>
+          <select id="logSelect" aria-label="选择日志">
+            <option value="astrbot">AstrBot</option>
+            <option value="broker">Broker</option>
+            <option value="dashboard">Dashboard</option>
+            <option value="snowluma">SnowLuma</option>
+          </select>
+        </div>
+        <pre id="logView">正在读取…</pre>
+      </article>
+    </section>
+
+    <section class="panel chat-panel">
+      <div class="panel-head"><h2>发给苏瑾言</h2><span class="panel-meta">固定收件人 · 纯文本 · ≤500 字 · 5 次/分钟</span></div>
+      <textarea id="chatText" maxlength="500" rows="3" placeholder="写一句想说的话…" aria-label="聊天内容"></textarea>
+      <div class="chat-foot">
+        <span id="chatCount" class="panel-meta">0 / 500</span>
+        <button id="chatSend" class="primary chat-send" type="button">发送</button>
+      </div>
+      <div id="chatStatus" class="chat-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="link-panel">
+      <div>
+        <h3>安全提示</h3>
+        <p>Web 端不提供文件删除、备份恢复、服务重载、人格修改或任意路径读取。需要这些操作时，请回到本地 WPF 控制台。</p>
+      </div>
+      <div class="session-meta">
+        <span>会话到期</span>
+        <strong id="sessionExpiry">—</strong>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Cyber-Butler Security</span>
+    <span>Phase {{ phase }} · Read-only + fixed chat</span>
+  </footer>
+
+  <script src="/static/dashboard.js" defer></script>
+</body>
+</html>

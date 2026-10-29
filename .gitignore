@@ -111,4 +111,3 @@ test-*.txt
 !tools/dashboard_plugins/**/manifest.json
 update-manifest.sig
 
-webui/

@@ -1,0 +1,21 @@
+{
+  "admin_email": "owner@example.com",
+  "data_dir": "data",
+  "host": "127.0.0.1",
+  "port": 8765,
+  "mailer_url": "http://127.0.0.1:8766/send-otp",
+  "cookie_secure": false,
+  "session_days": 7,
+  "idle_hours": 8,
+  "otp_ttl_seconds": 300,
+  "otp_max_attempts": 5,
+  "project_root": "C:\\path\\to\\Cyber-Butler",
+  "astrbot_api": "http://127.0.0.1:6185",
+  "astrbot_token_file": ".astrbot_token",
+  "owner_umo": "qq_sujinyan:FriendMessage:YOUR_QQ_ID",
+  "lhm_url": "http://127.0.0.1:18085/data.json",
+  "broker_port": 18090,
+  "snowluma_port": 5099,
+  "log_max_lines": 80,
+  "allowed_hosts": ["127.0.0.1", "localhost"]
+}

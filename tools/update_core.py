@@ -27,7 +27,7 @@ MAX_TOTAL_BYTES = 256 * 1024 * 1024
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VERSION_RE = re.compile(r"^[0-9]+(?:\.[0-9]+){1,3}(?:[-+][0-9A-Za-z.-]+)?$")
 
-ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", ".github/")
+ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", "webui/", ".github/")
 ALLOWED_ROOT_FILES = {
     "VERSION",
     "README.md",
