@@ -1,0 +1,15 @@
+name: astrbot_plugin_dst_guard
+display_name: 对话状态感知防复读
+short_desc: 追问继续深入，换话题跳出旧账，敷衍输入强制短回复
+desc: 独立的 DST 守卫插件，不依赖 private_companion 完整源码。通过 on_llm_request 记录上一轮用户输入并注入 DST 规则，通过 on_llm_response 比较最近两轮 Bot 回复；换话题时拦截复读，追问时允许继续，敷衍输入时强制短回复。触发重写时会设置 private_companion 兼容的分段关闭标记。
+help: 安装到 AstrBot/data/plugins/ 并重启；可选配置 dst_similarity_threshold、dst_followup_threshold、dst_filler_max_chars、dst_cooldown_seconds。
+version: 1.0.0
+author: local
+support_platforms:
+  - aiocqhttp
+  - qq_official
+tags:
+  - DST
+  - 防复读
+  - 对话状态
+  - 反刍

@@ -111,6 +111,25 @@ status file. The version label in the header is clickable for a manual check.
 The old **检查苏瑾言更新** shortcut is removed by `create_update_shortcut.ps1`
 and by `create_dashboard_shortcut.ps1` when it runs.
 
+### Dialogue-state-aware anti-repetition (DST)
+
+The private companion now carries a three-layer DST guard. It distinguishes a
+**follow-up** from a **topic change** and from **filler** input instead of
+matching a fixed keyword list:
+
+- follow-up ("really?", "then what?", "why?"): stay on the topic and elaborate;
+- topic change: drop the old topic and answer the new one;
+- filler ("mm", "oh", "?"): force a short reply, never an essay.
+
+The plugin layer compares user intent and the new reply with the last two bot
+replies, triggers the existing passive rewrite pass when a new-topic reply
+repeats old material, disables QQ segmentation on a DST rewrite, and cools down
+proactive messages after three hits. The design, code excerpts, thresholds and
+deployment notes are in [docs/DST_GUARD.md](docs/DST_GUARD.md). The package includes the standalone
+`plugins/astrbot_plugin_dst_guard/` implementation; the full
+`private_companion` runtime directory (~44 MB, 973 files) is intentionally not
+bundled in this release.
+
 ### Cyber-Butler Dashboard
 
 The local WPF dashboard has four tabs:
@@ -217,7 +236,8 @@ flowchart LR
 └── docs/
     ├── 使用说明.md
     ├── RAG-知识库指南.md
-    └── HARDWARE_TROUBLESHOOTING.md
+    ├── HARDWARE_TROUBLESHOOTING.md
+    └── DST_GUARD.md
 ```
 
 ## Architecture Highlights

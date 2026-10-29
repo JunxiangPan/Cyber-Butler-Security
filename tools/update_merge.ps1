@@ -319,6 +319,7 @@ try {
         exit 0
     }
 
+    Write-Status 'starting' 3 '正在准备更新...'
     if ($isLive -and -not $DryRun) {
         if ($ConfirmationText) {
             if ($ConfirmationText -cne 'UPDATE PRODUCTION') { throw 'production confirmation rejected' }
@@ -328,8 +329,13 @@ try {
             if ($answer -cne 'UPDATE PRODUCTION') { throw 'production confirmation rejected' }
         }
     } elseif (-not $DryRun -and -not $Yes) {
-        $answer = Read-Host ('This will replace code under ' + $root + '. Type UPDATE to continue')
-        if ($answer -ne 'UPDATE') { throw 'update cancelled' }
+        if ($ConfirmationText) {
+            if ($ConfirmationText -cne 'UPDATE PRODUCTION') { throw 'production confirmation rejected' }
+            Write-UpdateLog 'non-live target confirmation accepted'
+        } else {
+            $answer = Read-Host ('This will replace code under ' + $root + '. Type UPDATE to continue')
+            if ($answer -ne 'UPDATE') { throw 'update cancelled' }
+        }
     }
 
     $localZipSource = ''

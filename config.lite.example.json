@@ -20,5 +20,14 @@
     "All chat is served by DeepSeek API",
     "Game mode unload/reload is a no-op",
     "ACL, Broker, TOTP, file egress and audit still apply"
-  ]
+  ],
+  "dst_guard": {
+    "enabled": true,
+    "dst_similarity_threshold": 0.6,
+    "dst_followup_threshold": 0.42,
+    "dst_filler_max_chars": 80,
+    "dst_cooldown_seconds": 600,
+    "dst_max_recent": 2,
+    "dst_inject_prompt": true
+  }
 }

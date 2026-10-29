@@ -7,7 +7,11 @@ registered as an LLM tool. Phase 1 only reads ports, GPU, provider configuration
 audit log, persona prompt, and game-list files; write buttons are disabled.
 #>
 param(
-    [string]$ProjectRoot = ''
+    [string]$ProjectRoot = '',
+    [switch]$SmokeTest,
+    [switch]$SmokeSettings,
+    [switch]$SmokeThemes,
+    [switch]$SmokeSettingsDialog
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,16 +22,32 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $script:ToolsRoot = $toolsRoot
 $script:ProjectRoot = $ProjectRoot
 $script:CheckScript = Join-Path $toolsRoot 'check_update.ps1'
-$script:MergeScript = Join-Path $toolsRoot 'update_merge.ps1'
+$script:MergeScript = Join-Path $ProjectRoot 'tools\update_merge.ps1'
 $script:ActionScript = Join-Path $toolsRoot 'dashboard_actions.ps1'
+$script:I18nFile = Join-Path $toolsRoot 'dashboard_i18n.json'
+$script:SettingsFile = Join-Path $env:LOCALAPPDATA 'CyberButler\dashboard-settings.json'
+$script:GameScanner = Join-Path $toolsRoot 'dashboard_game.ps1'
+function Load-XamlDictionary([string]$path) {
+    $xml = Get-Content -LiteralPath $path -Raw -Encoding UTF8
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xml)
+    return [Windows.Markup.XamlReader]::Load($reader)
+}
+$script:CurrentLanguage = 'zh'
+function T([string]$zh, [string]$en) { if ($script:CurrentLanguage -eq 'en') { return $en }; return $zh }
 . (Join-Path $toolsRoot 'dashboard_core.ps1')
 
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         Title="Cyber-Butler 主控台" Width="1120" Height="760"
-        WindowStartupLocation="CenterScreen">
-  <Grid Margin="18">
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
+  <Window.Resources />
+  <Grid x:Name="WindowRoot">
+    <Border x:Name="BackgroundLayer" Background="{DynamicResource PageBrush}"/>
+    <Border x:Name="BackgroundOverlay" Background="{DynamicResource OverlayBrush}" IsHitTestVisible="False" Visibility="Collapsed"/>
+    <Grid x:Name="RootGrid" Margin="18">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -35,14 +55,15 @@ $xaml = @'
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <Border Grid.Row="0" Background="#F4F6F8" CornerRadius="6" Padding="14">
+    <Border Grid.Row="0" Background="Transparent" CornerRadius="6" Padding="14">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="Cyber-Butler 主控台" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/>
-        <TextBlock Text="   本地主控台" Foreground="#777777" FontSize="13" VerticalAlignment="Center"/>
+        <TextBlock Text="   本地主控台" Foreground="{DynamicResource MutedBrush}" FontSize="13" VerticalAlignment="Center"/>
         <TextBlock x:Name="AstrBotLight" Text="● AstrBot" Margin="28,0,0,0" FontSize="15" VerticalAlignment="Center"/>
         <TextBlock x:Name="BrokerLight" Text="● Broker" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center"/>
         <TextBlock x:Name="SnowLumaLight" Text="● SnowLuma" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center"/>
-        <TextBlock x:Name="VersionLabel" Text="版本读取中..." Margin="30,0,0,0" FontSize="13" Foreground="#1F5B9D" Cursor="Hand" ToolTip="点击检查更新"/>
+        <TextBlock x:Name="VersionLabel" Text="版本读取中..." Margin="30,0,0,0" FontSize="13" Foreground="{DynamicResource AccentBrush}" Cursor="Hand" ToolTip="点击检查更新"/>
+        <Button x:Name="SettingsButton" Content="设置" Width="70" Height="28" Margin="18,0,0,0"/>
       </StackPanel>
     </Border>
 
@@ -56,30 +77,30 @@ $xaml = @'
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
           <UniformGrid Grid.Row="0" Columns="3">
-            <Border Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,10,0">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,10,0">
               <StackPanel>
                 <TextBlock Text="AstrBot" FontSize="16" FontWeight="SemiBold"/>
                 <TextBlock x:Name="AstrBotCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
-                <TextBlock Text="端口 6185" Foreground="#777777"/>
+                <TextBlock Text="端口 6185" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </Border>
-            <Border Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,10,0">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,10,0">
               <StackPanel>
                 <TextBlock Text="TOTP Broker" FontSize="16" FontWeight="SemiBold"/>
                 <TextBlock x:Name="BrokerCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
-                <TextBlock Text="端口 18090" Foreground="#777777"/>
+                <TextBlock Text="端口 18090" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </Border>
-            <Border Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="16">
+            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16">
               <StackPanel>
                 <TextBlock Text="SnowLuma" FontSize="16" FontWeight="SemiBold"/>
                 <TextBlock x:Name="SnowLumaCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
-                <TextBlock Text="端口 5099" Foreground="#777777"/>
+                <TextBlock Text="端口 5099" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </Border>
           </UniformGrid>
 
-          <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,14,0,0">
+          <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,14,0,0">
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -103,7 +124,7 @@ $xaml = @'
             <Button x:Name="LogsButton" Content="打开运行日志目录" Width="150" Height="36"/>
           </StackPanel>
 
-          <TextBlock Grid.Row="3" Text="Phase 1：按钮暂不执行写操作。" Foreground="#888888" Margin="0,18,0,0"/>
+          <TextBlock Grid.Row="3" Text="Phase 1：按钮暂不执行写操作。" Foreground="{DynamicResource MutedBrush}" Margin="0,18,0,0"/>
         </Grid>
       </TabItem>
 
@@ -121,9 +142,9 @@ $xaml = @'
           <StackPanel Grid.Row="2" Orientation="Horizontal">
             <Button x:Name="FuseButton" Content="紧急熔断" Width="150" Height="40"
                     Background="#C62828" Foreground="White" FontWeight="Bold"/>
-            <TextBlock Text="   紧急熔断功能将在第二阶段接入，需要二次确认和 UAC。" VerticalAlignment="Center" Foreground="#888888"/>
+            <TextBlock Text="   紧急熔断功能将在第二阶段接入，需要二次确认和 UAC。" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
           </StackPanel>
-          <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,14,0,0">
+          <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,14,0,0">
             <StackPanel>
               <TextBlock Text="配置（只读预览）" FontSize="16" FontWeight="SemiBold"/>
               <Grid Margin="0,10,0,0">
@@ -173,6 +194,8 @@ $xaml = @'
           </Grid.RowDefinitions>
           <StackPanel Orientation="Horizontal">
             <Button x:Name="ScanGamesButton" Content="扫描本地游戏库并同步" Width="190" Height="36"/>
+            <ProgressBar x:Name="ScanProgressBar" Width="120" Height="12" IsIndeterminate="True" Visibility="Collapsed" Margin="12,0,0,0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="ScanStatusText" Text="" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
             <TextBlock x:Name="GameCountText" Text="当前白名单：0 个" Margin="18,0,0,0" VerticalAlignment="Center" FontSize="15"/>
           </StackPanel>
           <ListBox Grid.Row="1" x:Name="GameListBox" Margin="0,12,0,12"/>
@@ -182,27 +205,33 @@ $xaml = @'
             <Button x:Name="AddGameButton" Content="手动添加" Width="95" Height="30" Margin="8,0,0,0"/>
             <Button x:Name="RemoveGameButton" Content="移除选中" Width="95" Height="30" Margin="8,0,0,0"/>
           </StackPanel>
-          <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="#DDE3E8" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,12,0,0">
+          <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,12,0,0">
             <StackPanel>
               <TextBlock Text="内置忽略名单（不会触发模型卸载）" FontWeight="SemiBold"/>
-              <TextBlock x:Name="IgnoreText" Text="读取中..." TextWrapping="Wrap" Foreground="#666666" Margin="0,6,0,0"/>
+              <TextBlock x:Name="IgnoreText" Text="读取中..." TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0"/>
             </StackPanel>
           </Border>
         </Grid>
       </TabItem>
     </TabControl>
-    <Border Grid.Row="3" Background="#F4F6F8" BorderBrush="#DDE3E8" BorderThickness="0,1,0,0" Padding="10,6">
+    <Border Grid.Row="3" Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,6">
       <StackPanel>
         <ProgressBar x:Name="UpdateProgressBar" Height="10" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed"/>
-        <TextBlock x:Name="UpdateStatusText" Text="" FontSize="12" Foreground="#555555" Margin="0,4,0,0" Visibility="Collapsed"/>
+        <TextBlock x:Name="UpdateStatusText" Text="" FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0" Visibility="Collapsed"/>
       </StackPanel>
     </Border>
+    </Grid>
   </Grid>
 </Window>
 '@
 
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
+$themeDictionary = Load-XamlDictionary (Join-Path $toolsRoot 'dashboard_theme_light.xaml')
+$styleDictionary = Load-XamlDictionary (Join-Path $toolsRoot 'dashboard_styles.xaml')
+$window.Resources.MergedDictionaries.Add($themeDictionary)
+$window.Resources.MergedDictionaries.Add($styleDictionary)
+if ($SmokeTest) { Write-Output 'DASHBOARD_XAML_OK'; exit 0 }
 $astrBotLight = $window.FindName('AstrBotLight')
 $brokerLight = $window.FindName('BrokerLight')
 $snowLumaLight = $window.FindName('SnowLumaLight')
@@ -220,6 +249,12 @@ $gameCountText = $window.FindName('GameCountText')
 $gameListBox = $window.FindName('GameListBox')
 $ignoreText = $window.FindName('IgnoreText')
 $versionLabel = $window.FindName('VersionLabel')
+$settingsButton = $window.FindName('SettingsButton')
+$rootGrid = $window.FindName('RootGrid')
+$backgroundLayer = $window.FindName('BackgroundLayer')
+$backgroundOverlay = $window.FindName('BackgroundOverlay')
+$scanProgressBar = $window.FindName('ScanProgressBar')
+$scanStatusText = $window.FindName('ScanStatusText')
 $updateProgressBar = $window.FindName('UpdateProgressBar')
 $updateStatusText = $window.FindName('UpdateStatusText')
 $restartButton = $window.FindName('RestartButton')
@@ -233,10 +268,12 @@ $scanGamesButton = $window.FindName('ScanGamesButton')
 $addGameButton = $window.FindName('AddGameButton')
 $removeGameButton = $window.FindName('RemoveGameButton')
 $gameInput = $window.FindName('GameInput')
+. (Join-Path $toolsRoot 'dashboard_settings.ps1')
+if ($SmokeSettings) { $s = Read-DashboardSettings; Set-UiTheme $s.theme; Apply-Language $s.language; Write-Output 'DASHBOARD_SETTINGS_OK'; exit 0 }
 
 function Set-Light($light, $card, [string]$name, [bool]$online) {
     $color = if ($online) { '#1B8A3A' } else { '#C62828' }
-    $text = if ($online) { '● 在线' } else { '● 离线' }
+    $text = if ($online) { T '● 在线' '● Online' } else { T '● 离线' '● Offline' }
     $light.Foreground = $color
     $light.Text = "● $name"
     $card.Text = $text
@@ -257,7 +294,7 @@ function Update-Dashboard {
         if ($gpu.TotalMB -gt 0) { $pct = [math]::Round(($gpu.UsedMB / $gpu.TotalMB) * 100, 1) }
         $gpuBar.Value = $pct
     } else {
-        $gpuText.Text = 'GPU 读取失败'
+        $gpuText.Text = T 'GPU 读取失败' 'GPU read failed'
         $gpuBar.Value = 0
     }
     $provider = Get-ProviderInfo $script:ProjectRoot
@@ -267,7 +304,7 @@ function Update-Dashboard {
 $auditGrid.ItemsSource = @(Get-AuditTail $script:ProjectRoot 10)
 $promptBox.Text = Get-PersonaPrompt $script:ProjectRoot
 $games = @(Get-GameWhitelist $script:ProjectRoot)
-$gameCountText.Text = "当前白名单：$($games.Count) 个"
+$gameCountText.Text = if ($script:CurrentLanguage -eq 'en') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
 $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
 $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 
@@ -310,9 +347,9 @@ function Read-InputDialog([string]$title, [string]$prompt) {
 function Get-VersionLabel {
     $versionFile = Join-Path $script:ProjectRoot 'VERSION'
     if (Test-Path -LiteralPath $versionFile) {
-        return '当前版本：v' + (Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8).Trim()
+        return (T '当前版本：' 'Current version: ') + 'v' + (Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8).Trim()
     }
-    return '当前版本：未知'
+    return (T '当前版本：未知' 'Current version: unknown')
 }
 
 function Show-UpdateDialog($info) {
@@ -438,7 +475,7 @@ function Refresh-DashboardData {
     $auditGrid.ItemsSource = @(Get-AuditTail $script:ProjectRoot 10)
     $promptBox.Text = Get-PersonaPrompt $script:ProjectRoot
     $games = @(Get-GameWhitelist $script:ProjectRoot)
-    $gameCountText.Text = "当前白名单：$($games.Count) 个"
+    $gameCountText.Text = if ($script:CurrentLanguage -eq 'en') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
     $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
     $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 }
@@ -565,15 +602,35 @@ $clearConversationButton.Add_Click({
     } catch { Show-Message ('清空失败：' + $_.Exception.Message) }
 })
 
+function Reset-ScanUi {
+    try { $scanTimer.Stop() } catch { }
+    $scanGamesButton.IsEnabled = $true
+    $scanProgressBar.Visibility = 'Collapsed'
+    $scanProgressBar.IsIndeterminate = $true
+    $scanStatusText.Text = ''
+    $script:scanProcess = $null
+}
+
 $scanGamesButton.Add_Click({
+    if ($script:scanProcess -and -not $script:scanProcess.HasExited) { return }
     try {
-        $proc = Start-Process -FilePath 'powershell.exe' -ArgumentList @(
-            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $gameModeScript + '"'), '-ScanLibraries'
-        ) -WindowStyle Hidden -PassThru
-        $proc.WaitForExit()
-        Refresh-DashboardData
-        Show-Message '游戏库扫描完成，已刷新白名单。'
-    } catch { Show-Message ('扫描失败：' + $_.Exception.Message) }
+        if (-not (Test-Path -LiteralPath $script:GameScanner)) { throw ('找不到扫描脚本：' + $script:GameScanner) }
+        $script:scanStatusFile = Join-Path $env:TEMP ('cyberbutler-games-' + [guid]::NewGuid().ToString('N') + '.json')
+        $script:scanOutFile = Join-Path $env:TEMP ('cyberbutler-game-out-' + [guid]::NewGuid().ToString('N') + '.log')
+        $script:scanErrFile = Join-Path $env:TEMP ('cyberbutler-game-err-' + [guid]::NewGuid().ToString('N') + '.log')
+        $script:scanStartedAt = Get-Date
+        Remove-Item -LiteralPath $script:scanStatusFile,$script:scanOutFile,$script:scanErrFile -Force -ErrorAction SilentlyContinue
+        $arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $script:GameScanner + '" -ProjectRoot "' + $script:ProjectRoot + '" -StatusFile "' + $script:scanStatusFile + '" -WriteAuto'
+        $script:scanProcess = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput $script:scanOutFile -RedirectStandardError $script:scanErrFile
+        $scanProgressBar.Visibility = 'Visible'
+        $scanProgressBar.IsIndeterminate = $true
+        $scanStatusText.Text = '正在扫描 Steam / Epic / WeGame...'
+        $scanGamesButton.IsEnabled = $false
+        $scanTimer.Start()
+    } catch {
+        Reset-ScanUi
+        Show-Message ('扫描失败：' + $_.Exception.Message)
+    }
 })
 
 $addGameButton.Add_Click({
@@ -622,6 +679,12 @@ $saveConfigButton.Add_Click({
         Update-Dashboard
     } catch { Show-Message ('保存失败：' + $_.Exception.Message) }
 })
+
+$settingsButton.Add_Click({ Show-SettingsDialog })
+$startupSettings = Read-DashboardSettings
+Set-UiTheme $startupSettings.theme
+Set-UiBackground $startupSettings.background | Out-Null
+Apply-Language $startupSettings.language
 
 $script:checkProcess = $null
 $script:updateProcess = $null
@@ -674,9 +737,77 @@ $updateTimer.Add_Tick({
         $updateStatusText.Text = '更新失败，已尝试回滚。'
         Show-Message '更新失败，已尝试回滚。请查看 backups 下的 update.log。'
     }
-    $versionLabel.Text = Get-VersionLabel
-    Update-Dashboard
 })
+
+$script:scanProcess = $null
+$script:scanStatusFile = ''
+$script:scanOutFile = ''
+$script:scanErrFile = ''
+$script:scanStartedAt = Get-Date
+$scanTimer = New-Object Windows.Threading.DispatcherTimer
+$scanTimer.Interval = [TimeSpan]::FromSeconds(1)
+$scanTimer.Add_Tick({
+    if ($script:scanStatusFile -and (Test-Path -LiteralPath $script:scanStatusFile)) {
+        try {
+            $state = Get-Content -LiteralPath $script:scanStatusFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($state -and $state.message) { $scanStatusText.Text = [string]$state.message }
+        } catch { }
+    }
+    if (-not $script:scanProcess) { Reset-ScanUi; return }
+    $elapsed = ((Get-Date) - $script:scanStartedAt).TotalSeconds
+    if (-not $script:scanProcess.HasExited -and $elapsed -gt 60) {
+        try { Stop-Process -Id $script:scanProcess.Id -Force -ErrorAction SilentlyContinue } catch { }
+        $tail = @()
+        if ($script:scanErrFile -and (Test-Path -LiteralPath $script:scanErrFile)) { $tail = @(Get-Content -LiteralPath $script:scanErrFile -Tail 10 -ErrorAction SilentlyContinue) }
+        Reset-ScanUi
+        Show-Message ("扫描超时（60 秒），已终止后台进程。`n`n" + (($tail -join "`n")))
+        return
+    }
+    if (-not $script:scanProcess.HasExited) { return }
+    $proc = $script:scanProcess
+    $rawCode = $null
+    try { if ($proc) { $rawCode = $proc.ExitCode } } catch { $rawCode = $null }
+    $code = if ($null -eq $rawCode) { -1 } else { [int]$rawCode }
+    $result = $null
+    if ($script:scanStatusFile -and (Test-Path -LiteralPath $script:scanStatusFile)) {
+        try { $result = Get-Content -LiteralPath $script:scanStatusFile -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction SilentlyContinue } catch { $result = $null }
+    }
+    $tail = @()
+    if ($script:scanErrFile -and (Test-Path -LiteralPath $script:scanErrFile)) { $tail = @(Get-Content -LiteralPath $script:scanErrFile -Tail 10 -ErrorAction SilentlyContinue) }
+    Reset-ScanUi
+    try { Refresh-DashboardData } catch { }
+    if ($null -eq $result) {
+        Show-Message '扫描结果为空，可能是脚本崩溃或输出了非 JSON 格式。'
+        Remove-Item -LiteralPath $script:scanStatusFile,$script:scanOutFile,$script:scanErrFile -Force -ErrorAction SilentlyContinue
+        return
+    }
+    if (($code -ne 0 -and $code -ne -1) -or ($result.status -eq 'failed')) {
+        $detail = if ($result -and $result.error) { [string]$result.error } else { ($tail -join "`n") }
+        $exitText = if ($null -eq $rawCode) { 'null' } else { [string]$rawCode }
+        Show-Message ("扫描失败（exit=$exitText）。`n`n" + $detail)
+    } elseif ($result) {
+        $extra = if ($result.auto_written -eq $false) { "`n`n提示：白名单文件写入被拒绝，本次仅显示扫描结果。" } else { '' }
+        Show-Message ("扫描完成：Steam $($result.steam) 个、Epic $($result.epic) 个、WeGame $($result.wegame) 个。$extra")
+    } else {
+        Show-Message ('扫描失败：没有生成结果文件。`n`n' + ($tail -join "`n"))
+    }
+    Remove-Item -LiteralPath $script:scanStatusFile,$script:scanOutFile,$script:scanErrFile -Force -ErrorAction SilentlyContinue
+})
+
+if ($SmokeSettingsDialog) { Show-SettingsDialog -SmokeOnly; exit 0 }
+
+if ($SmokeThemes) {
+    Set-UiTheme 'dark'
+    $md = $window.Resources.MergedDictionaries
+    $theme = $md[0]
+    $darkPage = [string]$theme['PageBrush'].Color
+    Set-UiTheme 'light'
+    $md = $window.Resources.MergedDictionaries
+    $theme = $md[0]
+    $lightPage = [string]$theme['PageBrush'].Color
+    Write-Output ('MERGED=' + $md.Count + ' DARK_PAGE=' + $darkPage + ' LIGHT_PAGE=' + $lightPage + ' CONTAINS=' + $theme.Contains('PageBrush'))
+    exit 0
+}
 
 $versionLabel.Text = Get-VersionLabel
 $versionLabel.Add_MouseLeftButtonDown({ Invoke-ManualUpdateCheck })

@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="PageBrush" Color="#F5F6F8"/>
+  <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="BorderBrush" Color="#DDE3E8"/>
+  <SolidColorBrush x:Key="TextBrush" Color="#202124"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#6B7280"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#1F6FEB"/>
+  <SolidColorBrush x:Key="ButtonBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="ButtonHoverBrush" Color="#F0F4FA"/>
+  <SolidColorBrush x:Key="SelectionBrush" Color="#DCEBFF"/>
+  <SolidColorBrush x:Key="InputBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="RowBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="TabSelectedBrush" Color="#E8EEF7"/>
+  <SolidColorBrush x:Key="TabHoverBrush" Color="#F0F4FA"/>
+  <SolidColorBrush x:Key="OverlayBrush" Color="#A0FFFFFF"/>
+</ResourceDictionary>

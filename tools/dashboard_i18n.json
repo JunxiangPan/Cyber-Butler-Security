@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "zh": "Cyber-Butler 主控台",
+      "en": "Cyber-Butler Dashboard"
+    },
+    {
+      "zh": "   本地主控台",
+      "en": "   Local Console"
+    },
+    {
+      "zh": "版本读取中...",
+      "en": "Reading version..."
+    },
+    {
+      "zh": "设置",
+      "en": "Settings"
+    },
+    {
+      "zh": "状态大盘",
+      "en": "Status"
+    },
+    {
+      "zh": "安全风控",
+      "en": "Security"
+    },
+    {
+      "zh": "人格与记忆",
+      "en": "Persona & Memory"
+    },
+    {
+      "zh": "游戏白名单",
+      "en": "Game Allowlist"
+    },
+    {
+      "zh": "检测中...",
+      "en": "Checking..."
+    },
+    {
+      "zh": "端口 6185",
+      "en": "Port 6185"
+    },
+    {
+      "zh": "端口 18090",
+      "en": "Port 18090"
+    },
+    {
+      "zh": "端口 5099",
+      "en": "Port 5099"
+    },
+    {
+      "zh": "GPU 显存",
+      "en": "GPU VRAM"
+    },
+    {
+      "zh": "读取中...",
+      "en": "Reading..."
+    },
+    {
+      "zh": "当前 Provider（配置读取）",
+      "en": "Current Provider (read-only)"
+    },
+    {
+      "zh": "重启 AstrBot 服务",
+      "en": "Restart AstrBot"
+    },
+    {
+      "zh": "一键释放显存",
+      "en": "Release VRAM"
+    },
+    {
+      "zh": "打开运行日志目录",
+      "en": "Open Log Directory"
+    },
+    {
+      "zh": "Phase 1：按钮暂不执行写操作。",
+      "en": "Buttons execute reviewed write actions."
+    },
+    {
+      "zh": "最近 TOTP 审批 / 拦截记录",
+      "en": "Recent TOTP approvals / blocks"
+    },
+    {
+      "zh": "紧急熔断",
+      "en": "Emergency Fuse"
+    },
+    {
+      "zh": "   紧急熔断功能将在第二阶段接入，需要二次确认和 UAC。",
+      "en": "   Requires typed confirmation and UAC."
+    },
+    {
+      "zh": "配置（只读预览）",
+      "en": "Configuration (read-only preview)"
+    },
+    {
+      "zh": "QQ 号",
+      "en": "QQ ID"
+    },
+    {
+      "zh": "API Key",
+      "en": "API Key"
+    },
+    {
+      "zh": "保存并同步",
+      "en": "Save and Sync"
+    },
+    {
+      "zh": "当前 System Prompt（只读）",
+      "en": "Current System Prompt (read-only)"
+    },
+    {
+      "zh": "保存并重载 AstrBot",
+      "en": "Save and Reload AstrBot"
+    },
+    {
+      "zh": "清空当前对话历史",
+      "en": "Clear Conversation"
+    },
+    {
+      "zh": "扫描本地游戏库并同步",
+      "en": "Scan Game Libraries"
+    },
+    {
+      "zh": "当前白名单：0 个",
+      "en": "Current allowlist: 0"
+    },
+    {
+      "zh": "进程名：",
+      "en": "Process name:"
+    },
+    {
+      "zh": "手动添加",
+      "en": "Add"
+    },
+    {
+      "zh": "移除选中",
+      "en": "Remove Selected"
+    },
+    {
+      "zh": "内置忽略名单（不会触发模型卸载）",
+      "en": "Built-in ignore list (no model unload)"
+    },
+    {
+      "zh": "发现新版本",
+      "en": "Update Available"
+    },
+    {
+      "zh": "立即更新",
+      "en": "Update Now"
+    },
+    {
+      "zh": "跳过此版本",
+      "en": "Skip This Version"
+    },
+    {
+      "zh": "稍后提醒",
+      "en": "Remind Me Later"
+    },
+    {
+      "zh": "主题",
+      "en": "Theme"
+    },
+    {
+      "zh": "浅色",
+      "en": "Light"
+    },
+    {
+      "zh": "深色",
+      "en": "Dark"
+    },
+    {
+      "zh": "跟随系统",
+      "en": "Follow System"
+    },
+    {
+      "zh": "语言",
+      "en": "Language"
+    },
+    {
+      "zh": "中文",
+      "en": "Chinese"
+    },
+    {
+      "zh": "英文",
+      "en": "English"
+    },
+    {
+      "zh": "自定义背景",
+      "en": "Custom Background"
+    },
+    {
+      "zh": "选择图片",
+      "en": "Choose Image"
+    },
+    {
+      "zh": "清除背景",
+      "en": "Clear Background"
+    },
+    {
+      "zh": "保存设置",
+      "en": "Save Settings"
+    },
+    {
+      "zh": "一键备份当前记忆与配置",
+      "en": "Backup Memory & Config"
+    },
+    {
+      "zh": "设置已保存",
+      "en": "Settings saved"
+    },
+    {
+      "zh": "备份完成",
+      "en": "Backup complete"
+    },
+    {
+      "zh": "关闭",
+      "en": "Close"
+    },
+    {
+      "zh": "未选择背景",
+      "en": "No background selected"
+    },
+    {
+      "zh": "点击检查更新",
+      "en": "Check for updates"
+    },
+    {
+      "zh": "恢复备份",
+      "en": "Restore Backup"
+    },
+    {
+      "zh": "版本管理",
+      "en": "Version Management"
+    },
+    {
+      "zh": "恢复",
+      "en": "Restore"
+    },
+    {
+      "zh": "重装当前版本",
+      "en": "Reinstall Current"
+    },
+    {
+      "zh": "回退到选定版本",
+      "en": "Downgrade Selected"
+    },
+    {
+      "zh": "正在影子拷贝并打包...",
+      "en": "Creating shadow copy..."
+    },
+    {
+      "zh": "正在请求管理员权限并恢复数据...",
+      "en": "Requesting elevation and restoring data..."
+    },
+    {
+      "zh": "正在请求管理员权限并重装...",
+      "en": "Requesting elevation and reinstalling..."
+    },
+    {
+      "zh": "正在请求管理员权限并回退...",
+      "en": "Requesting elevation and downgrading..."
+    }
+  ]
+}

@@ -81,7 +81,8 @@
 └── docs/
     ├── 使用说明.md
     ├── RAG-知识库指南.md
-    └── HARDWARE_TROUBLESHOOTING.md
+    ├── HARDWARE_TROUBLESHOOTING.md
+    └── DST_GUARD.md
 ```
 
 ## 如何安全升级
@@ -157,6 +158,16 @@ tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼 -BootstrapOverlay
 
 旧的【检查苏瑾言更新】快捷方式会由 `create_update_shortcut.ps1` 和
 `create_dashboard_shortcut.ps1` 自动删除。
+
+### 对话状态感知（DST）防复读
+
+私聊陪伴插件现在使用三层 DST 守卫，不再依赖“困/累”这种固定词表：
+
+- 同一话题追问（真的吗 / 然后呢 / 为什么）：继续回答、补充细节；
+- 明确换话题：停止旧话题，回应用户的新话题；
+- 敷衍输入（嗯 / 哦 / ？）：只回一句短回应，不写长篇。
+
+插件层会比较用户意图、当前回复与最近两轮 Bot 回复；换话题时触发已有的被动重写复核，DST 重写时关闭 QQ 分段，连续三次触发后降低主动消息频率。设计、代码片段、阈值和部署方式见 [docs/DST_GUARD.md](docs/DST_GUARD.md)。开源包已经附带独立的 `plugins/astrbot_plugin_dst_guard/` 实现；完整的 `private_companion` 运行目录约 44 MB、973 个文件，不随本发布包分发，仍作为本地插件补丁管理。
 
 ### Cyber-Butler 主控台
 

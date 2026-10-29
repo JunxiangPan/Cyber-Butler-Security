@@ -104,6 +104,8 @@ function Get-GameWhitelist {
     $result = @()
     $seen = @{}
     foreach ($spec in @(
+        @{ File = 'AstrBot\data\game-list.auto.txt'; Source = 'AUTO' },
+        @{ File = 'AstrBot\data\game-list.txt'; Source = 'MANUAL' },
         @{ File = 'tools\game-list.auto.txt'; Source = 'AUTO' },
         @{ File = 'tools\game-list.txt'; Source = 'MANUAL' }
     )) {
