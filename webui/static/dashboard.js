@@ -489,12 +489,7 @@
     loadBackups();
     loadSecurity();
     if (!$("filesTab")?.hidden) loadFiles(filePath);
-    if (lastFileItem && !$("fileModal")?.hidden) {
-      const meta = $("fileMeta");
-      if (meta) {
-        meta.textContent = `${i18n.formatSize(lastFileItem.size)} · ${i18n.t("files.modified")}: ${i18n.formatDate(new Date(lastFileItem.mtime * 1000), { dateStyle: "medium", timeStyle: "short" })}`;
-      }
-    }
+    if (lastFileItem && !$("fileModal")?.hidden) openFile(lastFileItem);
   };
 
   const initialize = async () => {
