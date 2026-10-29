@@ -134,3 +134,21 @@ Expected:
 ```text
 17 passed
 ```
+
+## Lock/Unlock Provider-Switch Fix
+
+The V1.0.3 lock/unlock command exposed a regression: `security_gate._switch_provider` called synchronous `requests.patch` from inside an async handler. That blocked AstrBot's event loop long enough for the API call to time out.
+
+Fixes:
+
+- the HTTP request now runs in `asyncio.to_thread`;
+- non-2xx responses log status and response body;
+- provider IDs are named constants (`local_qwen36`, `deepseek`);
+- the state file remains under `AstrBot/data/`.
+
+Live validation performed:
+
+- direct internal API `PATCH /api/v1/sessions/provider` → `status=ok` for deepseek and local_qwen36;
+- plugin lock/unlock flow → no timeout, state file written and cleared;
+- final private-session provider restored to `local_qwen36`;
+- AstrBot `6185` and Broker `18090` both `200`.
