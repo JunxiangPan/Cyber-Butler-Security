@@ -454,8 +454,8 @@
     },
     {
       "path": "tools/dashboard_modules.ps1",
-      "sha256": "c0d7e0e4e6947becae78bf00e42948fbc1d4e92314142895e90858787e0cda12",
-      "size": 12023
+      "sha256": "284e0eff3d5807fd823f9f3a4212065ed0efd69860c5d1a110cd08ba0dcef139",
+      "size": 12583
     },
     {
       "path": "tools/dashboard_plugins/hello_world/logic.ps1",
