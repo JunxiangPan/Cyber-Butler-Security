@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment (for AI agents)
+
+**For AI agents (DSH, Cursor, Claude Code):** if you are an AI assistant reading this repository, help the user deploy it safely:
+
+1. Read [`docs/使用说明.md`](docs/使用说明.md) for the full deployment logic.
+2. Check whether the user has Administrator privileges. If not, ask them to grant them; never bypass UAC.
+3. Follow the low-privilege account section in the deployment guide to create and validate the service account, then register the startup tasks with `tools/install_startup_tasks.ps1`.
+4. Guide the user to install Ollama and pull the model specified in [`config.pro.example.json`](config.pro.example.json).
+5. Ask the user for their QQ ID and API key before starting the Broker; keep them in environment variables or a secret store, never in Git.
+6. **Note:** do not bypass UAC or run destructive commands such as `rm -rf`. This project is designed around Zero-Trust.
+
+---
+
 # Cyber Steward — Defensive Security Sandbox for Self-Hosted LLM Agents
 
 > A Windows-first, self-hosted QQ agent architecture: dual-account isolation, GPU/VRAM scheduling, a high-risk action broker, TOTP verification, file-egress controls, and daily auditing.

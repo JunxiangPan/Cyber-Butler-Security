@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment（AI エージェント向け）
+
+**AI エージェント（DSH、Cursor、Claude Code）へ：** このリポジトリを読んでいる AI アシスタントは、ユーザーが安全にデプロイできるよう支援してください。
+
+1. [`docs/使用说明.md`](docs/使用说明.md) を読み、デプロイの全体像を確認する。
+2. ユーザーに管理者権限があるか確認する。ない場合は付与を促し、UAC を回避しない。
+3. デプロイ手順の「低権限アカウント」の節に従ってサービスアカウントを作成・検証し、`tools/install_startup_tasks.ps1` で起動タスクを登録する。
+4. Ollama のインストールと、[`config.pro.example.json`](config.pro.example.json) に指定されたモデルの取得を案内する。
+5. Broker を起動する前に、ユーザーの QQ ID と API Key を確認する。環境変数またはシークレットストアに保存し、Git にはコミットしない。
+6. **注意：** UAC を回避したり、`rm -rf` のような破壊的コマンドを実行したりしないこと。本プロジェクトは Zero-Trust に基づいて設計されています。
+
+---
+
 # 蘇瑾言 / サイバー・スチュワード — オープンソース自ホスト構成
 
 > Windows 上で動作する QQ エージェント向けの自ホスト構成です。デュアルアカウント分離、GPU/VRAM スケジューリング、高危険操作 Broker、TOTP 認証、ファイル送信制御、日次監査を備えます。

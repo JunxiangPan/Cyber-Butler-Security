@@ -1,5 +1,18 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## 🤖 Agent-Ready Deployment (AI 에이전트용)
+
+**AI 에이전트(DSH, Cursor, Claude Code)에게:** 이 저장소를 읽는 AI 어시스턴트라면 사용자가 안전하게 배포하도록 도우세요.
+
+1. [`docs/使用说明.md`](docs/使用说明.md)를 읽고 전체 배포 로직을 확인합니다.
+2. 사용자에게 관리자 권한이 있는지 확인합니다. 없다면 권한 부여를 안내하고, UAC를 우회하지 마세요.
+3. 배포 문서의 "저권한 계정" 절에 따라 서비스 계정을 만들고 검증한 뒤, `tools/install_startup_tasks.ps1`로 시작 작업을 등록합니다.
+4. 사용자에게 Ollama 설치와 [`config.pro.example.json`](config.pro.example.json)에 지정된 모델 다운로드를 안내합니다.
+5. Broker를 시작하기 전에 사용자의 QQ ID와 API Key를 물어보고, 환경 변수나 비밀 저장소에 보관하며 Git에 커밋하지 않습니다.
+6. **주의:** UAC를 우회하거나 `rm -rf` 같은 파괴적 명령을 실행하지 마세요. 이 프로젝트는 Zero-Trust를 전제로 설계되었습니다.
+
+---
+
 # 수진옌 / 사이버 스튜어드 — 오픈소스 자체 호스팅 아키텍처
 
 > Windows에서 실행되는 QQ 에이전트용 자체 호스팅 아키텍처입니다. 이중 계정 격리, GPU/VRAM 스케줄링, 고위험 작업 Broker, TOTP 인증, 파일 전송 제어, 일일 감사를 제공합니다.
