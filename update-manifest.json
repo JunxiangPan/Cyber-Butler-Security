@@ -819,13 +819,13 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "a2bed2e4b6fa40ae559a73b7323ecea0139fefd82242d60cbcac5179311a7a0f",
-      "size": 9076
+      "sha256": "ca7021d846f3727501cee4811a05cf6b4fa4bac253b4849312a9c379e7c5743c",
+      "size": 9078
     },
     {
       "path": "webui/auth.py",
-      "sha256": "fbf003e85a3ec9977c6c8ef57bd592a20dc50c832419366d692874c8860d0de9",
-      "size": 3783
+      "sha256": "52a2c70f02d4a39c6fbb6486844298644d3340e336fd77f68e7ba6a377b2f982",
+      "size": 3785
     },
     {
       "path": "webui/example-config.json",
@@ -849,13 +849,18 @@
     },
     {
       "path": "webui/run.py",
-      "sha256": "2dc08be5691027469ef49a6888fb8921e18873b9238abf00c59914f586b70f55",
-      "size": 310
+      "sha256": "9836fdf8be827867cdb3abb62b81c4f953240fd5882d26d136ae36624da1f26c",
+      "size": 312
     },
     {
       "path": "webui/services.py",
-      "sha256": "21172ca20b55c73d864c211ac428c6690006089574a58ec1e096f0e1bf7b409f",
-      "size": 8162
+      "sha256": "15dd456181626a7a6a76b7a8eca1ac4a1cabdca36ac3e70488bb387d7f457a23",
+      "size": 8164
+    },
+    {
+      "path": "webui/settings.py",
+      "sha256": "f507c73b932da0cda7101ebddf6384b426184a9d0fac3980274d11a8d18048b4",
+      "size": 4371
     },
     {
       "path": "webui/static/dashboard.js",
@@ -894,13 +899,13 @@
     },
     {
       "path": "webui/tests/test_phase2_api.py",
-      "sha256": "854d3acb9b94c605ae9e76a6837366e35048db992556a86de23fde01ba267a03",
-      "size": 4422
+      "sha256": "5756b68cf2b247fe913d04731efad3fe0ac39218b351417baf173879bcd06013",
+      "size": 4310
     },
     {
       "path": "webui/tests/test_webui_auth.py",
-      "sha256": "adcb215a2a24807e226c507cbc33555ac15a510a15bfde1db200433c6fa04fb0",
-      "size": 3612
+      "sha256": "2d75dd56a22e28afa4bbf867bfbd7f79db0a17be969b1e7c8db2d48bbf14e548",
+      "size": 3614
     }
   ]
 }
