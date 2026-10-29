@@ -26,6 +26,21 @@ function Ensure-Task([string]$name) {
     catch { Write-CheckLog "task $name start failed: $($_.Exception.Message)" }
 }
 
+function Notify-Owner([string]$message) {
+    try {
+        if (-not (Test-Http 'http://127.0.0.1:6185')) { return }
+        $token = (Get-Content -LiteralPath $tokenFile -Raw).Trim()
+        $json = @{ umo = $umo; message = $message } | ConvertTo-Json -Compress
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+        Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:6185/api/v1/im/messages' `
+            -Headers @{ Authorization = "Bearer $token" } `
+            -ContentType 'application/json; charset=utf-8' -Body $bytes -TimeoutSec 15 | Out-Null
+        Write-CheckLog 'owner notification sent (UTF-8)'
+    } catch {
+        Write-CheckLog "owner notification failed: $($_.Exception.Message)"
+    }
+}
+
 Write-CheckLog 'boot self-check started'
 
 if (-not (Test-Http 'http://127.0.0.1:11434/api/tags')) {
@@ -83,3 +98,8 @@ $status = [ordered]@{
     snowluma = (Test-Http 'http://127.0.0.1:5099')
 }
 Write-CheckLog ('boot self-check finished: ' + ($status | ConvertTo-Json -Compress))
+$failed = @($status.GetEnumerator() | Where-Object { -not $_.Value })
+if ($failed.Count -gt 0) {
+    $names = ($failed | ForEach-Object { $_.Key }) -join ', '
+    Notify-Owner "哥，开机自检发现异常：$names。瑾言已经尝试自动处理，请你有空看一下日志。"
+}
