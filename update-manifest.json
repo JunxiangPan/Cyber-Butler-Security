@@ -119,8 +119,8 @@
     },
     {
       "path": "RELEASE_NOTES_v1.2.1.md",
-      "sha256": "07b0414507a8a2e282f63c6626735ff076ae9495844769a51706a57e0c8d8eac",
-      "size": 1526
+      "sha256": "51ff4445e9b9d9793aa0b93f79c3a1548057ac6885deb9048501693cbe9a0ba3",
+      "size": 2387
     },
     {
       "path": "SECURITY.md",
@@ -159,8 +159,8 @@
     },
     {
       "path": "docs/PLUGIN_ECOSYSTEM.md",
-      "sha256": "a4b6a3e280cd19be9516a372439b636721aa10250c2ddac4606ba7dedcb5d098",
-      "size": 8779
+      "sha256": "57e51a9e4b646f92e82adcf22148fcea9549a00b8bde54e50404e1221847c172",
+      "size": 9550
     },
     {
       "path": "docs/RAG-知识库指南.md",
@@ -414,8 +414,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "41b55e0815ea922f6136e36b60c39195c40d4adfc25ac70afb6fdbe1d645616c",
-      "size": 69825
+      "sha256": "aa9ae2308a4de32b784bcc9c52331a7c567fc49b341e66c49840d2f234d31314",
+      "size": 70154
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -464,8 +464,8 @@
     },
     {
       "path": "tools/dashboard_plugins/hello_world/logic.ps1",
-      "sha256": "acc74b834ab473d2b283ef52cefa13b6c355d6c98e6208382418bece683abc33",
-      "size": 1151
+      "sha256": "32ba0f252632b7d6b2aaef5ed4892a7add44659ec1dffc1abb3c9e994adec0ca",
+      "size": 1548
     },
     {
       "path": "tools/dashboard_plugins/hello_world/manifest.json",
@@ -474,13 +474,13 @@
     },
     {
       "path": "tools/dashboard_plugins/hello_world/ui.xaml",
-      "sha256": "f21f69ca39cb411ff6766084471d86deca876486a496c6d2eae39965e171be11",
-      "size": 3093
+      "sha256": "20e4a5447af5eda8a5cbc90fdcb5f48a90432d77fa1f37c8d4aa1f8b4d06eedc",
+      "size": 3358
     },
     {
       "path": "tools/dashboard_restore.ps1",
-      "sha256": "245738dc4833b3451c785c055014324fe743e2fdfbfa6141ec3267de3f0aa641",
-      "size": 9276
+      "sha256": "fe757776e04563713fafa2d928734a47286b1cf127ccb9a5c28db7235bf7d2c1",
+      "size": 9648
     },
     {
       "path": "tools/dashboard_secret.ps1",
@@ -489,8 +489,8 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "4777c998dac301f643d6e95c96ed0ad4105b4d62b3fdbe4d4b38afdfcd00a199",
-      "size": 35312
+      "sha256": "5f1bb62c49a069f67f47c78bd855688cef2c79ac110deec7df62ef9ad302ba79",
+      "size": 37415
     },
     {
       "path": "tools/dashboard_styles.xaml",
