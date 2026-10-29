@@ -28,6 +28,127 @@
 3. **AGPL-3.0 Compliance.** This project contains overlay modifications based on AstrBot and is distributed under **AGPL-3.0**. You must comply with AGPL-3.0, including its source-code availability obligations. **Closed-source commercial use is prohibited.**
 4. **No Warranty.** The software is provided "AS IS", without warranty of any kind. Use it in an isolated test environment and review every permission before connecting a real account.
 
+## How to Upgrade Safely
+
+This project deliberately does **not** silently replace its own code.
+
+1. Check for a release without administrator rights:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools/check_update.ps1
+   ```
+
+2. To notify the owner through QQ, pass `-Notify -Umo "qq_sujinyan:FriendMessage:YOUR_QQ_ID"`.
+
+3. Only an administrator should apply an update:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools/update.ps1
+   ```
+
+   The updater asks for explicit `UPDATE` confirmation, verifies the GitHub asset
+   SHA-256 and every file in `update-manifest.json`, backs up the affected code,
+   stops AstrBot and the TOTP Broker, applies only allow-listed code under
+   `tools/`, `plugins/`, `overlay/`, and `docs/`, restarts both services, and
+   checks `6185` and `18090`. A failed health check triggers a code rollback.
+
+4. It never touches `AstrBot/data/`, `cmd_config.json`, databases, tokens,
+   logs, or `SnowLuma/config/`.
+
+### Sandbox and dry-run
+
+- `-DryRun` downloads and verifies the asset and manifest, but never writes to
+  the target and never restarts services.
+- `-TargetRoot D:\qq苏瑾言大肥鱼-test` applies only to that copy. The live
+  AstrBot/Broker services are not stopped or restarted.
+- `-LocalZip` is accepted only for a non-live `-TargetRoot` or a `DryRun`; it is
+  rejected for the live root.
+- A disposable sandbox must contain `AstrBot/data`; the updater hashes that tree
+  before and after and fails if it changes.
+
+### Production merge (local overlay)
+
+The GitHub package is **sanitized** and is not safe to apply directly to a
+customized production tree. Production updates use `tools/update_merge.ps1`:
+
+```powershell
+tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼
+```
+
+- `local-overlay.json` supplies the real deployment values; it is never packaged
+  or committed.
+- Only runtime files are rendered. `README`, `docs/` and `tests/` keep the
+  `YOUR_*` placeholders so users can see what still needs configuring.
+- `data/`, `cmd_config.json`, token files, databases and backups are protected;
+  a package that contains a protected path is rejected as a whole.
+- The live root requires the exact phrase `UPDATE PRODUCTION`; `-Yes` cannot
+  bypass this prompt.
+- Local code changes outside known placeholders are refused unless
+  `-AllowLocalCodeChanges` is explicitly supplied.
+
+If the overlay is missing, create it first with:
+
+```powershell
+tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼 -BootstrapOverlay
+```
+
+
+### Desktop update window
+
+For a one-click experience, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\create_update_shortcut.ps1
+```
+
+This creates a **检查苏瑾言更新** shortcut on the desktop. The shortcut starts
+`wscript.exe` -> `update_gui.vbs` -> `update_gui.ps1`, so no console window is
+shown.
+
+The window checks GitHub automatically:
+
+- no new version -> a message is shown, then the window closes;
+- a skipped version -> a message is shown, then the window closes;
+- a new version -> versions and the first 500 characters of release notes are
+  shown, with **立即更新**, **跳过此版本**, and **取消**;
+- **立即更新** asks for `UPDATE PRODUCTION`, requests UAC, then calls
+  `update_merge.ps1`; it never calls `update.ps1` on the live root.
+
+The GUI is only a shell. Downloading, SHA-256 verification, overlay rendering,
+protected-path rejection, backup and rollback all remain in
+`update_merge.ps1` / `update_core.py`.
+
+
+### Cyber-Butler Dashboard
+
+The local WPF dashboard has four tabs:
+
+```text
+状态大盘 / 安全风控 / 人格与记忆 / 游戏白名单
+```
+
+Run it from the release tree while it reads the production project:
+
+```powershell
+powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 -ProjectRoot D:\qq苏瑾言大肥鱼
+```
+
+Or create a no-console desktop shortcut:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\create_dashboard_shortcut.ps1 -ProjectRoot D:\qq苏瑾言大肥鱼
+```
+
+The dashboard reads ports, GPU, provider configuration, audit JSONL, persona
+prompt and game lists, and supports the first reviewed write actions through
+UAC helpers. It is not an AstrBot plugin and is not registered as an LLM tool.
+
+
+There is **no publisher identity signature yet**. GitHub asset SHA-256 plus the
+manifest hashes protect against transfer corruption, not a compromised GitHub
+account or maintainer. Automatic checking is enabled; automatic silent update
+is intentionally forbidden.
+
 ## Architecture
 
 ```mermaid
@@ -271,7 +392,7 @@ CI runs the same tests on Ubuntu and Windows for every push and pull request:
 .github/workflows/security-tests.yml
 ```
 
-Included tests (17 total):
+Included tests (30 total):
 
 - explicit ACL deny for the service account (logic model, not kernel ACL);
 - wrong TOTP → HTTP 403 without consuming the pending request;

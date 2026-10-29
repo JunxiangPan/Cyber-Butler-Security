@@ -31,6 +31,28 @@ foreach ($path in $paths) {
     }
 }
 
+$secretNames = @('totp_secret.dpapi', 'totp_recovery.json')
+foreach ($name in $secretNames) {
+    $secretPath = Join-Path (Join-Path $root 'tools') $name
+    if (-not (Test-Path -LiteralPath $secretPath)) {
+        $bad.Add("missing protected TOTP file: $secretPath")
+        continue
+    }
+    try {
+        $secretAcl = Get-Acl -LiteralPath $secretPath
+        $denyRead = @($secretAcl.Access | Where-Object {
+            $_.AccessControlType -eq 'Deny' -and
+            (([string]$_.IdentityReference) -eq $ServiceUser -or ([string]$_.IdentityReference).Contains([string][char]92 + $ServiceUser)) -and
+            $_.FileSystemRights -match 'Read|ReadData|ReadAttributes|ReadExtendedAttributes|ReadPermissions'
+        })
+        if ($denyRead.Count -eq 0) {
+            $bad.Add("missing explicit Deny Read for $ServiceUser on $secretPath")
+        }
+    } catch {
+        $bad.Add("cannot read ACL for ${secretPath}: $($_.Exception.Message)")
+    }
+}
+
 if ($bad.Count -gt 0) {
     $bad | ForEach-Object { Write-Error $_ }
     exit 1

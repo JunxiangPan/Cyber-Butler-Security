@@ -16,7 +16,7 @@ All project-owned QQ notification paths now send explicit UTF-8:
 Verified live:
 
 ```text
-09:20:01 私聊 2351671738 | 发送：哥，编码修复测试：这条消息应为正常中文，不再是乱码。
+09:20:01 私聊 <redacted-qq> | 发送：哥，编码修复测试：这条消息应为正常中文，不再是乱码。
 ```
 
 ## Self-healing retained
