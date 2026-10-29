@@ -51,6 +51,9 @@ def main() -> int:
     parser.add_argument("--project-path", default="")
     parser.add_argument("--host", default="")
     parser.add_argument("--service-user", default="")
+    parser.add_argument("--platform", default="")
+    parser.add_argument("--agent-name", default="")
+    parser.add_argument("--shared-folder", default="")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--strict", action="store_true")
     args = parser.parse_args()
@@ -66,6 +69,12 @@ def main() -> int:
         replacements.append((re.escape(args.host), "YOUR_HOST"))
     if args.service_user:
         replacements.append((re.escape(args.service_user), "YOUR_SERVICE_USER"))
+    if args.platform:
+        replacements.append((re.escape(args.platform), "YOUR_PLATFORM_ID"))
+    if args.agent_name:
+        replacements.append((re.escape(args.agent_name), "YOUR_AGENT_NAME"))
+    if args.shared_folder:
+        replacements.append((re.escape(args.shared_folder), "YOUR_SHARED_FOLDER"))
 
     root = Path(args.root).resolve()
     changed = 0

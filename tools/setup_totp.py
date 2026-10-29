@@ -30,6 +30,9 @@ def main() -> int:
     qr.make(fit=True)
     qr.make_image(fill_color="black", back_color="white").save(QR_PATH)
 
+    # 0x4 is CRYPTPROTECT_LOCAL_MACHINE: the Broker (SYSTEM) can decrypt it,
+    # but any local principal that can read the wrapped file can also decrypt
+    # it. The vault ACL is the effective boundary; this is not user binding.
     encrypted = win32crypt.CryptProtectData(
         secret.encode("utf-8"), "AstrBot TOTP", None, None, None, 0x4
     )
