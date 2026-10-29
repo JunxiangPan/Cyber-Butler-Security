@@ -41,3 +41,10 @@ Tests added:
 - Sanitization still contains deployment literals such as `qq_sujinyan`, `苏瑾言`, and `大肥鱼专用文件夹`; extend the sanitizer or replace them in a separate release.
 - The owner-input rule still forwards any 6-digit number to `/verify`; a prefixed challenge format is a separate UX/security change.
 - Outstanding test count is now 20 because the P0 regression tests were added.
+
+## Final BOM and launcher encoding sweep
+
+- Moved the accidental desktop mojibake directory to `backups/desktop-mojibake-latest-20261029-172901` (log preserved, no user data).
+- Added UTF-8 BOM to every PowerShell script under `tools/` (20/20 in the release).
+- Added BOM in place to every production `tools/` PowerShell script (66/66), preserving content.
+- Reparsed all release and production PS1 files with Windows PowerShell 5.1: 20/20 and 66/66 passed.
