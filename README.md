@@ -154,6 +154,12 @@ The dashboard reads ports, GPU, provider configuration, audit JSONL, persona
 prompt and game lists, and supports the first reviewed write actions through
 UAC helpers. It is not an AstrBot plugin and is not registered as an LLM tool.
 
+Backgrounds render in a dedicated non-interactive layer: static images
+(png/jpg/bmp), animated GIFs decoded without extra packages, and muted looping
+MP4/WebM video. The format matrix, size limits, fallback chain and maintenance
+smoke commands are documented in
+[docs/DASHBOARD_BACKGROUND.md](docs/DASHBOARD_BACKGROUND.md).
+
 
 There is **no publisher identity signature yet**. GitHub asset SHA-256 plus the
 manifest hashes protect against transfer corruption, not a compromised GitHub

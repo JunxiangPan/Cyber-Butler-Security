@@ -289,6 +289,11 @@
     <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
   </Style>
 
+  <Style TargetType="{x:Type CheckBox}">
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+
   <Style TargetType="{x:Type ProgressBar}">
     <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>

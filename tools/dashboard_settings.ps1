@@ -2,14 +2,19 @@
 # Cyber-Butler dashboard settings, theme, background and i18n helpers.
 # Dot-source after the main WPF window and named controls exist.
 
+. (Join-Path $PSScriptRoot 'dashboard_background.ps1')
+
 function Read-DashboardSettings {
-    $defaults = [pscustomobject]@{ theme = 'light'; language = 'zh'; background = '' }
+    $defaults = [pscustomobject]@{ theme = 'light'; language = 'zh'; background = ''; enable_animated_bg = $true }
     if (-not (Test-Path -LiteralPath $script:SettingsFile)) { return $defaults }
     try {
         $saved = Get-Content -LiteralPath $script:SettingsFile -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($saved.theme) { $defaults.theme = [string]$saved.theme }
         if ($saved.language) { $defaults.language = [string]$saved.language }
         if ($saved.background) { $defaults.background = [string]$saved.background }
+        if ($saved.PSObject.Properties.Name -contains 'enable_animated_bg') {
+            $defaults.enable_animated_bg = [bool]$saved.enable_animated_bg
+        }
     } catch { }
     return $defaults
 }
@@ -60,6 +65,8 @@ function Apply-Language([string]$language, $root = $null) {
                 $el.Header = $map[[string]$el.Header]
             } elseif ($el -is [Windows.Controls.ComboBoxItem] -and $el.Content -is [string] -and $map.ContainsKey([string]$el.Content)) {
                 $el.Content = $map[[string]$el.Content]
+            } elseif ($el -is [Windows.Controls.CheckBox] -and $el.Content -is [string] -and $map.ContainsKey([string]$el.Content)) {
+                $el.Content = $map[[string]$el.Content]
             } elseif ($el -is [Windows.FrameworkElement] -and $el.ToolTip -is [string] -and $map.ContainsKey([string]$el.ToolTip)) {
                 $el.ToolTip = $map[[string]$el.ToolTip]
             }
@@ -95,28 +102,7 @@ function Set-UiTheme([string]$mode) {
         $merged.Add($newStyles)
     } catch { }
     $script:CurrentTheme = $mode
-}
-
-function Set-UiBackground([string]$path) {
-    if ($path -and (Test-Path -LiteralPath $path)) {
-        try {
-            $bmp = New-Object Windows.Media.Imaging.BitmapImage
-            $bmp.BeginInit()
-            $bmp.CacheOption = [Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-            $bmp.UriSource = New-Object Uri($path)
-            $bmp.EndInit()
-            $brush = New-Object Windows.Media.ImageBrush($bmp)
-            $brush.Stretch = [Windows.Media.Stretch]::UniformToFill
-            $brush.AlignmentX = [Windows.Media.AlignmentX]::Center
-            $brush.AlignmentY = [Windows.Media.AlignmentY]::Center
-            $backgroundLayer.Background = $brush
-            $backgroundOverlay.Visibility = 'Visible'
-            return $true
-        } catch { return $false }
-    }
-    $backgroundLayer.Background = $null
-    $backgroundOverlay.Visibility = 'Collapsed'
-    return $false
+    if (Get-Command Restart-UiBackground -ErrorAction SilentlyContinue) { Restart-UiBackground }
 }
 
 function Remove-OldDashboardBackups([string]$BackupDir, [int]$Keep = 5) {
@@ -251,12 +237,75 @@ function Start-SettingsOperation([string]$Mode, [string]$BackupPath, $VersionCho
     return $script:settingsOperationProcess
 }
 
-function Show-SettingsDialog([switch]$SmokeOnly) {
+function Format-BgResult($Result) {
+    if (-not $Result) { return '' }
+    if (-not $Result.Ok) { return ((T '应用失败' 'Apply failed') + '：' + $Result.Reason) }
+    switch ($Result.Kind) {
+        'image' {
+            return ((T '静态图片' 'Static image') + ' · ' + $Result.Width + '×' + $Result.Height)
+        }
+        'gif' {
+            if ($Result.Animated) {
+                return ((T '动图' 'Animated GIF') + ' · ' + $Result.Frames + (T ' 帧' ' frames') + ' · ' + $Result.Width + '×' + $Result.Height)
+            }
+            return ((T '动图（静态首帧）' 'GIF (static frame)') + ' · ' + $Result.Width + '×' + $Result.Height)
+        }
+        'video' {
+            if ($Result.Animated) {
+                return ((T '视频（静音循环）' 'Video (muted loop)') + ' · ' + $Result.Width + '×' + $Result.Height)
+            }
+            return (T '视频静态首帧' 'Video poster frame')
+        }
+        default { return (T '纯色背景' 'Solid colour') }
+    }
+}
+
+function Apply-BgPreview {
+    $preview = $script:BgPreview
+    if (-not $preview) { return }
+    $result = Set-UiBackground $preview.background $preview
+    if ($script:BgStatusText) {
+        if ($result.Ok) {
+            $script:BgStatusText.Text = Format-BgResult $result
+        } else {
+            $script:BgStatusText.Text = (T '应用失败' 'Apply failed') + '：' + $result.Reason
+        }
+    }
+    if (-not $result.Ok) {
+        $message = (T '文件过大或格式不支持' 'File too large or unsupported format')
+        if ($result.Reason) { $message += [Environment]::NewLine + [Environment]::NewLine + $result.Reason }
+        [Windows.MessageBox]::Show($message, (T '背景' 'Background'), 'OK', 'Warning') | Out-Null
+        return
+    }
+    if ($result.Warning) {
+        if ($script:BgStatusText) { $script:BgStatusText.Text = [string]$result.Warning }
+        Show-BgWarning $result.Warning
+    }
+}
+
+function Revert-BgPreview {
+    if ($script:BgCommitted) { return }
+    $original = $script:BgOriginal
+    $preview = $script:BgPreview
+    if (-not $original -or -not $preview) { return }
+    $samePath = ([string]$preview.background -eq [string]$original.background)
+    $sameAnim = ([bool]$preview.enable_animated_bg -eq [bool]$original.anim)
+    if ($samePath -and $sameAnim) { return }
+    $preview.background = [string]$original.background
+    $preview.enable_animated_bg = [bool]$original.anim
+    if ($script:BgPathText) {
+        if ($preview.background) { $script:BgPathText.Text = $preview.background }
+        else { $script:BgPathText.Text = (T '未选择背景' 'No background selected') }
+    }
+    Set-UiBackground $preview.background $preview | Out-Null
+}
+
+function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $settings = Read-DashboardSettings
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="设置" Width="680" Height="760" WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
+        Title="设置" Width="700" Height="700" WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
   <Grid Margin="24">
@@ -264,47 +313,53 @@ function Show-SettingsDialog([switch]$SmokeOnly) {
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <TextBlock Grid.Row="0" Text="设置" FontSize="22" FontWeight="SemiBold"/>
     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,0">
-      <TextBlock Text="主题" Width="90" VerticalAlignment="Center"/>
+      <TextBlock Text="主题" Width="130" VerticalAlignment="Center"/>
       <ComboBox x:Name="ThemeCombo" Width="220">
         <ComboBoxItem Content="浅色"/><ComboBoxItem Content="深色"/><ComboBoxItem Content="跟随系统"/>
       </ComboBox>
     </StackPanel>
     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
-      <TextBlock Text="语言" Width="90" VerticalAlignment="Center"/>
+      <TextBlock Text="语言" Width="130" VerticalAlignment="Center"/>
       <ComboBox x:Name="LanguageCombo" Width="220">
         <ComboBoxItem Content="中文"/><ComboBoxItem Content="英文"/>
       </ComboBox>
     </StackPanel>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
-      <TextBlock Text="自定义背景" Width="90" VerticalAlignment="Center"/>
-      <Button x:Name="PickBackground" Content="选择图片" Width="100" Height="30"/>
-      <Button x:Name="ClearBackground" Content="清除背景" Width="100" Height="30" Margin="8,0,0,0"/>
+      <TextBlock Text="自定义背景" Width="130" VerticalAlignment="Center"/>
+      <Button x:Name="PickBackground" Content="选择背景" Width="140" Height="30"/>
+      <Button x:Name="ClearBackground" Content="清除动态背景（恢复纯色）" Width="210" Height="30" Margin="8,0,0,0"/>
     </StackPanel>
-    <TextBlock Grid.Row="4" x:Name="BackgroundPath" Text="未选择背景" Margin="90,6,0,0" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-    <StackPanel Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,18,0,0">
+    <TextBlock Grid.Row="4" x:Name="BackgroundPath" Text="未选择背景" Margin="130,6,0,0" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+    <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="130,10,0,0">
+      <CheckBox x:Name="AnimToggle" Content="启用动态背景（GIF/视频）" VerticalAlignment="Center"/>
+    </StackPanel>
+    <TextBlock Grid.Row="6" x:Name="BackgroundHint" Text="⚠️ 提示：使用动态背景或视频可能会轻微增加 CPU/GPU 占用" Margin="130,8,0,0" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+    <TextBlock Grid.Row="7" x:Name="BackgroundStatus" Text="" Margin="130,4,0,0" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+    <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="0,18,0,0">
       <Button x:Name="BackupButton" Content="一键备份当前记忆与配置" Width="240" Height="34"/>
       <TextBlock x:Name="SettingsStatus" Text="" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
     </StackPanel>
-    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,18,0,0">
-      <TextBlock Text="恢复备份" Width="90" VerticalAlignment="Center"/>
-      <ComboBox x:Name="RestoreCombo" Width="390" DisplayMemberPath="Display"/>
-      <Button x:Name="RestoreButton" Content="恢复" Width="80" Height="30" Margin="8,0,0,0"/>
+    <StackPanel Grid.Row="9" Orientation="Horizontal" Margin="0,18,0,0">
+      <TextBlock Text="恢复备份" Width="130" VerticalAlignment="Center"/>
+      <ComboBox x:Name="RestoreCombo" Width="360" DisplayMemberPath="Display"/>
+      <Button x:Name="RestoreButton" Content="恢复" Width="90" Height="30" Margin="8,0,0,0"/>
     </StackPanel>
-    <StackPanel Grid.Row="7" Orientation="Horizontal" Margin="0,12,0,0">
-      <TextBlock Text="版本管理" Width="90" VerticalAlignment="Center"/>
-      <ComboBox x:Name="VersionCombo" Width="220" DisplayMemberPath="Display"/>
-      <Button x:Name="ReinstallButton" Content="重装当前版本" Width="110" Height="30" Margin="8,0,0,0"/>
-      <Button x:Name="DowngradeButton" Content="回退到选定版本" Width="120" Height="30" Margin="8,0,0,0"/>
+    <StackPanel Grid.Row="10" Orientation="Horizontal" Margin="0,12,0,0">
+      <TextBlock Text="版本管理" Width="130" VerticalAlignment="Center"/>
+      <ComboBox x:Name="VersionCombo" Width="180" DisplayMemberPath="Display"/>
+      <Button x:Name="ReinstallButton" Content="重装当前版本" Width="150" Height="30" Margin="8,0,0,0"/>
+      <Button x:Name="DowngradeButton" Content="回退到选定版本" Width="160" Height="30" Margin="8,0,0,0"/>
     </StackPanel>
-    <StackPanel Grid.Row="8" Margin="0,10,0,0">
+    <StackPanel Grid.Row="11" Margin="0,10,0,0">
       <ProgressBar x:Name="SettingsProgress" Height="8" IsIndeterminate="True" Visibility="Collapsed"/>
       <TextBlock x:Name="SettingsOperationStatus" Text="" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
     </StackPanel>
-    <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+    <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
       <Button x:Name="SaveSettings" Content="保存设置" Width="110" Height="34" Margin="0,0,8,0"/>
       <Button x:Name="CloseSettings" Content="关闭" Width="90" Height="34"/>
     </StackPanel>
@@ -316,10 +371,54 @@ function Show-SettingsDialog([switch]$SmokeOnly) {
     $dlg = [Windows.Markup.XamlReader]::Load($r)
     if (-not $SmokeOnly) { $dlg.Owner = $window }
     foreach ($dict in @($window.Resources.MergedDictionaries)) { $copy = New-Object Windows.ResourceDictionary; foreach ($key in @($dict.Keys)) { $copy[$key] = $dict[$key] }; $dlg.Resources.MergedDictionaries.Add($copy) }
-    if ($SmokeOnly) { Write-Output 'SETTINGS_DIALOG_OK'; return }
+
+    if ($SmokeOnly) {
+        if ($ShotPath) {
+            try {
+                $width = 700
+                $height = 700
+                $dlg.FindName('ThemeCombo').SelectedIndex = switch ($settings.theme) { 'dark' { 1 } 'system' { 2 } default { 0 } }
+                $dlg.FindName('LanguageCombo').SelectedIndex = if ($settings.language -eq 'en') { 1 } else { 0 }
+                $dlg.FindName('AnimToggle').IsChecked = [bool]$settings.enable_animated_bg
+                if ($settings.background) { $dlg.FindName('BackgroundPath').Text = $settings.background }
+                Apply-Language $settings.language $dlg
+                $dlg.WindowStyle = 'None'
+                $dlg.ShowInTaskbar = $false
+                $dlg.WindowStartupLocation = 'Manual'
+                $dlg.Left = -6000
+                $dlg.Top = -6000
+                $dlg.Width = $width
+                $dlg.Height = $height
+                $dlg.Show()
+                try {
+                    $dlg.UpdateLayout()
+                    $dispatcher = [Windows.Threading.Dispatcher]::CurrentDispatcher
+                    for ($i = 0; $i -lt 10; $i++) {
+                        $dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [Action]{}) | Out-Null
+                        Start-Sleep -Milliseconds 40
+                    }
+                    $bitmap = New-Object Windows.Media.Imaging.RenderTargetBitmap ($width, $height, 96, 96, [Windows.Media.PixelFormats]::Pbgra32)
+                    $bitmap.Render($dlg)
+                    $encoder = New-Object Windows.Media.Imaging.PngBitmapEncoder
+                    $encoder.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
+                    $stream = [IO.File]::Create($ShotPath)
+                    try { $encoder.Save($stream) } finally { $stream.Dispose() }
+                } finally {
+                    $dlg.Close()
+                }
+            } catch {
+                Write-Output ('SETTINGS_SHOT_FAILED ' + $_.Exception.Message)
+            }
+        }
+        Write-Output 'SETTINGS_DIALOG_OK'
+        return
+    }
+
     $themeCombo = $dlg.FindName('ThemeCombo')
     $languageCombo = $dlg.FindName('LanguageCombo')
     $pathText = $dlg.FindName('BackgroundPath')
+    $backgroundStatus = $dlg.FindName('BackgroundStatus')
+    $animToggle = $dlg.FindName('AnimToggle')
     $status = $dlg.FindName('SettingsStatus')
     $restoreCombo = $dlg.FindName('RestoreCombo')
     $versionCombo = $dlg.FindName('VersionCombo')
@@ -449,17 +548,57 @@ function Show-SettingsDialog([switch]$SmokeOnly) {
 
     $themeCombo.SelectedIndex = switch ($settings.theme) { 'dark' { 1 } 'system' { 2 } default { 0 } }
     $languageCombo.SelectedIndex = if ($settings.language -eq 'en') { 1 } else { 0 }
-    $script:SettingsBackground = $settings.background
+    $animToggle.IsChecked = [bool]$settings.enable_animated_bg
     if ($settings.background) { $pathText.Text = $settings.background }
+
+    $script:BgDialog = $dlg
+    $script:BgPreview = [pscustomobject]@{
+        theme = [string]$settings.theme
+        language = [string]$settings.language
+        background = [string]$settings.background
+        enable_animated_bg = [bool]$settings.enable_animated_bg
+    }
+    $script:BgOriginal = @{
+        background = [string]$settings.background
+        anim = [bool]$settings.enable_animated_bg
+    }
+    $script:BgCommitted = $false
+    $script:BgInteractive = $true
+    $script:BgStatusText = $backgroundStatus
+    $script:BgPathText = $pathText
+
     $dlg.FindName('PickBackground').Add_Click({
         $ofd = New-Object Microsoft.Win32.OpenFileDialog
-        $ofd.Filter = 'Images|*.png;*.jpg;*.jpeg;*.bmp;*.webp|All files|*.*'
-        if ($ofd.ShowDialog()) {
-            $script:SettingsBackground = $ofd.FileName
-            $pathText.Text = $ofd.FileName
+        $ofd.Title = (T '选择背景文件' 'Choose a background file')
+        $ofd.Filter = '背景文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.mp4;*.webm|图片|*.png;*.jpg;*.jpeg;*.bmp|动图 GIF|*.gif|视频|*.mp4;*.webm|所有文件|*.*'
+        $ofd.CheckFileExists = $true
+        if (-not $ofd.ShowDialog()) { return }
+        $check = Test-BgFile $ofd.FileName
+        if (-not $check.Ok) {
+            $message = (T '文件过大或格式不支持' 'File too large or unsupported format') + [Environment]::NewLine + [Environment]::NewLine + $check.Reason
+            [Windows.MessageBox]::Show($message, (T '背景' 'Background'), 'OK', 'Warning') | Out-Null
+            return
+        }
+        $script:BgPreview.background = $ofd.FileName
+        $pathText.Text = $ofd.FileName
+        Apply-BgPreview
+    })
+
+    $dlg.FindName('ClearBackground').Add_Click({
+        $script:BgPreview.background = ''
+        $pathText.Text = (T '未选择背景' 'No background selected')
+        Apply-BgPreview
+    })
+
+    $animToggle.Add_Click({
+        $script:BgPreview.enable_animated_bg = [bool]$animToggle.IsChecked
+        if ($script:BgPreview.background) {
+            Apply-BgPreview
+        } elseif ($script:BgStatusText) {
+            $script:BgStatusText.Text = if ($script:BgPreview.enable_animated_bg) { '' } else { (T '动态背景已关闭' 'Animated background disabled') }
         }
     })
-    $dlg.FindName('ClearBackground').Add_Click({ $script:SettingsBackground = ''; $pathText.Text = '未选择背景' })
+
     $dlg.FindName('BackupButton').Add_Click({
         $status.Text = '正在影子拷贝并打包...'
         try {
@@ -471,17 +610,29 @@ function Show-SettingsDialog([switch]$SmokeOnly) {
             [Windows.MessageBox]::Show(('备份失败：' + [Environment]::NewLine + [Environment]::NewLine + $_.Exception.Message), '备份失败', 'OK', 'Error') | Out-Null
         }
     })
+
     $dlg.FindName('SaveSettings').Add_Click({
         $settings.theme = [string](@('light', 'dark', 'system'))[[int]$themeCombo.SelectedIndex]
         $settings.language = if ($languageCombo.SelectedIndex -eq 1) { 'en' } else { 'zh' }
-        $settings.background = [string]$script:SettingsBackground
+        $settings.background = [string]$script:BgPreview.background
+        $settings.enable_animated_bg = [bool]$script:BgPreview.enable_animated_bg
+        $script:BgSuppressRestart = $true
         Set-UiTheme $settings.theme
-        Set-UiBackground $settings.background | Out-Null
+        $script:BgSuppressRestart = $false
+        Set-UiBackground $settings.background $settings | Out-Null
         Apply-Language $settings.language
         Save-DashboardSettings $settings
+        $script:BgCommitted = $true
         $dlg.Close()
     })
+
     $dlg.FindName('CloseSettings').Add_Click({ $dlg.Close() })
+    $dlg.Add_Closing({
+        Revert-BgPreview
+        $script:BgInteractive = $false
+    })
+
     Apply-Language $script:CurrentLanguage $dlg
     $dlg.ShowDialog() | Out-Null
+    $script:BgInteractive = $false
 }

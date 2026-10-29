@@ -260,6 +260,38 @@
     {
       "zh": "正在请求管理员权限并回退...",
       "en": "Requesting elevation and downgrading..."
+    },
+    {
+      "zh": "选择背景",
+      "en": "Choose Background"
+    },
+    {
+      "zh": "清除动态背景（恢复纯色）",
+      "en": "Clear Animated Background"
+    },
+    {
+      "zh": "启用动态背景（GIF/视频）",
+      "en": "Enable animated background (GIF/video)"
+    },
+    {
+      "zh": "⚠️ 提示：使用动态背景或视频可能会轻微增加 CPU/GPU 占用",
+      "en": "⚠️ Note: animated or video backgrounds may slightly increase CPU/GPU usage"
+    },
+    {
+      "zh": "选择背景文件",
+      "en": "Choose a background file"
+    },
+    {
+      "zh": "文件过大或格式不支持",
+      "en": "File too large or unsupported format"
+    },
+    {
+      "zh": "背景",
+      "en": "Background"
+    },
+    {
+      "zh": "动态背景已关闭",
+      "en": "Animated background disabled"
     }
   ]
 }

@@ -11,7 +11,12 @@ param(
     [switch]$SmokeTest,
     [switch]$SmokeSettings,
     [switch]$SmokeThemes,
-    [switch]$SmokeSettingsDialog
+    [switch]$SmokeSettingsDialog,
+    [switch]$SmokeBackground,
+    [string]$SmokeAssetDir = '',
+    [string]$SmokeSettingsShot = '',
+    [string]$SmokeTheme = '',
+    [string]$SettingsFile = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -25,7 +30,9 @@ $script:CheckScript = Join-Path $toolsRoot 'check_update.ps1'
 $script:MergeScript = Join-Path $ProjectRoot 'tools\update_merge.ps1'
 $script:ActionScript = Join-Path $toolsRoot 'dashboard_actions.ps1'
 $script:I18nFile = Join-Path $toolsRoot 'dashboard_i18n.json'
+$settingsFileOverride = $SettingsFile
 $script:SettingsFile = Join-Path $env:LOCALAPPDATA 'CyberButler\dashboard-settings.json'
+if ($settingsFileOverride) { $script:SettingsFile = $settingsFileOverride }
 $script:GameScanner = Join-Path $toolsRoot 'dashboard_game.ps1'
 function Load-XamlDictionary([string]$path) {
     $xml = Get-Content -LiteralPath $path -Raw -Encoding UTF8
@@ -45,7 +52,7 @@ $xaml = @'
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
   <Window.Resources />
   <Grid x:Name="WindowRoot">
-    <Border x:Name="BackgroundLayer" Background="{DynamicResource PageBrush}"/>
+    <Grid x:Name="BackgroundLayer" Background="{DynamicResource PageBrush}" ClipToBounds="True" IsHitTestVisible="False"/>
     <Border x:Name="BackgroundOverlay" Background="{DynamicResource OverlayBrush}" IsHitTestVisible="False" Visibility="Collapsed"/>
     <Grid x:Name="RootGrid" Margin="18">
     <Grid.RowDefinitions>
@@ -269,7 +276,15 @@ $addGameButton = $window.FindName('AddGameButton')
 $removeGameButton = $window.FindName('RemoveGameButton')
 $gameInput = $window.FindName('GameInput')
 . (Join-Path $toolsRoot 'dashboard_settings.ps1')
-if ($SmokeSettings) { $s = Read-DashboardSettings; Set-UiTheme $s.theme; Apply-Language $s.language; Write-Output 'DASHBOARD_SETTINGS_OK'; exit 0 }
+if ($SmokeSettings) {
+    $s = Read-DashboardSettings
+    Set-UiTheme $s.theme
+    Set-UiBackground $s.background $s | Out-Null
+    Apply-Language $s.language
+    $snapshot = Get-BgStateSnapshot
+    Write-Output ('DASHBOARD_SETTINGS_OK theme=' + $s.theme + ' language=' + $s.language + ' animated=' + $s.enable_animated_bg + ' kind=' + $snapshot.Kind + ' frames=' + $snapshot.FrameCount + ' background=' + $s.background)
+    exit 0
+}
 
 function Set-Light($light, $card, [string]$name, [bool]$online) {
     $color = if ($online) { '#1B8A3A' } else { '#C62828' }
@@ -683,8 +698,14 @@ $saveConfigButton.Add_Click({
 $settingsButton.Add_Click({ Show-SettingsDialog })
 $startupSettings = Read-DashboardSettings
 Set-UiTheme $startupSettings.theme
-Set-UiBackground $startupSettings.background | Out-Null
+Set-UiBackground $startupSettings.background $startupSettings | Out-Null
 Apply-Language $startupSettings.language
+
+if ($SmokeBackground) {
+    $report = Invoke-BgSmokeTest $SmokeAssetDir
+    $report | ConvertTo-Json -Depth 5
+    exit 0
+}
 
 $script:checkProcess = $null
 $script:updateProcess = $null
@@ -794,7 +815,11 @@ $scanTimer.Add_Tick({
     Remove-Item -LiteralPath $script:scanStatusFile,$script:scanOutFile,$script:scanErrFile -Force -ErrorAction SilentlyContinue
 })
 
-if ($SmokeSettingsDialog) { Show-SettingsDialog -SmokeOnly; exit 0 }
+if ($SmokeSettingsDialog) {
+    if ($SmokeTheme) { Set-UiTheme $SmokeTheme }
+    Show-SettingsDialog -SmokeOnly -ShotPath $SmokeSettingsShot
+    exit 0
+}
 
 if ($SmokeThemes) {
     Set-UiTheme 'dark'

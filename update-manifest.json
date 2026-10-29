@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -19,8 +19,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "7443adbb7e6e0b03b17f2e2110ad2bdc91430dab5e33f1a9563280eed2282adb",
-      "size": 20680
+      "sha256": "147503ce2d3cd826c76c755aaf478b76f5a3706c011f08e2846cc1834597e600",
+      "size": 21011
     },
     {
       "path": "README_de.md",
@@ -108,13 +108,18 @@
       "size": 2071
     },
     {
+      "path": "RELEASE_NOTES_v1.1.1.md",
+      "sha256": "a05e223e4551e2c51f3ab6d3f56627a0a37134dbe2f38d62c77e0bbc6ca3da8e",
+      "size": 3252
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "1575e1af4a95f12f70b4ee6a6adce8160953d93ea17dc2611b90883ccc3ad3b8",
+      "sha256": "cc52f678848b814373757b460383bf61960e4943c203735adde0a350b3e50989",
       "size": 6
     },
     {
@@ -126,6 +131,11 @@
       "path": "config.pro.example.json",
       "sha256": "bca9fbeb3d502103f0fb749738b7814546f5d6724c6493e3a6f6daee94c3df96",
       "size": 982
+    },
+    {
+      "path": "docs/DASHBOARD_BACKGROUND.md",
+      "sha256": "4593df0fb7cc30f375b9b1c283ca042920d79dbde38dd7fe825aa52993605155",
+      "size": 4540
     },
     {
       "path": "docs/DST_GUARD.md",
@@ -364,8 +374,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "cd298d08c0a395b7f10bc33e0c617bb372eb7206bc1f99cf8566b8f56097eb49",
-      "size": 44176
+      "sha256": "dc8e6db66f4fd3b96c47410b6f70d2c1e8fbbfced1e4d9bfb00b9750aacd3a71",
+      "size": 45032
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -388,6 +398,11 @@
       "size": 10127
     },
     {
+      "path": "tools/dashboard_background.ps1",
+      "sha256": "e19b505c4f8c2d2f60a9209e3bfe580e7af5f4ca22b3f9971ab219bf95bf3248",
+      "size": 41055
+    },
+    {
       "path": "tools/dashboard_core.ps1",
       "sha256": "4a6bab327d0a2d00a311a86ad0d0f05c3eade60df025bf4bb7fc2216d064676a",
       "size": 6164
@@ -399,8 +414,8 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "a1f96c39f9ef160cebf39def9c7f78ec360bb659b6be1e3fce067bc2f5fe1864",
-      "size": 5425
+      "sha256": "39eb64219e1a0e1087cda1b3d30c96f69b1614888162bf82bf1f930f76115b41",
+      "size": 6301
     },
     {
       "path": "tools/dashboard_restore.ps1",
@@ -414,13 +429,13 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "43ca5328287ed0c04992e6305b82123131d6b00a49097fc5ccc08a1608f87b7c",
-      "size": 28013
+      "sha256": "4777c998dac301f643d6e95c96ed0ad4105b4d62b3fdbe4d4b38afdfcd00a199",
+      "size": 35312
     },
     {
       "path": "tools/dashboard_styles.xaml",
-      "sha256": "47942c9d56680cc48c3707d080d9c2c2c06e02073915d6f0abb55952aff4deda",
-      "size": 15419
+      "sha256": "c6804db41714e0938b81704c5b5c7ab1d54a28fd6ee0c963710cd15f14de3e86",
+      "size": 15614
     },
     {
       "path": "tools/dashboard_theme_dark.xaml",
