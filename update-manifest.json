@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.3.0",
+  "version": "1.3.1",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -138,13 +138,18 @@
       "size": 4220
     },
     {
+      "path": "RELEASE_NOTES_v1.3.1.md",
+      "sha256": "6532c640dcecf4c92399ca75ae512a9dcb1436e60d2961298a70d1ec54864dd6",
+      "size": 1643
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "64d23f858ef51b0f996e4966d4e27c0371b437e2d2787890b1f7ad22d4ec5663",
+      "sha256": "10e2e117b01523891ca271a615ae36e9d5e52348fd7d642f66727602c1b8dcbe",
       "size": 6
     },
     {
@@ -429,8 +434,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "dc68527adf93c018cce3a11c76934eda2892cfe1a6ab1b8b058386c28efd62d3",
-      "size": 83007
+      "sha256": "a2341a56ace51be17234b4800b5551ec97e212f55fd1cddd49ed67235a70095f",
+      "size": 83757
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -464,7 +469,7 @@
     },
     {
       "path": "tools/dashboard_errors.ps1",
-      "sha256": "f08023fdf79c71e9eb70da715e7e8a21aee6631a2da5593f5f03cad8ce496dfe",
+      "sha256": "9cdefce917643fbcb41be08e830b4538342af4a1b9dc50d602d0762da3a5fecd",
       "size": 4236
     },
     {
@@ -474,8 +479,8 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "2a85204173712dead0279a472c24f5a48774a6da4f4192b3afd0615d4c3513b6",
-      "size": 11115
+      "sha256": "704f7500cd806fbb81eead7bd1b3ba7944134dc100a44c22eee4a19186daaf26",
+      "size": 49516
     },
     {
       "path": "tools/dashboard_modules.ps1",
@@ -509,8 +514,8 @@
     },
     {
       "path": "tools/dashboard_plugins/quick_cmd/manifest.json",
-      "sha256": "918a7edc9eebf893333594356ad4539fc6a330f56f1bc1e22035fb890cf20ff7",
-      "size": 362
+      "sha256": "fc362fdb5940affb605290e203fa0b3ff88048689dd637348fe685dac680c4fb",
+      "size": 359
     },
     {
       "path": "tools/dashboard_plugins/quick_cmd/ui.xaml",
@@ -524,8 +529,8 @@
     },
     {
       "path": "tools/dashboard_plugins/sys_monitor/manifest.json",
-      "sha256": "f3107e5c978f8414e6f5451b501662571eecd347e62ade0b2c9e25a2d8d35810",
-      "size": 323
+      "sha256": "eedf433491e7d7a9194a1734258f9556911f9e41e7fc5beff5a2547a22ef8e2c",
+      "size": 324
     },
     {
       "path": "tools/dashboard_plugins/sys_monitor/ui.xaml",
@@ -544,8 +549,8 @@
     },
     {
       "path": "tools/dashboard_settings.ps1",
-      "sha256": "661aee4a9b6267bc47a332619c4c84776c1fed5bc44f33e58de25e83ea5b7e49",
-      "size": 39370
+      "sha256": "aaed53df7b20fc879e5181b8f11519746b00864c51bea089fb90001c8bce7d0b",
+      "size": 40567
     },
     {
       "path": "tools/dashboard_styles.xaml",

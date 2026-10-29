@@ -1164,12 +1164,12 @@
     {
       "zh": "{0} 个人格",
       "en": "{0} personas",
-      "ja": "{0} 性格",
-      "ko": "{0} 성격",
-      "es": "{0} Personalidad",
-      "fr": "{0} Personnalité",
-      "de": "{0} Persönlichkeit",
-      "ru": "{0} Личность"
+      "ja": "{0} 人",
+      "ko": "{0}명",
+      "es": "{0} personajes",
+      "fr": "{0} personnages",
+      "de": "{0} Personas",
+      "ru": "{0} личностей"
     }
   ]
 }

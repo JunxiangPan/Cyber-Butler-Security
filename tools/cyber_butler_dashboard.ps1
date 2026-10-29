@@ -585,7 +585,7 @@ function Read-InputDialog([string]$title, [string]$prompt, $Owner = $null) {
 function Get-VersionLabel {
     $versionFile = Join-Path $script:ProjectRoot 'VERSION'
     if (Test-Path -LiteralPath $versionFile) {
-        return (T '当前版本：' 'Current version: ') + 'v' + (Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8).Trim()
+        return (T '当前版本：' 'Current version: ').TrimEnd() + ' v' + (Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8).Trim()
     }
     return (T '当前版本：未知' 'Current version: unknown')
 }
@@ -1263,7 +1263,7 @@ function Show-PersonaList {
         }
         $personaListBox.ItemsSource = @($view)
         $personaStatusText.Text = ((T '{0} 个人格' '{0} personas') -f @($view).Count)
-        $personaActiveText.Text = ((T '当前人格：' 'Active persona: ') + $active)
+        $personaActiveText.Text = ((T '当前人格：' 'Active persona: ').TrimEnd() + ' ' + $active)
         $selected = @($view | Where-Object { $_.Id -eq $active }) | Select-Object -First 1
         if ($selected) {
             $personaListBox.SelectedItem = $selected
