@@ -43,6 +43,8 @@
                  Margin="0,6,0,0" TextWrapping="Wrap"/>
       <TextBlock Text="logic.ps1：可选；在独立作用域中运行，可定义 Initialize-DashboardModule($moduleContext)。"
                  Margin="0,6,0,0" TextWrapping="Wrap"/>
+      <TextBlock Text="事件处理器必须捕获上下文（在处理器末尾加 .GetNewClosure()），否则模块加载结束后 $moduleContext 会变为空。"
+                 Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}"/>
       <TextBlock Text="模块状态保存在 %LOCALAPPDATA%\CyberButler\dashboard-modules.json，禁用后不会加载 XAML 与脚本。"
                  Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
     </StackPanel>

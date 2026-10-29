@@ -4,6 +4,14 @@
 
 . (Join-Path $PSScriptRoot 'dashboard_background.ps1')
 
+function Write-SettingsLog([string]$Message) {
+    try {
+        $dir = Join-Path $env:LOCALAPPDATA 'CyberButler'
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        Add-Content -LiteralPath (Join-Path $dir 'settings.log') -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
+    } catch { }
+}
+
 function Read-DashboardSettings {
     $defaults = [pscustomobject]@{ theme = 'light'; language = 'zh'; background = ''; enable_animated_bg = $true }
     if (-not (Test-Path -LiteralPath $script:SettingsFile)) { return $defaults }
@@ -231,7 +239,11 @@ function Start-SettingsOperation([string]$Mode, [string]$BackupPath, $VersionCho
         $args += @('-AssetUrl', ('"' + $VersionChoice.Url + '"'), '-Version', ('"' + $VersionChoice.Tag + '"'))
     }
     $argString = $args -join ' '
+    $choiceTag = if ($VersionChoice) { [string]$VersionChoice.Tag } else { '' }
+    $choiceUrl = if ($VersionChoice) { [string]$VersionChoice.Url } else { '' }
+    Write-SettingsLog ('operation start mode=' + $Mode + ' target=' + $script:ProjectRoot + ' backup=' + [string]$BackupPath + ' version=' + $choiceTag + ' asset=' + $choiceUrl)
     $script:settingsOperationProcess = Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $argString -PassThru
+    Write-SettingsLog ('elevated process started pid=' + $script:settingsOperationProcess.Id)
     $script:settingsOperationStarted = Get-Date
     $script:settingsOperationMode = $Mode
     return $script:settingsOperationProcess
@@ -508,41 +520,59 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     })
 
     $reinstallButton.Add_Click({
-        $choice = $versionCombo.SelectedItem
-        if (-not $choice -or -not $choice.Url) { [Windows.MessageBox]::Show('当前版本没有可用的 GitHub 发布资产。', '重装'); return }
-        $answer = Read-InputDialog '重装当前版本' ("⚠️ 将用所选发布版本覆盖当前代码。`n聊天数据和配置会先做安全备份。`n`n输入 DOWNGRADE VERSION 继续：")
-        if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消。'; return }
         try {
+            $choice = $versionCombo.SelectedItem
+            $choiceLabel = if ($choice) { [string]$choice.Tag } else { '<none>' }
+            $choiceUrl = if ($choice) { [string]$choice.Url } else { '' }
+            Write-SettingsLog ('reinstall click; tag=' + $choiceLabel + ' url=' + $choiceUrl)
+            if (-not $choice -or -not $choice.Url) {
+                $operationStatus.Text = '当前版本没有可用的 GitHub 发布资产。'
+                [Windows.MessageBox]::Show($dlg, '当前版本没有可用的 GitHub 发布资产。', '重装', 'OK', 'Warning') | Out-Null
+                return
+            }
+            $answer = Read-InputDialog '重装当前版本' ("⚠️ 将用所选发布版本覆盖目标目录的代码（包括本地改动）。`n聊天数据和配置会先做安全备份。`n`n输入 DOWNGRADE VERSION 继续：") $dlg
+            Write-SettingsLog ('reinstall confirmation=' + $answer)
+            if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消。'; return }
             $restoreButton.IsEnabled = $false; $reinstallButton.IsEnabled = $false; $downgradeButton.IsEnabled = $false
             $settingsProgress.Visibility = 'Visible'; $settingsProgress.IsIndeterminate = $true
             $operationStatus.Text = '正在请求管理员权限并重装...'
             Start-SettingsOperation 'Downgrade' $null $choice | Out-Null
             $settingsTimer.Start()
         } catch {
+            Write-SettingsLog ('reinstall error: ' + $_.Exception.ToString())
             $restoreButton.IsEnabled = $true; $reinstallButton.IsEnabled = $true; $downgradeButton.IsEnabled = $true
             $settingsProgress.Visibility = 'Collapsed'
             $operationStatus.Text = '重装失败：' + $_.Exception.Message
-            [Windows.MessageBox]::Show($operationStatus.Text, '重装失败', 'OK', 'Error') | Out-Null
+            [Windows.MessageBox]::Show($dlg, $operationStatus.Text, '重装失败', 'OK', 'Error') | Out-Null
         }
     })
 
     $downgradeButton.Add_Click({
-        $choice = $versionCombo.SelectedItem
-        if (-not $choice -or -not $choice.Url) { [Windows.MessageBox]::Show('请选择一个带发布资产的历史版本。', '版本回退'); return }
-        $warning = "⚠️ 版本回退风险：`n`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续："
-        $answer = Read-InputDialog '回退到历史版本' $warning
-        if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消版本回退。'; return }
         try {
+            $choice = $versionCombo.SelectedItem
+            $choiceLabel = if ($choice) { [string]$choice.Tag } else { '<none>' }
+            $choiceUrl = if ($choice) { [string]$choice.Url } else { '' }
+            Write-SettingsLog ('downgrade click; tag=' + $choiceLabel + ' url=' + $choiceUrl)
+            if (-not $choice -or -not $choice.Url) {
+                $operationStatus.Text = '请选择一个带发布资产的历史版本。'
+                [Windows.MessageBox]::Show($dlg, '请选择一个带发布资产的历史版本。', '版本回退', 'OK', 'Warning') | Out-Null
+                return
+            }
+            $warning = "⚠️ 版本回退风险：`n`n- 将用所选版本覆盖目标目录的代码（包括本地改动）。`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续："
+            $answer = Read-InputDialog '回退到历史版本' $warning $dlg
+            Write-SettingsLog ('downgrade confirmation=' + $answer)
+            if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消版本回退。'; return }
             $restoreButton.IsEnabled = $false; $reinstallButton.IsEnabled = $false; $downgradeButton.IsEnabled = $false
             $settingsProgress.Visibility = 'Visible'; $settingsProgress.IsIndeterminate = $true
             $operationStatus.Text = '正在请求管理员权限并回退...'
             Start-SettingsOperation 'Downgrade' $null $choice | Out-Null
             $settingsTimer.Start()
         } catch {
+            Write-SettingsLog ('downgrade error: ' + $_.Exception.ToString())
             $restoreButton.IsEnabled = $true; $reinstallButton.IsEnabled = $true; $downgradeButton.IsEnabled = $true
             $settingsProgress.Visibility = 'Collapsed'
             $operationStatus.Text = '回退失败：' + $_.Exception.Message
-            [Windows.MessageBox]::Show($operationStatus.Text, '回退失败', 'OK', 'Error') | Out-Null
+            [Windows.MessageBox]::Show($dlg, $operationStatus.Text, '回退失败', 'OK', 'Error') | Out-Null
         }
     })
 

@@ -158,9 +158,14 @@ function Invoke-Downgrade {
             throw '历史包缺少 update-manifest.json；为安全起见已停止回退，未修改生产代码。'
         }
         Write-Status 'applying' 45 '正在调用生产更新器...'
+        # The user already confirmed this reinstall/downgrade in the dashboard.
+        # Replacing the selected release is the point of the action, so allow
+        # update_merge.ps1 to overwrite local code changes in the target tree.
+        Write-Log 'applying release with AllowLocalCodeChanges (explicit user confirmation)'
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $mergeScript `
             -TargetRoot $target -PythonPath $python -AssetUrl $AssetUrl `
-            -ExpectedSha256 $sha -ConfirmationText 'UPDATE PRODUCTION' -StatusFile $StatusFile
+            -ExpectedSha256 $sha -ConfirmationText 'UPDATE PRODUCTION' -StatusFile $StatusFile `
+            -AllowLocalCodeChanges
         if ($LASTEXITCODE -ne 0) { throw ('update_merge failed: ' + $LASTEXITCODE) }
         Write-Status 'done' 100 ('已回退到 ' + $Version)
         Write-Log ('DOWNGRADE OK version=' + $Version + ' safety=' + $safety)

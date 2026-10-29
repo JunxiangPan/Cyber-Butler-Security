@@ -458,12 +458,17 @@ function Show-Message([string]$text, [string]$title = 'Cyber-Butler 主控台') 
     [Windows.MessageBox]::Show($text, $title) | Out-Null
 }
 
-function Read-InputDialog([string]$title, [string]$prompt) {
+function Read-InputDialog([string]$title, [string]$prompt, $Owner = $null) {
     $w = New-Object Windows.Window
     $w.Title = $title
     $w.Width = 430
-    $w.Height = 190
+    $w.Height = 210
     $w.WindowStartupLocation = 'CenterScreen'
+    $w.ShowInTaskbar = $false
+    # Topmost keeps the prompt above the modal settings dialog; without it the
+    # nested window can appear behind and look like "nothing happened".
+    $w.Topmost = $true
+    if ($Owner) { $w.Owner = $Owner }
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
     $label = New-Object Windows.Controls.TextBlock
@@ -480,6 +485,7 @@ function Read-InputDialog([string]$title, [string]$prompt) {
     $ok.Add_Click({ $w.DialogResult = $true })
     $panel.Children.Add($ok) | Out-Null
     $w.Content = $panel
+    $w.Add_Loaded({ try { $box.Focus() | Out-Null } catch { } })
     $w.ShowDialog() | Out-Null
     return $box.Text
 }

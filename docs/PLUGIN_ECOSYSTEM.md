@@ -107,6 +107,22 @@ reported as a module problem and the module is not loaded.
 
 - If the script defines `Initialize-DashboardModule($context)`, it is called
   after the XAML is parsed.
+- **Event handlers must capture the context themselves.** PowerShell does not
+  keep the loader's local variables after the module finishes loading; a plain
+  `Add_Click({ $moduleContext... })` gets `$null`. End the handler with
+  `.GetNewClosure()`:
+
+  ```powershell
+  $button.Add_Click({
+      $moduleContext.State.Clicks = 1 + [int]$moduleContext.State.Clicks
+      $counter.Text = '点击次数：' + $moduleContext.State.Clicks
+  }.GetNewClosure())
+  ```
+
+  The closure copies the variables it references, so `$moduleContext`, the
+  counter `TextBlock` and any other captured object stay valid. It also means
+  the handler cannot call module-level functions (closures get a fresh module
+  scope); call scriptblocks stored on `$moduleContext` such as `.Log` instead.
 - Enabled/disabled state lives in
   `%LOCALAPPDATA%\CyberButler\dashboard-modules.json` (`disabled: [ids]`).
   Disabled modules load neither XAML nor script.

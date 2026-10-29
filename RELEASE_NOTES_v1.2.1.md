@@ -1,5 +1,21 @@
 # v1.2.1 — CI privacy scan fix
 
+## Repack fixes (this build)
+
+- `hello_world`: the click handler now captures `$moduleContext` with
+  `.GetNewClosure()`. PowerShell drops the loader's locals after import, which
+  made `$moduleContext` null and produced
+  “找不到属性 Clicks” on every click. Verified 1 → 2 → 3.
+- Time machine:
+  - `dashboard_restore.ps1` passes `-AllowLocalCodeChanges` to
+    `update_merge.ps1` for a user-confirmed reinstall/downgrade. The previous
+    attempt aborted with `MERGE_FAILED: local code changes detected`.
+  - The reinstall/downgrade confirmation dialogs are owned by the settings
+    window and marked topmost, so they cannot open behind the modal dialog.
+  - Both handlers are wrapped in try/catch and write diagnostics to
+    `%LOCALAPPDATA%\CyberButler\settings.log`; failures always raise a message
+    box instead of silently doing nothing.
+
 ## Fixed
 
 `tools/privacy_scan.py` rejects standalone 9–12 digit numbers because they can
