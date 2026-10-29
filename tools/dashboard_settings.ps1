@@ -75,6 +75,12 @@ function Apply-Language([string]$language, $root = $null) {
                 $el.Content = $map[[string]$el.Content]
             } elseif ($el -is [Windows.Controls.CheckBox] -and $el.Content -is [string] -and $map.ContainsKey([string]$el.Content)) {
                 $el.Content = $map[[string]$el.Content]
+            } elseif ($el -is [Windows.Controls.DataGrid]) {
+                foreach ($column in @($el.Columns)) {
+                    if ($column.Header -is [string] -and $map.ContainsKey([string]$column.Header)) {
+                        $column.Header = $map[[string]$column.Header]
+                    }
+                }
             } elseif ($el -is [Windows.FrameworkElement] -and $el.ToolTip -is [string] -and $map.ContainsKey([string]$el.ToolTip)) {
                 $el.ToolTip = $map[[string]$el.ToolTip]
             }
@@ -82,6 +88,10 @@ function Apply-Language([string]$language, $root = $null) {
         if ($root -is [Windows.Window] -and $map.ContainsKey([string]$root.Title)) { $root.Title = $map[[string]$root.Title] }
         $script:CurrentLanguage = $language
         if (Get-Command Update-Dashboard -ErrorAction SilentlyContinue) { Update-Dashboard }
+        if (Get-Command Update-UiErrorBox -ErrorAction SilentlyContinue) { Update-UiErrorBox }
+        try { if (Get-Command Show-AstrBotPluginList -ErrorAction SilentlyContinue) { Show-AstrBotPluginList } } catch { }
+        try { if (Get-Command Show-DashboardModuleList -ErrorAction SilentlyContinue) { Show-DashboardModuleList } } catch { }
+        try { if (Get-Command Show-PersonaList -ErrorAction SilentlyContinue) { Show-PersonaList } } catch { }
         if (Get-Command Refresh-DashboardData -ErrorAction SilentlyContinue) { Refresh-DashboardData }
         if (Get-Command Get-VersionLabel -ErrorAction SilentlyContinue) { $versionLabel.Text = Get-VersionLabel }
     } catch { }
@@ -473,6 +483,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
             $downgradeButton.IsEnabled = $true
             $script:settingsOperationProcess = $null
             $operationStatus.Text = '操作超时（60 秒），已终止。请查看 backups\restore_history.log'
+            if (Get-Command Write-UiError -ErrorAction SilentlyContinue) { Write-UiError 'time machine timeout' $operationStatus.Text }
             [Windows.MessageBox]::Show('操作超时（60 秒），已终止。请查看 backups\restore_history.log', '超时', 'OK', 'Warning') | Out-Null
             return
         }
@@ -492,6 +503,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
             [Windows.MessageBox]::Show('操作完成。请检查主界面状态，必要时重新打开主控台。', '完成') | Out-Null
         } else {
             $operationStatus.Text = '操作失败，请查看 backups\restore_history.log'
+            if (Get-Command Write-UiError -ErrorAction SilentlyContinue) { Write-UiError 'time machine' ('exit=' + $code) }
             [Windows.MessageBox]::Show(('操作失败（exit=' + $code + '）。' + [Environment]::NewLine + '请查看 backups\restore_history.log'), '失败', 'OK', 'Error') | Out-Null
         }
         if (Get-Command Refresh-DashboardData -ErrorAction SilentlyContinue) { Refresh-DashboardData }

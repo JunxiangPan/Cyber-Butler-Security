@@ -50,6 +50,8 @@ function T([string]$zh, [string]$en) { if ($script:CurrentLanguage -eq 'en') { r
 . (Join-Path $toolsRoot 'plugin_market.ps1')
 . (Join-Path $toolsRoot 'dashboard_modules.ps1')
 . (Join-Path $toolsRoot 'plugin_review_dialog.ps1')
+. (Join-Path $toolsRoot 'dashboard_errors.ps1')
+. (Join-Path $toolsRoot 'dashboard_persona.ps1')
 
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -74,9 +76,9 @@ $xaml = @'
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="Cyber-Butler 主控台" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/>
         <TextBlock Text="   本地主控台" Foreground="{DynamicResource MutedBrush}" FontSize="13" VerticalAlignment="Center"/>
-        <TextBlock x:Name="AstrBotLight" Text="● AstrBot" Margin="28,0,0,0" FontSize="15" VerticalAlignment="Center"/>
-        <TextBlock x:Name="BrokerLight" Text="● Broker" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center"/>
-        <TextBlock x:Name="SnowLumaLight" Text="● SnowLuma" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center"/>
+        <TextBlock x:Name="AstrBotLight" Text="● AstrBot" Margin="28,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 AstrBot WebUI"/>
+        <TextBlock x:Name="BrokerLight" Text="● Broker" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="TOTP Broker 为后台无头服务，无 Web 管理界面"/>
+        <TextBlock x:Name="SnowLumaLight" Text="● SnowLuma" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 SnowLuma WebUI"/>
         <TextBlock x:Name="VersionLabel" Text="版本读取中..." Margin="30,0,0,0" FontSize="13" Foreground="{DynamicResource AccentBrush}" Cursor="Hand" ToolTip="点击检查更新"/>
         <Button x:Name="SettingsButton" Content="设置" Width="70" Height="28" Margin="18,0,0,0"/>
       </StackPanel>
@@ -188,11 +190,33 @@ $xaml = @'
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
-          <TextBlock Text="当前 System Prompt（只读）" FontSize="17" FontWeight="SemiBold"/>
-          <TextBox Grid.Row="1" x:Name="PromptBox" Margin="0,10,0,12"
-                   AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-          <StackPanel Grid.Row="2" Orientation="Horizontal">
+          <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Button x:Name="PersonaRefreshButton" Content="刷新人格列表" Width="120" Height="32"/>
+            <Button x:Name="PersonaSwitchButton" Content="切换为人格" Width="110" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaNewButton" Content="新建空白人格" Width="150" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaCopyButton" Content="复制当前人格" Width="120" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaDeleteButton" Content="删除人格" Width="120" Height="32" Margin="8,0,0,0"/>
+            <TextBlock x:Name="PersonaStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+          <Grid Grid.Row="1" Margin="0,10,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="240"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="PersonaListBox" Grid.Column="0" DisplayMemberPath="Display" Margin="0,0,10,0"/>
+            <Grid Grid.Column="1">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <TextBlock x:Name="PersonaActiveText" Foreground="{DynamicResource MutedBrush}"/>
+              <TextBox x:Name="PromptBox" Grid.Row="1" Margin="0,6,0,0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+          </Grid>
+          <TextBlock Grid.Row="2" Text="切换人格会更新 AstrBot 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+          <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
             <Button x:Name="SavePromptButton" Content="保存并重载 AstrBot" Width="170" Height="36" Margin="0,0,8,0"/>
             <Button x:Name="ClearConversationButton" Content="清空当前对话历史" Width="170" Height="36"/>
           </StackPanel>
@@ -314,6 +338,24 @@ $xaml = @'
           </Border>
         </Grid>
       </TabItem>
+
+      <TabItem Header="系统日志">
+        <Grid Margin="14">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="ErrorCopyButton" Content="一键复制错误信息" Width="150" Height="32"/>
+            <Button x:Name="ErrorClearButton" Content="清空" Width="70" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="ErrorRefreshButton" Content="刷新" Width="70" Height="32" Margin="8,0,0,0"/>
+            <TextBlock x:Name="ErrorStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+          <TextBox Grid.Row="1" x:Name="ErrorLogBox" IsReadOnly="True" Margin="0,12,0,10"
+                   AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto"
+                   HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"/>
+          <TextBlock Grid.Row="2" x:Name="ErrorPathText" Text="日志文件：%LOCALAPPDATA%/CyberButler/ui-errors.log" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+        </Grid>
+      </TabItem>
     </TabControl>
     <Border Grid.Row="3" Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,6">
       <StackPanel>
@@ -377,6 +419,20 @@ $marketInstallButton = $window.FindName('MarketInstallButton')
 $marketStatusText = $window.FindName('MarketStatusText')
 $marketGrid = $window.FindName('MarketGrid')
 $marketDetailText = $window.FindName('MarketDetailText')
+$personaListBox = $window.FindName('PersonaListBox')
+$personaStatusText = $window.FindName('PersonaStatusText')
+$personaActiveText = $window.FindName('PersonaActiveText')
+$personaRefreshButton = $window.FindName('PersonaRefreshButton')
+$personaSwitchButton = $window.FindName('PersonaSwitchButton')
+$personaNewButton = $window.FindName('PersonaNewButton')
+$personaCopyButton = $window.FindName('PersonaCopyButton')
+$personaDeleteButton = $window.FindName('PersonaDeleteButton')
+$errorLogBox = $window.FindName('ErrorLogBox')
+$errorStatusText = $window.FindName('ErrorStatusText')
+$errorCopyButton = $window.FindName('ErrorCopyButton')
+$errorClearButton = $window.FindName('ErrorClearButton')
+$errorRefreshButton = $window.FindName('ErrorRefreshButton')
+Register-UiErrorBox $errorLogBox $errorStatusText
 $scanProgressBar = $window.FindName('ScanProgressBar')
 $scanStatusText = $window.FindName('ScanStatusText')
 $updateProgressBar = $window.FindName('UpdateProgressBar')
@@ -454,7 +510,13 @@ $gameModeScript = Join-Path $script:ProjectRoot 'tools\game-mode.ps1'
 if (-not (Test-Path -LiteralPath $gameModeScript)) { $gameModeScript = Join-Path $toolsRoot 'game-mode.ps1' }
 $manualGameFile = Join-Path $script:ProjectRoot 'tools\game-list.txt'
 
-function Show-Message([string]$text, [string]$title = 'Cyber-Butler 主控台') {
+function Show-Message([string]$text, [string]$title = '') {
+    if (-not $title) { $title = T 'Cyber-Butler 主控台' 'Cyber-Butler Dashboard' }
+    if ($text -match '失败|错误|异常|Error|failed|exception') {
+        if (Get-Command Write-UiError -ErrorAction SilentlyContinue) {
+            Write-UiError ('dialog: ' + $title) $text
+        }
+    }
     [Windows.MessageBox]::Show($text, $title) | Out-Null
 }
 
@@ -479,7 +541,7 @@ function Read-InputDialog([string]$title, [string]$prompt, $Owner = $null) {
     $box.Margin = '0,12,0,12'
     $panel.Children.Add($box) | Out-Null
     $ok = New-Object Windows.Controls.Button
-    $ok.Content = '确认'
+    $ok.Content = (T '确认' 'OK')
     $ok.Width = 80
     $ok.HorizontalAlignment = 'Right'
     $ok.Add_Click({ $w.DialogResult = $true })
@@ -619,7 +681,6 @@ function Invoke-ElevatedAction([string]$Action, [hashtable]$Extra = @{}) {
 
 function Refresh-DashboardData {
     $auditGrid.ItemsSource = @(Get-AuditTail $script:ProjectRoot 10)
-    $promptBox.Text = Get-PersonaPrompt $script:ProjectRoot
     $games = @(Get-GameWhitelist $script:ProjectRoot)
     $gameCountText.Text = if ($script:CurrentLanguage -eq 'en') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
     $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
@@ -631,12 +692,12 @@ function Show-AstrBotPluginList {
         $data = Get-AstrBotPluginList -ProjectRoot $script:ProjectRoot
         $view = New-Object System.Collections.ArrayList
         foreach ($plugin in $data.Plugins) {
-            $state = '未知'
-            if ($plugin.Reserved) { $state = '内置' }
-            elseif ($plugin.Activated -eq $true) { $state = '启用' }
-            elseif ($plugin.Activated -eq $false) { $state = '禁用' }
-            $compat = '兼容'
-            if (-not $plugin.Compat) { $compat = '不兼容' }
+            $state = T '未知' 'Unknown'
+            if ($plugin.Reserved) { $state = T '内置' 'Built-in' }
+            elseif ($plugin.Activated -eq $true) { $state = T '启用' 'Enabled' }
+            elseif ($plugin.Activated -eq $false) { $state = T '禁用' 'Disabled' }
+            $compat = T '兼容' 'Compatible'
+            if (-not $plugin.Compat) { $compat = T '不兼容' 'Incompatible' }
             [void]$view.Add([pscustomobject]@{
                 Name           = $plugin.Name
                 DisplayName    = $plugin.DisplayName
@@ -657,16 +718,21 @@ function Show-AstrBotPluginList {
         }
         $pluginGrid.ItemsSource = @($view)
         $suffix = ''
-        if ($data.ApiError) { $suffix = '（AstrBot 离线，仅显示磁盘信息）' }
-        $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
+        if ($data.ApiError) { $suffix = T '（AstrBot 离线，仅显示磁盘信息）' ' (AstrBot offline; disk data only)' }
+        if ($script:CurrentLanguage -eq 'en') {
+            $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' plugins' + $suffix)
+        } else {
+            $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
+        }
     } catch {
-        $pluginStatusText.Text = '读取失败：' + $_.Exception.Message
+        Write-UiError 'plugin list' $_
+        $pluginStatusText.Text = (T '读取失败：' 'Load failed: ') + $_.Exception.Message
     }
 }
 
 function Get-SelectedAstrBotPlugin {
     $item = $pluginGrid.SelectedItem
-    if (-not $item) { Show-Message '请先在列表中选择一个插件。'; return $null }
+    if (-not $item) { Show-Message (T '请先在列表中选择一个插件。' 'Select a plugin in the list first.'); return $null }
     return $item
 }
 
@@ -697,7 +763,7 @@ $pluginEnableButton.Add_Click({
         Show-AstrBotPluginList
         $pluginStatusText.Text = $message
     } catch {
-        Show-Message ('启用失败：' + $_.Exception.Message)
+        Show-Message ((T '启用失败：' 'Enable failed: ') + $_.Exception.Message)
     }
 })
 
@@ -709,7 +775,7 @@ $pluginDisableButton.Add_Click({
         Show-AstrBotPluginList
         $pluginStatusText.Text = $message
     } catch {
-        Show-Message ('禁用失败：' + $_.Exception.Message)
+        Show-Message ((T '禁用失败：' 'Disable failed: ') + $_.Exception.Message)
     }
 })
 
@@ -728,7 +794,7 @@ $pluginDeleteButton.Add_Click({
         Show-AstrBotPluginList
         Show-Message ('已移入回收站：' + [Environment]::NewLine + $record.destination)
     } catch {
-        Show-Message ('删除失败：' + $_.Exception.Message)
+        Show-Message ((T '删除失败：' 'Delete failed: ') + $_.Exception.Message)
     }
 })
 
@@ -744,7 +810,7 @@ $pluginResetButton.Add_Click({
         if ($result.BackupPath) { $message += [Environment]::NewLine + '原配置备份：' + $result.BackupPath }
         Show-Message $message
     } catch {
-        Show-Message ('恢复失败：' + $_.Exception.Message)
+        Show-Message ((T '恢复失败：' 'Reset failed: ') + $_.Exception.Message)
     }
 })
 
@@ -752,11 +818,11 @@ function Show-DashboardModuleList {
     $scan = Get-DashboardModules -ToolsRoot $script:ToolsRoot
     $view = New-Object System.Collections.ArrayList
     foreach ($module in $scan.Modules) {
-        $status = if ($module.Problem) { '错误' } elseif ($module.Enabled) { '启用' } else { '禁用' }
+        $status = if ($module.Problem) { T '错误' 'Error' } elseif ($module.Enabled) { T '启用' 'Enabled' } else { T '禁用' 'Disabled' }
         $display = '[' + $status + '] ' + $module.Name + ' v' + $module.Version
         if ($module.Author) { $display += ' · ' + $module.Author }
         if ($module.Problem) { $display += ' · ' + $module.Problem }
-        elseif ($script:LoadedDashboardModules.ContainsKey($module.Id)) { $display += ' · 已加载' }
+        elseif ($script:LoadedDashboardModules.ContainsKey($module.Id)) { $display += ' · ' + (T '已加载' 'loaded') }
         [void]$view.Add([pscustomobject]@{
             Display = $display
             Id      = $module.Id
@@ -766,7 +832,11 @@ function Show-DashboardModuleList {
         })
     }
     $moduleListBox.ItemsSource = @($view)
-    $moduleStatusText.Text = ('共 ' + @($scan.Modules).Count + ' 个模块 · 已加载 ' + $script:LoadedDashboardModules.Count)
+    if ($script:CurrentLanguage -eq 'en') {
+        $moduleStatusText.Text = ('{0} modules · {1} loaded' -f @($scan.Modules).Count, $script:LoadedDashboardModules.Count)
+    } else {
+        $moduleStatusText.Text = ('共 ' + @($scan.Modules).Count + ' 个模块 · 已加载 ' + $script:LoadedDashboardModules.Count)
+    }
 }
 
 $moduleListBox.Add_SelectionChanged({
@@ -825,7 +895,7 @@ function Show-PluginMarketResults {
         $entries = @(Get-PluginMarketEntries -Source $source -Query $marketQueryBox.Text -Limit 40)
         $view = New-Object System.Collections.ArrayList
         foreach ($entry in $entries) {
-            $label = if ($entry.Source -eq 'github') { 'GitHub' } else { '官方市场' }
+            $label = if ($entry.Source -eq 'github') { 'GitHub' } else { T '官方市场' 'Official' }
             [void]$view.Add([pscustomobject]@{
                 Name        = $entry.Name
                 Author      = $entry.Author
@@ -836,9 +906,14 @@ function Show-PluginMarketResults {
             })
         }
         $marketGrid.ItemsSource = @($view)
-        $marketStatusText.Text = ('找到 ' + @($view).Count + ' 个结果')
+        $marketStatusText.Text = if ($script:CurrentLanguage -eq 'en') {
+            ('{0} results' -f @($view).Count)
+        } else {
+            ('找到 ' + @($view).Count + ' 个结果')
+        }
     } catch {
-        $marketStatusText.Text = '搜索失败：' + $_.Exception.Message
+        Write-UiError 'market search' $_
+        $marketStatusText.Text = (T '搜索失败：' 'Search failed: ') + $_.Exception.Message
     } finally {
         [Windows.Input.Mouse]::OverrideCursor = $null
     }
@@ -905,7 +980,7 @@ $marketInstallButton.Add_Click({
         Show-Message $message
         $marketStatusText.Text = '安装完成：' + $installed.Id
     } catch {
-        Show-Message ('安装失败：' + $_.Exception.Message)
+        Show-Message ((T '安装失败：' 'Install failed: ') + $_.Exception.Message)
         $marketStatusText.Text = '安装失败'
     } finally {
         [Windows.Input.Mouse]::OverrideCursor = $null
@@ -1008,16 +1083,26 @@ $fuseButton.Add_Click({
 })
 
 $savePromptButton.Add_Click({
+    $item = $personaListBox.SelectedItem
+    if (-not $item) {
+        Show-Message (T '请先选择一个人格。' 'Select a persona first.')
+        return
+    }
     try {
-        $personaFile = Join-Path $script:ProjectRoot '.persona_sujinyan.json'
-        Copy-Item -LiteralPath $personaFile -Destination ($personaFile + '.bak-dashboard') -Force
-        $persona = Get-Content -LiteralPath $personaFile -Raw -Encoding UTF8 | ConvertFrom-Json
-        $persona.system_prompt = $promptBox.Text
-        [IO.File]::WriteAllText($personaFile, ($persona | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
-        $code = Invoke-ElevatedAction 'RestartAstrBot'
-        if ($code -eq 0) { Show-Message '人格提示词已保存，AstrBot 已重载。' } else { Show-Message '提示词已保存，但 AstrBot 重载失败。' }
+        $response = Invoke-AstrBotApi -Method POST -ApiPath '/api/persona/update' -Body @{
+            persona_id    = $item.Id
+            system_prompt = $promptBox.Text
+        }
+        if (-not $response -or $response.status -eq 'error') { throw [string]$response.message }
+        $active = Get-AstrBotActivePersona
+        if ($active -eq $item.Id) { $null = Set-AstrBotActivePersona $item.Id }
+        Show-PersonaList
         Refresh-DashboardData
-    } catch { Show-Message ('保存失败：' + $_.Exception.Message) }
+        Show-Message (T '人格提示词已保存，配置已重载。' 'Persona prompt saved and config reloaded.')
+    } catch {
+        Write-UiError 'persona save' $_
+        Show-Message ((T '保存失败：' 'Save failed: ') + $_.Exception.Message)
+    }
 })
 
 $clearConversationButton.Add_Click({
@@ -1112,6 +1197,138 @@ $saveConfigButton.Add_Click({
         Update-Dashboard
     } catch { Show-Message ('保存失败：' + $_.Exception.Message) }
 })
+
+$astrBotLight.Add_MouseLeftButtonDown({
+    try { Start-Process 'http://127.0.0.1:6185' } catch { Write-UiError 'open AstrBot WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
+})
+$snowLumaLight.Add_MouseLeftButtonDown({
+    try { Start-Process 'http://127.0.0.1:5099' } catch { Write-UiError 'open SnowLuma WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
+})
+$brokerLight.Add_MouseLeftButtonDown({
+    Show-Message (T 'TOTP Broker 为后台无头服务，无 Web 管理界面。' 'The TOTP Broker is a headless background service and has no web UI.')
+})
+
+function Show-PersonaList {
+    try {
+        $personas = @(Get-AstrBotPersonaList)
+        $active = [string](Get-AstrBotActivePersona)
+        $view = New-Object System.Collections.ArrayList
+        foreach ($persona in $personas) {
+            $id = [string]$persona.persona_id
+            if (-not $id) { continue }
+            $display = $id
+            if ($id -eq $active) {
+                $display += if ($script:CurrentLanguage -eq 'en') { '  (active)' } else { '  （当前）' }
+            }
+            [void]$view.Add([pscustomobject]@{
+                Display = $display
+                Id      = $id
+                Prompt  = [string]$persona.system_prompt
+            })
+        }
+        $personaListBox.ItemsSource = @($view)
+        if ($script:CurrentLanguage -eq 'en') {
+            $personaStatusText.Text = ('{0} personas' -f @($view).Count)
+            $personaActiveText.Text = ('Active persona: ' + $active)
+        } else {
+            $personaStatusText.Text = ('共 {0} 个人格' -f @($view).Count)
+            $personaActiveText.Text = ('当前人格：' + $active)
+        }
+        $selected = @($view | Where-Object { $_.Id -eq $active }) | Select-Object -First 1
+        if ($selected) {
+            $personaListBox.SelectedItem = $selected
+            $promptBox.Text = $selected.Prompt
+        }
+    } catch {
+        Write-UiError 'persona list' $_
+        $personaStatusText.Text = T '人格列表读取失败' 'Failed to load personas'
+    }
+}
+
+$personaListBox.Add_SelectionChanged({
+    $item = $personaListBox.SelectedItem
+    if (-not $item) { return }
+    $promptBox.Text = [string]$item.Prompt
+})
+
+$personaRefreshButton.Add_Click({ Show-PersonaList })
+
+$personaSwitchButton.Add_Click({
+    $item = $personaListBox.SelectedItem
+    if (-not $item) { Show-Message (T '请先选择一个人格。' 'Select a persona first.'); return }
+    try {
+        $null = Set-AstrBotActivePersona $item.Id
+        Show-PersonaList
+        Refresh-DashboardData
+        Show-Message ((T '已切换人格并重载配置：' 'Persona switched and config reloaded: ') + $item.Id)
+    } catch {
+        Write-UiError 'persona switch' $_
+        Show-Message ((T '切换失败：' 'Switch failed: ') + $_.Exception.Message)
+    }
+})
+
+$personaNewButton.Add_Click({
+    $id = Read-InputDialog (T '新建空白人格' 'New blank persona') (T '输入新人格的唯一名称：' 'Enter a unique name for the new persona:') $window
+    if (-not $id) { return }
+    $id = $id.Trim()
+    if (-not $id) { return }
+    $blank = if ($script:CurrentLanguage -eq 'en') {
+        'You are a new persona. Describe the character, tone and boundaries here.'
+    } else {
+        '你是一个新的人格。请在这里写人格设定、语气和边界。'
+    }
+    try {
+        $null = New-AstrBotPersona -PersonaId $id -SystemPrompt $blank
+        Show-PersonaList
+        Show-Message ((T '已新建空白人格：' 'Blank persona created: ') + $id)
+    } catch {
+        Write-UiError 'persona create' $_
+        Show-Message ((T '新建失败：' 'Create failed: ') + $_.Exception.Message)
+    }
+})
+
+$personaCopyButton.Add_Click({
+    $item = $personaListBox.SelectedItem
+    if (-not $item) { Show-Message (T '请先选择一个人格。' 'Select a persona first.'); return }
+    $id = Read-InputDialog (T '复制当前人格' 'Copy current persona') ((T '把 ' 'Copy ') + $item.Id + (T ' 复制为新人格，输入新名称：' ' into a new persona. Enter the new name:')) $window
+    if (-not $id) { return }
+    $id = $id.Trim()
+    if (-not $id) { return }
+    try {
+        $null = Copy-AstrBotPersona -SourceId $item.Id -PersonaId $id
+        Show-PersonaList
+        Show-Message ((T '已复制人格：' 'Persona copied: ') + $id)
+    } catch {
+        Write-UiError 'persona copy' $_
+        Show-Message ((T '复制失败：' 'Copy failed: ') + $_.Exception.Message)
+    }
+})
+
+$personaDeleteButton.Add_Click({
+    $item = $personaListBox.SelectedItem
+    if (-not $item) { Show-Message (T '请先选择一个人格。' 'Select a persona first.'); return }
+    if ($item.Id -eq 'default') { Show-Message (T '默认人格不能删除。' 'The default persona cannot be deleted.'); return }
+    $answer = Read-InputDialog (T '删除人格' 'Delete persona') ((T '将把 ' 'The persona ') + $item.Id + (T ' 备份到 backups\personas 后删除。' ' will be backed up to backups\personas and then deleted.') + [Environment]::NewLine + [Environment]::NewLine + (T '输入 DELETE PERSONA 继续：' 'Type DELETE PERSONA to continue:')) $window
+    if ($answer -cne 'DELETE PERSONA') { Show-Message (T '确认文本不正确，已取消。' 'Confirmation text did not match; cancelled.'); return }
+    try {
+        $removed = Remove-AstrBotPersona -PersonaId $item.Id -ProjectRoot $script:ProjectRoot
+        Show-PersonaList
+        Show-Message ((T '已删除人格。备份：' 'Persona deleted. Backup: ') + $removed.Backup)
+    } catch {
+        Write-UiError 'persona delete' $_
+        Show-Message ((T '删除失败：' 'Delete failed: ') + $_.Exception.Message)
+    }
+})
+
+$errorCopyButton.Add_Click({
+    if (Copy-UiErrorLog) {
+        $errorStatusText.Text = T '已复制到剪贴板' 'Copied to clipboard'
+    } else {
+        Show-Message (T '没有可复制的错误信息，或剪贴板被占用。' 'No error text to copy, or the clipboard is busy.')
+    }
+})
+$errorClearButton.Add_Click({ Clear-UiErrorLog })
+$errorRefreshButton.Add_Click({ Register-UiErrorBox $errorLogBox $errorStatusText })
 
 $settingsButton.Add_Click({ Show-SettingsDialog })
 $startupSettings = Read-DashboardSettings
@@ -1257,6 +1474,7 @@ if ($SmokeUi) {
     $null = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
     Show-AstrBotPluginList
     Show-DashboardModuleList
+    Show-PersonaList
     $window.WindowStyle = 'None'
     $window.ShowInTaskbar = $false
     $window.WindowStartupLocation = 'Manual'
@@ -1265,7 +1483,7 @@ if ($SmokeUi) {
     $window.Show()
     Wait-BgDispatcher 900
     $shots = New-Object System.Collections.ArrayList
-    foreach ($page in @(@{ Index = 4; Name = 'plugins' }, @{ Index = 5; Name = 'modules' }, @{ Index = 6; Name = 'market' })) {
+    foreach ($page in @(@{ Index = 2; Name = 'persona' }, @{ Index = 4; Name = 'plugins' }, @{ Index = 5; Name = 'modules' }, @{ Index = 6; Name = 'market' }, @{ Index = 7; Name = 'logs' })) {
         $mainTabs.SelectedIndex = [int]$page.Index
         Wait-BgDispatcher 450
         $shot = Save-BgScreenshot (Join-Path $env:TEMP ('cb-ui-' + $page.Name + '.png'))
@@ -1288,7 +1506,11 @@ $moduleInit = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:Too
 $window.Add_ContentRendered({
     Show-AstrBotPluginList
     Show-DashboardModuleList
+    Show-PersonaList
     if (@($moduleInit.Failed).Count -gt 0) {
+        foreach ($failedModule in @($moduleInit.Failed)) {
+            Write-UiError ('module load: ' + $failedModule.Id) $failedModule.Error
+        }
         $names = @($moduleInit.Failed | ForEach-Object { $_.Name + '：' + $_.Error })
         $moduleStatusText.Text = '模块加载失败：' + $names.Count
         Show-Message ('以下模块加载失败，已跳过（主控台不受影响）：' + [Environment]::NewLine + [Environment]::NewLine + ($names -join [Environment]::NewLine))

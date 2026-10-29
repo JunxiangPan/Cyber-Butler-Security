@@ -348,6 +348,94 @@
     {
       "zh": "搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。",
       "en": "Search, then review the static security scan and AstrBot compatibility before installing."
+    },
+    {
+      "zh": "系统日志",
+      "en": "System Log"
+    },
+    {
+      "zh": "一键复制错误信息",
+      "en": "Copy Error Log"
+    },
+    {
+      "zh": "清空",
+      "en": "Clear"
+    },
+    {
+      "zh": "日志文件：%LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "en": "Log file: %LOCALAPPDATA%/CyberButler/ui-errors.log"
+    },
+    {
+      "zh": "刷新人格列表",
+      "en": "Refresh Personas"
+    },
+    {
+      "zh": "切换为人格",
+      "en": "Switch Persona"
+    },
+    {
+      "zh": "新建空白人格",
+      "en": "New Blank Persona"
+    },
+    {
+      "zh": "复制当前人格",
+      "en": "Copy Persona"
+    },
+    {
+      "zh": "删除人格",
+      "en": "Delete Persona"
+    },
+    {
+      "zh": "切换人格会更新 AstrBot 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。",
+      "en": "Switching updates AstrBot's default persona and reloads the config; deleting a non-default persona is backed up to backups/personas first."
+    },
+    {
+      "zh": "打开 AstrBot WebUI",
+      "en": "Open AstrBot WebUI"
+    },
+    {
+      "zh": "打开 SnowLuma WebUI",
+      "en": "Open SnowLuma WebUI"
+    },
+    {
+      "zh": "TOTP Broker 为后台无头服务，无 Web 管理界面",
+      "en": "The TOTP Broker is a headless background service and has no web UI."
+    },
+    {
+      "zh": "插件",
+      "en": "Plugin"
+    },
+    {
+      "zh": "显示名",
+      "en": "Display Name"
+    },
+    {
+      "zh": "版本",
+      "en": "Version"
+    },
+    {
+      "zh": "作者",
+      "en": "Author"
+    },
+    {
+      "zh": "状态",
+      "en": "State"
+    },
+    {
+      "zh": "兼容",
+      "en": "Compatible"
+    },
+    {
+      "zh": "星标",
+      "en": "Stars"
+    },
+    {
+      "zh": "来源",
+      "en": "Source"
+    },
+    {
+      "zh": "AstrBot 官方市场",
+      "en": "AstrBot Official"
     }
   ]
 }

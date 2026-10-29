@@ -283,6 +283,7 @@ function Register-DashboardModuleExceptionHook {
             try { $args[1].Handled = $true } catch { }
             $message = if ($exception) { $exception.Message } else { '未知错误' }
             Write-DashboardModuleLog ('unhandled dispatcher exception: ' + $message + [Environment]::NewLine + [string]$exception)
+            if (Get-Command Write-UiError -ErrorAction SilentlyContinue) { Write-UiError 'module runtime' $exception }
             try {
                 [Windows.MessageBox]::Show(
                     ('控制台模块运行出错，已被拦截，主控台继续运行。' + [Environment]::NewLine + [Environment]::NewLine + $message),

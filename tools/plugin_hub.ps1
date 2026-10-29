@@ -22,7 +22,7 @@ function Get-CyberButlerToken {
 
 function Invoke-AstrBotApi {
     param(
-        [ValidateSet('GET', 'POST', 'PATCH', 'DELETE')][string]$Method = 'GET',
+        [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'DELETE')][string]$Method = 'GET',
         [Parameter(Mandatory = $true)][string]$ApiPath,
         $Body = $null,
         [int]$TimeoutSec = 20
