@@ -13,8 +13,6 @@ import sys
 import types
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "astrbot_plugin_security_gate" / "main.py"
 
