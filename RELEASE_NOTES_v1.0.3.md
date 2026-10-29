@@ -152,3 +152,25 @@ Live validation performed:
 - plugin lock/unlock flow → no timeout, state file written and cleared;
 - final private-session provider restored to `local_qwen36`;
 - AstrBot `6185` and Broker `18090` both `200`.
+
+## Cloud Fallback Startup Grace
+
+After a Windows reboot, Ollama and AstrBot start independently. The old fallback checked Ollama too early and switched the session to DeepSeek before the local model service was ready.
+
+Changes:
+
+- 120-second startup grace while **local_qwen36 is enabled**;
+- periodic Ollama checks every 10 seconds during the grace;
+- one clear warning during the wait, but **no provider switch**;
+- only after the grace expires without Ollama does it fall back to DeepSeek;
+- fixed `cmd_config.json` BOM handling (`utf-8-sig`), which previously made `_local_enabled()` return false and skip the grace.
+
+Live verification:
+
+```text
+[cloud_fallback] Ollama ready within startup grace
+```
+
+The private session remained `local_qwen36` and the local model stayed loaded.
+
+Hardware guide added: `docs/HARDWARE_TROUBLESHOOTING.md` (NVIDIA `VIDEO_TDR_ERROR` / 0x116 checklist).
