@@ -1,4 +1,4 @@
-"""Safe, dependency-free primitives for Cyber-Butler release updates.
+﻿"""Safe, dependency-free primitives for Cyber-Butler release updates.
 
 The updater itself is deliberately small: this module validates the update
 manifest, rejects every path that could touch user data, and applies only
@@ -43,6 +43,7 @@ ALLOWED_ROOT_FILES = {
     "LICENSE",
     ".gitignore",
     "requirements-dev.txt",
+    "pytest.ini",
     "config.pro.example.json",
     "config.lite.example.json",
     "VERSION",
