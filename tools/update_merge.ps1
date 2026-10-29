@@ -376,6 +376,13 @@ try {
     & $python $updateCore extract --zip $zip --dest $stage
     if ($LASTEXITCODE -ne 0) { throw 'update_core rejected the archive' }
     $manifestPath = Join-Path $stage 'update-manifest.json'
+    $signaturePath = Join-Path $stage 'update-manifest.json.sig'
+    $publicKeyPath = Join-Path $root 'tools/update_pubkey.pem'
+    if (-not (Test-Path -LiteralPath $signaturePath)) { throw 'update manifest signature missing' }
+    if (-not (Test-Path -LiteralPath $publicKeyPath)) { throw 'update public key missing' }
+    & $python (Join-Path $root 'tools/verify_release.py') --manifest $manifestPath --signature $signaturePath --pubkey $publicKeyPath
+    if ($LASTEXITCODE -ne 0) { throw 'update manifest signature verification failed' }
+    Write-UpdateLog 'manifest signature verified'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
     $newVersion = [string]$manifest.version
     $files = @($manifest.files)

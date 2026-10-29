@@ -22,6 +22,7 @@ from pathlib import Path
 
 import pyotp
 import requests
+import email_approval
 
 try:
     import win32crypt  # Windows-only; tests inject a verifier.
@@ -58,6 +59,19 @@ _verify_locked_until = 0.0
 _global_failures = 0
 _global_lock_until = 0.0
 _pending: dict | None = None
+
+BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
+
+def _approval_channel() -> str:
+    """Return qq or email; fail safe to qq when the config is missing/invalid."""
+    try:
+        data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
+        channel = str(data.get("approval_channel", "qq")).strip().lower()
+        return channel if channel in {"qq", "email"} else "qq"
+    except (OSError, ValueError):
+        return "qq"
+
+
 _send_events: dict[str, threading.Event] = {}
 _send_results: dict[str, bool] = {}
 
@@ -215,6 +229,35 @@ def _fail_send_wait(request_id: str) -> None:
         event.set()
 
 
+def _path_summary(path_text: str) -> str:
+    """Full path + type + size + content hash for an approval prompt."""
+    try:
+        path = Path(path_text).resolve(strict=False)
+    except (OSError, ValueError):
+        return f"{path_text} | unresolved"
+    if not path.exists():
+        return f"{path} | missing"
+    if path.is_file():
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return f"{path} | file | {path.stat().st_size} bytes | sha256={digest.hexdigest()}"
+    if path.is_dir():
+        digest = hashlib.sha256()
+        count = 0
+        for child in sorted(path.rglob("*")):
+            if child.is_file():
+                count += 1
+                rel = str(child.relative_to(path)).replace("\\", "/")
+                digest.update(rel.encode("utf-8", "surrogateescape"))
+                digest.update(b"\0")
+                digest.update(str(child.stat().st_size).encode("ascii"))
+                digest.update(b"\0")
+        return f"{path} | directory | {count} files | tree-sha256={digest.hexdigest()}"
+    return f"{path} | other"
+
+
 def _manifest_prompt(manifest: list[dict]) -> str:
     lines = [f"哥，瑾言想发送 {len(manifest)} 个文件，请输入动态验证码。完整清单："]
     for index, item in enumerate(manifest, 1):
@@ -323,6 +366,99 @@ def _record_global_failure() -> float:
     return delay
 
 
+def email_watch(request_id: str) -> None:
+    """Poll IMAP for the owner's APPROVE reply and execute exactly one Pending."""
+    global _pending
+    try:
+        config = email_approval.load_config()
+    except Exception as exc:
+        log(f"email config failed: {exc}")
+        with _lock:
+            if _pending and _pending.get("id") == request_id:
+                _pending = None
+        return
+
+    while True:
+        with _lock:
+            if not _pending or _pending.get("id") != request_id or _pending.get("channel") != "email":
+                return
+            request = dict(_pending)
+            deadline = float(request.get("deadline", 0))
+        if time.monotonic() > deadline:
+            break
+        try:
+            reply = email_approval.poll_once(config, str(request.get("challenge", "")))
+        except Exception as exc:
+            log(f"IMAP poll failed: {exc}")
+            time.sleep(5)
+            continue
+        if not reply:
+            time.sleep(5)
+            continue
+        from_header, challenge, totp = reply
+        if not email_approval.sender_allowed(from_header, config["allowed_sender"]):
+            log("email approval ignored: sender not allowed")
+            continue
+        with _lock:
+            if not _pending or _pending.get("id") != request_id:
+                return
+            actual_challenge = str(_pending.get("challenge", ""))
+            request = dict(_pending)
+        if challenge != actual_challenge:
+            log("email approval ignored: challenge mismatch")
+            continue
+        if verify_code(totp) is None:
+            with _lock:
+                if _pending and _pending.get("id") == request_id:
+                    _pending["attempts"] = int(_pending.get("attempts", 0)) + 1
+                    if _pending["attempts"] >= TOTP_MAX_ATTEMPTS:
+                        _pending = None
+                        log("email approval locked after too many failures")
+                        return
+            log("email approval ignored: invalid TOTP")
+            continue
+        if _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+            with _lock:
+                _pending = None
+            _email_result(config, request, "target changed before approval")
+            return
+        if request.get("action") == "overwrite":
+            if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
+                with _lock:
+                    _pending = None
+                _email_result(config, request, "source changed before approval")
+                return
+        with _lock:
+            _pending = None
+        ok, result = execute(request)
+        log(f"email approved: {request_id} ok={ok} {result}")
+        _email_result(config, request, result)
+        return
+
+    with _lock:
+        if _pending and _pending.get("id") == request_id:
+            _pending = None
+    try:
+        email_approval.send_email(
+            config,
+            f"[Cyber-Butler] 审批超时 #{request.get('challenge', '')}",
+            "5 分钟内没有收到有效回复，本次操作已拒绝。",
+        )
+    except Exception as exc:
+        log(f"email timeout notice failed: {exc}")
+
+
+def _email_result(config: dict, request: dict, result: str) -> None:
+    try:
+        email_approval.send_email(
+            config,
+            f"[Cyber-Butler] 审批结果 #{request.get('challenge', '')}",
+            f"动作：{request.get('action')}\n目标：{request.get('target')}\n结果：{result}",
+        )
+    except Exception as exc:
+        log(f"email result send failed: {exc}")
+
+
 def run_request(payload: dict) -> tuple[int, dict]:
     global _pending
     if _is_verification_locked():
@@ -348,6 +484,12 @@ def run_request(payload: dict) -> tuple[int, dict]:
         if not (target_text.startswith(("http://", "https://")) or target.exists()):
             return 400, {"ok": False, "error": "send target does not exist"}
 
+    channel = _approval_channel()
+    email_mode = channel == "email" and action in {"delete", "overwrite"}
+    if channel == "email" and action == "send":
+        return 400, {"ok": False, "error": "send is not available in email mode; switch approval_channel to qq"}
+    challenge = secrets.token_hex(2).upper() if email_mode else ""
+
     event = None
     with _lock:
         if _pending:
@@ -361,17 +503,50 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "reason": str(payload.get("reason", ""))[:300],
             "deadline": time.monotonic() + TIMEOUT_SECONDS,
             "manifest": manifest,
+            "target_summary": _path_summary(target_text),
+            "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
+            "channel": "email" if email_mode else "qq",
+            "challenge": challenge,
         }
         if action == "delete":
-            prompt = f"哥，瑾言想删除 {target.name}，请输入动态验证码。"
+            prompt = (
+                "哥，瑾言想删除以下对象，请输入动态验证码。\n"
+                f"完整路径与哈希：{_path_summary(target_text)}\n"
+                f"请求号：{request_id}"
+            )
         elif action == "overwrite":
-            prompt = f"哥，瑾言想覆盖 {target.name}，请输入动态验证码。"
+            source_text = str(payload.get("source", ""))
+            prompt = (
+                "哥，瑾言想用源文件覆盖目标文件，请输入动态验证码。\n"
+                f"源：{_path_summary(source_text)}\n"
+                f"目标：{_path_summary(target_text)}\n"
+                f"请求号：{request_id}"
+            )
         else:
             prompt = _manifest_prompt(manifest or [])
         if action == "send":
             event = threading.Event()
             _send_events[request_id] = event
             _send_results[request_id] = False
+
+    if email_mode:
+        try:
+            email_config = email_approval.load_config()
+            subject = f"[Cyber-Butler] 待审批请求 #{challenge}"
+            body = (
+                f"{prompt}\n\n"
+                f"回复第一行（只读第一行）：APPROVE #{challenge} TOTP 123456\n"
+                f"有效期 5 分钟，仅一次。"
+            )
+            email_approval.send_email(email_config, subject, body)
+        except Exception as exc:
+            with _lock:
+                if _pending and _pending.get("id") == request_id:
+                    _pending = None
+            return 502, {"ok": False, "error": f"email challenge send failed: {exc}"}
+        threading.Thread(target=email_watch, args=(request_id,), daemon=True).start()
+        log(f"email challenge sent: {request_id} {action} {target_text}")
+        return 200, {"ok": True, "id": request_id, "channel": "email", "challenge": challenge, "action": action, "target": target_text}
 
     # Network I/O must never run while _lock is held: send_qq can block for
     # up to 60 seconds, and the lock only protects pending-state transitions.
@@ -416,6 +591,8 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             request_id = str(_pending.get("id", ""))
         if _pending.get("id") != request_id:
             return 404, {"ok": False, "error": "pending request not found or expired"}
+        if _pending.get("channel") == "email":
+            return 403, {"ok": False, "error": "email approval required"}
         if time.monotonic() > float(_pending.get("deadline", 0)):
             _pending = None
             return 410, {"ok": False, "error": "verification code expired"}
@@ -465,6 +642,12 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 _fail_send_wait(request_id)
                 return 409, {"ok": False, "error": "file manifest changed before approval"}
         _pending = None
+        if request.get("action") in {"delete", "overwrite"}:
+            if _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+                return 409, {"ok": False, "error": "target changed before approval"}
+            if request.get("action") == "overwrite":
+                if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
+                    return 409, {"ok": False, "error": "source changed before approval"}
         if request.get("action") == "send":
             _send_results[request_id] = True
             event = _send_events.get(request_id)

@@ -247,16 +247,65 @@ function Set-DashboardModuleEnabled {
     return [pscustomobject]@{ Ok = $import.Ok; Loaded = $import.Ok; Error = $import.Error }
 }
 
+$script:OfficialModuleHashes = @{
+    'hello_world' = '32ba0f252632b7d6b2aaef5ed4892a7add44659ec1dffc1abb3c9e994adec0ca'
+    'sys_monitor' = 'c0fc5b2bf26943f927eed2e35665b02ab89b075862ce86c815a805e124ef16ad'
+    'quick_cmd'   = 'd732e8c67d77b24e500a79d3a9e163e0a6e00ddf5978cc81146a5ba211e55747'
+}
+$script:ModuleSecurityBlocks = New-Object System.Collections.ArrayList
+
+function Test-DashboardModuleSafety {
+    param([Parameter(Mandatory = $true)]$Module)
+    if ($Module.Problem) { return [pscustomobject]@{ Ok = $false; Reason = $Module.Problem } }
+    $hash = ''
+    try {
+        if ($Module.LogicPath -and (Test-Path -LiteralPath $Module.LogicPath)) {
+            $hash = (Get-FileHash -LiteralPath $Module.LogicPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+    } catch { }
+
+    if ($script:OfficialModuleHashes.ContainsKey([string]$Module.Id)) {
+        if ($hash -eq $script:OfficialModuleHashes[[string]$Module.Id]) {
+            return [pscustomobject]@{ Ok = $true; Reason = '' }
+        }
+        return [pscustomobject]@{ Ok = $false; Reason = '官方模块 logic.ps1 哈希不匹配，可能已被篡改。' }
+    }
+
+    $reason = 'v1.3.2 默认禁止加载外部控制台插件（logic.ps1 会被 dot-source 到当前用户进程）。'
+    $hits = New-Object System.Collections.ArrayList
+    if ($Module.LogicPath -and (Test-Path -LiteralPath $Module.LogicPath)) {
+        $text = Get-Content -LiteralPath $Module.LogicPath -Raw -Encoding UTF8
+        $patterns = @('Remove-Item', 'Format-Volume', 'rm', 'del', 'Invoke-Expression', 'iex',
+            'Start-Process', '\[System\.IO\.File\]::Delete', 'Set-ExecutionPolicy', 'Add-Type',
+            'DownloadString', 'WebClient', 'Reflection')
+        foreach ($pattern in $patterns) {
+            if ($text -match $pattern) { [void]$hits.Add($pattern) }
+        }
+    }
+    if ($hits.Count -gt 0) {
+        $reason = '安全拦截：包含高危命令 ' + (@($hits) -join ', ') + '。'
+    }
+    return [pscustomobject]@{ Ok = $false; Reason = $reason }
+}
+
 function Initialize-DashboardModules {
     param(
         [Parameter(Mandatory = $true)]$Tabs,
         [string]$ToolsRoot = ''
     )
     $scan = Get-DashboardModules -ToolsRoot $ToolsRoot
+    $script:ModuleSecurityBlocks = New-Object System.Collections.ArrayList
     $loaded = New-Object System.Collections.ArrayList
     $failed = New-Object System.Collections.ArrayList
     foreach ($module in $scan.Modules) {
         if (-not $module.Enabled) { continue }
+        $safety = Test-DashboardModuleSafety -Module $module
+        if (-not $safety.Ok) {
+            [void]$script:ModuleSecurityBlocks.Add([pscustomobject]@{ Id = $module.Id; Name = $module.Name; Reason = $safety.Reason })
+            [void]$failed.Add([pscustomobject]@{ Ok = $false; Id = $module.Id; Name = $module.Name; Error = $safety.Reason; Tab = $null })
+            Write-DashboardModuleLog ('[' + $module.Id + '] blocked: ' + $safety.Reason)
+            continue
+        }
         $import = Import-DashboardModule -Module $module -Tabs $Tabs -ToolsRoot $ToolsRoot
         if ($import.Ok) {
             [void]$loaded.Add($import)

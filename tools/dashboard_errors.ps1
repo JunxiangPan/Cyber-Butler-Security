@@ -83,7 +83,11 @@ function Protect-UiErrorText([string]$Text) {
     $out = [string]$Text
     $out = [regex]::Replace($out, 'sk-[A-Za-z0-9_-]{6,}', '[REDACTED_API_KEY]')
     $out = [regex]::Replace($out, '(?i)(api[_-]?key|token|secret)\s*[:=]\s*[^\s,;]+', '$1=[REDACTED]')
-    $out = [regex]::Replace($out, '[A-Za-z]:[^\s]+', '[LOCAL_PATH]')
+    $out = [regex]::Replace($out, '(?i)Authorization\s*:\s*Bearer\s+\S+', 'Authorization: Bearer [REDACTED]')
+    $out = [regex]::Replace($out, '(?i)Bearer\s+[A-Za-z0-9._~+/=-]{8,}', 'Bearer [REDACTED]')
+    $bs = [regex]::Escape([string][char]92)
+    $pathPattern = '(?<![A-Za-z])[A-Za-z]:[' + $bs + '/][^ ' + [char]34 + [char]39 + '<>|]*'
+    $out = [regex]::Replace($out, $pathPattern, '[LOCAL_PATH]')
     return $out
 }
 

@@ -316,7 +316,7 @@ $xaml = @'
             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <Border x:Name="ModuleTrustWarning" Grid.Row="0" Background="#FFF4CE" BorderBrush="#E0B400" BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,0,0,10" Visibility="Collapsed">
-            <TextBlock Text="⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！" Foreground="#5C4B00" TextWrapping="Wrap" FontWeight="SemiBold"/>
+            <TextBlock x:Name="ModuleTrustWarningText" Text="⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！" Foreground="#5C4B00" TextWrapping="Wrap" FontWeight="SemiBold"/>
           </Border>
           <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Button x:Name="ModuleRefreshButton" Content="重新加载" Width="100" Height="32"/>
@@ -437,6 +437,7 @@ $pluginResetButton = $window.FindName('PluginResetButton')
 $moduleListBox = $window.FindName('ModuleListBox')
 $moduleStatusText = $window.FindName('ModuleStatusText')
 $moduleTrustWarning = $window.FindName('ModuleTrustWarning')
+$moduleTrustWarningText = $window.FindName('ModuleTrustWarningText')
 $moduleDetailText = $window.FindName('ModuleDetailText')
 $moduleRefreshButton = $window.FindName('ModuleRefreshButton')
 $moduleEnableButton = $window.FindName('ModuleEnableButton')
@@ -863,8 +864,29 @@ function Show-DashboardModuleList {
     }
     $officialModuleIds = @('hello_world', 'sys_monitor', 'quick_cmd')
     $thirdParty = @($scan.Modules | Where-Object { $_.Id -notin $officialModuleIds })
-    if ($moduleTrustWarning) {
+    if (@($script:ModuleSecurityBlocks).Count -gt 0) {
+        $reasons = @($script:ModuleSecurityBlocks | ForEach-Object { $_.Name + '：' + $_.Reason }) -join [Environment]::NewLine
+        if ($moduleTrustWarning) {
+            $moduleTrustWarning.Visibility = 'Visible'
+            $moduleTrustWarning.Background = '#FFE5E5'
+            $moduleTrustWarning.BorderBrush = '#D13438'
+        }
+        if ($moduleTrustWarningText) {
+            $moduleTrustWarningText.Foreground = '#A4262C'
+            $moduleTrustWarningText.Text = if ($script:CurrentLanguage -ne 'zh') {
+                '⚠️ Security block: the following dashboard modules were refused before loading.' + [Environment]::NewLine + $reasons
+            } else {
+                '⚠️ 安全拦截：以下控制台模块包含高危内容，已被禁止加载。' + [Environment]::NewLine + $reasons
+            }
+        }
+    } elseif ($moduleTrustWarning) {
         $moduleTrustWarning.Visibility = if ($thirdParty.Count -gt 0) { 'Visible' } else { 'Collapsed' }
+        $moduleTrustWarning.Background = '#FFF4CE'
+        $moduleTrustWarning.BorderBrush = '#E0B400'
+        if ($moduleTrustWarningText) {
+            $moduleTrustWarningText.Foreground = '#5C4B00'
+            $moduleTrustWarningText.Text = T '⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！' '⚠️ Warning: dashboard modules run with the current user''s highest privileges. Only install modules you trust!'
+        }
     }
     $moduleListBox.ItemsSource = @($view)
     if ($script:CurrentLanguage -ne 'zh') {
