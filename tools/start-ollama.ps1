@@ -1,8 +1,33 @@
-﻿$ErrorActionPreference = 'Continue'
-$root = 'YOUR_PROJECT_PATH'
-$ollama = 'YOUR_USER_PATH\AppData\Local\Programs\Ollama\ollama.exe'
-$log = Join-Path $root 'tools\start-ollama.log'
-function Log([string]$m) { Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m) -Encoding UTF8 }
+$ErrorActionPreference = 'Continue'
+
+# The install root tools/ directory is read-only for the service account.
+# Runtime logs must never be written there; use the per-user local app data
+# (or ProgramData/TEMP when running as SYSTEM).
+$root = Split-Path -Parent $PSScriptRoot
+$ollama = Join-Path $env:LOCALAPPDATA 'Programs\Ollama\ollama.exe'
+if (-not (Test-Path -LiteralPath $ollama)) {
+    $ollama = Join-Path $root 'tools\ollama.exe'
+}
+
+if ($env:LOCALAPPDATA) {
+    $logDir = Join-Path $env:LOCALAPPDATA 'CyberButler\logs'
+} else {
+    $logDir = 'C:\ProgramData\CyberButler\logs'
+}
+try {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+} catch {
+    $logDir = $env:TEMP
+}
+$log = Join-Path $logDir 'start-ollama.log'
+$serveOut = Join-Path $logDir 'ollama-serve.out.log'
+$serveErr = Join-Path $logDir 'ollama-serve.err.log'
+
+function Log([string]$m) {
+    try {
+        Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m) -Encoding UTF8 -ErrorAction SilentlyContinue
+    } catch { }
+}
 
 function Test-Ollama {
     try { return ((Invoke-WebRequest -Uri 'http://127.0.0.1:11434/api/tags' -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200) } catch { return $false }
@@ -12,7 +37,7 @@ if (Test-Ollama) {
     Log 'Ollama already listening'
 } else {
     try {
-        Start-Process -FilePath $ollama -ArgumentList 'serve' -WorkingDirectory (Split-Path $ollama) -WindowStyle Hidden -RedirectStandardOutput (Join-Path $root 'tools\ollama-serve.out.log') -RedirectStandardError (Join-Path $root 'tools\ollama-serve.err.log') | Out-Null
+        Start-Process -FilePath $ollama -ArgumentList 'serve' -WorkingDirectory (Split-Path $ollama) -WindowStyle Hidden -RedirectStandardOutput $serveOut -RedirectStandardError $serveErr | Out-Null
         Log 'Ollama serve started'
     } catch { Log ("Ollama start failed: " + $_.Exception.Message) }
     for ($i=0; $i -lt 20; $i++) { if (Test-Ollama) { break }; Start-Sleep -Seconds 2 }
