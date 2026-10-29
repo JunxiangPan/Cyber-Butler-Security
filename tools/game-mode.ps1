@@ -148,7 +148,8 @@ $IgnoredProcesses = @(
     'adobenotificationclient', 'crwindowsclientservice', 'crlogtransport',
     'adobegenuinevalidator', 'adobe cef helper', 'qtwebengineprocess',
     'nvidia overlay',
-    'wallpaper64', 'wallpaper32', 'wallpaper_engine',
+    'wallpaper64', 'wallpaper32', 'wallpaper_engine', 'wallpaperui',
+    'wallpaperengine', 'wallpaper engine',
     'steamvr', 'vrmonitor', 'vrserver', 'vrdashboard', 'vrcompositor',
     'vcredist_x64', 'vcredist_x86', 'dxsetup', 'unins000', 'setup', 'installer'
 )
