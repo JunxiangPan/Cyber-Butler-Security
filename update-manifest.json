@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.4.3",
+  "version": "1.4.4",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "483ff9af564542649f8d9e903d7bbbf63b513e4b58002eb887d69ea7339f5515",
-      "size": 1780
+      "sha256": "ef0f0d36f8f55db8fcf089c25d9e12e8a55e43666a0bdb03f5d837465dfb3617",
+      "size": 1806
     },
     {
       "path": "LICENSE",
@@ -173,13 +173,18 @@
       "size": 1593
     },
     {
+      "path": "RELEASE_NOTES_v1.4.4.md",
+      "sha256": "074850f4d0ce3d38623ad38fb7519b949aab64bc3b0d72347fd61dcd9abbd507",
+      "size": 2374
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "bd31e8d9cf8d14a1e9e3fdf3b9f6a524819aed0d1b14627523c6765767c7d8f1",
+      "sha256": "d03d8b268b4171328ac2458ce8ca82d69a1fde38469d4e4faae4f8fa8d8a5e35",
       "size": 6
     },
     {
@@ -849,18 +854,18 @@
     },
     {
       "path": "webui/README.md",
-      "sha256": "d8cbfad75d88c1e778c225d4375b4543f0b3259a6118277be7ca10bbe0a241aa",
-      "size": 2172
+      "sha256": "dd03dfc377931cee39e6af012ff9894a3de40d1e3c51dfe80ab65a361964d958",
+      "size": 2546
     },
     {
       "path": "webui/app.py",
-      "sha256": "c1b5fb85927774c7018582941dda9c3c78f4193f5eb52963de10939ab48c0966",
-      "size": 12637
+      "sha256": "1931d3a60d7dd967944dc9ded3989aa7b989c398b825ce4d4525901bdfcf57cc",
+      "size": 15463
     },
     {
       "path": "webui/auth.py",
-      "sha256": "52a2c70f02d4a39c6fbb6486844298644d3340e336fd77f68e7ba6a377b2f982",
-      "size": 3785
+      "sha256": "75420f313fa176f80ccc4aaab424cce54fbdbc20d30795c04c641cabfcb16d9d",
+      "size": 3809
     },
     {
       "path": "webui/example-config.json",
@@ -874,13 +879,13 @@
     },
     {
       "path": "webui/mailer.py",
-      "sha256": "a25dfc65d6975c92a1dd5710bbf774aebdc8efafcbf5e0b3db33ab8edef19e0e",
-      "size": 702
+      "sha256": "e0cba45164c3db4eb3170331bea80e9bc50ff31ecf248ab19cfa603a0f36debd",
+      "size": 734
     },
     {
       "path": "webui/otp_mailer.py",
-      "sha256": "46e2d4a10dfc34e173ed5bb7c9e1aeacdfc725e0f710be30007ce959e0eddc51",
-      "size": 5412
+      "sha256": "02a6c0c367c7e9a7b7e31a0d9b1d7841d2b52d53fbacab50bbf15e2d46ed0be4",
+      "size": 5937
     },
     {
       "path": "webui/requirements.txt",
@@ -904,18 +909,68 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "acdeab5efb7802f49ed759317cfa30d71865cc368676840dbb1e91f8898a48a2",
-      "size": 16602
+      "sha256": "4d03badcffa1b1ab5f7bb9a3ed9eee16e30b24dce5a3d7a4096dc8eb9e038173",
+      "size": 20734
+    },
+    {
+      "path": "webui/static/error.js",
+      "sha256": "785469d23c31a874d834cb14fe26436a45a61c559cca35308e0251cc798e4fd6",
+      "size": 1013
+    },
+    {
+      "path": "webui/static/i18n.js",
+      "sha256": "8bc5a6b672cb868888f09fa5d9a9248aabbdcaef4b60a42315ec9a0b2ad85c5b",
+      "size": 5998
+    },
+    {
+      "path": "webui/static/i18n/de.json",
+      "sha256": "fca8e9bbf532ed2ecb6953e68be5de2b4e7082981eadfcd54d85184c219839ec",
+      "size": 10610
+    },
+    {
+      "path": "webui/static/i18n/en.json",
+      "sha256": "1087a7ec953ae0b388b6623a3bb00a4a0b2414c36eda001625ed07af9679fe3f",
+      "size": 8624
+    },
+    {
+      "path": "webui/static/i18n/es.json",
+      "sha256": "7bfaf803a8a42ad9e415105fcad90716a208a486a64c997affb471caed7a3445",
+      "size": 10490
+    },
+    {
+      "path": "webui/static/i18n/fr.json",
+      "sha256": "f7025cf42975f437f42ee3f104644ecadc1180f9263d58c4d9538800322861a0",
+      "size": 10692
+    },
+    {
+      "path": "webui/static/i18n/ja.json",
+      "sha256": "bcc27de67fd8bf7bf864330cedca40ca5b17dd7902a6a8dc66e910672a39fb05",
+      "size": 11725
+    },
+    {
+      "path": "webui/static/i18n/ko.json",
+      "sha256": "ca0703db5b1f0806e823b2ff71d1514c3a6ba0d95540e70cbdef32016c431e7f",
+      "size": 10609
+    },
+    {
+      "path": "webui/static/i18n/ru.json",
+      "sha256": "1f6212a328f48af8c5ebe1b993187192298991effd50c8658c7509e05b6f3150",
+      "size": 14533
+    },
+    {
+      "path": "webui/static/i18n/zh.json",
+      "sha256": "07393722cf70e898699a04cc41c391301b0cc2b77f1bb31790cd704aef0061b1",
+      "size": 8578
     },
     {
       "path": "webui/static/login.js",
-      "sha256": "164692190bdc4922b23a7b33a5474ba961e9809cb54210bf624889f1980f0bf4",
-      "size": 4347
+      "sha256": "72ae3075b435dd2bb579d6db86b2a5f63698df50485e274f6b79f0f1fb1779b4",
+      "size": 6455
     },
     {
       "path": "webui/static/theme-phase2-extra.css",
-      "sha256": "fecf65ad03d1a27069cddfa4192ed734dbf84cd7df1006551daa584dcf7a27a6",
-      "size": 4942
+      "sha256": "429871a5443f57330ff152865d55b1bbc941869e108c5518f8addad7c85622fb",
+      "size": 6624
     },
     {
       "path": "webui/static/theme-phase2.css",
@@ -934,28 +989,38 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "502af571e99579baa534077b1de40cfb893db3faaa998d77c28b5fe60d11c9c2",
-      "size": 9135
+      "sha256": "41edc232e250d4f5168dbccf42aa8b9c4f4a2c36f9410a6c19dd46ccd0559ec1",
+      "size": 9705
+    },
+    {
+      "path": "webui/templates/error.html",
+      "sha256": "654a0d164e3ef01847cbe056f70373f2c8b5904f8d1b6ac4fda9b5c6ae548551",
+      "size": 1903
     },
     {
       "path": "webui/templates/login.html",
-      "sha256": "a673752447dbdd17e93ebe4883b4c525524c9b7e85eca8fb6649cb1fbff7bc68",
-      "size": 3113
+      "sha256": "47a71cc0d76d37bf8797e8a03f3404f31969994c05db20a1866f07c220b5d061",
+      "size": 3713
     },
     {
       "path": "webui/tests/test_files_api.py",
-      "sha256": "2fe8cb97d68a383b2aae1b736d7dffb45222f6010d38dce582a1f3b84047b7a9",
-      "size": 4523
+      "sha256": "7f9fac0531cf0da7a14056294d4f3252f8ec5b9c945f1697b8e093bfd902a1f9",
+      "size": 4744
+    },
+    {
+      "path": "webui/tests/test_i18n.py",
+      "sha256": "b1a270220d7a224f25c1054965074ad4c71e69a8ea42943255ac255d652a0d3b",
+      "size": 2901
     },
     {
       "path": "webui/tests/test_phase2_api.py",
-      "sha256": "81c833c05161e76a42a6127d5c8da71c7f1942862f29d3e1b521e29bfd0cca91",
-      "size": 4270
+      "sha256": "94dabd02e152b80531b59b8334100bdba8cbd7570e19ac9069d5b99429a56f99",
+      "size": 4288
     },
     {
       "path": "webui/tests/test_webui_auth.py",
-      "sha256": "d240fbd95bffd8389e8f2ac0446c654c2c52d5059855b039efa03c81bfcfa3c8",
-      "size": 4722
+      "sha256": "fe4e3f3be21da3c8e0ab82ff125949f8346078c015e6cc7e36acf5225af84931",
+      "size": 5870
     }
   ]
 }
