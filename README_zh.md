@@ -84,6 +84,92 @@
     └── HARDWARE_TROUBLESHOOTING.md
 ```
 
+## 如何安全升级
+
+本项目**不会静默覆盖自己的代码**。
+
+1. 检查更新不需要管理员权限：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools/check_update.ps1
+   ```
+
+2. 如需通过 QQ 通知主人，可加 `-Notify -Umo "qq_sujinyan:FriendMessage:YOUR_QQ_ID"`。
+
+3. 只有管理员可以执行更新：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools/update.ps1
+   ```
+
+   更新器会要求输入 `UPDATE` 确认，校验 GitHub asset SHA-256 和
+   `update-manifest.json` 中的每个文件哈希，备份代码，停止 AstrBot 与
+   TOTP Broker，只覆盖 `tools/`、`plugins/`、`overlay/`、`docs/` 中列入
+   manifest 的代码，重启服务并检查 `6185`、`18090`。健康检查失败会自动回滚代码。
+
+4. 它绝不会触碰 `AstrBot/data/`、`cmd_config.json`、数据库、Token、日志或
+   `SnowLuma/config/`。
+
+### 沙盒与试运行
+
+- `-DryRun` 只下载、校验资产和 manifest，不写入目标目录，也不重启服务。
+- `-TargetRoot D:\qq苏瑾言大肥鱼-test` 只更新指定副本，不会停止或重启线上
+  AstrBot/Broker。
+- `-LocalZip` 只允许用于非线上的 `-TargetRoot` 或 `-DryRun`；线上根目录会被拒绝。
+- 测试副本必须包含 `AstrBot/data`；更新器会在更新前后对整棵 data 树做指纹，
+  只要发生变化就失败。
+
+### 生产更新（本地 Overlay）
+
+GitHub 发布包是**脱敏版本**，不能直接覆盖已经填过真实配置的生产目录。生产更新使用：
+
+```powershell
+tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼
+```
+
+- `local-overlay.json` 保存真实部署值，不进入发布包、不进入 git。
+- 只渲染运行时文件；`README`、`docs/`、`tests/` 保留 `YOUR_*` 占位符，方便用户知道还需要配置什么。
+- `data/`、`cmd_config.json`、token、数据库、备份是受保护路径；发布包出现这些路径会整包拒绝。
+- 线上根目录必须输入精确的 `UPDATE PRODUCTION`，`-Yes` 不能绕过。
+- 占位符之外的本地代码改动默认拒绝覆盖，必须显式加 `-AllowLocalCodeChanges`。
+
+如果还没有 overlay，先执行：
+
+```powershell
+tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼 -BootstrapOverlay
+```
+
+
+### 桌面一键更新
+
+运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\create_update_shortcut.ps1
+```
+
+桌面会生成 **检查苏瑾言更新** 快捷方式。它通过：
+
+```text
+wscript.exe → update_gui.vbs → update_gui.ps1
+```
+
+启动 GUI，不显示黑框。
+
+窗口会自动检查 GitHub：
+
+- 没有新版本：提示后自动关闭窗口；
+- 已跳过该版本：提示后自动关闭窗口；
+- 有新版本：显示当前版本、最新版本、更新说明前 500 字，以及 **立即更新 / 跳过此版本 / 取消**；
+- 点击 **立即更新** 后必须输入 `UPDATE PRODUCTION`，再请求 UAC，最后调用 `update_merge.ps1`；线上路径绝不会调用 `update.ps1`。
+
+GUI 只是外壳。下载、SHA-256 校验、overlay 渲染、受保护路径拒绝、备份和回滚仍然全部在
+`update_merge.ps1` / `update_core.py` 中完成。
+
+
+目前**没有发布者身份签名**。GitHub asset SHA-256 与 manifest 哈希只能防止传输损坏，
+不能防止 GitHub 账号或维护者被攻破。更新检查可以自动，静默自动覆盖被明确禁止。
+
 ## 架构图
 
 ```mermaid
