@@ -110,3 +110,5 @@ test-*.txt
 # Dashboard module manifests are source, not runtime state
 !tools/dashboard_plugins/**/manifest.json
 update-manifest.sig
+
+webui/
