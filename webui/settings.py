@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent
 class Settings:
     admin_email: str
     data_dir: Path
+    config_path: Path | None = None
     host: str = "127.0.0.1"
     port: int = 8765
     mailer_url: str = "http://127.0.0.1:8766/send-otp"
@@ -28,6 +29,12 @@ class Settings:
     broker_port: int = 18090
     snowluma_port: int = 5099
     log_max_lines: int = 80
+    file_root: str = ""
+    file_max_mb: int = 20
+    token_pricing: dict = field(default_factory=dict)
+    file_deny_patterns: tuple[str, ...] = (
+        "*.key", "*.pem", "*.pfx", "*.p12", "*secret*", "*password*", "*token*",
+    )
     local_app_data: str = field(
         default_factory=lambda: os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
     )
@@ -71,7 +78,14 @@ class Settings:
             broker_port=int(raw.get("broker_port") or 18090),
             snowluma_port=int(raw.get("snowluma_port") or 5099),
             log_max_lines=int(raw.get("log_max_lines") or 80),
+            file_root=str(raw.get("file_root") or ""),
+            file_max_mb=int(raw.get("file_max_mb") or 20),
+            token_pricing=dict(raw.get("token_pricing") or {}),
+            file_deny_patterns=tuple(raw.get("file_deny_patterns") or (
+                "*.key", "*.pem", "*.pfx", "*.p12", "*secret*", "*password*", "*token*",
+            )),
             allowed_hosts=tuple(raw.get("allowed_hosts") or ("127.0.0.1", "localhost")),
+            config_path=config_path,
         )
         settings.ensure_data()
         return settings

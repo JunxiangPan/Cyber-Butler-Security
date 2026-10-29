@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """SYSTEM TOTP broker exposed only on 127.0.0.1:18090.
 
 YOUR_SERVICE_USER talks to this HTTP service with a local broker token. No files are
@@ -719,6 +719,28 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/health":
             self._json(200, {"ok": True, "service": "totp-broker"})
+        elif self.path == "/pending":
+            # Read-only hint for the local dashboard. Never expose the TOTP,
+            # email challenge, full path, manifest or reason.
+            with _lock:
+                pending = dict(_pending) if _pending else None
+            if not pending:
+                self._json(200, {"ok": True, "pending": False})
+            else:
+                action = str(pending.get("action", ""))
+                target_name = ""
+                if action in {"delete", "overwrite"}:
+                    target_name = Path(str(pending.get("target", ""))).name
+                remaining = max(0, int(float(pending.get("deadline", 0)) - time.monotonic()))
+                self._json(200, {
+                    "ok": True,
+                    "pending": True,
+                    "id_prefix": str(pending.get("id", ""))[:8],
+                    "action": action,
+                    "channel": str(pending.get("channel", "")),
+                    "target_name": target_name,
+                    "remaining_seconds": remaining,
+                })
         else:
             self._json(404, {"ok": False, "error": "not found"})
 

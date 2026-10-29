@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from auth import AuthService, InvalidCode, MailerFailed, RateLimited, RateLimiter, SESSION_COOKIE
 from settings import Settings
 from mailer import MailerClient
+from file_manager import FileAccessError, FileManager
 from services import ServiceError, WebServices
 from store import Store
 
@@ -40,12 +41,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     mailer = mailer or MailerClient(settings.mailer_url, settings.mailer_token)
     auth = AuthService(settings, store, mailer)
     services = services or WebServices(settings)
+    files = FileManager(settings)
 
     app = FastAPI(title="Cyber-Butler Web", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = settings
     app.state.auth = auth
     app.state.mailer = mailer
     app.state.services = services
+    app.state.files = files
     app.state.chat_limiter = RateLimiter()
     app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
     templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -193,6 +196,68 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         except ServiceError as exc:
             logger.warning("log read failed: %s", exc)
             return JSONResponse({"ok": False, "message": "日志读取失败。"}, status_code=502)
+
+    def audit_file_denial(request: Request, relative: str, reason: str) -> None:
+        safe = str(relative or "")[:160]
+        logger.warning("[files] denied reason=%s path=%r", reason, safe)
+        try:
+            path = settings.data_dir / "files-audit.log"
+            with path.open("a", encoding="utf-8") as handle:
+                print(f"{int(time.time())} ip={request.client.host if request.client else 'unknown'} reason={reason} path={safe!r}", file=handle)
+        except OSError:
+            pass
+
+    @app.get("/api/usage")
+    async def usage(session=Depends(require_session)):
+        try:
+            return await services.usage()
+        except ServiceError as exc:
+            logger.warning("usage read failed: %s", exc)
+            return JSONResponse({"ok": False, "message": "用量统计读取失败。"}, status_code=502)
+
+    @app.get("/api/backups")
+    async def backups(session=Depends(require_session)):
+        try:
+            return services.backups()
+        except Exception as exc:
+            logger.warning("backup list failed: %s", exc)
+            return JSONResponse({"ok": False, "message": "备份列表读取失败。"}, status_code=502)
+
+    @app.get("/api/security/pending")
+    async def security_pending(session=Depends(require_session)):
+        return await services.security_pending()
+
+    @app.get("/api/files/list")
+    async def files_list(request: Request, path: str = "", session=Depends(require_session)):
+        try:
+            return files.list_dir(path)
+        except FileAccessError as exc:
+            audit_file_denial(request, path, str(exc))
+            raise HTTPException(status_code=403, detail="file access denied")
+        except Exception as exc:
+            audit_file_denial(request, path, "unexpected")
+            logger.warning("file list failed: %s", exc)
+            raise HTTPException(status_code=403, detail="file access denied")
+
+    @app.get("/api/files/download")
+    async def files_download(request: Request, path: str, download: bool = False, session=Depends(require_session)):
+        try:
+            info = files.file_info(path)
+        except FileAccessError as exc:
+            audit_file_denial(request, path, str(exc))
+            raise HTTPException(status_code=403, detail="file access denied")
+        except Exception as exc:
+            audit_file_denial(request, path, "unexpected")
+            logger.warning("file download failed: %s", exc)
+            raise HTTPException(status_code=403, detail="file access denied")
+        inline = (not download) and info["category"] in {"image", "text", "pdf"}
+        return FileResponse(
+            path=info["target"],
+            media_type=info["media_type"],
+            filename=info["name"],
+            content_disposition_type="inline" if inline else "attachment",
+            headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "no-store"},
+        )
 
     @app.post("/api/chat/send")
     async def chat_send(body: ChatRequest, request: Request, session=Depends(require_session)):

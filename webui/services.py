@@ -221,3 +221,92 @@ class WebServices:
         if not payload.get("ok"):
             raise ServiceError("inbound bridge rejected the message")
         return {"ok": True, "queued": True, "length": len(message), "at": int(time.time())}
+
+    async def usage(self) -> dict:
+        token = self._token()
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                response = await client.get(
+                    self.settings.astrbot_api + "/api/stat/provider-tokens",
+                    params={"days": 1},
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                response.raise_for_status()
+                data = (response.json() or {}).get("data") or {}
+        except Exception as exc:
+            raise ServiceError(f"usage stats failed: {exc}") from exc
+        providers = []
+        cost = 0.0
+        unpriced = []
+        for item in data.get("today_by_provider") or []:
+            provider_id = str(item.get("provider_id") or "")
+            tokens = int(item.get("tokens") or 0)
+            pricing = (self.settings.token_pricing or {}).get(provider_id) or {}
+            rate = pricing.get("blended_per_million")
+            if rate is None:
+                if "local" in provider_id.lower() or "ollama" in provider_id.lower():
+                    rate = 0.0
+                else:
+                    unpriced.append(provider_id)
+                    rate = 0.0
+            cost += (tokens / 1_000_000) * float(rate)
+            providers.append({"provider": provider_id, "tokens": tokens, "rate": rate})
+        return {
+            "ok": True,
+            "tokens": int(data.get("today_total_tokens") or 0),
+            "calls": int(data.get("today_total_calls") or 0),
+            "providers": providers,
+            "cost": round(cost, 4),
+            "currency": "USD",
+            "unpriced": unpriced,
+            "pricing_configured": not unpriced,
+        }
+
+    def backups(self) -> dict:
+        root = self.settings.project_root / "backups"
+        if not root.exists() or not root.is_dir():
+            return {"ok": True, "available": False, "items": []}
+        items = []
+        total = 0
+        for child in sorted(root.iterdir(), key=lambda p: p.name.lower(), reverse=True):
+            if len(items) >= 50:
+                break
+            if child.name.startswith(".") or child.is_symlink():
+                continue
+            try:
+                if child.is_dir():
+                    size = 0
+                    for file in child.rglob("*"):
+                        if file.is_file() and not file.is_symlink():
+                            try:
+                                size += file.stat().st_size
+                            except OSError:
+                                pass
+                    kind = "directory"
+                elif child.is_file():
+                    size = child.stat().st_size
+                    kind = "file"
+                else:
+                    continue
+            except OSError:
+                continue
+            total += size
+            items.append({
+                "name": child.name,
+                "kind": kind,
+                "size": int(size),
+                "mtime": int(child.stat().st_mtime),
+            })
+        return {"ok": True, "available": True, "items": items, "total": total}
+
+    async def security_pending(self) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=4) as client:
+                response = await client.get(
+                    f"http://127.0.0.1:{self.settings.broker_port}/pending"
+                )
+                response.raise_for_status()
+                data = response.json()
+            return {"ok": True, "available": True, **data}
+        except Exception:
+            return {"ok": True, "available": False, "pending": False}

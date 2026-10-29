@@ -1290,6 +1290,76 @@
       "fr": "Le canal d'approbation a été enregistré, mais le courtier n'a pas pu redémarrer.",
       "de": "Der Genehmigungskanal wurde gespeichert, aber der Broker konnte nicht neu gestartet werden.",
       "ru": "Канал одобрения был сохранен, но перезапустить Брокера не удалось."
+    },
+    {
+      "zh": "文件根目录",
+      "en": "File root",
+      "ja": "ファイルのルートディレクトリ",
+      "ko": "파일 루트 디렉터리",
+      "es": "directorio raíz del archivo",
+      "fr": "répertoire racine du fichier",
+      "de": "Stammverzeichnis der Datei",
+      "ru": "корневой каталог файла"
+    },
+    {
+      "zh": "Web 文件沙盒的安全根目录；只读，Web 端不能修改。",
+      "en": "Read-only sandbox root for Web file access; it cannot be changed from the Web.",
+      "ja": "Web ファイル サンドボックスの安全なルート ディレクトリ。これは読み取り専用であり、Web 側で変更することはできません。",
+      "ko": "웹 파일 샌드박스의 보안 루트 디렉터리입니다. 읽기 전용이며 웹 측에서 수정할 수 없습니다.",
+      "es": "El directorio raíz seguro del entorno limitado de archivos web; es de solo lectura y no se puede modificar en el lado web.",
+      "fr": "Le répertoire racine sécurisé du bac à sable de fichiers Web ; il est en lecture seule et ne peut pas être modifié côté Web.",
+      "de": "Das sichere Stammverzeichnis der Webdatei-Sandbox; Es ist schreibgeschützt und kann auf der Webseite nicht geändert werden.",
+      "ru": "Безопасный корневой каталог изолированной программной среды веб-файлов; он доступен только для чтения и не может быть изменен через Интернет."
+    },
+    {
+      "zh": "浏览",
+      "en": "Browse",
+      "ja": "ブラウズ",
+      "ko": "먹다",
+      "es": "Navegar",
+      "fr": "Parcourir",
+      "de": "Durchsuchen",
+      "ru": "Просматривать"
+    },
+    {
+      "zh": "选择 Web 文件沙盒根目录",
+      "en": "Choose the Web file sandbox root",
+      "ja": "Web ファイル サンドボックスのルート ディレクトリを選択します",
+      "ko": "웹 파일 샌드박스 루트 디렉터리를 선택하세요.",
+      "es": "Seleccione el directorio raíz del espacio aislado del archivo web",
+      "fr": "Sélectionnez le répertoire racine du sandbox de fichiers Web",
+      "de": "Wählen Sie das Stammverzeichnis der Webdatei-Sandbox aus",
+      "ru": "Выберите корневой каталог песочницы веб-файлов."
+    },
+    {
+      "zh": "无法打开文件夹选择器：",
+      "en": "Cannot open the folder picker: ",
+      "ja": "フォルダーセレクターを開けません:",
+      "ko": "폴더 선택기를 열 수 없습니다:",
+      "es": "No se puede abrir el selector de carpetas:",
+      "fr": "Impossible d'ouvrir le sélecteur de dossier :",
+      "de": "Ordnerauswahl kann nicht geöffnet werden:",
+      "ru": "Невозможно открыть селектор папок:"
+    },
+    {
+      "zh": "文件根目录不存在或不是文件夹。",
+      "en": "The file root does not exist or is not a directory.",
+      "ja": "ファイルルートが存在しないか、フォルダーではありません。",
+      "ko": "파일 루트가 존재하지 않거나 폴더가 아닙니다.",
+      "es": "La raíz del archivo no existe o no es una carpeta.",
+      "fr": "La racine du fichier n'existe pas ou n'est pas un dossier.",
+      "de": "Das Dateistammverzeichnis existiert nicht oder ist kein Ordner.",
+      "ru": "Корень файла не существует или не является папкой."
+    },
+    {
+      "zh": "保存 Web 文件根目录失败：",
+      "en": "Could not save the Web file root: ",
+      "ja": "Web ファイルのルートを保存できませんでした:",
+      "ko": "웹 파일 루트를 저장하지 못했습니다:",
+      "es": "No se pudo guardar la raíz del archivo web:",
+      "fr": "Échec de l'enregistrement de la racine du fichier Web :",
+      "de": "Das Speichern des Stammverzeichnisses der Webdatei ist fehlgeschlagen:",
+      "ru": "Не удалось сохранить корень веб-файла:"
     }
   ]
 }

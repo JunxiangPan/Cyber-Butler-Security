@@ -335,6 +335,19 @@ function Get-BrokerApprovalChannel {
     return 'qq'
 }
 
+function Get-WebuiConfigPath {
+    return (Join-Path $script:ProjectRoot 'webui-config.json')
+}
+
+function Get-WebuiFileRoot {
+    try {
+        $path = Get-WebuiConfigPath
+        if (-not (Test-Path -LiteralPath $path)) { return '' }
+        $cfg = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+        return [string]$cfg.file_root
+    } catch { return '' }
+}
+
 function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $settings = Read-DashboardSettings
     $xaml = @'
@@ -350,6 +363,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <TextBlock Grid.Row="0" Text="设置" FontSize="22" FontWeight="SemiBold"/>
     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,0">
@@ -407,7 +421,13 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
       <Button x:Name="RestartBrokerButton" Content="重启 Broker" Width="120" Height="30" Margin="8,0,0,0"/>
     </StackPanel>
     <TextBlock Grid.Row="14" x:Name="ApprovalChannelHint" Text="切换后需重启 Broker 生效；Email 模式需要先完成邮箱配置。" Margin="130,6,0,0" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
-    <StackPanel Grid.Row="15" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+    <StackPanel Grid.Row="15" Orientation="Horizontal" Margin="0,14,0,0">
+      <TextBlock Text="文件根目录" Width="130" VerticalAlignment="Center"/>
+      <TextBox x:Name="FileRootBox" Width="380" Height="30" VerticalContentAlignment="Center"/>
+      <Button x:Name="BrowseFileRoot" Content="浏览" Width="80" Height="30" Margin="8,0,0,0"/>
+    </StackPanel>
+    <TextBlock Grid.Row="16" x:Name="FileRootHint" Text="Web 文件沙盒的安全根目录；只读，Web 端不能修改。" Margin="130,6,0,0" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+    <StackPanel Grid.Row="17" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
       <Button x:Name="SaveSettings" Content="保存设置" Width="110" Height="34" Margin="0,0,8,0"/>
       <Button x:Name="CloseSettings" Content="关闭" Width="90" Height="34"/>
     </StackPanel>
@@ -430,6 +450,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 $dlg.FindName('AnimToggle').IsChecked = [bool]$settings.enable_animated_bg
                 $smokeCombo = $dlg.FindName('ApprovalChannelCombo')
                 $smokeCombo.SelectedIndex = if ((Get-BrokerApprovalChannel) -eq 'email') { 1 } else { 0 }
+                $dlg.FindName('FileRootBox').Text = Get-WebuiFileRoot
                 if ($settings.background) { $dlg.FindName('BackgroundPath').Text = $settings.background }
                 Apply-Language $settings.language $dlg
                 $dlg.WindowStyle = 'None'
@@ -488,6 +509,9 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $approvalChannelCombo = $dlg.FindName('ApprovalChannelCombo')
     $approvalChannelHint = $dlg.FindName('ApprovalChannelHint')
     $restartBrokerButton = $dlg.FindName('RestartBrokerButton')
+    $fileRootBox = $dlg.FindName('FileRootBox')
+    $browseFileRoot = $dlg.FindName('BrowseFileRoot')
+    $fileRootBox.Text = Get-WebuiFileRoot
     $currentChannel = Get-BrokerApprovalChannel
     $approvalChannelCombo.SelectedIndex = if ($currentChannel -eq 'email') { 1 } else { 0 }
 
@@ -697,6 +721,22 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
         }
     })
 
+    $browseFileRoot.Add_Click({
+        try {
+            Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+            $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+            $dialog.Description = (T '选择 Web 文件沙盒根目录' 'Choose the Web file sandbox root')
+            if ($fileRootBox.Text -and (Test-Path -LiteralPath $fileRootBox.Text -PathType Container)) {
+                $dialog.SelectedPath = $fileRootBox.Text
+            }
+            if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                $fileRootBox.Text = $dialog.SelectedPath
+            }
+        } catch {
+            [Windows.MessageBox]::Show($dlg, ((T '无法打开文件夹选择器：' 'Cannot open the folder picker: ') + $_.Exception.Message), (T '文件根目录' 'File root'), 'OK', 'Error') | Out-Null
+        }
+    })
+
     $restartBrokerButton.Add_Click({
         try {
             $code = Invoke-ElevatedAction 'RestartBroker'
@@ -732,6 +772,23 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                     [Windows.MessageBox]::Show($dlg, (T '审批通道已保存，但 Broker 重启失败。' 'Channel saved, but Broker restart failed.'), (T '审批通道' 'Approval channel'), 'OK', 'Error') | Out-Null
                 }
             }
+        }
+        $newFileRoot = ([string]$fileRootBox.Text).Trim()
+        if ($newFileRoot -and -not (Test-Path -LiteralPath $newFileRoot -PathType Container)) {
+            [Windows.MessageBox]::Show($dlg, (T '文件根目录不存在或不是文件夹。' 'The file root does not exist or is not a directory.'), (T '文件根目录' 'File root'), 'OK', 'Warning') | Out-Null
+            return
+        }
+        try {
+            $webuiConfigPath = Get-WebuiConfigPath
+            if (Test-Path -LiteralPath $webuiConfigPath) {
+                $webuiCfg = Get-Content -LiteralPath $webuiConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $webuiCfg.file_root = $newFileRoot
+                $json = $webuiCfg | ConvertTo-Json -Depth 8
+                [IO.File]::WriteAllText($webuiConfigPath, $json, (New-Object Text.UTF8Encoding($false)))
+            }
+        } catch {
+            [Windows.MessageBox]::Show($dlg, ((T '保存 Web 文件根目录失败：' 'Could not save the Web file root: ') + $_.Exception.Message), (T '文件根目录' 'File root'), 'OK', 'Error') | Out-Null
+            return
         }
         $settings.theme = [string](@('light', 'dark', 'system'))[[int]$themeCombo.SelectedIndex]
         $languageCodes = @('zh','en','ja','ko','es','fr','de','ru')
