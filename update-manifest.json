@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "1d5e594139c863b74da2d70275cd5fa000d3ac61794a96641fe0ea8b24f733ea",
-      "size": 1725
+      "sha256": "483ff9af564542649f8d9e903d7bbbf63b513e4b58002eb887d69ea7339f5515",
+      "size": 1780
     },
     {
       "path": "LICENSE",
@@ -156,6 +156,11 @@
       "path": "RELEASE_NOTES_v1.4.0.md",
       "sha256": "fb747dd323f42eb3da1ce4c079f335316f648a5dd70735153f426f9d63dc4538",
       "size": 1596
+    },
+    {
+      "path": "RELEASE_NOTES_v1.4.1.md",
+      "sha256": "393565ee8c1bb5dbe6668d1474af939068eba040f7e41830e72ee6ffbad9e1fc",
+      "size": 1608
     },
     {
       "path": "SECURITY.md",
@@ -326,6 +331,21 @@
       "path": "plugins/astrbot_plugin_weather_tools/metadata.yaml",
       "sha256": "ae674032c484345ba21b3de9d5b6e12888b65df294c0511b5529190076015b78",
       "size": 373
+    },
+    {
+      "path": "plugins/astrbot_plugin_webui_bridge/_conf_schema.json",
+      "sha256": "9f916e36be1ef2bfb6effbe4f760bb275cf3bd30c03a7ef504c23aa38e69ca67",
+      "size": 564
+    },
+    {
+      "path": "plugins/astrbot_plugin_webui_bridge/main.py",
+      "sha256": "d794d8f664d5be4918a83d484fbda894b1e5b7523139e2ea660388a9156982cb",
+      "size": 4231
+    },
+    {
+      "path": "plugins/astrbot_plugin_webui_bridge/metadata.yaml",
+      "sha256": "3720d940aea83567e400333d71b3f749768a1a6829f3db9c2a93fe26cb5d7f10",
+      "size": 279
     },
     {
       "path": "pytest.ini",
