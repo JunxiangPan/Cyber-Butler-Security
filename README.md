@@ -160,6 +160,23 @@ MP4/WebM video. The format matrix, size limits, fallback chain and maintenance
 smoke commands are documented in
 [docs/DASHBOARD_BACKGROUND.md](docs/DASHBOARD_BACKGROUND.md).
 
+#### Plugin ecosystem
+
+The dashboard also manages the AstrBot plugin directory, a local console-module
+format, and a reviewed plugin market:
+
+- `智能体插件`: list, enable/disable, delete to `backups/deleted_plugins/`,
+  restore a plugin's default configuration;
+- `控制台模块`: load `tools/dashboard_plugins/<id>/` modules dynamically, with
+  per-module failure isolation and a `hello_world` reference module;
+- `插件市场`: search the official AstrBot registry or GitHub, download and
+  extract into a temp directory, run the static security scanner and the
+  AstrBot version check, then install after an explicit review.
+
+The module contract, scanner rules, install gates and residual risks are in
+[docs/PLUGIN_ECOSYSTEM.md](docs/PLUGIN_ECOSYSTEM.md). Static scanning is not a
+sandbox; only install plugins from authors you trust.
+
 
 There is **no publisher identity signature yet**. GitHub asset SHA-256 plus the
 manifest hashes protect against transfer corruption, not a compromised GitHub

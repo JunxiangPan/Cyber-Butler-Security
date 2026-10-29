@@ -13,6 +13,8 @@ param(
     [switch]$SmokeThemes,
     [switch]$SmokeSettingsDialog,
     [switch]$SmokeBackground,
+    [switch]$SmokeModules,
+    [switch]$SmokeUi,
     [string]$SmokeAssetDir = '',
     [string]$SmokeSettingsShot = '',
     [string]$SmokeTheme = '',
@@ -40,8 +42,14 @@ function Load-XamlDictionary([string]$path) {
     return [Windows.Markup.XamlReader]::Load($reader)
 }
 $script:CurrentLanguage = 'zh'
+$script:DashboardVersion = '1.2.0'
 function T([string]$zh, [string]$en) { if ($script:CurrentLanguage -eq 'en') { return $en }; return $zh }
 . (Join-Path $toolsRoot 'dashboard_core.ps1')
+. (Join-Path $toolsRoot 'plugin_security_scanner.ps1')
+. (Join-Path $toolsRoot 'plugin_hub.ps1')
+. (Join-Path $toolsRoot 'plugin_market.ps1')
+. (Join-Path $toolsRoot 'dashboard_modules.ps1')
+. (Join-Path $toolsRoot 'plugin_review_dialog.ps1')
 
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -74,7 +82,7 @@ $xaml = @'
       </StackPanel>
     </Border>
 
-    <TabControl Grid.Row="2" Margin="0,14,0,0">
+    <TabControl Grid.Row="2" x:Name="MainTabs" Margin="0,14,0,0">
       <TabItem Header="状态大盘">
         <Grid Margin="18">
           <Grid.RowDefinitions>
@@ -220,6 +228,92 @@ $xaml = @'
           </Border>
         </Grid>
       </TabItem>
+
+      <TabItem Header="智能体插件">
+        <Grid Margin="14">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="PluginRefreshButton" Content="刷新" Width="70" Height="32"/>
+            <Button x:Name="PluginEnableButton" Content="启用" Width="70" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PluginDisableButton" Content="禁用" Width="70" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PluginDeleteButton" Content="删除（回收站）" Width="130" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PluginResetButton" Content="恢复默认配置" Width="120" Height="32" Margin="8,0,0,0"/>
+            <TextBlock x:Name="PluginStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+          <DataGrid Grid.Row="1" x:Name="PluginGrid" Margin="0,12,0,10" IsReadOnly="True"
+                    AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column"
+                    SelectionMode="Single" GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="插件" Binding="{Binding Name}" Width="210"/>
+              <DataGridTextColumn Header="显示名" Binding="{Binding DisplayName}" Width="190"/>
+              <DataGridTextColumn Header="版本" Binding="{Binding Version}" Width="80"/>
+              <DataGridTextColumn Header="作者" Binding="{Binding Author}" Width="110"/>
+              <DataGridTextColumn Header="状态" Binding="{Binding StateText}" Width="70"/>
+              <DataGridTextColumn Header="兼容" Binding="{Binding CompatText}" Width="90"/>
+            </DataGrid.Columns>
+          </DataGrid>
+          <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+            <TextBlock x:Name="PluginDetailText" Text="选择一个插件查看详情。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="控制台模块">
+        <Grid Margin="14">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="ModuleRefreshButton" Content="重新加载" Width="100" Height="32"/>
+            <Button x:Name="ModuleEnableButton" Content="启用" Width="70" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="ModuleDisableButton" Content="禁用" Width="70" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="ModuleFolderButton" Content="打开模块目录" Width="120" Height="32" Margin="8,0,0,0"/>
+            <TextBlock x:Name="ModuleStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+          <ListBox Grid.Row="1" x:Name="ModuleListBox" Margin="0,12,0,10" DisplayMemberPath="Display"/>
+          <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+            <StackPanel>
+              <TextBlock x:Name="ModuleDetailText" Text="第三方模块以本地 PowerShell 运行，请只启用可信来源。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+              <TextBlock Text="规范：tools\dashboard_plugins\&lt;id&gt;\manifest.json + ui.xaml + logic.ps1；禁用后不会加载对应 XAML 与脚本。"
+                         TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource MutedBrush}"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="插件市场">
+        <Grid Margin="14">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <TextBox x:Name="MarketQueryBox" Width="240" Height="30" ToolTip="输入关键词，留空显示热门插件"/>
+            <ComboBox x:Name="MarketSourceCombo" Width="150" Height="30" Margin="8,0,0,0" SelectedIndex="0">
+              <ComboBoxItem Content="AstrBot 官方市场"/>
+              <ComboBoxItem Content="GitHub"/>
+            </ComboBox>
+            <Button x:Name="MarketSearchButton" Content="搜索" Width="80" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="MarketInstallButton" Content="审查并安装" Width="110" Height="32" Margin="8,0,0,0"/>
+            <TextBlock x:Name="MarketStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+          <DataGrid Grid.Row="1" x:Name="MarketGrid" Margin="0,12,0,10" IsReadOnly="True"
+                    AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column"
+                    SelectionMode="Single" GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="插件" Binding="{Binding Name}" Width="220"/>
+              <DataGridTextColumn Header="作者" Binding="{Binding Author}" Width="120"/>
+              <DataGridTextColumn Header="版本" Binding="{Binding Version}" Width="80"/>
+              <DataGridTextColumn Header="星标" Binding="{Binding Stars}" Width="60"/>
+              <DataGridTextColumn Header="来源" Binding="{Binding SourceLabel}" Width="90"/>
+            </DataGrid.Columns>
+          </DataGrid>
+          <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
+            <TextBlock x:Name="MarketDetailText" Text="搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+          </Border>
+        </Grid>
+      </TabItem>
     </TabControl>
     <Border Grid.Row="3" Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,6">
       <StackPanel>
@@ -260,6 +354,29 @@ $settingsButton = $window.FindName('SettingsButton')
 $rootGrid = $window.FindName('RootGrid')
 $backgroundLayer = $window.FindName('BackgroundLayer')
 $backgroundOverlay = $window.FindName('BackgroundOverlay')
+$mainTabs = $window.FindName('MainTabs')
+$pluginGrid = $window.FindName('PluginGrid')
+$pluginStatusText = $window.FindName('PluginStatusText')
+$pluginDetailText = $window.FindName('PluginDetailText')
+$pluginRefreshButton = $window.FindName('PluginRefreshButton')
+$pluginEnableButton = $window.FindName('PluginEnableButton')
+$pluginDisableButton = $window.FindName('PluginDisableButton')
+$pluginDeleteButton = $window.FindName('PluginDeleteButton')
+$pluginResetButton = $window.FindName('PluginResetButton')
+$moduleListBox = $window.FindName('ModuleListBox')
+$moduleStatusText = $window.FindName('ModuleStatusText')
+$moduleDetailText = $window.FindName('ModuleDetailText')
+$moduleRefreshButton = $window.FindName('ModuleRefreshButton')
+$moduleEnableButton = $window.FindName('ModuleEnableButton')
+$moduleDisableButton = $window.FindName('ModuleDisableButton')
+$moduleFolderButton = $window.FindName('ModuleFolderButton')
+$marketQueryBox = $window.FindName('MarketQueryBox')
+$marketSourceCombo = $window.FindName('MarketSourceCombo')
+$marketSearchButton = $window.FindName('MarketSearchButton')
+$marketInstallButton = $window.FindName('MarketInstallButton')
+$marketStatusText = $window.FindName('MarketStatusText')
+$marketGrid = $window.FindName('MarketGrid')
+$marketDetailText = $window.FindName('MarketDetailText')
 $scanProgressBar = $window.FindName('ScanProgressBar')
 $scanStatusText = $window.FindName('ScanStatusText')
 $updateProgressBar = $window.FindName('UpdateProgressBar')
@@ -276,6 +393,14 @@ $addGameButton = $window.FindName('AddGameButton')
 $removeGameButton = $window.FindName('RemoveGameButton')
 $gameInput = $window.FindName('GameInput')
 . (Join-Path $toolsRoot 'dashboard_settings.ps1')
+if ($SmokeModules) {
+    Register-DashboardModuleExceptionHook $window
+    $moduleSmoke = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
+    foreach ($loadedModule in @($moduleSmoke.Loaded)) { Write-Output ('LOADED ' + $loadedModule.Id) }
+    foreach ($failedModule in @($moduleSmoke.Failed)) { Write-Output ('FAILED ' + $failedModule.Id + ' :: ' + $failedModule.Error) }
+    Write-Output ('MODULES=' + $moduleSmoke.Total + ' LOADED=' + @($moduleSmoke.Loaded).Count)
+    exit 0
+}
 if ($SmokeSettings) {
     $s = Read-DashboardSettings
     Set-UiTheme $s.theme
@@ -494,6 +619,293 @@ function Refresh-DashboardData {
     $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
     $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 }
+
+function Show-AstrBotPluginList {
+    try {
+        $data = Get-AstrBotPluginList -ProjectRoot $script:ProjectRoot
+        $view = New-Object System.Collections.ArrayList
+        foreach ($plugin in $data.Plugins) {
+            $state = '未知'
+            if ($plugin.Reserved) { $state = '内置' }
+            elseif ($plugin.Activated -eq $true) { $state = '启用' }
+            elseif ($plugin.Activated -eq $false) { $state = '禁用' }
+            $compat = '兼容'
+            if (-not $plugin.Compat) { $compat = '不兼容' }
+            [void]$view.Add([pscustomobject]@{
+                Name           = $plugin.Name
+                DisplayName    = $plugin.DisplayName
+                Version        = $plugin.Version
+                Author         = $plugin.Author
+                StateText      = $state
+                CompatText     = $compat
+                CompatReason   = $plugin.CompatReason
+                RootDirName    = $plugin.RootDirName
+                Reserved       = $plugin.Reserved
+                Activated      = $plugin.Activated
+                Desc           = $plugin.Desc
+                Repo           = $plugin.Repo
+                AstrBotVersion = $plugin.AstrBotVersion
+                ConfigPath     = $plugin.ConfigPath
+                Platforms      = (@($plugin.Platforms) -join ', ')
+            })
+        }
+        $pluginGrid.ItemsSource = @($view)
+        $suffix = ''
+        if ($data.ApiError) { $suffix = '（AstrBot 离线，仅显示磁盘信息）' }
+        $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
+    } catch {
+        $pluginStatusText.Text = '读取失败：' + $_.Exception.Message
+    }
+}
+
+function Get-SelectedAstrBotPlugin {
+    $item = $pluginGrid.SelectedItem
+    if (-not $item) { Show-Message '请先在列表中选择一个插件。'; return $null }
+    return $item
+}
+
+$pluginGrid.Add_SelectionChanged({
+    $item = $pluginGrid.SelectedItem
+    if (-not $item) { return }
+    $lines = New-Object System.Collections.ArrayList
+    [void]$lines.Add([string]$item.Name)
+    [void]$lines.Add('版本 ' + $item.Version + ' · 作者 ' + $item.Author + ' · 状态 ' + $item.StateText)
+    $compatLine = '兼容性：' + $item.CompatText
+    if ($item.CompatReason) { $compatLine += ' · ' + $item.CompatReason }
+    [void]$lines.Add($compatLine)
+    [void]$lines.Add('目录：AstrBot\data\plugins\' + $item.RootDirName)
+    if ($item.ConfigPath) { [void]$lines.Add('配置：' + $item.ConfigPath) }
+    if ($item.Platforms) { [void]$lines.Add('平台：' + $item.Platforms) }
+    if ($item.Desc) { [void]$lines.Add(''); [void]$lines.Add([string]$item.Desc) }
+    if ($item.Repo) { [void]$lines.Add(''); [void]$lines.Add('仓库：' + $item.Repo) }
+    $pluginDetailText.Text = ($lines -join [Environment]::NewLine)
+})
+
+$pluginRefreshButton.Add_Click({ Show-AstrBotPluginList })
+
+$pluginEnableButton.Add_Click({
+    $item = Get-SelectedAstrBotPlugin
+    if (-not $item) { return }
+    try {
+        $message = Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $true
+        Show-AstrBotPluginList
+        $pluginStatusText.Text = $message
+    } catch {
+        Show-Message ('启用失败：' + $_.Exception.Message)
+    }
+})
+
+$pluginDisableButton.Add_Click({
+    $item = Get-SelectedAstrBotPlugin
+    if (-not $item) { return }
+    try {
+        $message = Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false
+        Show-AstrBotPluginList
+        $pluginStatusText.Text = $message
+    } catch {
+        Show-Message ('禁用失败：' + $_.Exception.Message)
+    }
+})
+
+$pluginDeleteButton.Add_Click({
+    $item = Get-SelectedAstrBotPlugin
+    if (-not $item) { return }
+    if ($item.Reserved) { Show-Message '这是 AstrBot 保留插件，不能删除。'; return }
+    $answer = Read-InputDialog '删除插件' ('将把 ' + $item.Name + ' 移动到 backups\deleted_plugins\，不会直接删除。' + [Environment]::NewLine + [Environment]::NewLine + '输入 DELETE PLUGIN 继续：')
+    if ($answer -cne 'DELETE PLUGIN') { Show-Message '确认文本不正确，已取消。'; return }
+    try {
+        if ($item.Activated -eq $true) {
+            Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false | Out-Null
+        }
+        $record = Move-AstrBotPluginToRecycleBin -ProjectRoot $script:ProjectRoot -RootDirName $item.RootDirName
+        try { Reload-AstrBotPlugins $script:ProjectRoot | Out-Null } catch { }
+        Show-AstrBotPluginList
+        Show-Message ('已移入回收站：' + [Environment]::NewLine + $record.destination)
+    } catch {
+        Show-Message ('删除失败：' + $_.Exception.Message)
+    }
+})
+
+$pluginResetButton.Add_Click({
+    $item = Get-SelectedAstrBotPlugin
+    if (-not $item) { return }
+    $answer = Read-InputDialog '恢复默认配置' ('将备份并删除 ' + $item.RootDirName + '_config.json，然后重新加载插件以生成默认配置。' + [Environment]::NewLine + [Environment]::NewLine + '输入 RESTORE DEFAULTS 继续：')
+    if ($answer -cne 'RESTORE DEFAULTS') { Show-Message '确认文本不正确，已取消。'; return }
+    try {
+        $result = Restore-AstrBotPluginDefaults -ProjectRoot $script:ProjectRoot -PluginId $item.Name -RootDirName $item.RootDirName
+        Show-AstrBotPluginList
+        $message = '已恢复默认配置。'
+        if ($result.BackupPath) { $message += [Environment]::NewLine + '原配置备份：' + $result.BackupPath }
+        Show-Message $message
+    } catch {
+        Show-Message ('恢复失败：' + $_.Exception.Message)
+    }
+})
+
+function Show-DashboardModuleList {
+    $scan = Get-DashboardModules -ToolsRoot $script:ToolsRoot
+    $view = New-Object System.Collections.ArrayList
+    foreach ($module in $scan.Modules) {
+        $status = if ($module.Problem) { '错误' } elseif ($module.Enabled) { '启用' } else { '禁用' }
+        $display = '[' + $status + '] ' + $module.Name + ' v' + $module.Version
+        if ($module.Author) { $display += ' · ' + $module.Author }
+        if ($module.Problem) { $display += ' · ' + $module.Problem }
+        elseif ($script:LoadedDashboardModules.ContainsKey($module.Id)) { $display += ' · 已加载' }
+        [void]$view.Add([pscustomobject]@{
+            Display = $display
+            Id      = $module.Id
+            Enabled = $module.Enabled
+            Problem = $module.Problem
+            Module  = $module
+        })
+    }
+    $moduleListBox.ItemsSource = @($view)
+    $moduleStatusText.Text = ('共 ' + @($scan.Modules).Count + ' 个模块 · 已加载 ' + $script:LoadedDashboardModules.Count)
+}
+
+$moduleListBox.Add_SelectionChanged({
+    $item = $moduleListBox.SelectedItem
+    if (-not $item) { return }
+    $module = $item.Module
+    $lines = New-Object System.Collections.ArrayList
+    [void]$lines.Add([string]$module.Name + ' v' + $module.Version)
+    [void]$lines.Add('id：' + $module.Id)
+    [void]$lines.Add('目录：' + $module.Path)
+    [void]$lines.Add('状态：' + $(if ($module.Problem) { '加载失败' } elseif ($module.Enabled) { '启用' } else { '禁用' }))
+    if ($module.Description) { [void]$lines.Add(''); [void]$lines.Add([string]$module.Description) }
+    if ($module.Problem) { [void]$lines.Add(''); [void]$lines.Add('错误：' + $module.Problem) }
+    $moduleDetailText.Text = ($lines -join [Environment]::NewLine)
+})
+
+$moduleEnableButton.Add_Click({
+    $item = $moduleListBox.SelectedItem
+    if (-not $item) { Show-Message '请先选择一个模块。'; return }
+    if ($item.Problem) { Show-Message ('该模块本身有问题，无法启用：' + $item.Problem); return }
+    $result = Set-DashboardModuleEnabled -Id $item.Id -Enabled $true -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
+    if (-not $result.Ok) { Show-Message ('模块加载失败：' + $item.Id + [Environment]::NewLine + $result.Error) }
+    Show-DashboardModuleList
+})
+
+$moduleDisableButton.Add_Click({
+    $item = $moduleListBox.SelectedItem
+    if (-not $item) { Show-Message '请先选择一个模块。'; return }
+    Set-DashboardModuleEnabled -Id $item.Id -Enabled $false -Tabs $mainTabs -ToolsRoot $script:ToolsRoot | Out-Null
+    Show-DashboardModuleList
+})
+
+$moduleRefreshButton.Add_Click({
+    foreach ($id in @($script:LoadedDashboardModules.Keys)) {
+        Unload-DashboardModule -Id $id -Tabs $mainTabs | Out-Null
+    }
+    $init = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
+    Show-DashboardModuleList
+    if (@($init.Failed).Count -gt 0) {
+        $names = @($init.Failed | ForEach-Object { $_.Name + '：' + $_.Error })
+        Show-Message ('以下模块加载失败，已跳过：' + [Environment]::NewLine + [Environment]::NewLine + ($names -join [Environment]::NewLine))
+    } else {
+        $moduleStatusText.Text = '模块已重新加载。'
+    }
+})
+
+$moduleFolderButton.Add_Click({
+    try { Start-Process explorer.exe (Join-Path $script:ToolsRoot 'dashboard_plugins') } catch { Show-Message '无法打开模块目录。' }
+})
+
+function Show-PluginMarketResults {
+    $source = 'official'
+    if ($marketSourceCombo.SelectedIndex -eq 1) { $source = 'github' }
+    [Windows.Input.Mouse]::OverrideCursor = [Windows.Input.Cursors]::Wait
+    try {
+        $entries = @(Get-PluginMarketEntries -Source $source -Query $marketQueryBox.Text -Limit 40)
+        $view = New-Object System.Collections.ArrayList
+        foreach ($entry in $entries) {
+            $label = if ($entry.Source -eq 'github') { 'GitHub' } else { '官方市场' }
+            [void]$view.Add([pscustomobject]@{
+                Name        = $entry.Name
+                Author      = $entry.Author
+                Version     = $entry.Version
+                Stars       = $entry.Stars
+                SourceLabel = $label
+                Entry       = $entry
+            })
+        }
+        $marketGrid.ItemsSource = @($view)
+        $marketStatusText.Text = ('找到 ' + @($view).Count + ' 个结果')
+    } catch {
+        $marketStatusText.Text = '搜索失败：' + $_.Exception.Message
+    } finally {
+        [Windows.Input.Mouse]::OverrideCursor = $null
+    }
+}
+
+$marketSearchButton.Add_Click({ Show-PluginMarketResults })
+
+$marketGrid.Add_SelectionChanged({
+    $item = $marketGrid.SelectedItem
+    if (-not $item) { return }
+    $entry = $item.Entry
+    $lines = New-Object System.Collections.ArrayList
+    [void]$lines.Add([string]$entry.Name)
+    if ($entry.DisplayName) { [void]$lines.Add('显示名：' + $entry.DisplayName) }
+    [void]$lines.Add('作者：' + $entry.Author + ' · 版本：' + $entry.Version)
+    if ($entry.Stars) { [void]$lines.Add('GitHub 星标：' + $entry.Stars) }
+    if ($entry.Downloads) { [void]$lines.Add('下载量：' + $entry.Downloads) }
+    [void]$lines.Add('仓库：' + $entry.Repo)
+    if ($entry.AstrBotVersion) { [void]$lines.Add('要求 AstrBot：' + $entry.AstrBotVersion) }
+    if ($entry.Desc) { [void]$lines.Add(''); [void]$lines.Add([string]$entry.Desc) }
+    $marketDetailText.Text = ($lines -join [Environment]::NewLine)
+})
+
+$marketInstallButton.Add_Click({
+    $item = $marketGrid.SelectedItem
+    if (-not $item) { Show-Message '请先选择一个插件。'; return }
+    $entry = $item.Entry
+    if (-not $entry.DownloadUrl) { Show-Message '该条目没有可用的下载地址。'; return }
+    $confirm = [Windows.MessageBox]::Show(
+        ('即将下载并审查：' + $entry.Name + [Environment]::NewLine + '来源：' + $entry.Repo + [Environment]::NewLine + [Environment]::NewLine + '继续？'),
+        '安装插件', 'YesNo', 'Question')
+    if ($confirm -ne 'Yes') { return }
+
+    $work = Join-Path $env:TEMP ('cb-plugin-' + [guid]::NewGuid().ToString('N'))
+    try {
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+        [Windows.Input.Mouse]::OverrideCursor = [Windows.Input.Cursors]::Wait
+        $marketStatusText.Text = '正在下载...'
+        $archive = Join-Path $work 'plugin.zip'
+        Save-PluginArchive -Url $entry.DownloadUrl -Destination $archive | Out-Null
+
+        $marketStatusText.Text = '正在解压...'
+        $extract = Join-Path $work 'extract'
+        Expand-PluginArchive -ArchivePath $archive -Destination $extract | Out-Null
+        $packageRoot = Find-PluginPackageRoot $extract
+
+        $marketStatusText.Text = '正在做静态安全审查...'
+        $localVersion = Get-LocalAstrBotVersion $script:ProjectRoot
+        $review = Get-PluginReviewSummary -PackageRoot $packageRoot -LocalVersion $localVersion
+
+        [Windows.Input.Mouse]::OverrideCursor = $null
+        $approved = Show-PluginReviewDialog -Review $review -SourceLabel ($item.SourceLabel + ' · ' + $entry.Repo) -TempPath $work
+        if (-not $approved) { $marketStatusText.Text = '已取消安装。'; return }
+
+        [Windows.Input.Mouse]::OverrideCursor = [Windows.Input.Cursors]::Wait
+        $marketStatusText.Text = '正在安装...'
+        $installed = Install-PluginPackage -ProjectRoot $script:ProjectRoot -PackageRoot $packageRoot -TargetKind 'agent'
+        $reloadError = ''
+        try { Reload-AstrBotPlugins $script:ProjectRoot | Out-Null } catch { $reloadError = $_.Exception.Message }
+        Show-AstrBotPluginList
+        $message = '安装完成：' + $installed.Id + [Environment]::NewLine + $installed.Path
+        if ($reloadError) { $message += [Environment]::NewLine + [Environment]::NewLine + '插件已落盘，但重载失败：' + $reloadError }
+        else { $message += [Environment]::NewLine + [Environment]::NewLine + 'AstrBot 已请求重载插件。' }
+        Show-Message $message
+        $marketStatusText.Text = '安装完成：' + $installed.Id
+    } catch {
+        Show-Message ('安装失败：' + $_.Exception.Message)
+        $marketStatusText.Text = '安装失败'
+    } finally {
+        [Windows.Input.Mouse]::OverrideCursor = $null
+        try { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue } catch { }
+    }
+})
 
 function Save-ManualGameList([string[]]$lines) {
     $backup = $manualGameFile + '.bak-dashboard'
@@ -833,6 +1245,49 @@ if ($SmokeThemes) {
     Write-Output ('MERGED=' + $md.Count + ' DARK_PAGE=' + $darkPage + ' LIGHT_PAGE=' + $lightPage + ' CONTAINS=' + $theme.Contains('PageBrush'))
     exit 0
 }
+
+if ($SmokeUi) {
+    Register-DashboardModuleExceptionHook $window
+    $null = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
+    Show-AstrBotPluginList
+    Show-DashboardModuleList
+    $window.WindowStyle = 'None'
+    $window.ShowInTaskbar = $false
+    $window.WindowStartupLocation = 'Manual'
+    $window.Left = -6000
+    $window.Top = -6000
+    $window.Show()
+    Wait-BgDispatcher 900
+    $shots = New-Object System.Collections.ArrayList
+    foreach ($page in @(@{ Index = 4; Name = 'plugins' }, @{ Index = 5; Name = 'modules' }, @{ Index = 6; Name = 'market' })) {
+        $mainTabs.SelectedIndex = [int]$page.Index
+        Wait-BgDispatcher 450
+        $shot = Save-BgScreenshot (Join-Path $env:TEMP ('cb-ui-' + $page.Name + '.png'))
+        if ($shot) { [void]$shots.Add($shot) }
+    }
+    $moduleTab = @($mainTabs.Items | Where-Object { $_.Tag -eq 'hello_world' }) | Select-Object -First 1
+    if ($moduleTab) {
+        $mainTabs.SelectedItem = $moduleTab
+        Wait-BgDispatcher 450
+        $shot = Save-BgScreenshot (Join-Path $env:TEMP 'cb-ui-module.png')
+        if ($shot) { [void]$shots.Add($shot) }
+    }
+    Write-Output ('UI_SHOTS=' + ($shots -join ';'))
+    $window.Close()
+    exit 0
+}
+
+Register-DashboardModuleExceptionHook $window
+$moduleInit = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
+$window.Add_ContentRendered({
+    Show-AstrBotPluginList
+    Show-DashboardModuleList
+    if (@($moduleInit.Failed).Count -gt 0) {
+        $names = @($moduleInit.Failed | ForEach-Object { $_.Name + '：' + $_.Error })
+        $moduleStatusText.Text = '模块加载失败：' + $names.Count
+        Show-Message ('以下模块加载失败，已跳过（主控台不受影响）：' + [Environment]::NewLine + [Environment]::NewLine + ($names -join [Environment]::NewLine))
+    }
+})
 
 $versionLabel.Text = Get-VersionLabel
 $versionLabel.Add_MouseLeftButtonDown({ Invoke-ManualUpdateCheck })

@@ -292,6 +292,62 @@
     {
       "zh": "动态背景已关闭",
       "en": "Animated background disabled"
+    },
+    {
+      "zh": "智能体插件",
+      "en": "Agent Plugins"
+    },
+    {
+      "zh": "控制台模块",
+      "en": "Console Modules"
+    },
+    {
+      "zh": "插件市场",
+      "en": "Plugin Market"
+    },
+    {
+      "zh": "刷新",
+      "en": "Refresh"
+    },
+    {
+      "zh": "启用",
+      "en": "Enable"
+    },
+    {
+      "zh": "禁用",
+      "en": "Disable"
+    },
+    {
+      "zh": "删除（回收站）",
+      "en": "Delete (Recycle Bin)"
+    },
+    {
+      "zh": "恢复默认配置",
+      "en": "Restore Defaults"
+    },
+    {
+      "zh": "重新加载",
+      "en": "Reload"
+    },
+    {
+      "zh": "打开模块目录",
+      "en": "Open Module Folder"
+    },
+    {
+      "zh": "搜索",
+      "en": "Search"
+    },
+    {
+      "zh": "审查并安装",
+      "en": "Review & Install"
+    },
+    {
+      "zh": "选择一个插件查看详情。",
+      "en": "Select a plugin to see details."
+    },
+    {
+      "zh": "搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。",
+      "en": "Search, then review the static security scan and AstrBot compatibility before installing."
     }
   ]
 }

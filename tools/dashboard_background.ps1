@@ -28,9 +28,9 @@ $script:BgLimits = @{
     VideoBytes     = 256MB
     GifFrames      = 400
     GifPixels      = 16000000
-    GifWorkPixels  = 120000000
+    GifWorkPixels  = (120 * 1000 * 1000)
     GifWidth       = 1280
-    GifBudgetBytes = 134217728
+    GifBudgetBytes = 128MB
 }
 
 $script:BgState = @{
