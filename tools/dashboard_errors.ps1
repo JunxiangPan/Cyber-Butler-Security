@@ -36,7 +36,7 @@ function Update-UiErrorBox {
     }
     if ($script:UiErrorStatus) {
         try {
-            $script:UiErrorStatus.Text = if ($script:CurrentLanguage -eq 'en') {
+            $script:UiErrorStatus.Text = if ($script:CurrentLanguage -ne 'zh') {
                 '{0} entries' -f $script:UiErrorEntries.Count
             } else {
                 '{0} 条记录' -f $script:UiErrorEntries.Count

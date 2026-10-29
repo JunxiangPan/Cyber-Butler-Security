@@ -43,7 +43,33 @@ function Load-XamlDictionary([string]$path) {
 }
 $script:CurrentLanguage = 'zh'
 $script:DashboardVersion = '1.2.0'
-function T([string]$zh, [string]$en) { if ($script:CurrentLanguage -eq 'en') { return $en }; return $zh }
+$script:I18nZhIndex = $null
+function Get-I18nEntry([string]$zh) {
+    if (-not $script:I18nZhIndex) {
+        $script:I18nZhIndex = @{}
+        try {
+            $file = Join-Path $PSScriptRoot 'dashboard_i18n.json'
+            if (Test-Path -LiteralPath $file) {
+                $data = Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json
+                foreach ($entry in @($data.entries)) {
+                    if ($entry.zh) { $script:I18nZhIndex[[string]$entry.zh] = $entry }
+                }
+            }
+        } catch { }
+    }
+    return $script:I18nZhIndex[$zh]
+}
+function T([string]$zh, [string]$en) {
+    $lang = [string]$script:CurrentLanguage
+    if ($lang -eq 'zh') { return $zh }
+    $entry = Get-I18nEntry $zh
+    if ($entry) {
+        $value = [string]$entry.$lang
+        if ($value) { return $value }
+    }
+    if ($lang -eq 'en') { return $en }
+    return $en
+}
 . (Join-Path $toolsRoot 'dashboard_core.ps1')
 . (Join-Path $toolsRoot 'plugin_security_scanner.ps1')
 . (Join-Path $toolsRoot 'plugin_hub.ps1')
@@ -59,7 +85,7 @@ $xaml = @'
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         Title="Cyber-Butler 主控台" Width="1120" Height="760"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
+        Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI, Segoe UI, Yu Gothic UI, Malgun Gothic">
   <Window.Resources />
   <Grid x:Name="WindowRoot">
     <Grid x:Name="BackgroundLayer" Background="{DynamicResource PageBrush}" ClipToBounds="True" IsHitTestVisible="False"/>
@@ -193,11 +219,11 @@ $xaml = @'
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Button x:Name="PersonaRefreshButton" Content="刷新人格列表" Width="120" Height="32"/>
-            <Button x:Name="PersonaSwitchButton" Content="切换为人格" Width="110" Height="32" Margin="8,0,0,0"/>
-            <Button x:Name="PersonaNewButton" Content="新建空白人格" Width="150" Height="32" Margin="8,0,0,0"/>
-            <Button x:Name="PersonaCopyButton" Content="复制当前人格" Width="120" Height="32" Margin="8,0,0,0"/>
-            <Button x:Name="PersonaDeleteButton" Content="删除人格" Width="120" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaRefreshButton" Content="刷新人格列表" MinWidth="100" Padding="10,0" Height="32"/>
+            <Button x:Name="PersonaSwitchButton" Content="切换为人格" MinWidth="100" Padding="10,0" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaNewButton" Content="新建空白人格" MinWidth="100" Padding="10,0" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaCopyButton" Content="复制当前人格" MinWidth="100" Padding="10,0" Height="32" Margin="8,0,0,0"/>
+            <Button x:Name="PersonaDeleteButton" Content="删除人格" MinWidth="100" Padding="10,0" Height="32" Margin="8,0,0,0"/>
             <TextBlock x:Name="PersonaStatusText" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
           </StackPanel>
           <Grid Grid.Row="1" Margin="0,10,0,10">
@@ -504,7 +530,7 @@ function Update-Dashboard {
 $auditGrid.ItemsSource = @(Get-AuditTail $script:ProjectRoot 10)
 $promptBox.Text = Get-PersonaPrompt $script:ProjectRoot
 $games = @(Get-GameWhitelist $script:ProjectRoot)
-$gameCountText.Text = if ($script:CurrentLanguage -eq 'en') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
+$gameCountText.Text = if ($script:CurrentLanguage -ne 'zh') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
 $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
 $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 
@@ -686,7 +712,7 @@ function Invoke-ElevatedAction([string]$Action, [hashtable]$Extra = @{}) {
 function Refresh-DashboardData {
     $auditGrid.ItemsSource = @(Get-AuditTail $script:ProjectRoot 10)
     $games = @(Get-GameWhitelist $script:ProjectRoot)
-    $gameCountText.Text = if ($script:CurrentLanguage -eq 'en') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
+    $gameCountText.Text = if ($script:CurrentLanguage -ne 'zh') { "Current allowlist: $($games.Count)" } else { "当前白名单：$($games.Count) 个" }
     $gameListBox.ItemsSource = @($games | ForEach-Object { "$($_.Name)  [$($_.Source)]" })
     $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 }
@@ -723,7 +749,7 @@ function Show-AstrBotPluginList {
         $pluginGrid.ItemsSource = @($view)
         $suffix = ''
         if ($data.ApiError) { $suffix = T '（AstrBot 离线，仅显示磁盘信息）' ' (AstrBot offline; disk data only)' }
-        if ($script:CurrentLanguage -eq 'en') {
+        if ($script:CurrentLanguage -ne 'zh') {
             $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' plugins' + $suffix)
         } else {
             $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
@@ -841,7 +867,7 @@ function Show-DashboardModuleList {
         $moduleTrustWarning.Visibility = if ($thirdParty.Count -gt 0) { 'Visible' } else { 'Collapsed' }
     }
     $moduleListBox.ItemsSource = @($view)
-    if ($script:CurrentLanguage -eq 'en') {
+    if ($script:CurrentLanguage -ne 'zh') {
         $moduleStatusText.Text = ('{0} modules · {1} loaded' -f @($scan.Modules).Count, $script:LoadedDashboardModules.Count)
     } else {
         $moduleStatusText.Text = ('共 ' + @($scan.Modules).Count + ' 个模块 · 已加载 ' + $script:LoadedDashboardModules.Count)
@@ -915,7 +941,7 @@ function Show-PluginMarketResults {
             })
         }
         $marketGrid.ItemsSource = @($view)
-        $marketStatusText.Text = if ($script:CurrentLanguage -eq 'en') {
+        $marketStatusText.Text = if ($script:CurrentLanguage -ne 'zh') {
             ('{0} results' -f @($view).Count)
         } else {
             ('找到 ' + @($view).Count + ' 个结果')
@@ -1227,7 +1253,7 @@ function Show-PersonaList {
             if (-not $id) { continue }
             $display = $id
             if ($id -eq $active) {
-                $display += if ($script:CurrentLanguage -eq 'en') { '  (active)' } else { '  （当前）' }
+                $display += '  ' + (T '（当前）' '(active)')
             }
             [void]$view.Add([pscustomobject]@{
                 Display = $display
@@ -1236,13 +1262,8 @@ function Show-PersonaList {
             })
         }
         $personaListBox.ItemsSource = @($view)
-        if ($script:CurrentLanguage -eq 'en') {
-            $personaStatusText.Text = ('{0} personas' -f @($view).Count)
-            $personaActiveText.Text = ('Active persona: ' + $active)
-        } else {
-            $personaStatusText.Text = ('共 {0} 个人格' -f @($view).Count)
-            $personaActiveText.Text = ('当前人格：' + $active)
-        }
+        $personaStatusText.Text = ((T '{0} 个人格' '{0} personas') -f @($view).Count)
+        $personaActiveText.Text = ((T '当前人格：' 'Active persona: ') + $active)
         $selected = @($view | Where-Object { $_.Id -eq $active }) | Select-Object -First 1
         if ($selected) {
             $personaListBox.SelectedItem = $selected
@@ -1281,7 +1302,7 @@ $personaNewButton.Add_Click({
     if (-not $id) { return }
     $id = $id.Trim()
     if (-not $id) { return }
-    $blank = if ($script:CurrentLanguage -eq 'en') {
+    $blank = if ($script:CurrentLanguage -ne 'zh') {
         'You are a new persona. Describe the character, tone and boundaries here.'
     } else {
         '你是一个新的人格。请在这里写人格设定、语气和边界。'

@@ -1,6 +1,6 @@
 {
   "id": "sys_monitor",
-  "name": "实时监控 · Live",
+  "name": "Live Monitor",
   "version": "1.0.0",
   "author": "Cyber-Butler",
   "description": "每 3 秒读取 LibreHardwareMonitor，展示 CPU 温度、GPU 温度和显存占用。",

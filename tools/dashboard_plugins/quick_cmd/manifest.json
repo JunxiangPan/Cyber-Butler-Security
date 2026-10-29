@@ -1,6 +1,6 @@
 {
   "id": "quick_cmd",
-  "name": "指令发送 · Quick",
+  "name": "Quick Cmd",
   "version": "1.0.0",
   "author": "Cyber-Butler",
   "description": "通过 AstrBot Open API 把一句话发送到苏瑾言的 QQ 私聊会话，并提供早安、切本地模型等快捷按钮。",

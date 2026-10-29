@@ -3,455 +3,1173 @@
   "entries": [
     {
       "zh": "Cyber-Butler 主控台",
-      "en": "Cyber-Butler Dashboard"
+      "en": "Cyber-Butler Dashboard",
+      "ja": "サイバーバトラーダッシュボード",
+      "ko": "사이버집사 대시보드",
+      "es": "Panel de control de Cyber-Butler",
+      "fr": "Tableau de bord Cyber-Butler",
+      "de": "Cyber-Butler-Dashboard",
+      "ru": "Панель управления Кибер-дворецкого"
     },
     {
       "zh": "   本地主控台",
-      "en": "   Local Console"
+      "en": "   Local Console",
+      "ja": "ローカルコンソール",
+      "ko": "로컬 콘솔",
+      "es": "Consola local",
+      "fr": "Console locale",
+      "de": "Lokale Konsole",
+      "ru": "Локальная консоль"
     },
     {
       "zh": "版本读取中...",
-      "en": "Reading version..."
+      "en": "Reading version...",
+      "ja": "読書バージョン...",
+      "ko": "읽는 버전...",
+      "es": "Versión de lectura...",
+      "fr": "Version de lecture...",
+      "de": "Leseversion...",
+      "ru": "Читаю версию..."
     },
     {
       "zh": "设置",
-      "en": "Settings"
+      "en": "Settings",
+      "ja": "設定",
+      "ko": "설정",
+      "es": "Configuración",
+      "fr": "Paramètres",
+      "de": "Einstellungen",
+      "ru": "Настройки"
     },
     {
       "zh": "状态大盘",
-      "en": "Status"
+      "en": "Status",
+      "ja": "ステータス",
+      "ko": "상태",
+      "es": "Estado",
+      "fr": "Statut",
+      "de": "Status",
+      "ru": "Статус"
     },
     {
       "zh": "安全风控",
-      "en": "Security"
+      "en": "Security",
+      "ja": "セキュリティ",
+      "ko": "보안",
+      "es": "Seguridad",
+      "fr": "Sécurité",
+      "de": "Sicherheit",
+      "ru": "Безопасность"
     },
     {
       "zh": "人格与记忆",
-      "en": "Persona & Memory"
+      "en": "Persona & Memory",
+      "ja": "ペルソナと記憶",
+      "ko": "페르소나 & 메모리",
+      "es": "Persona y Memoria",
+      "fr": "Personnalité et mémoire",
+      "de": "Persona & Erinnerung",
+      "ru": "Личность и память"
     },
     {
       "zh": "游戏白名单",
-      "en": "Game Allowlist"
+      "en": "Game Allowlist",
+      "ja": "ゲーム許可リスト",
+      "ko": "게임 허용 목록",
+      "es": "Lista de juegos permitidos",
+      "fr": "Liste d'autorisation de jeu",
+      "de": "Spiel-Zulassungsliste",
+      "ru": "Белый список игр"
     },
     {
       "zh": "检测中...",
-      "en": "Checking..."
+      "en": "Checking...",
+      "ja": "確認中...",
+      "ko": "확인 중...",
+      "es": "Comprobando...",
+      "fr": "Vérification...",
+      "de": "Überprüfen...",
+      "ru": "Проверка..."
     },
     {
       "zh": "端口 6185",
-      "en": "Port 6185"
+      "en": "Port 6185",
+      "ja": "ポート6185",
+      "ko": "포트 6185",
+      "es": "Puerto 6185",
+      "fr": "Port 6185",
+      "de": "Port 6185",
+      "ru": "Порт 6185"
     },
     {
       "zh": "端口 18090",
-      "en": "Port 18090"
+      "en": "Port 18090",
+      "ja": "ポート18090",
+      "ko": "포트 18090",
+      "es": "Puerto 18090",
+      "fr": "Port 18090",
+      "de": "Hafen 18090",
+      "ru": "Порт 18090"
     },
     {
       "zh": "端口 5099",
-      "en": "Port 5099"
+      "en": "Port 5099",
+      "ja": "ポート5099",
+      "ko": "포트 5099",
+      "es": "Puerto 5099",
+      "fr": "Port 5099",
+      "de": "Port 5099",
+      "ru": "Порт 5099"
     },
     {
       "zh": "GPU 显存",
-      "en": "GPU VRAM"
+      "en": "GPU VRAM",
+      "ja": "GPU VRAM",
+      "ko": "GPU VRAM",
+      "es": "VRAM de GPU",
+      "fr": "VRAM du GPU",
+      "de": "GPU-VRAM",
+      "ru": "Видеопамять графического процессора"
     },
     {
       "zh": "读取中...",
-      "en": "Reading..."
+      "en": "Reading...",
+      "ja": "読んでいます...",
+      "ko": "읽는 중...",
+      "es": "Leyendo...",
+      "fr": "Lecture...",
+      "de": "Lesen...",
+      "ru": "Чтение..."
     },
     {
       "zh": "当前 Provider（配置读取）",
-      "en": "Current Provider (read-only)"
+      "en": "Current Provider (read-only)",
+      "ja": "現在のプロバイダー (読み取り専用)",
+      "ko": "현재 공급자(읽기 전용)",
+      "es": "Proveedor actual (solo lectura)",
+      "fr": "Fournisseur actuel (lecture seule)",
+      "de": "Aktueller Anbieter (schreibgeschützt)",
+      "ru": "Текущий поставщик (только для чтения)"
     },
     {
       "zh": "重启 AstrBot 服务",
-      "en": "Restart AstrBot"
+      "en": "Restart AstrBot",
+      "ja": "AstrBotを再起動します",
+      "ko": "AstrBot 다시 시작",
+      "es": "Reiniciar AstrBot",
+      "fr": "Redémarrer AstrBot",
+      "de": "Starten Sie AstrBot neu",
+      "ru": "Перезапустите АстрБот"
     },
     {
       "zh": "一键释放显存",
-      "en": "Release VRAM"
+      "en": "Release VRAM",
+      "ja": "VRAMを解放する",
+      "ko": "VRAM 출시",
+      "es": "Liberar VRAM",
+      "fr": "Libérer la VRAM",
+      "de": "Geben Sie VRAM frei",
+      "ru": "Выпустить видеопамять"
     },
     {
       "zh": "打开运行日志目录",
-      "en": "Open Log Directory"
+      "en": "Open Log Directory",
+      "ja": "ログディレクトリを開く",
+      "ko": "로그 디렉토리 열기",
+      "es": "Abrir directorio de registros",
+      "fr": "Ouvrir le répertoire des journaux",
+      "de": "Öffnen Sie das Protokollverzeichnis",
+      "ru": "Открыть каталог журналов"
     },
     {
       "zh": "Phase 1：按钮暂不执行写操作。",
-      "en": "Buttons execute reviewed write actions."
+      "en": "Buttons execute reviewed write actions.",
+      "ja": "ボタンはレビュー済みの書き込みアクションを実行します。",
+      "ko": "버튼은 검토된 쓰기 작업을 실행합니다.",
+      "es": "Los botones ejecutan acciones de escritura revisadas.",
+      "fr": "Les boutons exécutent des actions d’écriture révisées.",
+      "de": "Schaltflächen führen überprüfte Schreibaktionen aus.",
+      "ru": "Кнопки выполняют проверенные действия по записи."
     },
     {
       "zh": "最近 TOTP 审批 / 拦截记录",
-      "en": "Recent TOTP approvals / blocks"
+      "en": "Recent TOTP approvals / blocks",
+      "ja": "最近の TOTP 承認/ブロック",
+      "ko": "최근 TOTP 승인/차단",
+      "es": "Aprobaciones/bloqueos TOTP recientes",
+      "fr": "Approbations/blocages TOTP récents",
+      "de": "Aktuelle TOTP-Genehmigungen/-Sperren",
+      "ru": "Недавние одобрения/блокировки TOTP"
     },
     {
       "zh": "紧急熔断",
-      "en": "Emergency Fuse"
+      "en": "Emergency Fuse",
+      "ja": "非常用ヒューズ",
+      "ko": "비상 퓨즈",
+      "es": "Fusible de emergencia",
+      "fr": "Fusible d'urgence",
+      "de": "Notfallsicherung",
+      "ru": "Аварийный предохранитель"
     },
     {
       "zh": "   紧急熔断功能将在第二阶段接入，需要二次确认和 UAC。",
-      "en": "   Requires typed confirmation and UAC."
+      "en": "   Requires typed confirmation and UAC.",
+      "ja": "入力確認と UAC が必要です。",
+      "ko": "입력된 확인 및 UAC가 필요합니다.",
+      "es": "Requiere confirmación escrita y UAC.",
+      "fr": "Nécessite une confirmation tapée et un UAC.",
+      "de": "Erfordert eine eingegebene Bestätigung und UAC.",
+      "ru": "Требуется набранное подтверждение и UAC."
     },
     {
       "zh": "配置（只读预览）",
-      "en": "Configuration (read-only preview)"
+      "en": "Configuration (read-only preview)",
+      "ja": "構成 (読み取り専用プレビュー)",
+      "ko": "구성(읽기 전용 미리보기)",
+      "es": "Configuración (vista previa de solo lectura)",
+      "fr": "Configuration (aperçu en lecture seule)",
+      "de": "Konfiguration (schreibgeschützte Vorschau)",
+      "ru": "Конфигурация (предварительный просмотр только для чтения)"
     },
     {
       "zh": "QQ 号",
-      "en": "QQ ID"
+      "en": "QQ ID",
+      "ja": "QQ ID",
+      "ko": "QQ아이디",
+      "es": "ID QQ",
+      "fr": "ID QQ",
+      "de": "QQ-ID",
+      "ru": "Идентификатор QQ"
     },
     {
       "zh": "API Key",
-      "en": "API Key"
+      "en": "API Key",
+      "ja": "APIキー",
+      "ko": "API 키",
+      "es": "Clave API",
+      "fr": "Clé API",
+      "de": "API-Schlüssel",
+      "ru": "API-ключ"
     },
     {
       "zh": "保存并同步",
-      "en": "Save and Sync"
+      "en": "Save and Sync",
+      "ja": "保存して同期する",
+      "ko": "저장 및 동기화",
+      "es": "Guardar y sincronizar",
+      "fr": "Enregistrer et synchroniser",
+      "de": "Speichern und synchronisieren",
+      "ru": "Сохранить и синхронизировать"
     },
     {
       "zh": "当前 System Prompt（只读）",
-      "en": "Current System Prompt (read-only)"
+      "en": "Current System Prompt (read-only)",
+      "ja": "現在のシステム プロンプト (読み取り専用)",
+      "ko": "현재 시스템 프롬프트(읽기 전용)",
+      "es": "Aviso del sistema actual (solo lectura)",
+      "fr": "Invite système actuelle (lecture seule)",
+      "de": "Aktuelle Systemaufforderung (schreibgeschützt)",
+      "ru": "Текущая системная подсказка (только для чтения)"
     },
     {
       "zh": "保存并重载 AstrBot",
-      "en": "Save and Reload AstrBot"
+      "en": "Save and Reload AstrBot",
+      "ja": "AstrBot を保存して再ロードする",
+      "ko": "AstrBot 저장 및 다시 로드",
+      "es": "Guardar y recargar AstrBot",
+      "fr": "Enregistrer et recharger AstrBot",
+      "de": "Speichern Sie AstrBot und laden Sie es neu",
+      "ru": "Сохраните и перезагрузите AstrBot"
     },
     {
       "zh": "清空当前对话历史",
-      "en": "Clear Conversation"
+      "en": "Clear Conversation",
+      "ja": "明確な会話",
+      "ko": "명확한 대화",
+      "es": "Conversación clara",
+      "fr": "Conversation claire",
+      "de": "Klare Konversation",
+      "ru": "Чистый разговор"
     },
     {
       "zh": "扫描本地游戏库并同步",
-      "en": "Scan Game Libraries"
+      "en": "Scan Game Libraries",
+      "ja": "ゲームライブラリをスキャンする",
+      "ko": "게임 라이브러리 스캔",
+      "es": "Escanear bibliotecas de juegos",
+      "fr": "Analyser les bibliothèques de jeux",
+      "de": "Spielbibliotheken durchsuchen",
+      "ru": "Сканировать библиотеки игр"
     },
     {
       "zh": "当前白名单：0 个",
-      "en": "Current allowlist: 0"
+      "en": "Current allowlist: 0",
+      "ja": "現在の許可リスト: 0",
+      "ko": "현재 허용 목록: 0",
+      "es": "Lista de permitidos actual: 0",
+      "fr": "Liste d'autorisation actuelle : 0",
+      "de": "Aktuelle Zulassungsliste: 0",
+      "ru": "Текущий белый список: 0"
     },
     {
       "zh": "进程名：",
-      "en": "Process name:"
+      "en": "Process name:",
+      "ja": "プロセス名:",
+      "ko": "프로세스 이름:",
+      "es": "Nombre del proceso:",
+      "fr": "Nom du processus :",
+      "de": "Prozessname:",
+      "ru": "Имя процесса:"
     },
     {
       "zh": "手动添加",
-      "en": "Add"
+      "en": "Add",
+      "ja": "追加",
+      "ko": "추가",
+      "es": "Añadir",
+      "fr": "Ajouter",
+      "de": "Hinzufügen",
+      "ru": "Добавить"
     },
     {
       "zh": "移除选中",
-      "en": "Remove Selected"
+      "en": "Remove Selected",
+      "ja": "選択したものを削除",
+      "ko": "선택 항목 제거",
+      "es": "Eliminar seleccionado",
+      "fr": "Supprimer la sélection",
+      "de": "Ausgewählte entfernen",
+      "ru": "Удалить выбранное"
     },
     {
       "zh": "内置忽略名单（不会触发模型卸载）",
-      "en": "Built-in ignore list (no model unload)"
+      "en": "Built-in ignore list (no model unload)",
+      "ja": "組み込みの無視リスト (モデルのアンロードなし)",
+      "ko": "내장된 무시 목록(모델 언로드 없음)",
+      "es": "Lista de ignorados incorporada (sin descarga de modelo)",
+      "fr": "Liste des ignorés intégrée (pas de déchargement du modèle)",
+      "de": "Integrierte Ignorierliste (kein Entladen des Modells)",
+      "ru": "Встроенный список игнорирования (без выгрузки модели)"
     },
     {
       "zh": "发现新版本",
-      "en": "Update Available"
+      "en": "Update Available",
+      "ja": "利用可能なアップデート",
+      "ko": "업데이트 가능",
+      "es": "Actualización disponible",
+      "fr": "Mise à jour disponible",
+      "de": "Update verfügbar",
+      "ru": "Доступно обновление"
     },
     {
       "zh": "立即更新",
-      "en": "Update Now"
+      "en": "Update Now",
+      "ja": "今すぐアップデート",
+      "ko": "지금 업데이트",
+      "es": "Actualizar ahora",
+      "fr": "Mettre à jour maintenant",
+      "de": "Jetzt aktualisieren",
+      "ru": "Обновить сейчас"
     },
     {
       "zh": "跳过此版本",
-      "en": "Skip This Version"
+      "en": "Skip This Version",
+      "ja": "このバージョンをスキップする",
+      "ko": "이 버전 건너뛰기",
+      "es": "Saltar esta versión",
+      "fr": "Passer cette version",
+      "de": "Überspringen Sie diese Version",
+      "ru": "Пропустить эту версию"
     },
     {
       "zh": "稍后提醒",
-      "en": "Remind Me Later"
+      "en": "Remind Me Later",
+      "ja": "後でリマインドする",
+      "ko": "나중에 알림",
+      "es": "Recuérdamelo más tarde",
+      "fr": "Rappelez-moi plus tard",
+      "de": "Erinnere mich später daran",
+      "ru": "Напомни мне позже"
     },
     {
       "zh": "主题",
-      "en": "Theme"
+      "en": "Theme",
+      "ja": "テーマ",
+      "ko": "테마",
+      "es": "Tema",
+      "fr": "Thème",
+      "de": "Thema",
+      "ru": "Тема"
     },
     {
       "zh": "浅色",
-      "en": "Light"
+      "en": "Light",
+      "ja": "ライト",
+      "ko": "빛",
+      "es": "Luz",
+      "fr": "Lumière",
+      "de": "Licht",
+      "ru": "Свет"
     },
     {
       "zh": "深色",
-      "en": "Dark"
+      "en": "Dark",
+      "ja": "暗い",
+      "ko": "어둠",
+      "es": "oscuro",
+      "fr": "Sombre",
+      "de": "Dunkel",
+      "ru": "Темный"
     },
     {
       "zh": "跟随系统",
-      "en": "Follow System"
+      "en": "Follow System",
+      "ja": "フォローシステム",
+      "ko": "팔로우 시스템",
+      "es": "Seguir el sistema",
+      "fr": "Suivre le système",
+      "de": "Folgen Sie dem System",
+      "ru": "Следовать за системой"
     },
     {
       "zh": "语言",
-      "en": "Language"
+      "en": "Language",
+      "ja": "言語",
+      "ko": "언어",
+      "es": "Idioma",
+      "fr": "Langue",
+      "de": "Sprache",
+      "ru": "Язык"
     },
     {
       "zh": "中文",
-      "en": "Chinese"
+      "en": "Chinese",
+      "ja": "中国語",
+      "ko": "중국어",
+      "es": "chino",
+      "fr": "Chinois",
+      "de": "Chinesisch",
+      "ru": "китайский"
     },
     {
       "zh": "英文",
-      "en": "English"
+      "en": "English",
+      "ja": "英語",
+      "ko": "영어",
+      "es": "ingles",
+      "fr": "Anglais",
+      "de": "Englisch",
+      "ru": "английский"
     },
     {
       "zh": "自定义背景",
-      "en": "Custom Background"
+      "en": "Custom Background",
+      "ja": "カスタム背景",
+      "ko": "사용자 정의 배경",
+      "es": "Fondo personalizado",
+      "fr": "Arrière-plan personnalisé",
+      "de": "Benutzerdefinierter Hintergrund",
+      "ru": "Пользовательский фон"
     },
     {
       "zh": "选择图片",
-      "en": "Choose Image"
+      "en": "Choose Image",
+      "ja": "画像の選択",
+      "ko": "이미지 선택",
+      "es": "Elige Imagen",
+      "fr": "Choisir une image",
+      "de": "Wählen Sie Bild",
+      "ru": "Выберите изображение"
     },
     {
       "zh": "清除背景",
-      "en": "Clear Background"
+      "en": "Clear Background",
+      "ja": "クリアな背景",
+      "ko": "배경 지우기",
+      "es": "Fondo claro",
+      "fr": "Fond clair",
+      "de": "Klarer Hintergrund",
+      "ru": "Очистить фон"
     },
     {
       "zh": "保存设置",
-      "en": "Save Settings"
+      "en": "Save Settings",
+      "ja": "設定の保存",
+      "ko": "설정 저장",
+      "es": "Guardar configuración",
+      "fr": "Enregistrer les paramètres",
+      "de": "Einstellungen speichern",
+      "ru": "Сохранить настройки"
     },
     {
       "zh": "一键备份当前记忆与配置",
-      "en": "Backup Memory & Config"
+      "en": "Backup Memory & Config",
+      "ja": "メモリと設定のバックアップ",
+      "ko": "백업 메모리 및 구성",
+      "es": "Memoria de respaldo y configuración",
+      "fr": "Mémoire de sauvegarde et configuration",
+      "de": "Backup-Speicher und Konfiguration",
+      "ru": "Резервная память и конфигурация"
     },
     {
       "zh": "设置已保存",
-      "en": "Settings saved"
+      "en": "Settings saved",
+      "ja": "設定が保存されました",
+      "ko": "설정이 저장되었습니다.",
+      "es": "Configuración guardada",
+      "fr": "Paramètres enregistrés",
+      "de": "Einstellungen gespeichert",
+      "ru": "Настройки сохранены."
     },
     {
       "zh": "备份完成",
-      "en": "Backup complete"
+      "en": "Backup complete",
+      "ja": "バックアップが完了しました",
+      "ko": "백업 완료",
+      "es": "Copia de seguridad completa",
+      "fr": "Sauvegarde terminée",
+      "de": "Sicherung abgeschlossen",
+      "ru": "Резервное копирование завершено"
     },
     {
       "zh": "关闭",
-      "en": "Close"
+      "en": "Close",
+      "ja": "閉じる",
+      "ko": "닫기",
+      "es": "Cerrar",
+      "fr": "Fermer",
+      "de": "Schließen",
+      "ru": "Закрыть"
     },
     {
       "zh": "未选择背景",
-      "en": "No background selected"
+      "en": "No background selected",
+      "ja": "背景が選択されていません",
+      "ko": "선택한 배경이 없습니다.",
+      "es": "No se seleccionó ningún fondo",
+      "fr": "Aucun arrière-plan sélectionné",
+      "de": "Kein Hintergrund ausgewählt",
+      "ru": "Фон не выбран"
     },
     {
       "zh": "点击检查更新",
-      "en": "Check for updates"
+      "en": "Check for updates",
+      "ja": "アップデートをチェックする",
+      "ko": "업데이트 확인",
+      "es": "Buscar actualizaciones",
+      "fr": "Vérifier les mises à jour",
+      "de": "Suchen Sie nach Updates",
+      "ru": "Проверьте наличие обновлений"
     },
     {
       "zh": "恢复备份",
-      "en": "Restore Backup"
+      "en": "Restore Backup",
+      "ja": "バックアップを復元する",
+      "ko": "백업 복원",
+      "es": "Restaurar copia de seguridad",
+      "fr": "Restaurer la sauvegarde",
+      "de": "Sicherung wiederherstellen",
+      "ru": "Восстановить резервную копию"
     },
     {
       "zh": "版本管理",
-      "en": "Version Management"
+      "en": "Version Management",
+      "ja": "バージョン管理",
+      "ko": "버전 관리",
+      "es": "Gestión de versiones",
+      "fr": "Gestion des versions",
+      "de": "Versionsverwaltung",
+      "ru": "Управление версиями"
     },
     {
       "zh": "恢复",
-      "en": "Restore"
+      "en": "Restore",
+      "ja": "復元",
+      "ko": "복원",
+      "es": "Restaurar",
+      "fr": "Restaurer",
+      "de": "Wiederherstellen",
+      "ru": "Восстановить"
     },
     {
       "zh": "重装当前版本",
-      "en": "Reinstall Current"
+      "en": "Reinstall Current",
+      "ja": "現在の再インストール",
+      "ko": "현재 재설치",
+      "es": "Reinstalar actual",
+      "fr": "Réinstaller le courant",
+      "de": "Current neu installieren",
+      "ru": "Переустановить текущий"
     },
     {
       "zh": "回退到选定版本",
-      "en": "Downgrade Selected"
+      "en": "Downgrade Selected",
+      "ja": "選択したものをダウングレードします",
+      "ko": "다운그레이드 선택됨",
+      "es": "Bajar de categoría seleccionado",
+      "fr": "Rétrograder la sélection",
+      "de": "Downgrade ausgewählt",
+      "ru": "Понизить выбранную версию"
     },
     {
       "zh": "正在影子拷贝并打包...",
-      "en": "Creating shadow copy..."
+      "en": "Creating shadow copy...",
+      "ja": "シャドウ コピーを作成しています...",
+      "ko": "섀도 복사본 생성 중...",
+      "es": "Creando instantáneas...",
+      "fr": "Création d'un cliché instantané...",
+      "de": "Schattenkopie wird erstellt...",
+      "ru": "Создание теневой копии..."
     },
     {
       "zh": "正在请求管理员权限并恢复数据...",
-      "en": "Requesting elevation and restoring data..."
+      "en": "Requesting elevation and restoring data...",
+      "ja": "昇格をリクエストし、データを復元しています...",
+      "ko": "권한 상승 요청 및 데이터 복원 중...",
+      "es": "Solicitando elevación y restaurando datos...",
+      "fr": "Demande d'élévation et restauration des données...",
+      "de": "Höhe anfordern und Daten wiederherstellen...",
+      "ru": "Запрос повышения прав и восстановления данных..."
     },
     {
       "zh": "正在请求管理员权限并重装...",
-      "en": "Requesting elevation and reinstalling..."
+      "en": "Requesting elevation and reinstalling...",
+      "ja": "昇格をリクエストして再インストールしています...",
+      "ko": "권한 상승 요청 및 재설치 중...",
+      "es": "Solicitando elevación y reinstalación...",
+      "fr": "Demande d'élévation et réinstallation...",
+      "de": "Erhöhung anfordern und Neuinstallation durchführen...",
+      "ru": "Запрос на повышение прав и переустановку..."
     },
     {
       "zh": "正在请求管理员权限并回退...",
-      "en": "Requesting elevation and downgrading..."
+      "en": "Requesting elevation and downgrading...",
+      "ja": "昇格とダウングレードをリクエストしています...",
+      "ko": "승격 및 다운그레이드 요청 중...",
+      "es": "Solicitando elevación y degradación...",
+      "fr": "Demande d'élévation et de déclassement...",
+      "de": "Erhöhung und Herabstufung wird beantragt...",
+      "ru": "Запрос на повышение и понижение уровня..."
     },
     {
       "zh": "选择背景",
-      "en": "Choose Background"
+      "en": "Choose Background",
+      "ja": "背景の選択",
+      "ko": "배경 선택",
+      "es": "Elija fondo",
+      "fr": "Choisir l'arrière-plan",
+      "de": "Wählen Sie Hintergrund",
+      "ru": "Выберите фон"
     },
     {
       "zh": "清除动态背景（恢复纯色）",
-      "en": "Clear Animated Background"
+      "en": "Clear Animated Background",
+      "ja": "アニメーション背景をクリア",
+      "ko": "애니메이션 배경 지우기",
+      "es": "Fondo animado claro",
+      "fr": "Fond animé clair",
+      "de": "Klarer animierter Hintergrund",
+      "ru": "Очистить анимированный фон"
     },
     {
       "zh": "启用动态背景（GIF/视频）",
-      "en": "Enable animated background (GIF/video)"
+      "en": "Enable animated background (GIF/video)",
+      "ja": "アニメーション背景 (GIF/ビデオ) を有効にする",
+      "ko": "애니메이션 배경 활성화(GIF/비디오)",
+      "es": "Habilitar fondo animado (GIF/vídeo)",
+      "fr": "Activer l'arrière-plan animé (GIF/vidéo)",
+      "de": "Animierten Hintergrund aktivieren (GIF/Video)",
+      "ru": "Включить анимированный фон (GIF/видео)"
     },
     {
       "zh": "⚠️ 提示：使用动态背景或视频可能会轻微增加 CPU/GPU 占用",
-      "en": "⚠️ Note: animated or video backgrounds may slightly increase CPU/GPU usage"
+      "en": "⚠️ Note: animated or video backgrounds may slightly increase CPU/GPU usage",
+      "ja": "⚠️ 注: アニメーションまたはビデオの背景により、CPU/GPU の使用率がわずかに増加する可能性があります",
+      "ko": "⚠️ 참고: 애니메이션 또는 비디오 배경은 CPU/GPU 사용량을 약간 증가시킬 수 있습니다.",
+      "es": "⚠️ Nota: los fondos animados o de vídeo pueden aumentar ligeramente el uso de CPU/GPU",
+      "fr": "⚠️ Remarque : les arrière-plans animés ou vidéo peuvent légèrement augmenter l'utilisation du CPU/GPU",
+      "de": "⚠️ Hinweis: Animierte oder Videohintergründe können die CPU-/GPU-Auslastung leicht erhöhen",
+      "ru": "⚠️ Примечание. Анимированные или видеофоны могут немного увеличить загрузку ЦП/ГП."
     },
     {
       "zh": "选择背景文件",
-      "en": "Choose a background file"
+      "en": "Choose a background file",
+      "ja": "背景ファイルを選択してください",
+      "ko": "배경 파일을 선택하세요",
+      "es": "Elija un archivo de fondo",
+      "fr": "Choisissez un fichier d'arrière-plan",
+      "de": "Wählen Sie eine Hintergrunddatei",
+      "ru": "Выберите фоновый файл"
     },
     {
       "zh": "文件过大或格式不支持",
-      "en": "File too large or unsupported format"
+      "en": "File too large or unsupported format",
+      "ja": "ファイルが大きすぎるか、サポートされていない形式です",
+      "ko": "파일이 너무 크거나 지원되지 않는 형식",
+      "es": "Archivo demasiado grande o formato no compatible",
+      "fr": "Fichier trop volumineux ou format non pris en charge",
+      "de": "Datei zu groß oder nicht unterstütztes Format",
+      "ru": "Файл слишком большой или неподдерживаемый формат"
     },
     {
       "zh": "背景",
-      "en": "Background"
+      "en": "Background",
+      "ja": "背景",
+      "ko": "배경",
+      "es": "Antecedentes",
+      "fr": "Contexte",
+      "de": "Hintergrund",
+      "ru": "Фон"
     },
     {
       "zh": "动态背景已关闭",
-      "en": "Animated background disabled"
+      "en": "Animated background disabled",
+      "ja": "アニメーション背景が無効になっています",
+      "ko": "애니메이션 배경이 비활성화되었습니다.",
+      "es": "Fondo animado deshabilitado",
+      "fr": "Fond animé désactivé",
+      "de": "Animierter Hintergrund deaktiviert",
+      "ru": "Анимированный фон отключен"
     },
     {
       "zh": "智能体插件",
-      "en": "Agent Plugins"
+      "en": "Agent Plugins",
+      "ja": "エージェントプラグイン",
+      "ko": "에이전트 플러그인",
+      "es": "Complementos de agente",
+      "fr": "Plugins d'agent",
+      "de": "Agent-Plugins",
+      "ru": "Плагины агента"
     },
     {
       "zh": "控制台模块",
-      "en": "Console Modules"
+      "en": "Console Modules",
+      "ja": "コンソールモジュール",
+      "ko": "콘솔 모듈",
+      "es": "Módulos de consola",
+      "fr": "Modules de consoles",
+      "de": "Konsolenmodule",
+      "ru": "Консольные модули"
     },
     {
       "zh": "插件市场",
-      "en": "Plugin Market"
+      "en": "Plugin Market",
+      "ja": "プラグインマーケット",
+      "ko": "플러그인 마켓",
+      "es": "Mercado de complementos",
+      "fr": "Marché des plugins",
+      "de": "Plugin-Markt",
+      "ru": "Рынок плагинов"
     },
     {
       "zh": "刷新",
-      "en": "Refresh"
+      "en": "Refresh",
+      "ja": "リフレッシュ",
+      "ko": "새로고침",
+      "es": "Actualizar",
+      "fr": "Actualiser",
+      "de": "Aktualisieren",
+      "ru": "Обновить"
     },
     {
       "zh": "启用",
-      "en": "Enable"
+      "en": "Enable",
+      "ja": "有効にする",
+      "ko": "활성화",
+      "es": "Habilitar",
+      "fr": "Activer",
+      "de": "Aktivieren",
+      "ru": "Включить"
     },
     {
       "zh": "禁用",
-      "en": "Disable"
+      "en": "Disable",
+      "ja": "無効にする",
+      "ko": "비활성화",
+      "es": "Desactivar",
+      "fr": "Désactiver",
+      "de": "Deaktivieren",
+      "ru": "Отключить"
     },
     {
       "zh": "删除（回收站）",
-      "en": "Delete (Recycle Bin)"
+      "en": "Delete (Recycle Bin)",
+      "ja": "削除（ごみ箱）",
+      "ko": "삭제(휴지통)",
+      "es": "Eliminar (Papelera de reciclaje)",
+      "fr": "Supprimer (Corbeille)",
+      "de": "Löschen (Papierkorb)",
+      "ru": "Удалить (Корзину)"
     },
     {
       "zh": "恢复默认配置",
-      "en": "Restore Defaults"
+      "en": "Restore Defaults",
+      "ja": "デフォルトに戻す",
+      "ko": "기본값 복원",
+      "es": "Restaurar valores predeterminados",
+      "fr": "Restaurer les paramètres par défaut",
+      "de": "Standardeinstellungen wiederherstellen",
+      "ru": "Восстановить настройки по умолчанию"
     },
     {
       "zh": "重新加载",
-      "en": "Reload"
+      "en": "Reload",
+      "ja": "リロード",
+      "ko": "새로고침",
+      "es": "recargar",
+      "fr": "Recharger",
+      "de": "Neu laden",
+      "ru": "Перезагрузить"
     },
     {
       "zh": "打开模块目录",
-      "en": "Open Module Folder"
+      "en": "Open Module Folder",
+      "ja": "モジュールフォルダを開く",
+      "ko": "모듈 폴더 열기",
+      "es": "Abrir carpeta del módulo",
+      "fr": "Ouvrir le dossier du module",
+      "de": "Öffnen Sie den Modulordner",
+      "ru": "Открыть папку модуля"
     },
     {
       "zh": "搜索",
-      "en": "Search"
+      "en": "Search",
+      "ja": "検索",
+      "ko": "검색",
+      "es": "Buscar",
+      "fr": "Rechercher",
+      "de": "Suchen",
+      "ru": "Поиск"
     },
     {
       "zh": "审查并安装",
-      "en": "Review & Install"
+      "en": "Review & Install",
+      "ja": "レビューとインストール",
+      "ko": "검토 및 설치",
+      "es": "Revisar e instalar",
+      "fr": "Vérifier et installer",
+      "de": "Überprüfen und installieren",
+      "ru": "Обзор и установка"
     },
     {
       "zh": "选择一个插件查看详情。",
-      "en": "Select a plugin to see details."
+      "en": "Select a plugin to see details.",
+      "ja": "プラグインを選択して詳細を表示します。",
+      "ko": "세부정보를 보려면 플러그인을 선택하세요.",
+      "es": "Seleccione un complemento para ver los detalles.",
+      "fr": "Sélectionnez un plugin pour voir les détails.",
+      "de": "Wählen Sie ein Plugin aus, um Details anzuzeigen.",
+      "ru": "Выберите плагин, чтобы увидеть подробности."
     },
     {
       "zh": "搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。",
-      "en": "Search, then review the static security scan and AstrBot compatibility before installing."
+      "en": "Search, then review the static security scan and AstrBot compatibility before installing.",
+      "ja": "検索して、インストールする前に静的セキュリティ スキャンと AstrBot の互換性を確認してください。",
+      "ko": "검색한 다음 설치하기 전에 정적 보안 검사 및 AstrBot 호환성을 검토하세요.",
+      "es": "Busque y luego revise el análisis de seguridad estático y la compatibilidad con AstrBot antes de instalar.",
+      "fr": "Recherchez, puis examinez l'analyse de sécurité statique et la compatibilité d'AstrBot avant l'installation.",
+      "de": "Suchen Sie und überprüfen Sie dann vor der Installation den statischen Sicherheitsscan und die AstrBot-Kompatibilität.",
+      "ru": "Выполните поиск, а затем проверьте статическое сканирование безопасности и совместимость с AstrBot перед установкой."
     },
     {
       "zh": "系统日志",
-      "en": "System Log"
+      "en": "System Log",
+      "ja": "システムログ",
+      "ko": "시스템 로그",
+      "es": "Registro del sistema",
+      "fr": "Journal système",
+      "de": "Systemprotokoll",
+      "ru": "Системный журнал"
     },
     {
       "zh": "一键复制错误信息",
-      "en": "Copy Error Log"
+      "en": "Copy Error Log",
+      "ja": "エラーログのコピー",
+      "ko": "오류 로그 복사",
+      "es": "Copiar registro de errores",
+      "fr": "Copier le journal des erreurs",
+      "de": "Fehlerprotokoll kopieren",
+      "ru": "Копировать журнал ошибок"
     },
     {
       "zh": "清空",
-      "en": "Clear"
+      "en": "Clear",
+      "ja": "クリア",
+      "ko": "지우기",
+      "es": "Borrar",
+      "fr": "Effacer",
+      "de": "Klar",
+      "ru": "Очистить"
     },
     {
       "zh": "日志文件：%LOCALAPPDATA%/CyberButler/ui-errors.log",
-      "en": "Log file: %LOCALAPPDATA%/CyberButler/ui-errors.log"
+      "en": "Log file: %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "ja": "ログ ファイル: %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "ko": "로그 파일: %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "es": "Archivo de registro: %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "fr": "Fichier journal : %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "de": "Protokolldatei: %LOCALAPPDATA%/CyberButler/ui-errors.log",
+      "ru": "Файл журнала: %LOCALAPPDATA%/CyberButler/ui-errors.log"
     },
     {
       "zh": "刷新人格列表",
-      "en": "Refresh Personas"
+      "en": "Refresh Personas",
+      "ja": "ペルソナを更新する",
+      "ko": "페르소나 새로 고침",
+      "es": "Actualizar personas",
+      "fr": "Actualiser les personnages",
+      "de": "Personas aktualisieren",
+      "ru": "Обновить персоны"
     },
     {
       "zh": "切换为人格",
-      "en": "Switch Persona"
+      "en": "Switch Persona",
+      "ja": "ペルソナの切り替え",
+      "ko": "페르소나 전환",
+      "es": "Cambiar de persona",
+      "fr": "Changer de personnage",
+      "de": "Persona wechseln",
+      "ru": "Сменить персонаж"
     },
     {
       "zh": "新建空白人格",
-      "en": "New Blank Persona"
+      "en": "New Blank Persona",
+      "ja": "新しい空白のペルソナ",
+      "ko": "새로운 블랭크 페르소나",
+      "es": "Nueva persona en blanco",
+      "fr": "Nouveau personnage vierge",
+      "de": "Neue leere Persona",
+      "ru": "Новая пустая персона"
     },
     {
       "zh": "复制当前人格",
-      "en": "Copy Persona"
+      "en": "Copy Persona",
+      "ja": "ペルソナをコピーする",
+      "ko": "페르소나 복사",
+      "es": "Copiar persona",
+      "fr": "Copier le personnage",
+      "de": "Persona kopieren",
+      "ru": "Копировать профиль"
     },
     {
       "zh": "删除人格",
-      "en": "Delete Persona"
+      "en": "Delete Persona",
+      "ja": "ペルソナの削除",
+      "ko": "페르소나 삭제",
+      "es": "Eliminar persona",
+      "fr": "Supprimer le personnage",
+      "de": "Persona löschen",
+      "ru": "Удалить личность"
     },
     {
       "zh": "切换人格会更新 AstrBot 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。",
-      "en": "Switching updates AstrBot's default persona and reloads the config; deleting a non-default persona is backed up to backups/personas first."
+      "en": "Switching updates AstrBot's default persona and reloads the config; deleting a non-default persona is backed up to backups/personas first.",
+      "ja": "切り替えると、AstrBot のデフォルトのペルソナが更新され、設定がリロードされます。デフォルト以外のペルソナを削除すると、最初にバックアップ/ペルソナにバックアップされます。",
+      "ko": "전환하면 AstrBot의 기본 페르소나가 업데이트되고 구성이 다시 로드됩니다. 기본이 아닌 페르소나를 삭제하면 먼저 백업/페르소나에 백업됩니다.",
+      "es": "El cambio actualiza la personalidad predeterminada de AstrBot y recarga la configuración; La eliminación de una persona no predeterminada se realiza primero en copias de seguridad/personas.",
+      "fr": "La commutation met à jour le personnage par défaut d'AstrBot et recharge la configuration ; la suppression d'un personnage autre que celui par défaut est d'abord sauvegardée dans des sauvegardes/personnages.",
+      "de": "Beim Wechsel wird die Standardpersona von AstrBot aktualisiert und die Konfiguration neu geladen. Das Löschen einer nicht standardmäßigen Persona wird zunächst in Backups/Personas gesichert.",
+      "ru": "При переключении обновляется образ AstrBot по умолчанию и перезагружается конфигурация; при удалении образа, отличного от стандартного, сначала создается резервная копия/персонажа."
     },
     {
       "zh": "打开 AstrBot WebUI",
-      "en": "Open AstrBot WebUI"
+      "en": "Open AstrBot WebUI",
+      "ja": "AstBot WebUIを開く",
+      "ko": "AstrBot WebUI 열기",
+      "es": "Abra la interfaz web de AstrBot",
+      "fr": "Ouvrir l'interface utilisateur Web d'AstrBot",
+      "de": "Öffnen Sie die AstrBot-WebUI",
+      "ru": "Откройте веб-интерфейс AstrBot"
     },
     {
       "zh": "打开 SnowLuma WebUI",
-      "en": "Open SnowLuma WebUI"
+      "en": "Open SnowLuma WebUI",
+      "ja": "SnowLuma WebUI を開く",
+      "ko": "SnowLuma WebUI 열기",
+      "es": "Abra la interfaz de usuario web de SnowLuma",
+      "fr": "Ouvrir l'interface utilisateur Web de SnowLuma",
+      "de": "Öffnen Sie die SnowLuma-WebUI",
+      "ru": "Открыть веб-интерфейс SnowLuma"
     },
     {
       "zh": "TOTP Broker 为后台无头服务，无 Web 管理界面",
-      "en": "The TOTP Broker is a headless background service and has no web UI."
+      "en": "The TOTP Broker is a headless background service and has no web UI.",
+      "ja": "TOTP ブローカーはヘッドレス バックグラウンド サービスであり、Web UI はありません。",
+      "ko": "TOTP 브로커는 헤드리스 백그라운드 서비스이며 웹 UI가 없습니다.",
+      "es": "TOTP Broker es un servicio en segundo plano sin cabeza y no tiene interfaz de usuario web.",
+      "fr": "Le TOTP Broker est un service d’arrière-plan sans tête et n’a pas d’interface utilisateur Web.",
+      "de": "Der TOTP Broker ist ein Headless-Hintergrunddienst und verfügt über keine Web-Benutzeroberfläche.",
+      "ru": "TOTP Broker — это автономная фоновая служба, не имеющая веб-интерфейса."
     },
     {
       "zh": "插件",
-      "en": "Plugin"
+      "en": "Plugin",
+      "ja": "プラグイン",
+      "ko": "플러그인",
+      "es": "Complemento",
+      "fr": "Plugin",
+      "de": "Plugin",
+      "ru": "Плагин"
     },
     {
       "zh": "显示名",
-      "en": "Display Name"
+      "en": "Display Name",
+      "ja": "表示名",
+      "ko": "표시 이름",
+      "es": "Nombre para mostrar",
+      "fr": "Nom d'affichage",
+      "de": "Anzeigename",
+      "ru": "Отображаемое имя"
     },
     {
       "zh": "版本",
-      "en": "Version"
+      "en": "Version",
+      "ja": "バージョン",
+      "ko": "버전",
+      "es": "Versión",
+      "fr": "Version",
+      "de": "Version",
+      "ru": "Версия"
     },
     {
       "zh": "作者",
-      "en": "Author"
+      "en": "Author",
+      "ja": "著者",
+      "ko": "작성자",
+      "es": "Autor",
+      "fr": "Auteur",
+      "de": "Autor",
+      "ru": "Автор"
     },
     {
       "zh": "状态",
-      "en": "State"
+      "en": "State",
+      "ja": "州",
+      "ko": "상태",
+      "es": "Estado",
+      "fr": "État",
+      "de": "Zustand",
+      "ru": "Состояние"
     },
     {
       "zh": "兼容",
-      "en": "Compatible"
+      "en": "Compatible",
+      "ja": "互換性がある",
+      "ko": "호환 가능",
+      "es": "Compatible",
+      "fr": "Compatible",
+      "de": "Kompatibel",
+      "ru": "Совместимый"
     },
     {
       "zh": "星标",
-      "en": "Stars"
+      "en": "Stars",
+      "ja": "スター",
+      "ko": "별",
+      "es": "estrellas",
+      "fr": "Étoiles",
+      "de": "Sterne",
+      "ru": "Звезды"
     },
     {
       "zh": "来源",
-      "en": "Source"
+      "en": "Source",
+      "ja": "ソース",
+      "ko": "원천",
+      "es": "Fuente",
+      "fr": "Source",
+      "de": "Quelle",
+      "ru": "Источник"
     },
     {
       "zh": "AstrBot 官方市场",
-      "en": "AstrBot Official"
+      "en": "AstrBot Official",
+      "ja": "アストラボット公式",
+      "ko": "AstrBot 공식",
+      "es": "Oficial de AstrBot",
+      "fr": "AstrBot Officiel",
+      "de": "AstrBot-Beamter",
+      "ru": "Официальный сайт AstrBot"
     },
     {
       "zh": "⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！",
-      "en": "⚠️ Warning: dashboard modules run with the current user's highest privileges. Only install modules you trust!"
+      "en": "⚠️ Warning: dashboard modules run with the current user's highest privileges. Only install modules you trust!",
+      "ja": "⚠️ 警告: ダッシュボード モジュールは、現在のユーザーの最高の権限で実行されます。信頼できるモジュールのみをインストールしてください。",
+      "ko": "⚠️ 경고: 대시보드 모듈은 현재 사용자의 가장 높은 권한으로 실행됩니다. 신뢰할 수 있는 모듈만 설치하세요!",
+      "es": "⚠️ Advertencia: los módulos del panel se ejecutan con los privilegios más altos del usuario actual. ¡Instale sólo módulos en los que confíe!",
+      "fr": "⚠️ Attention : les modules du tableau de bord s'exécutent avec les privilèges les plus élevés de l'utilisateur actuel. Installez uniquement les modules en qui vous avez confiance !",
+      "de": "⚠️ Warnung: Dashboard-Module werden mit den höchsten Berechtigungen des aktuellen Benutzers ausgeführt. Installieren Sie nur Module, denen Sie vertrauen!",
+      "ru": "⚠️ Внимание: модули панели мониторинга запускаются с наивысшими привилегиями текущего пользователя. Устанавливайте только те модули, которым доверяете!"
     },
     {
       "zh": "回退到历史版本",
-      "en": "Downgrade to a Historical Version"
+      "en": "Downgrade to a Historical Version",
+      "ja": "旧バージョンへのダウングレード",
+      "ko": "기록 버전으로 다운그레이드",
+      "es": "Bajar a una versión histórica",
+      "fr": "Passer à une version historique",
+      "de": "Downgrade auf eine historische Version",
+      "ru": "Переход на историческую версию"
     },
     {
       "zh": "⚠️ 将用所选发布版本覆盖目标目录的代码（包括本地改动）。\n聊天数据和配置会先做安全备份。\n\n输入 DOWNGRADE VERSION 继续：",
-      "en": "⚠️ The selected release will overwrite the target directory code, including local changes.\nChat data and configuration are backed up first.\n\nType DOWNGRADE VERSION to continue:"
+      "en": "⚠️ The selected release will overwrite the target directory code, including local changes.\nChat data and configuration are backed up first.\n\nType DOWNGRADE VERSION to continue:",
+      "ja": "⚠️ 選択したリリースは、ローカルの変更を含め、ターゲット ディレクトリのコードを上書きします。\nチャット データと設定が最初にバックアップされます。\n\n「DOWNGRADE VERSION」と入力して続行します。",
+      "ko": "⚠️ 선택한 릴리스는 로컬 변경 사항을 포함하여 대상 디렉터리 코드를 덮어씁니다.\n채팅 데이터 및 구성이 먼저 백업됩니다.\n\n계속하려면 DOWNGRADE VERSION을 입력하세요.",
+      "es": "⚠️ La versión seleccionada sobrescribirá el código del directorio de destino, incluidos los cambios locales.\nPrimero se realiza una copia de seguridad de los datos y la configuración del chat.\n\nEscriba BAJAR DE VERSIÓN para continuar:",
+      "fr": "⚠️ La version sélectionnée écrasera le code du répertoire cible, y compris les modifications locales.\nLes données de discussion et la configuration sont d'abord sauvegardées.\n\nTapez VERSION TÉLÉGRÉE pour continuer :",
+      "de": "⚠️ Die ausgewählte Version überschreibt den Zielverzeichniscode, einschließlich lokaler Änderungen.\nChatdaten und Konfiguration werden zunächst gesichert.\n\nGeben Sie DOWNGRADE-VERSION ein, um fortzufahren:",
+      "ru": "⚠️ Выбранная версия перезапишет код целевого каталога, включая локальные изменения.\nСначала копируются данные и конфигурация чата.\n\nВведите DOWNGRADE VERSION, чтобы продолжить:"
     },
     {
       "zh": "⚠️ 版本回退风险：\n\n- 将用所选版本覆盖目标目录的代码（包括本地改动）。\n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。\n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。\n- 回退后配置格式可能不兼容，建议先备份。\n\n输入 DOWNGRADE VERSION 继续：",
-      "en": "⚠️ Downgrade risks:\n\n- The selected version overwrites the target directory code, including local changes.\n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.\n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.\n- Configuration formats may be incompatible; back up first.\n\nType DOWNGRADE VERSION to continue:"
+      "en": "⚠️ Downgrade risks:\n\n- The selected version overwrites the target directory code, including local changes.\n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.\n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.\n- Configuration formats may be incompatible; back up first.\n\nType DOWNGRADE VERSION to continue:",
+      "ja": "⚠️ ダウングレードのリスク:\n\n- 選択したバージョンは、ローカルの変更を含め、ターゲット ディレクトリ コードを上書きします。\n- v1.1.0 より前のバージョンには、自動更新、ダッシュボード、バックアップ ローテーションが含まれていない可能性があります。\n- 古いバージョンには update-manifest.json がない場合があります。ツールはコードを上書きするのではなく、安全に中止されます。\n- 構成形式に互換性がない可能性があります。まずバックアップしてください。\n\n「DOWNGRADE VERSION」と入力して続行します。",
+      "ko": "⚠️ 다운그레이드 위험:\n\n- 선택한 버전이 로컬 변경 사항을 포함하여 대상 디렉터리 코드를 덮어씁니다.\n- v1.1.0 이전 버전에는 자동 업데이트, 대시보드 및 백업 순환이 부족할 수 있습니다.\n- 이전 버전에는 update-manifest.json이 없을 수 있습니다. 코드를 덮어쓰는 대신 도구가 안전하게 중단됩니다.\n- 구성 형식이 호환되지 않을 수 있습니다. 먼저 백업하세요.\n\n계속하려면 DOWNGRADE VERSION을 입력하세요.",
+      "es": "⚠️ Riesgos de degradación:\n\n- La versión seleccionada sobrescribe el código del directorio de destino, incluidos los cambios locales.\n- Las versiones anteriores a la v1.1.0 pueden carecer de actualización automática, panel de control y rotación de copias de seguridad.\n- Es posible que las versiones anteriores no tengan update-manifest.json; la herramienta cancela de forma segura en lugar de sobrescribir el código.\n- Los formatos de configuración pueden ser incompatibles; retroceda primero.\n\nEscriba BAJAR DE VERSIÓN para continuar:",
+      "fr": "⚠️ Risques de déclassement :\n\n- La version sélectionnée écrase le code du répertoire cible, y compris les modifications locales.\n- Les versions antérieures à la v1.1.0 peuvent manquer de mise à jour automatique, de tableau de bord et de rotation des sauvegardes.\n- Les anciennes versions peuvent ne pas avoir de update-manifest.json ; l'outil s'arrête en toute sécurité au lieu d'écraser le code.\n- Les formats de configuration peuvent être incompatibles ; sauvegardez d'abord.\n\nTapez VERSION TÉLÉGRÉE pour continuer :",
+      "de": "⚠️ Downgrade-Risiken:\n\n– Die ausgewählte Version überschreibt den Zielverzeichniscode, einschließlich lokaler Änderungen.\n– Bei Versionen vor v1.1.0 fehlen möglicherweise die automatische Aktualisierung, das Dashboard und die Backup-Rotation.\n– Alte Versionen verfügen möglicherweise nicht über update-manifest.json; Das Tool bricht sicher ab, anstatt den Code zu überschreiben.\n- Konfigurationsformate sind möglicherweise nicht kompatibel. erstmal sichern.\n\nGeben Sie DOWNGRADE-VERSION ein, um fortzufahren:",
+      "ru": "⚠️ Риски понижения рейтинга:\n\n- Выбранная версия перезаписывает код целевого каталога, включая локальные изменения.\n- В версиях до версии 1.1.0 может отсутствовать автоматическое обновление, панель управления и ротация резервных копий.\n- В старых версиях может отсутствовать update-manifest.json; инструмент безопасно прерывает работу вместо перезаписи кода.\n- Форматы конфигурации могут быть несовместимы; сначала сделайте резервную копию.\n\nВведите DOWNGRADE VERSION, чтобы продолжить:"
+    },
+    {
+      "zh": "当前版本：",
+      "en": "Current version: ",
+      "ja": "現在のバージョン:",
+      "ko": "현재 버전:",
+      "es": "Versión actual:",
+      "fr": "Version actuelle :",
+      "de": "Aktuelle Version:",
+      "ru": "Текущая версия:"
+    },
+    {
+      "zh": "当前人格：",
+      "en": "Active persona: ",
+      "ja": "現在の性格:",
+      "ko": "현재 성격:",
+      "es": "Personalidad actual:",
+      "fr": "Personnalité actuelle :",
+      "de": "Aktuelle Persönlichkeit:",
+      "ru": "Текущая личность:"
+    },
+    {
+      "zh": "（当前）",
+      "en": "(active)",
+      "ja": "（現在）",
+      "ko": "(현재의)",
+      "es": "(actual)",
+      "fr": "(actuel)",
+      "de": "(aktuell)",
+      "ru": "(текущий)"
+    },
+    {
+      "zh": "{0} 个人格",
+      "en": "{0} personas",
+      "ja": "{0} 性格",
+      "ko": "{0} 성격",
+      "es": "{0} Personalidad",
+      "fr": "{0} Personnalité",
+      "de": "{0} Persönlichkeit",
+      "ru": "{0} Личность"
     }
   ]
 }

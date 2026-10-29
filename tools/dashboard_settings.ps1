@@ -54,14 +54,17 @@ function Apply-Language([string]$language, $root = $null) {
     if (-not (Test-Path -LiteralPath $script:I18nFile)) { return }
     try {
         $data = Get-Content -LiteralPath $script:I18nFile -Raw -Encoding UTF8 | ConvertFrom-Json
-        $forward = @{}
-        $backward = @{}
+        $langs = @('zh','en','ja','ko','es','fr','de','ru')
+        $map = @{}
         foreach ($entry in @($data.entries)) {
-            $zh = [string]$entry.zh
-            $en = [string]$entry.en
-            if ($zh) { $forward[$zh] = $en; $backward[$en] = $zh }
+            $target = [string]$entry.$language
+            if (-not $target) { $target = [string]$entry.en }
+            if (-not $target) { $target = [string]$entry.zh }
+            foreach ($lang in $langs) {
+                $value = [string]$entry.$lang
+                if ($value) { $map[$value] = $target }
+            }
         }
-        $map = if ($language -eq 'en') { $forward } else { $backward }
         foreach ($el in @(Get-Descendants $root)) {
             if ($el -is [Windows.Controls.TextBlock] -and $map.ContainsKey([string]$el.Text)) {
                 $el.Text = $map[[string]$el.Text]
@@ -328,7 +331,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="设置" Width="700" Height="700" WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
-        Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
+        Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI, Segoe UI, Yu Gothic UI, Malgun Gothic">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
   <Grid Margin="24">
     <Grid.RowDefinitions>
@@ -348,7 +351,10 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
       <TextBlock Text="语言" Width="130" VerticalAlignment="Center"/>
       <ComboBox x:Name="LanguageCombo" Width="220">
-        <ComboBoxItem Content="中文"/><ComboBoxItem Content="英文"/>
+        <ComboBoxItem Content="中文" Tag="zh"/><ComboBoxItem Content="English" Tag="en"/>
+        <ComboBoxItem Content="日本語" Tag="ja"/><ComboBoxItem Content="한국어" Tag="ko"/>
+        <ComboBoxItem Content="Español" Tag="es"/><ComboBoxItem Content="Français" Tag="fr"/>
+        <ComboBoxItem Content="Deutsch" Tag="de"/><ComboBoxItem Content="Русский" Tag="ru"/>
       </ComboBox>
     </StackPanel>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
@@ -438,6 +444,14 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
 
     $themeCombo = $dlg.FindName('ThemeCombo')
     $languageCombo = $dlg.FindName('LanguageCombo')
+    $languageCombo.Add_SelectionChanged({
+        try {
+            $code = [string]$languageCombo.SelectedItem.Tag
+            if (-not $code) { return }
+            if ($script:BgPreview) { $script:BgPreview.language = $code }
+            Apply-Language $code $dlg
+        } catch { }
+    }.GetNewClosure())
     $pathText = $dlg.FindName('BackgroundPath')
     $backgroundStatus = $dlg.FindName('BackgroundStatus')
     $animToggle = $dlg.FindName('AnimToggle')
@@ -570,7 +584,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 [Windows.MessageBox]::Show($dlg, '请选择一个带发布资产的历史版本。', '版本回退', 'OK', 'Warning') | Out-Null
                 return
             }
-            $warning = if ($script:CurrentLanguage -eq 'en') { "⚠️ Downgrade risks:`n`n- The selected version overwrites the target directory code, including local changes.`n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.`n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.`n- Configuration formats may be incompatible; back up first.`n`nType DOWNGRADE VERSION to continue:" } else { "⚠️ 版本回退风险：`n`n- 将用所选版本覆盖目标目录的代码（包括本地改动）。`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续：" }
+            $warning = if ($script:CurrentLanguage -ne 'zh') { "⚠️ Downgrade risks:`n`n- The selected version overwrites the target directory code, including local changes.`n- Versions before v1.1.0 may lack auto-update, the dashboard and backup rotation.`n- Old versions may have no update-manifest.json; the tool aborts safely instead of overwriting code.`n- Configuration formats may be incompatible; back up first.`n`nType DOWNGRADE VERSION to continue:" } else { "⚠️ 版本回退风险：`n`n- 将用所选版本覆盖目标目录的代码（包括本地改动）。`n- v1.1.0 之前的版本可能没有自动更新、Dashboard、备份轮转等能力。`n- 旧版本可能缺少 update-manifest.json，缺失时本工具会安全中止，不覆盖代码。`n- 回退后配置格式可能不兼容，建议先备份。`n`n输入 DOWNGRADE VERSION 继续：" }
             $answer = Read-InputDialog (T '回退到历史版本' 'Downgrade to a Historical Version') $warning $dlg
             Write-SettingsLog ('downgrade confirmation=' + $answer)
             if ($answer -cne 'DOWNGRADE VERSION') { $operationStatus.Text = '已取消版本回退。'; return }
@@ -589,7 +603,10 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     })
 
     $themeCombo.SelectedIndex = switch ($settings.theme) { 'dark' { 1 } 'system' { 2 } default { 0 } }
-    $languageCombo.SelectedIndex = if ($settings.language -eq 'en') { 1 } else { 0 }
+    $langCodes = @('zh','en','ja','ko','es','fr','de','ru')
+    $langIndex = [Array]::IndexOf($langCodes, [string]$settings.language)
+    if ($langIndex -lt 0) { $langIndex = 0 }
+    $languageCombo.SelectedIndex = $langIndex
     $animToggle.IsChecked = [bool]$settings.enable_animated_bg
     if ($settings.background) { $pathText.Text = $settings.background }
 
@@ -655,7 +672,10 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
 
     $dlg.FindName('SaveSettings').Add_Click({
         $settings.theme = [string](@('light', 'dark', 'system'))[[int]$themeCombo.SelectedIndex]
-        $settings.language = if ($languageCombo.SelectedIndex -eq 1) { 'en' } else { 'zh' }
+        $languageCodes = @('zh','en','ja','ko','es','fr','de','ru')
+        $languageIndex = [int]$languageCombo.SelectedIndex
+        if ($languageIndex -lt 0 -or $languageIndex -ge $languageCodes.Count) { $languageIndex = 0 }
+        $settings.language = $languageCodes[$languageIndex]
         $settings.background = [string]$script:BgPreview.background
         $settings.enable_animated_bg = [bool]$script:BgPreview.enable_animated_bg
         $script:BgSuppressRestart = $true
