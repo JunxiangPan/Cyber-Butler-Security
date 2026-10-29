@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "af830d9fef0506b3637db8c52c0d242e78312009d773ccf9c0b966ec833ac01e",
-      "size": 1634
+      "sha256": "d7187472272533d4877e1e89064690c54f4448b006fcc8e61c2367646f0b10d7",
+      "size": 1654
     },
     {
       "path": "LICENSE",
@@ -144,8 +144,8 @@
     },
     {
       "path": "RELEASE_NOTES_v1.3.2.md",
-      "sha256": "1991c5a04216a5ee3d275db22223b25acca33bf650f7440b9545804ab22ba209",
-      "size": 3320
+      "sha256": "599973ab7358366ca46d426cc3b6e905201de1611be37b1f87a10f85bd5fef56",
+      "size": 3755
     },
     {
       "path": "SECURITY.md",
@@ -316,6 +316,11 @@
       "path": "plugins/astrbot_plugin_weather_tools/metadata.yaml",
       "sha256": "ae674032c484345ba21b3de9d5b6e12888b65df294c0511b5529190076015b78",
       "size": 373
+    },
+    {
+      "path": "pytest.ini",
+      "sha256": "4551307f5b1a58adb7ec215d513089ba670b1737b81ada5a5863afe796d67343",
+      "size": 52
     },
     {
       "path": "requirements-dev.txt",
@@ -718,11 +723,6 @@
       "size": 1341
     },
     {
-      "path": "tools/send_email_test.py",
-      "sha256": "e5b20154d5951a4c1b18381e681b97f16e6fd3dbfc48f67475c78d89affd1303",
-      "size": 2462
-    },
-    {
       "path": "tools/setup_email_secret.ps1",
       "sha256": "5dbd24ef61cf2b905e6e1e1feb6fd0348e8d8fba8ee6a78ab6959c6252840449",
       "size": 5625
@@ -764,8 +764,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "5fc6603aa1f27bb072918ce5b9f66267148371c18ad5d08fc28dd1ff030cd7d5",
-      "size": 11005
+      "sha256": "4600c1d51f8de442cb2c8042eb36e36fa7e992606613723ba968d3709c6ccffa",
+      "size": 10754
     },
     {
       "path": "tools/update_gui.ps1",
