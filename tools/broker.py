@@ -297,11 +297,14 @@ def execute(request: dict) -> tuple[bool, str]:
 def timeout_watch(request_id: str) -> None:
     global _pending
     time.sleep(TIMEOUT_SECONDS)
+    expired = False
     with _lock:
         if _pending and _pending.get("id") == request_id:
             _pending = None
-            send_qq("哥，验证码超时了，这次操作没有执行。")
-            log(f"timeout: {request_id}")
+            expired = True
+    if expired:
+        send_qq("哥，验证码超时了，这次操作没有执行。")
+        log(f"timeout: {request_id}")
 
 
 def _is_verification_locked() -> bool:
@@ -365,14 +368,23 @@ def run_request(payload: dict) -> tuple[int, dict]:
             prompt = f"哥，瑾言想覆盖 {target.name}，请输入动态验证码。"
         else:
             prompt = _manifest_prompt(manifest or [])
-        if not send_qq(prompt):
-            _pending = None
-            return 502, {"ok": False, "error": "QQ challenge send failed"}
         if action == "send":
             event = threading.Event()
             _send_events[request_id] = event
             _send_results[request_id] = False
-        else:
+
+    # Network I/O must never run while _lock is held: send_qq can block for
+    # up to 60 seconds, and the lock only protects pending-state transitions.
+    if not send_qq(prompt):
+        with _lock:
+            if _pending and _pending.get("id") == request_id:
+                _pending = None
+            _send_events.pop(request_id, None)
+            _send_results.pop(request_id, None)
+        return 502, {"ok": False, "error": "QQ challenge send failed"}
+
+    with _lock:
+        if action != "send":
             threading.Thread(target=timeout_watch, args=(request_id,), daemon=True).start()
         log(f"challenge sent: {request_id} {action} {target_text}")
 

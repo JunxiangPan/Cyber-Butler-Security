@@ -51,16 +51,24 @@ def main() -> int:
         encoding="utf-8",
     )
     # The broker runs as SYSTEM; the QR/recovery text belong to YOUR_USER_NAME.
-    subprocess.run(
-        ["icacls", str(SECRET_FILE), "/inheritance:r", "/grant:r", "SYSTEM:(F)", "*S-1-5-32-544:(F)"],
-        check=False,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["icacls", str(RECOVERY_STORE), "/inheritance:r", "/grant:r", "SYSTEM:(F)", "*S-1-5-32-544:(F)"],
-        check=False,
-        capture_output=True,
-    )
+    def _lock_down(path: Path) -> None:
+        """Apply a fail-closed ACL; a failed icacls call aborts setup."""
+        result = subprocess.run(
+            [
+                "icacls", str(path), "/inheritance:r", "/grant:r",
+                "SYSTEM:(F)", "*S-1-5-32-544:(F)",
+                "/deny", "AstrBot_User:(R)",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(f"icacls failed for {path}: {detail}")
+
+    _lock_down(SECRET_FILE)
+    _lock_down(RECOVERY_STORE)
     print("TOTP_QR_SAVED", QR_PATH)
     print("TOTP_RECOVERY_SAVED", RECOVERY_TXT)
     print("TOTP_SECRET_SAVED", SECRET_FILE)

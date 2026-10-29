@@ -368,3 +368,83 @@ avoid confusing the owner or inheriting one deployment's naming. The sanitizer
 now accepts `--platform`, `--agent-name`, and `--shared-folder`; these literals
 were not globally rewritten here because tests and runtime UMO/path defaults
 must be updated together.
+
+## 9. Auto-Update Threat Model
+
+The update mechanism is deliberately split:
+
+- `tools/check_update.ps1` is a read-only GitHub API check and needs no administrator rights;
+- `tools/update.ps1` is an administrator-only action and requires an explicit `UPDATE` confirmation.
+
+**Automatic silent code replacement is forbidden.** The check may run automatically and notify the owner through QQ, but applying an update is a human-approved, privileged operation.
+
+### Controls
+
+- GitHub asset SHA-256 is checked before extraction.
+- `update-manifest.json` binds every file to a SHA-256 and a size.
+- The complete archive is pre-validated before any file is written.
+- Zip path traversal, absolute paths, symlinks, data paths, config files, database files, tokens, and secret material are rejected.
+- Only manifest-listed code under the allow-listed roots is replaced; user data is never touched.
+- A code-only backup is made before replacement; service health failure triggers a code rollback.
+
+### Residual risk: no publisher identity signature
+
+This release does **not** ship a GPG or minisign publisher signature. The GitHub asset hash and manifest hashes protect against transfer corruption, but they are delivered by the same GitHub account as the release. A compromised GitHub account, a malicious maintainer, or a compromised release pipeline can replace both the asset and its manifest. In that scenario the updater cannot establish publisher identity.
+
+Do not describe this as supply-chain provenance. A future version may add a detached minisign/GPG signature and a pinned public key in the updater.
+
+## 10. Production Update Overlay
+
+The public release contains placeholders (`YOUR_PROJECT_PATH`, `YOUR_QQ_ID`,
+`YOUR_SERVICE_USER`, and related values). It is a sanitized distribution, not a
+drop-in replacement for a customized production tree.
+
+Production updates must use `tools/update_merge.ps1` with a local
+`local-overlay.json` that is outside the release package, outside git, and ACL
+restricted so `AstrBot_User` has no access.
+
+Controls:
+
+- Protected paths (`AstrBot/data`, `cmd_config.json`, token files, databases,
+  backups) cause the entire package to be rejected.
+- Rendering is limited to runtime files. README, docs, and tests retain
+  placeholders intentionally.
+- The live root requires the exact phrase `UPDATE PRODUCTION`; `-Yes` cannot
+  bypass the prompt.
+- Local code changes outside the overlay are rejected unless
+  `-AllowLocalCodeChanges` is explicitly supplied.
+- The updater backs up code and the overlay, verifies the data fingerprint, and
+  rolls back on failure.
+
+Residual risk: the overlay contains real deployment identifiers. Its ACL and
+the administrator boundary are part of the trust boundary. There is still no
+publisher identity signature; GitHub asset SHA-256 and manifest hashes are not
+a substitute for one.
+
+## 11. GUI Update Shell
+
+`tools/cyber_butler_dashboard.ps1` contains the integrated update shell. It must
+never implement or bypass download, hash verification, overlay rendering,
+protected-path checks, backup, or rollback.
+
+The dashboard GUI:
+
+- runs unprivileged for checking and writing the local skip file;
+- checks silently on startup and only shows an update modal when a new version exists;
+- calls `update_merge.ps1` for production updates, never `update.ps1`;
+- requires the exact phrase `UPDATE PRODUCTION` before requesting UAC;
+- passes `-ConfirmationText` to `update_merge.ps1`, which validates it again;
+- treats release notes as plain text, not HTML;
+- is launched by `wscript.exe` + `cyber_butler_dashboard.vbs`; the standalone
+  `update_gui` shortcut is deprecated and removed by the shortcut scripts.
+
+`skip_version.json` is a user preference, not a security boundary. It can be
+edited or deleted by the desktop user. It cannot disable hash verification.
+
+## Platform Prefix Drift Warning
+
+If you change the platform/session prefix (`qq_sujinyan` or the UMO separator),
+you MUST update `astrbot_plugin_security_gate` in the same change. Its
+`PRIVATE_UMO` / known-marker checks and fail-closed behavior are tied to the
+prefix. A one-sided change makes the gate treat legitimate messages as an
+unknown transport and block everything.

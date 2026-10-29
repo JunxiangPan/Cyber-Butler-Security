@@ -102,3 +102,6 @@ test-*.txt
 # Deployment profile templates (safe, no secrets)
 !config.pro.example.json
 !config.lite.example.json
+
+# Release update manifest
+!update-manifest.json
