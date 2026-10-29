@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.1.1",
+  "version": "1.2.0",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -19,8 +19,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "147503ce2d3cd826c76c755aaf478b76f5a3706c011f08e2846cc1834597e600",
-      "size": 21011
+      "sha256": "399b2fabec8d328853d7fb2cac09214c47cae1927fc44c941781a95ef724b9ef",
+      "size": 21875
     },
     {
       "path": "README_de.md",
@@ -113,13 +113,18 @@
       "size": 3252
     },
     {
+      "path": "RELEASE_NOTES_v1.2.0.md",
+      "sha256": "856cdbda40ef11d06bdd88fc24e2f1a8eb3ff8653ea2fd644ab4d9003fd8f06e",
+      "size": 3504
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "cc52f678848b814373757b460383bf61960e4943c203735adde0a350b3e50989",
+      "sha256": "1e5b51cde515396a9fa762909cf8ca6584ccc564b325d2eebeea76175fe95c4d",
       "size": 6
     },
     {
@@ -146,6 +151,11 @@
       "path": "docs/HARDWARE_TROUBLESHOOTING.md",
       "sha256": "bef69fe589458baac44e714d18d699813de0ff054da012474c12fcadfd6799a6",
       "size": 4069
+    },
+    {
+      "path": "docs/PLUGIN_ECOSYSTEM.md",
+      "sha256": "a4b6a3e280cd19be9516a372439b636721aa10250c2ddac4606ba7dedcb5d098",
+      "size": 8779
     },
     {
       "path": "docs/RAG-知识库指南.md",
@@ -288,6 +298,26 @@
       "size": 427
     },
     {
+      "path": "tests/fixtures/plugins/clean/main.py",
+      "sha256": "73d9c1b8d6d413a5ea82917362a7cb32ae45c44b43f8eeda98693b3e97c01612",
+      "size": 172
+    },
+    {
+      "path": "tests/fixtures/plugins/clean/metadata.yaml",
+      "sha256": "d6f1d48910be1cbe4fd5c28f1c146072bc4b75708d9a464ac4e9ad05a04f9b80",
+      "size": 65
+    },
+    {
+      "path": "tests/fixtures/plugins/high_risk/main.py",
+      "sha256": "438415c407fe7642a93b2d4e6669608e8b7c7544ebf959a93d53db1b06a2ecc2",
+      "size": 193
+    },
+    {
+      "path": "tests/fixtures/plugins/high_risk/metadata.yaml",
+      "sha256": "450cea3fba90e8071d53c968956fd117f0e72a0b5b7385f8091e80e00ddfb7ef",
+      "size": 69
+    },
+    {
       "path": "tests/test_acl_model.py",
       "sha256": "cfa2e8e369bd37bda9bf6a881e8d7606813bc9c51b9fea9ddaecb5bb6ac7b56e",
       "size": 2483
@@ -306,6 +336,11 @@
       "path": "tests/test_media_bypass.py",
       "sha256": "9610806d36c72f49c20d39d8463a1236646a2027e8853f159f840148a28d09e2",
       "size": 1049
+    },
+    {
+      "path": "tests/test_plugin_security_scanner.py",
+      "sha256": "cedd50500cd9b455ba7d88dab69cc249db6ae37bd37db5419eca3833e3a9da18",
+      "size": 2559
     },
     {
       "path": "tests/test_security_gate.py",
@@ -374,8 +409,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "dc8e6db66f4fd3b96c47410b6f70d2c1e8fbbfced1e4d9bfb00b9750aacd3a71",
-      "size": 45032
+      "sha256": "41b55e0815ea922f6136e36b60c39195c40d4adfc25ac70afb6fdbe1d645616c",
+      "size": 69825
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
@@ -399,8 +434,8 @@
     },
     {
       "path": "tools/dashboard_background.ps1",
-      "sha256": "e19b505c4f8c2d2f60a9209e3bfe580e7af5f4ca22b3f9971ab219bf95bf3248",
-      "size": 41055
+      "sha256": "4ce59439b0107d4d26d0c9a595c53e1923f43c164fc339ec69fcbed028351323",
+      "size": 41061
     },
     {
       "path": "tools/dashboard_core.ps1",
@@ -414,8 +449,23 @@
     },
     {
       "path": "tools/dashboard_i18n.json",
-      "sha256": "39eb64219e1a0e1087cda1b3d30c96f69b1614888162bf82bf1f930f76115b41",
-      "size": 6301
+      "sha256": "20b27d03ee7993c7b4ade56d0c129078eb20560ae4000486b17f45fde99cd6af",
+      "size": 7509
+    },
+    {
+      "path": "tools/dashboard_modules.ps1",
+      "sha256": "c0d7e0e4e6947becae78bf00e42948fbc1d4e92314142895e90858787e0cda12",
+      "size": 12023
+    },
+    {
+      "path": "tools/dashboard_plugins/hello_world/logic.ps1",
+      "sha256": "acc74b834ab473d2b283ef52cefa13b6c355d6c98e6208382418bece683abc33",
+      "size": 1151
+    },
+    {
+      "path": "tools/dashboard_plugins/hello_world/ui.xaml",
+      "sha256": "f21f69ca39cb411ff6766084471d86deca876486a496c6d2eae39965e171be11",
+      "size": 3093
     },
     {
       "path": "tools/dashboard_restore.ps1",
@@ -511,6 +561,26 @@
       "path": "tools/package_release.py",
       "sha256": "2b5348e1f8a46690eaea14c1fb79a9b043b6df10403ccd7dd031af8d2f4be92a",
       "size": 3268
+    },
+    {
+      "path": "tools/plugin_hub.ps1",
+      "sha256": "89225c55f4c9b6e05303a3db0ab1d1eb88928a3e3a2563e62355307c32d465bf",
+      "size": 12345
+    },
+    {
+      "path": "tools/plugin_market.ps1",
+      "sha256": "89c9c2cdd8ed649a4288cea46e202243820367ea2194fe6a267241bff28cd979",
+      "size": 12047
+    },
+    {
+      "path": "tools/plugin_review_dialog.ps1",
+      "sha256": "12714caf204a5a8badcb4444d9f066ab750e8ab4f2f2205fe1b44b73380b4a85",
+      "size": 8479
+    },
+    {
+      "path": "tools/plugin_security_scanner.ps1",
+      "sha256": "9755e6db597e45b8fd146e20ddcc68e72a009855f9b2deefc25d59789ead41a7",
+      "size": 11045
     },
     {
       "path": "tools/privacy_scan.py",
