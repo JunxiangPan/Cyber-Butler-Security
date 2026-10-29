@@ -11,7 +11,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$vbs = Join-Path $PSScriptRoot 'cyber_butler_dashboard.vbs'
+# Always target the INSTALL ROOT's launcher, even when this script is executed
+# from the release tree. The shortcut, the running code, the VERSION file and
+# the updater then all live in the same directory.
+if (-not $ProjectRoot) { $ProjectRoot = Split-Path -Parent $PSScriptRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
+$vbs = Join-Path $ProjectRoot 'tools\cyber_butler_dashboard.vbs'
 if (-not (Test-Path -LiteralPath $vbs)) { throw "Dashboard launcher missing: $vbs" }
 $desktop = [Environment]::GetFolderPath('Desktop')
 $legacy = Join-Path $desktop '检查苏瑾言更新.lnk'
@@ -20,9 +25,8 @@ $shortcutPath = Join-Path $desktop ($ShortcutName + '.lnk')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
-if (-not $ProjectRoot) { $ProjectRoot = Split-Path -Parent $PSScriptRoot }
-$shortcut.Arguments = '"' + $vbs + '" "' + (Resolve-Path -LiteralPath $ProjectRoot).Path + '"'
-$shortcut.WorkingDirectory = $PSScriptRoot
+$shortcut.Arguments = '"' + $vbs + '" "' + $ProjectRoot + '"'
+$shortcut.WorkingDirectory = Join-Path $ProjectRoot 'tools'
 $shortcut.IconLocation = (Join-Path $env:SystemRoot 'System32\shell32.dll') + ',21'
 $shortcut.Description = 'Cyber-Butler 本地主控台（只读）'
 $shortcut.Save()

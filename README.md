@@ -150,6 +150,11 @@ Or create a no-console desktop shortcut:
 powershell -ExecutionPolicy Bypass -File tools\create_dashboard_shortcut.ps1 -ProjectRoot D:\qq苏瑾言大肥鱼
 ```
 
+The shortcut always targets
+`<ProjectRoot>\tools\cyber_butler_dashboard.vbs`, even when the helper runs from
+the release tree. The running code, the `VERSION` file and the updater
+therefore stay in one install root.
+
 The dashboard reads ports, GPU, provider configuration, audit JSONL, persona
 prompt and game lists, and supports the first reviewed write actions through
 UAC helpers. It is not an AstrBot plugin and is not registered as an LLM tool.
