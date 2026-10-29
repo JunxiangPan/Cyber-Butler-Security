@@ -37,9 +37,9 @@ class FakeServices:
     def logs(self, name: str, lines: int):
         return {"ok": True, "name": name, "available": True, "lines": ["line sk-secret123456", "path C:\\Users\\me\\secret.txt"]}
 
-    async def send_chat(self, text: str) -> dict:
+    async def enqueue_chat(self, text: str) -> dict:
         self.sent.append(text)
-        return {"ok": True, "sent": True}
+        return {"ok": True, "queued": True}
 
 
 def make_client(tmp_path: Path):
@@ -47,7 +47,6 @@ def make_client(tmp_path: Path):
         admin_email="owner@example.com",
         data_dir=tmp_path / "data",
         project_root=tmp_path,
-        owner_umo="qq_test:FriendMessage:1",
         astrbot_token_file=tmp_path / "token",
     )
     settings.ensure_data()

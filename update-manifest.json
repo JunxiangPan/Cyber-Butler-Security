@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.4.0",
+  "version": "1.4.1",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -164,7 +164,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "78b591400c56b7b67b8cb3b2b8a8e65e9093897f02ce0878e6b5405c68620fa7",
+      "sha256": "7d072b48526b023950e4c48db01e8c273554a6401119f5691e7589ba9bc65d9d",
       "size": 6
     },
     {
@@ -814,13 +814,13 @@
     },
     {
       "path": "webui/README.md",
-      "sha256": "6c23ca6bf7b40a8f42fb3b589f7db64c3f2655fb96ee08362da7b6f0792ec3bb",
-      "size": 1935
+      "sha256": "d8cbfad75d88c1e778c225d4375b4543f0b3259a6118277be7ca10bbe0a241aa",
+      "size": 2172
     },
     {
       "path": "webui/app.py",
-      "sha256": "ca7021d846f3727501cee4811a05cf6b4fa4bac253b4849312a9c379e7c5743c",
-      "size": 9078
+      "sha256": "93e1658a7fb51734c936742ff965ca9891d440960c99652ae572a4a4829a7e47",
+      "size": 9081
     },
     {
       "path": "webui/auth.py",
@@ -829,8 +829,8 @@
     },
     {
       "path": "webui/example-config.json",
-      "sha256": "700826d75795f089acc553ce0ffd27d75f8cfaf044bf52443be56fc373fce0f3",
-      "size": 624
+      "sha256": "03dd986a92e30f72bf2f146d57fe9df1b771e327c9d50870a1fb7401bfe07daf",
+      "size": 569
     },
     {
       "path": "webui/mailer.py",
@@ -854,18 +854,18 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "15dd456181626a7a6a76b7a8eca1ac4a1cabdca36ac3e70488bb387d7f457a23",
-      "size": 8164
+      "sha256": "174907dbfd3007d06ef2a59c7776afda4391bdb1927ed672ebb2bd8316246342",
+      "size": 8364
     },
     {
       "path": "webui/settings.py",
-      "sha256": "f507c73b932da0cda7101ebddf6384b426184a9d0fac3980274d11a8d18048b4",
-      "size": 4371
+      "sha256": "63613563c04cff5a672f4fe7af18d3ce619f773b2dbc0f5fa819c22b54b42e2b",
+      "size": 4292
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "1a81ac36f6c7abffd7524c7371d26b67f19fca47dfa6bba768d82f6669dde977",
-      "size": 7905
+      "sha256": "142674dd6efe6c3f6505492021166ff066d3de15e7cbb071d9b08ed5da9d8e73",
+      "size": 8054
     },
     {
       "path": "webui/static/login.js",
@@ -874,8 +874,8 @@
     },
     {
       "path": "webui/static/theme-phase2.css",
-      "sha256": "9727d64940990088727087c19770a0e24d8f3bfd30501908de8e54aa1e7b4680",
-      "size": 3476
+      "sha256": "d80c011e5c5a89f4942016194de216249493f31c01a7bdf495e4d535aec612ce",
+      "size": 3971
     },
     {
       "path": "webui/static/theme.css",
@@ -889,8 +889,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "83f427171a82e537378f9435ebbe0b6af173b14fc32951560df76f84a3b41e1f",
-      "size": 5475
+      "sha256": "aca9879ffa637017e63122e759615440091bab51acb64cca4f254480cffa59c8",
+      "size": 5499
     },
     {
       "path": "webui/templates/login.html",
@@ -899,8 +899,8 @@
     },
     {
       "path": "webui/tests/test_phase2_api.py",
-      "sha256": "5756b68cf2b247fe913d04731efad3fe0ac39218b351417baf173879bcd06013",
-      "size": 4310
+      "sha256": "81c833c05161e76a42a6127d5c8da71c7f1942862f29d3e1b521e29bfd0cca91",
+      "size": 4270
     },
     {
       "path": "webui/tests/test_webui_auth.py",

@@ -1,0 +1,8 @@
+name: astrbot_plugin_webui_bridge
+display_name: Web UI 入站桥接
+desc: 把经过认证的 Web UI 文本转成固定主人的入站私聊事件；不提供 Bot 出站发送能力。
+version: 1.0.0
+author: Cyber-Butler
+astrbot_version: ">=4.24"
+support_platforms:
+  - aiocqhttp

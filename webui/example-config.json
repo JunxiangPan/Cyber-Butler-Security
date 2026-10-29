@@ -12,7 +12,6 @@
   "project_root": "C:\\path\\to\\Cyber-Butler",
   "astrbot_api": "http://127.0.0.1:6185",
   "astrbot_token_file": ".astrbot_token",
-  "owner_umo": "qq_sujinyan:FriendMessage:YOUR_QQ_ID",
   "lhm_url": "http://127.0.0.1:18085/data.json",
   "broker_port": 18090,
   "snowluma_port": 5099,

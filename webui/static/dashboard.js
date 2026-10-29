@@ -18,6 +18,7 @@
   const chatText = $("chatText");
   const chatCount = $("chatCount");
   const chatStatus = $("chatStatus");
+  const chatLog = $("chatLog");
   const chatSend = $("chatSend");
 
   const redirectIfUnauthorized = (response) => {
@@ -163,9 +164,16 @@
         chatStatus.className = "chat-status error";
         return;
       }
+      const empty = chatLog?.querySelector(".chat-empty");
+      if (empty) empty.remove();
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble user";
+      bubble.textContent = message;
+      chatLog?.append(bubble);
+      if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
       chatText.value = "";
       chatCount.textContent = "0 / 500";
-      chatStatus.textContent = "已发送给苏瑾言。";
+      chatStatus.textContent = "已发送。苏瑾言会在 QQ 回复你。";
       chatStatus.className = "chat-status ok";
     } catch {
       chatStatus.textContent = "网络异常，请稍后再试。";

@@ -209,7 +209,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         if not text:
             raise HTTPException(status_code=400, detail="empty message")
         try:
-            return await services.send_chat(text)
+            return await services.enqueue_chat(text)
         except ServiceError as exc:
             logger.warning("chat send failed: %s", exc)
             return JSONResponse({"ok": False, "message": "消息发送失败。"}, status_code=502)

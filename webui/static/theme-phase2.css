@@ -53,3 +53,8 @@
   .panel-head { align-items: flex-start; }
   .log-panel pre { max-height: 180px; }
 }
+
+.chat-log { display: grid; gap: 8px; margin-bottom: 10px; max-height: 220px; overflow: auto; }
+.chat-empty { margin: 0; color: var(--muted); font-size: 12px; }
+.chat-bubble { max-width: 86%; padding: 9px 12px; border-radius: 14px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-bubble.user { justify-self: end; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); }

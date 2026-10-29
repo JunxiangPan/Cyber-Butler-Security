@@ -1,8 +1,11 @@
 # Cyber-Butler Web UI
 
-Phase 2: email OTP login, read-only status/temperature/plugin/log APIs, and a
-fixed-recipient plain-text chat. No delete, restore, reload, persona or
-arbitrary-path endpoints exist.
+Phase 2: email OTP login, read-only status/temperature/plugin/log APIs, and an
+inbound-only fixed-owner chat bridge. The sidecar never calls AstrBot's outbound
+`/api/v1/im/messages`; the `astrbot_plugin_webui_bridge` plugin turns the Web
+text into an owner event, and 苏瑾言 replies through QQ.
+
+No delete, restore, reload, persona or arbitrary-path endpoints exist.
 
 ## Requirements
 
@@ -24,8 +27,8 @@ Copy-Item example-config.json config.json
 Edit `webui/config.json`:
 
 - `admin_email`: the only mailbox allowed to receive OTPs;
-- `owner_umo`: the fixed AstrBot conversation, e.g.
-  `qq_sujinyan:FriendMessage:YOUR_QQ_ID`;
+- Configure the `astrbot_plugin_webui_bridge` plugin with `owner_id` and
+  `platform_id`; this is the only fixed recipient of Web UI messages.
 - `project_root`: project root containing `AstrBot/`;
 - `host`: `127.0.0.1` for local only, or `0.0.0.0` for LAN;
 - `cookie_secure`: `false` for local HTTP, `true` behind HTTPS.

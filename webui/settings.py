@@ -24,7 +24,6 @@ class Settings:
     project_root: Path = field(default_factory=lambda: BASE_DIR.parent.parent)
     astrbot_api: str = "http://127.0.0.1:6185"
     astrbot_token_file: Path | None = None
-    owner_umo: str = ""
     lhm_url: str = "http://127.0.0.1:18085/data.json"
     broker_port: int = 18090
     snowluma_port: int = 5099
@@ -68,7 +67,6 @@ class Settings:
             project_root=project_root,
             astrbot_api=str(raw.get("astrbot_api") or "http://127.0.0.1:6185"),
             astrbot_token_file=token_path,
-            owner_umo=str(raw.get("owner_umo") or ""),
             lhm_url=str(raw.get("lhm_url") or "http://127.0.0.1:18085/data.json"),
             broker_port=int(raw.get("broker_port") or 18090),
             snowluma_port=int(raw.get("snowluma_port") or 5099),

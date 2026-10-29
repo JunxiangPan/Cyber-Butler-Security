@@ -194,24 +194,30 @@ class WebServices:
             "lines": [_redact(line)[:500] for line in tail],
         }
 
-    async def send_chat(self, text: str) -> dict:
+    async def enqueue_chat(self, text: str) -> dict:
+        """Queue an inbound owner event; never send through the bot account."""
         message = str(text or "").strip()
         if not message:
             raise ServiceError("message is empty")
         if len(message) > 500:
             raise ServiceError("message exceeds 500 characters")
-        if not self.settings.owner_umo:
-            raise ServiceError("owner_umo is not configured")
         token = self._token()
+        url = (
+            self.settings.astrbot_api
+            + "/api/v1/plugins/extensions/astrbot_plugin_webui_bridge/send"
+        )
         async with self._chat_lock:
             try:
                 async with httpx.AsyncClient(timeout=20) as client:
                     response = await client.post(
-                        self.settings.astrbot_api + "/api/v1/im/messages",
-                        json={"umo": self.settings.owner_umo, "message": message},
+                        url,
+                        json={"message": message},
                         headers={"Authorization": f"Bearer {token}"},
                     )
                     response.raise_for_status()
+                    payload = response.json()
             except Exception as exc:
-                raise ServiceError(f"chat send failed: {exc}") from exc
-        return {"ok": True, "sent": True, "length": len(message), "at": int(time.time())}
+                raise ServiceError(f"inbound bridge failed: {exc}") from exc
+        if not payload.get("ok"):
+            raise ServiceError("inbound bridge rejected the message")
+        return {"ok": True, "queued": True, "length": len(message), "at": int(time.time())}
