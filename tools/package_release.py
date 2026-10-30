@@ -8,7 +8,9 @@ manifest was generated.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
+import importlib.util
 import json
 import subprocess
 import sys
@@ -21,14 +23,32 @@ import update_core
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def load_baseline_core(path: Path):
+    """Load the updater currently installed on the target machine."""
+    spec = importlib.util.spec_from_file_location("_installed_update_core", path)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"cannot load installed updater: {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def tracked_files() -> list[str]:
-    raw = subprocess.check_output(
-        ["git", "-C", str(ROOT), "ls-files", "-z"]
-    )
+    raw = subprocess.check_output(["git", "-C", str(ROOT), "ls-files", "-z"])
     return [item.decode("utf-8") for item in raw.split(b"\0") if item]
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--baseline-core",
+        default="",
+        help=(
+            "Installed updater to test archive compatibility against. "
+            "Defaults to ../tools/update_core.py when it exists."
+        ),
+    )
+    args = parser.parse_args()
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     if not update_core.VERSION_RE.fullmatch(version):
         raise SystemExit(f"invalid VERSION: {version!r}")
@@ -51,13 +71,43 @@ def main() -> int:
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
+    rejected_self = [
+        rel
+        for rel, _ in entries
+        if rel != "update-manifest.json" and not update_core.is_allowed_path(rel)
+    ]
+    if rejected_self:
+        raise SystemExit(
+            "package contains paths rejected by its own updater: "
+            + ", ".join(rejected_self)
+        )
+
+    baseline_core = args.baseline_core or str(ROOT.parent / "tools" / "update_core.py")
+    baseline_path = Path(baseline_core)
+    if (
+        baseline_path.is_file()
+        and baseline_path.resolve() != (ROOT / "tools" / "update_core.py").resolve()
+    ):
+        installed_core = load_baseline_core(baseline_path)
+        rejected_installed = [
+            rel
+            for rel, _ in entries
+            if rel != "update-manifest.json" and not installed_core.is_allowed_path(rel)
+        ]
+        if rejected_installed:
+            raise SystemExit(
+                "installed updater rejects package paths (patch it before "
+                "packaging): " + ", ".join(rejected_installed)
+            )
+        print(f"compat check OK against {baseline_path}")
+
     manifest_files.sort(key=lambda item: item["path"])
     manifest = update_core.validate_manifest(
         {"schema": 1, "version": version, "files": manifest_files}
     )
-    manifest_bytes = (
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
-    ).encode("utf-8")
+    manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode(
+        "utf-8"
+    )
     (ROOT / "update-manifest.json").write_bytes(manifest_bytes)
 
     temporary = ROOT.parent / (output.name + ".tmp")
@@ -82,7 +132,9 @@ def main() -> int:
 
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     print(f"wrote {output}")
-    print(f"version={version} files={len(manifest['files'])} bytes={output.stat().st_size}")
+    print(
+        f"version={version} files={len(manifest['files'])} bytes={output.stat().st_size}"
+    )
     print(f"sha256={digest}")
     return 0
 
