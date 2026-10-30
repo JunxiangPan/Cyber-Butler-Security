@@ -1,10 +1,11 @@
-import csv
+﻿import csv
 import hashlib
 import io
 import json
 import os
 import re
 import shlex
+import time
 import uuid
 import asyncio
 from pathlib import Path
@@ -81,7 +82,7 @@ def _can_send_local_file(
 
 
 # --- TOTP file-egress guard -------------------------------------------------
-TOTP_SHARED_ROOT = Path(r"YOUR_USER_PATH\Desktop\大肥鱼专用文件夹")
+TOTP_SHARED_ROOT = Path(r"YOUR_SHARED_FOLDER")
 TOTP_BROKER_URL = "http://127.0.0.1:18090"
 TOTP_TOKEN_FILE = Path(r"YOUR_PROJECT_PATH\tools\broker_token.txt")
 TOTP_SENSITIVE = re.compile(
@@ -92,6 +93,10 @@ TOTP_ARCHIVE_SUFFIXES = {".zip", ".rar", ".7z", ".tar", ".gz", ".tgz"}
 TOTP_SESSION_SENDS: dict[str, dict] = {}
 TOTP_MAX_SENDS = 5
 TOTP_MAX_BYTES = 50 * 1024 * 1024
+
+
+def _totp_session_key(session: str) -> str:
+    return str(session or "")
 
 
 def _totp_file_owner(path: Path) -> str:
@@ -129,7 +134,7 @@ def _totp_path_risk(local_path: Path, session_key: str) -> tuple[bool, str]:
     owner = _totp_file_owner(resolved).casefold()
     if not owner:
         return True, "无法确认文件所有者"
-    if owner.endswith("YOUR_SERVICE_USER".casefold()):
+    if owner.endswith("AstrBot_User".casefold()):
         return True, "文件由AstrBot创建或拷贝"
     if TOTP_SENSITIVE.search(resolved.name):
         return True, "文件名包含敏感词"

@@ -1,4 +1,4 @@
-﻿"""Safe, dependency-free primitives for Cyber-Butler release updates.
+"""Safe, dependency-free primitives for Cyber-Butler release updates.
 
 The updater itself is deliberately small: this module validates the update
 manifest, rejects every path that could touch user data, and applies only
@@ -116,6 +116,10 @@ def is_allowed_path(value: object) -> bool:
         return True
     if not any(lower.startswith(root) for root in ALLOWED_ROOTS):
         return False
+    if lower.startswith("overlay/astrbot/data/plugins/"):
+        # Explicit plugin overlay patches are code-only, not runtime data.
+        basename = lower.rsplit("/", 1)[-1]
+        return basename.endswith(".py") and not basename.startswith(".")
     parts = lower.split("/")
     if any(part in DENIED_PARTS for part in parts):
         return False

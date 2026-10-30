@@ -10,8 +10,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import re
 import sys
+import time
 from pathlib import Path
 
 import update_core
@@ -54,6 +56,13 @@ PROTECTED_EXACT = {
     "local-overlay.json",
 }
 TEXT_SUFFIXES = {".py", ".ps1", ".psm1", ".vbs", ".bat", ".cmd"}
+OVERLAY_TARGETS = (
+    ("overlay/astrbot/core/", "AstrBot/astrbot/core/"),
+    ("overlay/astrbot/dashboard/", "AstrBot/astrbot/dashboard/"),
+    ("overlay/astrbot/data/plugins/", "AstrBot/data/plugins/"),
+)
+OVERLAY_TARGET_PREFIXES = tuple(target for _, target in OVERLAY_TARGETS)
+logger = logging.getLogger(__name__)
 
 
 class MergeError(ValueError):
@@ -88,6 +97,8 @@ def is_runtime(path: object) -> bool:
         return False
     if value in RUNTIME_EXACT:
         return True
+    if any(value.startswith(prefix) for prefix in OVERLAY_TARGET_PREFIXES):
+        return Path(value).suffix.casefold() in TEXT_SUFFIXES
     if any(value.startswith(prefix) for prefix in RUNTIME_PREFIXES):
         return Path(value).suffix.casefold() in TEXT_SUFFIXES
     return False
@@ -226,6 +237,168 @@ def refresh_baseline(target: Path, overlay_path: Path) -> None:
     )
 
 
+def map_overlay_target(path: object) -> str:
+    """Map one allow-listed overlay source path to its live target path."""
+    value = _norm(path)
+    for source_prefix, target_prefix in OVERLAY_TARGETS:
+        if value.startswith(source_prefix):
+            rest = value[len(source_prefix) :]
+            if not rest:
+                break
+            target = f"{target_prefix}{rest}"
+            if not target.startswith(OVERLAY_TARGET_PREFIXES):
+                raise MergeError(f"overlay target escaped allow-list: {target}")
+            if Path(target).suffix.casefold() not in TEXT_SUFFIXES:
+                raise MergeError(f"overlay target is not a code file: {target}")
+            return target
+    raise MergeError(f"overlay path is not mapped: {value}")
+
+
+def _safe_under(root: Path, path: Path) -> Path:
+    resolved = Path(path).resolve()
+    if not resolved.is_relative_to(Path(root).resolve()):
+        raise MergeError(f"path escaped root: {path}")
+    return resolved
+
+
+def _hash_file(path: Path) -> str:
+    return _sha(Path(path).read_bytes())
+
+
+def apply_overlay(
+    staging: Path,
+    target: Path,
+    manifest: dict,
+    backup: Path | None = None,
+) -> dict:
+    """Apply manifest overlay files and keep a per-file hash backup."""
+    staging = Path(staging).resolve()
+    target = Path(target).resolve()
+    entries = [
+        entry
+        for entry in manifest.get("files", [])
+        if str(entry.get("path", "")).startswith("overlay/")
+    ]
+    skipped: list[str] = []
+    candidates: list[tuple[dict, str, Path, str]] = []
+    for entry in entries:
+        source_rel = _norm(entry.get("path"))
+        source = _safe_under(staging, staging / Path(source_rel))
+        if not source.is_file():
+            logger.warning("overlay source missing; skipped: %s", source_rel)
+            skipped.append(source_rel)
+            continue
+        target_rel = map_overlay_target(source_rel)
+        if target_rel.startswith("AstrBot/data/plugins/"):
+            plugin_name = target_rel[len("AstrBot/data/plugins/") :].split("/", 1)[0]
+            plugin_root = target / "AstrBot" / "data" / "plugins" / plugin_name
+            if not plugin_root.is_dir():
+                logger.warning(
+                    "overlay target plugin missing; skipped: %s", target_rel
+                )
+                skipped.append(source_rel)
+                continue
+        data = source.read_bytes()
+        if len(data) != int(entry.get("size", -1)) or _sha(data) != entry.get(
+            "sha256"
+        ):
+            raise MergeError(f"overlay source hash mismatch: {source_rel}")
+        candidates.append((entry, source_rel, source, target_rel))
+    if not candidates:
+        return {"applied": [], "skipped": skipped, "backup": ""}
+    backup = (
+        Path(backup)
+        if backup
+        else target
+        / "backups"
+        / f"overlay-{time.strftime('%Y%m%d-%H%M%S', time.gmtime())}"
+    )
+    backup = _safe_under(target / "backups", backup)
+    backup.mkdir(parents=True, exist_ok=True)
+    records: list[dict] = []
+    try:
+        for entry, source_rel, source, target_rel in candidates:
+            destination = _safe_under(target, target / Path(target_rel))
+            data = source.read_bytes()
+            existed = destination.is_file()
+            original_hash = _hash_file(destination) if existed else ""
+            if existed:
+                backup_file = _safe_under(backup, backup / Path(target_rel))
+                backup_file.parent.mkdir(parents=True, exist_ok=True)
+                backup_file.write_bytes(destination.read_bytes())
+                if _hash_file(backup_file) != original_hash:
+                    raise MergeError(f"overlay backup hash mismatch: {target_rel}")
+            records.append(
+                {
+                    "source": source_rel,
+                    "target": target_rel,
+                    "existed": existed,
+                    "original_hash": original_hash,
+                    "new_hash": _sha(data),
+                }
+            )
+        (backup / "overlay-manifest.json").write_text(
+            json.dumps({"schema": 1, "records": records}, ensure_ascii=False, indent=2)
+            + "\n",
+            encoding="utf-8",
+        )
+        for record in records:
+            source = _safe_under(staging, staging / Path(record["source"]))
+            destination = _safe_under(target, target / Path(record["target"]))
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            temporary = destination.with_name(destination.name + ".overlay-new")
+            temporary.write_bytes(source.read_bytes())
+            temporary.replace(destination)
+            if _hash_file(destination) != record["new_hash"]:
+                raise MergeError(f"overlay apply hash mismatch: {record['target']}")
+        return {
+            "applied": [record["target"] for record in records],
+            "skipped": skipped,
+            "backup": str(backup),
+        }
+    except Exception:
+        try:
+            restore_overlay(backup, target)
+        except Exception as rollback_exc:
+            raise MergeError(
+                f"overlay apply failed and rollback failed: {rollback_exc}"
+            ) from rollback_exc
+        raise
+
+
+def restore_overlay(backup: Path, target: Path) -> dict:
+    """Restore an overlay backup and verify every original/new-file hash."""
+    backup = Path(backup).resolve()
+    target = Path(target).resolve()
+    manifest_path = backup / "overlay-manifest.json"
+    if not manifest_path.is_file():
+        raise MergeError(f"overlay backup manifest missing: {manifest_path}")
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        raise MergeError("overlay backup has no records")
+    restored: list[str] = []
+    for record in records:
+        target_rel = _norm(record.get("target"))
+        destination = _safe_under(target, target / Path(target_rel))
+        if record.get("existed"):
+            backup_file = _safe_under(backup, backup / Path(target_rel))
+            if not backup_file.is_file():
+                raise MergeError(f"overlay backup file missing: {target_rel}")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            temporary = destination.with_name(destination.name + ".overlay-restore")
+            temporary.write_bytes(backup_file.read_bytes())
+            temporary.replace(destination)
+            if _hash_file(destination) != str(record.get("original_hash")):
+                raise MergeError(f"overlay restore hash mismatch: {target_rel}")
+        else:
+            destination.unlink(missing_ok=True)
+            if destination.exists():
+                raise MergeError(f"overlay new file was not removed: {target_rel}")
+        restored.append(target_rel)
+    return {"restored": restored}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Production overlay renderer")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -251,6 +424,16 @@ def main(argv: list[str] | None = None) -> int:
     refresh = sub.add_parser("refresh-baseline")
     refresh.add_argument("--target", required=True)
     refresh.add_argument("--overlay", required=True)
+
+    apply_overlay_parser = sub.add_parser("apply-overlay")
+    apply_overlay_parser.add_argument("--staging", required=True)
+    apply_overlay_parser.add_argument("--target", required=True)
+    apply_overlay_parser.add_argument("--manifest", required=True)
+    apply_overlay_parser.add_argument("--backup", default="")
+
+    restore_overlay_parser = sub.add_parser("restore-overlay")
+    restore_overlay_parser.add_argument("--backup", required=True)
+    restore_overlay_parser.add_argument("--target", required=True)
 
     args = parser.parse_args(argv)
     try:
@@ -280,6 +463,20 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "refresh-baseline":
             refresh_baseline(Path(args.target), Path(args.overlay))
             print(json.dumps({"ok": True}, ensure_ascii=True))
+            return 0
+        if args.command == "apply-overlay":
+            manifest = update_core.load_manifest(Path(args.manifest))
+            result = apply_overlay(
+                Path(args.staging),
+                Path(args.target),
+                manifest,
+                Path(args.backup) if args.backup else None,
+            )
+            print(json.dumps(result, ensure_ascii=True))
+            return 0
+        if args.command == "restore-overlay":
+            result = restore_overlay(Path(args.backup), Path(args.target))
+            print(json.dumps(result, ensure_ascii=True))
             return 0
     except (OSError, MergeError, update_core.UpdateSafetyError, ValueError) as exc:
         print(f"MERGE_REJECTED: {exc}", file=sys.stderr)

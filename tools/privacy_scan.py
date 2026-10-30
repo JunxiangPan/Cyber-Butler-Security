@@ -23,7 +23,7 @@ EXCLUDED_PARTS = {".git", "__pycache__", ".venv", "node_modules", "backups", "da
 ALLOWED_NUMBERS = {
     "11434", "18090", "18085", "6185", "5099",
     "24576", "49152", "262144", "16000", "20261028",
-    "46233", "99999", "10000", "10001",
+    "46233", "99999", "10000", "10001", "134217728",
 }
 NUMBER_RE = re.compile(r"(?<![0-9A-Za-z])(\d{5,12})(?![0-9A-Za-z])")
 QQ_CONTEXT_RE = re.compile(

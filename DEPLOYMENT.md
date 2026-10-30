@@ -186,6 +186,13 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
   - 其他 memory 的 entries/edges/entry_nodes 数量不变
   - livingmemory.db 与 graph documents DB `PRAGMA integrity_check` 均为 `ok`
 
+## Memorix Telemetry（v1.5.1）
+
+- `AstrBotProviderBridge.generate_text()` 现在会传 `agent_type="plugin"`；UMO / conversation_id / trace_id 在调用方提供时透传。
+- summary 使用独立的 `telemetry_umo`：provider 解析仍用空 UMO，保持 deepseek；统计里的 UMO 才是真实会话。
+- **episode umo 仍为 unknown**：episode_segmentation 当前没有 UMO 来源，不硬编；`agent_type=plugin` 已修正，UMO 修复在 v1.5.2 评估。
+- 不要把 lecture/本地文件路径写进 provider_stats；统计只保存 UMO / conversation_id / trace_id。
+
 ## Release 签名私钥
 
 - 私钥：`C:\ProgramData\CyberButler\keys\update_private.pem`

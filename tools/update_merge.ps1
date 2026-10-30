@@ -60,6 +60,7 @@ if ($DryRun) {
 $log = Join-Path $backup 'update.log'
 $backupCode = Join-Path $backup 'code'
 $backupOverlay = Join-Path $backup 'local-overlay.json'
+$overlayBackup = Join-Path $root ('backups\overlay-' + $stamp)
 
 function Write-Status([string]$stage, [int]$progress, [string]$message) {
     if (-not $StatusFile) { return }
@@ -173,10 +174,18 @@ function Get-LatestAsset {
     if (-not $asset) { throw 'latest release has no public-release-v*.zip asset' }
     $digest = [string]$asset.digest
     if ($digest.StartsWith('sha256:')) { $digest = $digest.Substring(7) }
+    $sigAsset = @($release.assets | Where-Object {
+        $_.name -eq 'update-manifest.sig' -or $_.name -eq 'update-manifest.json.sig'
+    }) | Select-Object -First 1
+    $sigDigest = if ($sigAsset) { [string]$sigAsset.digest } else { '' }
+    if ($sigDigest.StartsWith('sha256:')) { $sigDigest = $sigDigest.Substring(7) }
+    $sigUrl = if ($sigAsset) { [string]$sigAsset.browser_download_url } else { '' }
     return [pscustomobject]@{
         Url = [string]$asset.browser_download_url
         Sha256 = $digest.ToLower()
         Tag = [string]$release.tag_name
+        SignatureUrl = $sigUrl
+        SignatureSha256 = $sigDigest.ToLower()
     }
 }
 
@@ -339,6 +348,7 @@ try {
     }
 
     $localZipSource = ''
+    $latest = $null
     if ($LocalZip) {
         if ($isLive -and -not $DryRun) { throw 'LocalZip is only allowed for a non-live TargetRoot or a DryRun' }
         $localZipSource = (Resolve-Path -LiteralPath $LocalZip).Path
@@ -376,9 +386,26 @@ try {
     & $python $updateCore extract --zip $zip --dest $stage
     if ($LASTEXITCODE -ne 0) { throw 'update_core rejected the archive' }
     $manifestPath = Join-Path $stage 'update-manifest.json'
-    $signaturePath = Join-Path $stage 'update-manifest.json.sig'
     $publicKeyPath = Join-Path $root 'tools/update_pubkey.pem'
-    if (-not (Test-Path -LiteralPath $signaturePath)) { throw 'update manifest signature missing' }
+    $signaturePath = Join-Path $stage 'update-manifest.sig'
+    if (-not (Test-Path -LiteralPath $signaturePath)) {
+        $signaturePath = Join-Path $stage 'update-manifest.json.sig'
+    }
+    if (-not (Test-Path -LiteralPath $signaturePath)) {
+        if ($latest -and $latest.SignatureUrl) {
+            $signaturePath = Join-Path $stage 'update-manifest.sig'
+            Invoke-WebRequest -Uri $latest.SignatureUrl -OutFile $signaturePath -UseBasicParsing -TimeoutSec 60
+            if ($latest.SignatureSha256) {
+                $sigActual = (Get-FileHash -LiteralPath $signaturePath -Algorithm SHA256).Hash.ToLower()
+                if ($sigActual -ne $latest.SignatureSha256) {
+                    throw 'downloaded signature SHA-256 mismatch'
+                }
+            }
+            Write-UpdateLog 'manifest signature asset downloaded'
+        } else {
+            throw 'update manifest signature missing; publish update-manifest.sig as a release asset'
+        }
+    }
     if (-not (Test-Path -LiteralPath $publicKeyPath)) { throw 'update public key missing' }
     & $python (Join-Path $root 'tools/verify_release.py') --manifest $manifestPath --signature $signaturePath --pubkey $publicKeyPath
     if ($LASTEXITCODE -ne 0) { throw 'update manifest signature verification failed' }
@@ -465,6 +492,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'rendered apply failed' }
     Write-UpdateLog 'rendered code applied'
 
+    & $python $mergeCore apply-overlay --staging $stage --target $root --manifest $renderedManifest --backup $overlayBackup
+    if ($LASTEXITCODE -ne 0) { throw 'overlay apply failed' }
+    Write-UpdateLog ('overlay applied; backup=' + $overlayBackup)
+
     & $python $mergeCore refresh-baseline --target $root --overlay $OverlayPath
     if ($LASTEXITCODE -ne 0) { throw 'overlay baseline refresh failed' }
 
@@ -497,6 +528,12 @@ try {
     Write-UpdateLog ('MERGE_FAILED: ' + $_.Exception.Message)
     try {
         if (-not $DryRun) {
+            $overlayManifest = Join-Path $overlayBackup 'overlay-manifest.json'
+            if (Test-Path -LiteralPath $overlayManifest) {
+                & $python $mergeCore restore-overlay --backup $overlayBackup --target $root
+                if ($LASTEXITCODE -ne 0) { throw 'overlay rollback failed' }
+                Write-UpdateLog ('overlay rollback restored from ' + $overlayBackup)
+            }
             if (Test-Path -LiteralPath $backupCode) {
                 $manifestPath = Join-Path $stage 'update-manifest.json'
                 if (Test-Path -LiteralPath $manifestPath) {

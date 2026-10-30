@@ -689,7 +689,7 @@ class AstrBotDashboard:
         if host not in ["localhost", "127.0.0.1"]:
             try:
                 ip_addr = get_local_ip_addresses()
-            except Exception:
+            except Exception as _:
                 pass
         if isinstance(port, str):
             port = int(port)
