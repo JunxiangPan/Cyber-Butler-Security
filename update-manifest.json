@@ -1029,8 +1029,8 @@
     },
     {
       "path": "tools/update_merge_core.py",
-      "sha256": "f2fb73264808c3a82ae82633970207761f04164c9c9043e04793b97357557271",
-      "size": 19197
+      "sha256": "b82e0a3483c04d35f0461e2dcaf47879dbb94dcbab3f53e8f87fabe48a65496d",
+      "size": 19249
     },
     {
       "path": "tools/verify_broker_acl.ps1",

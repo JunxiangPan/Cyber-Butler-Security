@@ -29,6 +29,7 @@ RUNTIME_EXCLUDED = {
     "tools/update_merge.ps1",
     "tools/update.ps1",
     "tools/check_update.ps1",
+    "tools/dashboard_plugins/quick_cmd/logic.ps1",
 }
 RUNTIME_EXACT = {
     "tools/broker.py",
