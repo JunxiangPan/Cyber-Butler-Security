@@ -40,6 +40,7 @@ ALLOWED_ROOT_FILES = {
     "README_de.md",
     "README_ru.md",
     "SECURITY.md",
+    "DEPLOYMENT.md",
     "LICENSE",
     ".gitignore",
     "requirements-dev.txt",

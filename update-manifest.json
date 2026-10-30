@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.4.4",
+  "version": "1.5.0",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -11,6 +11,11 @@
       "path": ".gitignore",
       "sha256": "ef0f0d36f8f55db8fcf089c25d9e12e8a55e43666a0bdb03f5d837465dfb3617",
       "size": 1806
+    },
+    {
+      "path": "DEPLOYMENT.md",
+      "sha256": "1d55111509b54d02698b87ccf84ab6695b5834628fca6b362e7370b44783de0a",
+      "size": 10185
     },
     {
       "path": "LICENSE",
@@ -178,14 +183,19 @@
       "size": 2374
     },
     {
+      "path": "RELEASE_NOTES_v1.5.0.md",
+      "sha256": "7ed19f97f4ad0a1cc055dff5e2da98694a360c8d5941352cd9dcfbf8b278d1c9",
+      "size": 2152
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "d03d8b268b4171328ac2458ce8ca82d69a1fde38469d4e4faae4f8fa8d8a5e35",
-      "size": 6
+      "sha256": "9d06f9026cc1478057f458bab5b5e62e151c8f3b9c8526dc182c5b3b00783d48",
+      "size": 7
     },
     {
       "path": "config.lite.example.json",
@@ -321,6 +331,21 @@
       "path": "plugins/astrbot_plugin_mcp_readonly/metadata.yaml",
       "sha256": "840312e7ac41f3b221bcf20d845e692151a54893cf774abf959dc034a29e4fa6",
       "size": 337
+    },
+    {
+      "path": "plugins/astrbot_plugin_router/_conf_schema.json",
+      "sha256": "0d22940b39db7d892eab9a5b6bded9e8741a91e5da5ee36e6d44162f0f6fb470",
+      "size": 532
+    },
+    {
+      "path": "plugins/astrbot_plugin_router/main.py",
+      "sha256": "c71fafa3fcede10acac6b8006d27a5faf4c8065f42afba7d2357c9035c3f370e",
+      "size": 16407
+    },
+    {
+      "path": "plugins/astrbot_plugin_router/metadata.yaml",
+      "sha256": "2714257355058433d629a1628bfcdf85ce9350bf8b1a1f299ae2363407466972",
+      "size": 268
     },
     {
       "path": "plugins/astrbot_plugin_security_gate/main.py",
@@ -658,6 +683,11 @@
       "size": 45530
     },
     {
+      "path": "tools/game-mode.ps1.router-20261030",
+      "sha256": "f5f3ba70ea47c2ce203787494606e9af97cd1e24fac3fa4d6d7d985d9a64d87c",
+      "size": 48669
+    },
+    {
       "path": "tools/harden_broker_runtime.ps1",
       "sha256": "a911c0cb3459f5b1404a3ae96c9be7519bd0a0cbe010f4ac9bad2d9873f03a8d",
       "size": 1215
@@ -814,8 +844,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "4ead297b307c90db67d8b5405240ac245184c8b491cbc6c893312762f0e937ef",
-      "size": 11065
+      "sha256": "9f95e21236f5f1886c62b674e5447ce8423abca81a7cea166402c0f7129a5d33",
+      "size": 11087
     },
     {
       "path": "tools/update_gui.ps1",
@@ -851,6 +881,11 @@
       "path": "tools/weekly-selfheal.ps1",
       "sha256": "ef1b016e8c84f8087220c8f967ef865ad7becceb882d0df7e8481f2f2b122b2f",
       "size": 9713
+    },
+    {
+      "path": "tools/write_memory_metadata.py",
+      "sha256": "5c775110b5c54edcbb8a1ef435f4329850c58e032d275fd02be2ec2e6001f8ee",
+      "size": 3706
     },
     {
       "path": "webui/README.md",
