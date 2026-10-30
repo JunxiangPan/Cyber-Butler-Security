@@ -21,7 +21,7 @@ SCANNED_SUFFIXES = {".md", ".py", ".ps1", ".yaml", ".yml", ".json", ".txt"}
 EXCLUDED_NAMES = {"privacy_scan.py"}
 EXCLUDED_PARTS = {".git", "__pycache__", ".venv", "node_modules", "backups", "data"}
 ALLOWED_NUMBERS = {
-    "11434", "18090", "18085", "6185", "5099",
+    "11434", "11435", "18090", "18085", "6185", "5099",
     "24576", "49152", "262144", "16000", "20261028",
     "46233", "99999", "10000", "10001", "134217728",
 }

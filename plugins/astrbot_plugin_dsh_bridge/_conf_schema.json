@@ -1,0 +1,12 @@
+{
+  "owner_ids": {
+    "description": "Owner QQ id(s), comma separated. Empty means deny every command.",
+    "type": "string",
+    "default": ""
+  },
+  "platform_names": {
+    "description": "Allowed platform adapter names, comma separated.",
+    "type": "string",
+    "default": "aiocqhttp,qq"
+  }
+}

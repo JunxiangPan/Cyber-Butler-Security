@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.5.2",
+  "version": "1.5.3",
   "files": [
     {
       "path": ".gitattributes",
@@ -19,8 +19,8 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "cbf0bcf3665a8382477725da4a0f06f5a53ead4a5a14e92a1512273ea0e3e706",
-      "size": 12214
+      "sha256": "ed8eab02c24ccc5d77e777959134631f66fcedda9485184383076d7e746bb9d9",
+      "size": 13864
     },
     {
       "path": "LICENSE",
@@ -203,13 +203,18 @@
       "size": 4303
     },
     {
+      "path": "RELEASE_NOTES_v1.5.3.md",
+      "sha256": "1de0e838be9b5c81ca6dd032b47e3f97c2dce1140de9ce0b2cb0261f4898f002",
+      "size": 5959
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "ded1b601e81d31ca1f65c4f3ccf2ebd7992b6390e37bc2a86f3837282f1e00cf",
+      "sha256": "c03e3824001f39b9518249b8d6522422fc4de7227e12a568c0164662b03b7758",
       "size": 6
     },
     {
@@ -408,6 +413,61 @@
       "size": 398
     },
     {
+      "path": "plugins/astrbot_plugin_dsh_bridge/__init__.py",
+      "sha256": "9e77cd4213f0706383da335b301dd7711549dcb49053c592b8c40ce7034fde47",
+      "size": 40
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/_conf_schema.json",
+      "sha256": "a75830e0b9a5c6622901b875a7c6d1d141eb515cd979fa48ee40ab7dc8a3446d",
+      "size": 302
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/audit.py",
+      "sha256": "4884e6868d923b90996b8eb9364c8e242e259a603a7cac71f5b2c00a6fae1a68",
+      "size": 2297
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/auth.py",
+      "sha256": "62b8ade6d8903ad17deb512ed5cb1874d230d64b64f2873c8be0f79d9a8695c4",
+      "size": 2341
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/commands.py",
+      "sha256": "2c2800d5e4ceac0f8fc4c9893ff47147b9179d29ef1a93d3115cae57c1aa9a69",
+      "size": 1036
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/formatting.py",
+      "sha256": "6d389f2995c4cd5e6698a2f5aeedcc447278c522aca07c0e9513cb471c1d942f",
+      "size": 2696
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/main.py",
+      "sha256": "1ca6b44249562c5865ce896bcc54832f65f94293e403022366bd940b3c866a71",
+      "size": 4524
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/metadata.yaml",
+      "sha256": "39cc24de74f14418469a8e2d42e064a55fb19154926015dd5f15b45ab1b36353",
+      "size": 238
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/redact.py",
+      "sha256": "4d52ff463e8514cb76ff501594dfff270f45b21b5011b7fa037539680d9a333f",
+      "size": 2539
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/service.py",
+      "sha256": "1afd35f5ddc8429464176962a100d9d6806915ddb3e55c0e1554a7f7d84ee1a9",
+      "size": 3192
+    },
+    {
+      "path": "plugins/astrbot_plugin_dsh_bridge/sources.py",
+      "sha256": "201f0592585f308cb54237f6c4a1fc11ccbf85565e9e8ce5869222095c300f03",
+      "size": 8551
+    },
+    {
       "path": "plugins/astrbot_plugin_dst_guard/main.py",
       "sha256": "774da1fa85e78428ebf64667a5150b5f79f7d028e498caa3918f9fb7fce66128",
       "size": 10540
@@ -434,13 +494,13 @@
     },
     {
       "path": "plugins/astrbot_plugin_router/_conf_schema.json",
-      "sha256": "180ecdd5ba8604c0cedb88ce6bb96127c9167eb7dead3328caca2682f5a07132",
-      "size": 968
+      "sha256": "f24d70fbd783e7cffdc3bab77b7a9561b9c8ecfbbd2cef874ea5b245f0763d5c",
+      "size": 1240
     },
     {
       "path": "plugins/astrbot_plugin_router/main.py",
-      "sha256": "d0ce3ac242df2ea2450a4f1fc5ef3144d3b55d45a5ad0851395cd63b8d771432",
-      "size": 43090
+      "sha256": "854538c0e86bc364aa3a2c8edb9a0c719821183b7ff1e7b0332d5c532489425a",
+      "size": 45080
     },
     {
       "path": "plugins/astrbot_plugin_router/metadata.yaml",
@@ -879,13 +939,18 @@
     },
     {
       "path": "tools/privacy_scan.py",
-      "sha256": "2e3eeb14dc4502c83e7d8ee4ead5d4890876f16ab310ed2d84f16d7694dd500b",
-      "size": 2852
+      "sha256": "ab15dab66df0d5ee0464fb6035f93c711b7aeb61a8df68ed2e61fc7409b94401",
+      "size": 2861
     },
     {
       "path": "tools/protect_shared_acl.ps1",
       "sha256": "356221a9a441f13b8f5980fc46379d4b9fac0373f49c3a388f5c9e9e5b8e3727",
       "size": 2015
+    },
+    {
+      "path": "tools/repair_memory_sources.py",
+      "sha256": "134a3eae6637070119e7056ddee29eb964382f8e19ddfecfc8df5f498b13b3bd",
+      "size": 12562
     },
     {
       "path": "tools/run-astrbot-service.ps1",
@@ -934,8 +999,8 @@
     },
     {
       "path": "tools/start-ollama.ps1",
-      "sha256": "d04dc01b65f9329997497bce312f97c8a9d11e4d0245b41f06d20effd47d72bb",
-      "size": 3110
+      "sha256": "6a53185eba7ef54b9ad8e9f3e826765f7b454afd8af79e51af159743e79f60fc",
+      "size": 6608
     },
     {
       "path": "tools/start-snowluma.ps1",
@@ -994,13 +1059,13 @@
     },
     {
       "path": "update-manifest.sig",
-      "sha256": "0bf7e0fcb1e9e27d2e6f42d2bf5a5708e63399b0944ca91dc20bf77cc318f6bb",
+      "sha256": "492f2424aae7140ecdbcfd47e39e526aa952914a5a79f4045bac7ac3b34a24d6",
       "size": 512
     },
     {
       "path": "webui/README.md",
-      "sha256": "dd03dfc377931cee39e6af012ff9894a3de40d1e3c51dfe80ab65a361964d958",
-      "size": 2546
+      "sha256": "7ef9e1790fe3cae7f459c4628c7a8f37b69096f271b78fc3ec1af227879b896b",
+      "size": 3069
     },
     {
       "path": "webui/app.py",
@@ -1174,8 +1239,8 @@
     },
     {
       "path": "webui/tests/test_webui_auth.py",
-      "sha256": "fe4e3f3be21da3c8e0ab82ff125949f8346078c015e6cc7e36acf5225af84931",
-      "size": 5870
+      "sha256": "3011e089f257ec66ab65e8dfde68bff15c4fd5f3fec2eb507eea11696f0d5c8e",
+      "size": 6768
     }
   ]
 }

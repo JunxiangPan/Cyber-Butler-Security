@@ -587,13 +587,25 @@ class RouterPlugin(Star):
             logger.warning("[router] signal persist failed: %s", exc, exc_info=True)
             return error_response("state store failed", status_code=500)
 
-    def _legacy_enabled(self) -> bool:
-        """Read the legacy PATCH switch; default True is the rollback path."""
+    def _legacy_enabled(self) -> bool | None:
+        """Read the legacy PATCH switch.
+
+        Returns:
+            True for an explicit rollback, False for an explicit active router,
+            or None when the settings file cannot be read safely.
+        """
         try:
             data = json.loads(self.settings_path.read_text(encoding="utf-8"))
-            return bool(data.get("legacy_provider_patch", True))
-        except Exception:
-            return True
+            raw = data.get("legacy_provider_patch", None)
+            if raw is True:
+                return True
+            if raw is False:
+                return False
+            logger.error("[router] legacy_provider_patch missing or invalid")
+            return None
+        except Exception as exc:
+            logger.error("[router] legacy settings read failed: %s", exc)
+            return None
 
     def _circuit(self, kind: str) -> dict:
         store = getattr(self, "circuit_store", None)
@@ -601,12 +613,12 @@ class RouterPlugin(Star):
             self.local_provider_id if kind == "local" else self.cloud_provider_id
         )
         if store is None:
-            return {"state": "CLOSED", "hard_failure": 0, "open_until": 0}
+            return {"state": "UNKNOWN", "hard_failure": 0, "open_until": 0}
         try:
             return store.get(kind, provider_id)
         except Exception as exc:
-            logger.warning("[router] circuit read failed: %s", exc)
-            return {"state": "CLOSED", "hard_failure": 0, "open_until": 0}
+            logger.error("[router] circuit read failed: %s", exc)
+            return {"state": "UNKNOWN", "hard_failure": 0, "open_until": 0}
 
     async def _local_probe(self) -> bool:
         now = time.time()
@@ -787,9 +799,15 @@ class RouterPlugin(Star):
             await event.send(MessageChain().message(DENIED[self._lang(event)]))
             event.stop_event()
             return
-        if self._legacy_enabled():
+        legacy = self._legacy_enabled()
+        if legacy is True:
             await event.send(MessageChain().message(CONSENT_LEGACY[self._lang(event)]))
             event.stop_event()
+            return
+        if legacy is None:
+            await self._send_route_unavailable(
+                event, reason="legacy_settings_unreadable"
+            )
             return
         expires_at = time.time() + 120
         self._grants[event.unified_msg_origin] = expires_at
@@ -885,7 +903,13 @@ class RouterPlugin(Star):
     async def gate(self, event: AstrMessageEvent) -> None:
         """Apply explicit override, circuit state and local-first routing."""
         try:
-            if self._legacy_enabled():
+            legacy = self._legacy_enabled()
+            if legacy is True:
+                return
+            if legacy is None:
+                await self._send_route_unavailable(
+                    event, reason="legacy_settings_unreadable"
+                )
                 return
             raw = getattr(getattr(event, "message_obj", None), "raw_message", "")
             if isinstance(raw, dict):
@@ -909,8 +933,10 @@ class RouterPlugin(Star):
             # handling, so game mode cannot spend API budget for everyone.
             if game_mode and not override and self._is_owner(event):
                 api_state = str(self._circuit("api").get("state"))
-                if api_state == "OPEN":
-                    await self._send_route_unavailable(event)
+                if api_state in {"OPEN", "UNKNOWN"}:
+                    await self._send_route_unavailable(
+                        event, reason=f"api_circuit_{api_state.lower()}"
+                    )
                     return
                 if api_state == "HALF_OPEN":
                     store = getattr(self, "circuit_store", None)
@@ -937,7 +963,19 @@ class RouterPlugin(Star):
                 return
             local_circuit = self._circuit("local")
             api_circuit = self._circuit("api")
-            local_ok = str(local_circuit.get("state")) != "OPEN"
+            local_state = str(local_circuit.get("state"))
+            api_state = str(api_circuit.get("state"))
+            if "UNKNOWN" in {local_state, api_state}:
+                await self._send_route_unavailable(
+                    event,
+                    reason=(
+                        "circuit_unknown"
+                        if local_state != "UNKNOWN"
+                        else "local_circuit_unknown"
+                    ),
+                )
+                return
+            local_ok = local_state != "OPEN"
             if local_ok:
                 local_ok = await self._local_probe()
             if local_ok and str(local_circuit.get("state")) == "HALF_OPEN":
@@ -1021,10 +1059,24 @@ class RouterPlugin(Star):
                 getattr(self, "_vram_free_mb", None),
             )
         except Exception as exc:
-            logger.debug("[router] gate failed open: %s", exc)
+            logger.error("[router] gate failed closed: %s", exc)
+            try:
+                await self._send_route_unavailable(
+                    event, reason="gate_exception"
+                )
+            except Exception:
+                logger.exception("[router] failed to send unavailable reply")
+            return
 
-    async def _send_route_unavailable(self, event: AstrMessageEvent) -> None:
+    async def _send_route_unavailable(
+        self, event: AstrMessageEvent, *, reason: str = "unavailable"
+    ) -> None:
         event.stop_event()
+        logger.warning(
+            "[router] route=unavailable reason=%s session=%s",
+            reason,
+            str(getattr(event, "unified_msg_origin", "")).replace("\n", " ")[:120],
+        )
         if not event.is_private_chat():
             logger.info(
                 "[router] group message ignored (no group policy configured)"

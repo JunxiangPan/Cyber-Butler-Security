@@ -1,0 +1,8 @@
+name: astrbot_plugin_dsh_bridge
+display_name: DSH Read-only Bridge
+desc: Owner-only /dsh status, health and logs. Read-only, no LLM, no shell.
+version: 1.0.0
+author: Cyber-Butler
+astrbot_version: ">=4.24"
+support_platforms:
+  - aiocqhttp

@@ -1,5 +1,45 @@
 # Cyber-Butler / 苏瑾言部署与排障交接
 
+> **WARNING:** The Web UI binds to `0.0.0.0`. Its security relies entirely on
+> Windows Firewall. If the firewall rule is disabled, modified, or the network
+> is misclassified as Private, the UI may be exposed to an untrusted network.
+> Audit the 8765 inbound rules regularly.
+>
+> **警告：** Web UI 绑定在 `0.0.0.0`，安全性完全依赖 Windows 防火墙。
+> 若防火墙规则被关闭、被修改，或网络被误判为 Private，面板可能暴露在
+> 不可信网络。请定期核查 8765 入站规则。
+
+## Router fail-closed 语义（v1.5.3）
+
+- `gate` 自身异常：记录 error，调用 `_send_route_unavailable(reason="gate_exception")`，必须 `stop_event()`。
+- circuit 读取异常：返回 `UNKNOWN`，gate 遇到 `UNKNOWN` 直接拒绝，绝不当作 `CLOSED`。
+- legacy 设置：显式 `true` 回滚；显式 `false` 由 router 接管；读取失败按 unavailable 拒绝。
+- local probe/circuit 不可用且 API circuit `OPEN`/`UNKNOWN`：明确拒绝，不静默回退到未列出的默认 Provider。
+- 已授权的 cloud fallback 只允许在 API circuit 非 `OPEN` 且非 `UNKNOWN` 时发生。
+
+## Tailscale Serve HTTPS（Block 1）
+
+Tailnet 管理员需先在管理后台为节点启用 Serve。启用后执行：
+
+```powershell
+tailscale serve --bg http://127.0.0.1:8765
+tailscale serve status
+```
+
+访问：
+
+```text
+https://<host>.<tailnet>.ts.net
+```
+
+`cookie_secure="auto"` 已通过可信 `X-Forwarded-Proto: https` 代理测试；实际 HTTPS 入口需在 Serve 启用后复验 Set-Cookie 的 Secure 标记。
+
+回滚：
+
+```powershell
+tailscale serve off
+```
+
 ## 记忆数据位置（重要）
 
 | 数据 | 实际文件 | 表/字段 | 说明 |

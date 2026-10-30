@@ -1,5 +1,14 @@
 # Cyber-Butler Web UI
 
+> **WARNING:** The Web UI binds to `0.0.0.0`. Its security relies entirely on
+> Windows Firewall. If the firewall rule is disabled, modified, or the network
+> is misclassified as Private, the UI may be exposed to an untrusted network.
+> Audit the 8765 inbound rules regularly.
+>
+> **警告：** Web UI 绑定在 `0.0.0.0`，安全性完全依赖 Windows 防火墙。
+> 若防火墙规则被关闭、被修改，或网络被误判为 Private，面板可能暴露在
+> 不可信网络。请定期核查 8765 入站规则。
+
 Phase 2: email OTP login, read-only status/temperature/plugin/log APIs, and an
 inbound-only fixed-owner chat bridge. The sidecar never calls AstrBot's outbound
 `/api/v1/im/messages`; the `astrbot_plugin_webui_bridge` plugin turns the Web

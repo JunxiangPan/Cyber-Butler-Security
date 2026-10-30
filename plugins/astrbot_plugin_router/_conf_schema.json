@@ -33,5 +33,10 @@
     "description": "Minimum seconds between nvidia-smi samples",
     "type": "int",
     "default": 15
+  },
+  "fail_closed": {
+    "description": "Fail-closed policy: when the local probe/circuit is unavailable and the API circuit is OPEN or UNKNOWN, reject the turn explicitly. Never fall back to an unlisted default provider.",
+    "type": "bool",
+    "default": true
   }
 }

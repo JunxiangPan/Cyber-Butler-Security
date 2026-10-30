@@ -105,6 +105,37 @@ def test_docs_and_openapi_are_disabled(tmp_path: Path) -> None:
     assert client.get("/openapi.json").status_code == 404
 
 
+def test_auto_cookie_secure_accepts_trusted_tailscale_forwarded_proto(
+    tmp_path: Path,
+) -> None:
+    settings = Settings(
+        admin_email="owner@example.com",
+        data_dir=tmp_path / "proxy-auto",
+        cookie_secure="auto",
+    )
+    settings.ensure_data()
+    mailer = FakeMailer()
+    client = TestClient(
+        create_app(settings, mailer),
+        base_url="http://testserver",
+        client=("127.0.0.1", 50000),
+    )
+    forwarded = {"X-Forwarded-Proto": "https"}
+    client.post(
+        "/api/auth/request-otp",
+        json={"email": "owner@example.com"},
+        headers=forwarded,
+    )
+    _, code = mailer.sent[0]
+    response = client.post(
+        "/api/auth/verify",
+        json={"email": "owner@example.com", "code": code},
+        headers=forwarded,
+    )
+    assert response.status_code == 200
+    assert "secure" in response.headers["set-cookie"].lower()
+
+
 def test_auto_cookie_secure_adapts_to_scheme(tmp_path: Path) -> None:
     def client_for(base_url: str):
         settings = Settings(admin_email="owner@example.com", data_dir=tmp_path / ("auto-" + base_url.split(":")[0]), cookie_secure="auto")
