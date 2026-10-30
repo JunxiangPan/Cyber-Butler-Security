@@ -78,6 +78,22 @@ New plugin: `astrbot_plugin_dsh_bridge`.
 - README 与 DEPLOYMENT 增加中英双语警告：安全性完全依赖 Windows 防火墙，
   规则关闭或网络误判可能导致暴露。
 
+### Updater reliability / 更新器可靠性
+
+- Git-only `.gitattributes` is no longer packaged. Older installed updaters
+  rejected the whole archive before the newer updater could be installed.
+- The dashboard update path now passes `-AllowLocalCodeChanges` after the
+  explicit `UPDATE PRODUCTION` confirmation, so intentional local code changes
+  do not block a confirmed update.
+- `package_release.py` refuses to package any path rejected by the installed
+  updater, preventing future package/updater version skew.
+- 不再把仅用于 Git 的 `.gitattributes` 打进更新包，避免旧更新器在安装新
+  更新器之前拒绝整个压缩包。
+- 主控台在用户明确输入 `UPDATE PRODUCTION` 后，会传入
+  `-AllowLocalCodeChanges`，本地代码改动不再误拦截已确认的更新。
+- `package_release.py` 会用本机已安装的更新器预检包内路径，阻止未来再次
+  出现包与更新器版本不兼容。
+
 ### Data repair / 数据修复
 
 - Memory 20/21 `source_json` was backfilled from messages 391-412:

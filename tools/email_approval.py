@@ -153,6 +153,6 @@ def poll_once(config: dict, expected_challenge: str = "") -> tuple[str, str, str
                 from_header = str(message.get("From", ""))
                 if not sender_allowed(from_header, config["allowed_sender"]):
                     continue
-                mailbox.store(num, "+FLAGS", "\Seen")
+                mailbox.store(num, "+FLAGS", r"\Seen")
                 return from_header, parsed[0], parsed[1]
     return None

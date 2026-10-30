@@ -175,7 +175,7 @@ $updateButton.Add_Click({
     $cancelButton.IsEnabled = $false
     $statusText.Text = '正在请求管理员权限...'
     try {
-        $argString = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $mergeScript + '" -TargetRoot "' + $root + '" -ConfirmationText "' + $phrase + '" -StatusFile "' + $statusFile + '"'
+        $argString = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $mergeScript + '" -TargetRoot "' + $root + '" -ConfirmationText "' + $phrase + '" -StatusFile "' + $statusFile + '" -AllowLocalCodeChanges'
         $script:child = Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $argString -PassThru
         $script:lastStatusAt = Get-Date
         $timer.Start()

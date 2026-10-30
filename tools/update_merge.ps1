@@ -16,6 +16,7 @@ param(
     [string]$OverlayPath = '',
     [string]$OverlayValuesPath = '',
     [string]$ConfirmationText = '',
+    [string]$ExternalSignaturePath = '',
     [string]$StatusFile = '',
     [string]$PythonPath = '',
     [switch]$BootstrapOverlay,
@@ -392,7 +393,10 @@ try {
         $signaturePath = Join-Path $stage 'update-manifest.json.sig'
     }
     if (-not (Test-Path -LiteralPath $signaturePath)) {
-        if ($latest -and $latest.SignatureUrl) {
+        if ($ExternalSignaturePath -and (Test-Path -LiteralPath $ExternalSignaturePath)) {
+            $signaturePath = (Resolve-Path -LiteralPath $ExternalSignaturePath).Path
+            Write-UpdateLog 'manifest signature supplied by caller'
+        } elseif ($latest -and $latest.SignatureUrl) {
             $signaturePath = Join-Path $stage 'update-manifest.sig'
             Invoke-WebRequest -Uri $latest.SignatureUrl -OutFile $signaturePath -UseBasicParsing -TimeoutSec 60
             if ($latest.SignatureSha256) {

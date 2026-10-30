@@ -3,11 +3,6 @@
   "version": "1.5.3",
   "files": [
     {
-      "path": ".gitattributes",
-      "sha256": "b3b115cc025e0ed3846dca99eb924038a1ab56a8337efc0e5a933e3494e56e4d",
-      "size": 55
-    },
-    {
       "path": ".github/workflows/security-tests.yml",
       "sha256": "f9f3bd5439e891f9c485e900b1778b0fc378e798c807614af90fc496783365be",
       "size": 638
@@ -204,8 +199,8 @@
     },
     {
       "path": "RELEASE_NOTES_v1.5.3.md",
-      "sha256": "1de0e838be9b5c81ca6dd032b47e3f97c2dce1140de9ce0b2cb0261f4898f002",
-      "size": 5959
+      "sha256": "8d961299a4874f951227ae03905e7f193b31444fb9c87493027f903072afd87d",
+      "size": 6908
     },
     {
       "path": "SECURITY.md",
@@ -824,8 +819,8 @@
     },
     {
       "path": "tools/email_approval.py",
-      "sha256": "9e0abf56cee3373f8a4e49d7c41cdfda7b3ea9b63c8c71ec77379a66758e0921",
-      "size": 5882
+      "sha256": "9da19876691dba923fffb164cb8146713f210fff2403e1cb6248cdbc8bccaf43",
+      "size": 5883
     },
     {
       "path": "tools/email_secret_bridge.ps1",
@@ -914,8 +909,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "2b5348e1f8a46690eaea14c1fb79a9b043b6df10403ccd7dd031af8d2f4be92a",
-      "size": 3268
+      "sha256": "716f3518869fec0a5a3f6809958920fdee1644e0a20ac76a6d09bd83a9e12110",
+      "size": 5450
     },
     {
       "path": "tools/plugin_hub.ps1",
@@ -1019,8 +1014,8 @@
     },
     {
       "path": "tools/update_gui.ps1",
-      "sha256": "e6f8355470b546bf361e3cb576dcede6a8084d4d235d7c82550ed4c3bbc5670c",
-      "size": 7682
+      "sha256": "5d02e680c8b4811d73e3d21b7a652b55743bd65870507d9ed4afc42f0e65cdb1",
+      "size": 7705
     },
     {
       "path": "tools/update_gui.vbs",
@@ -1029,8 +1024,8 @@
     },
     {
       "path": "tools/update_merge.ps1",
-      "sha256": "d0af7d01acf5f276997549d79b9177e7ffefa4342c5e209fbcb4927f2744590e",
-      "size": 27875
+      "sha256": "9220be199e80e66addfd7018bbc4b1e8e2d28809e9fffd57095f57796a5c89ed",
+      "size": 28170
     },
     {
       "path": "tools/update_merge_core.py",
@@ -1056,11 +1051,6 @@
       "path": "tools/write_memory_metadata.py",
       "sha256": "5c775110b5c54edcbb8a1ef435f4329850c58e032d275fd02be2ec2e6001f8ee",
       "size": 3706
-    },
-    {
-      "path": "update-manifest.sig",
-      "sha256": "492f2424aae7140ecdbcfd47e39e526aa952914a5a79f4045bac7ac3b34a24d6",
-      "size": 512
     },
     {
       "path": "webui/README.md",

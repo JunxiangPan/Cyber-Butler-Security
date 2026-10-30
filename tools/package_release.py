@@ -4,6 +4,11 @@
 The ZIP is assembled from the working-tree bytes, not from ``git archive``.
 This avoids Git's CRLF export conversion changing file sizes after the
 manifest was generated.
+
+Git-only metadata (``.gitattributes``) and the detached signature are excluded
+from the archive. Older installed updaters do not know the metadata file, and
+a signature embedded in the same manifest it signs would create a circular
+hash dependency.
 """
 
 from __future__ import annotations
@@ -21,6 +26,7 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig"}
 
 
 def load_baseline_core(path: Path):
@@ -56,7 +62,7 @@ def main() -> int:
     entries: list[tuple[str, bytes]] = []
     manifest_files: list[dict] = []
     for rel in tracked_files():
-        if rel == "update-manifest.json":
+        if rel == "update-manifest.json" or rel in PACKAGE_EXCLUDE:
             continue
         path = ROOT / rel
         if not path.is_file():
