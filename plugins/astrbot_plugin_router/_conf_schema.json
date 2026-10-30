@@ -1,0 +1,22 @@
+{
+  "owner_id": {
+    "description": "Owner QQ id",
+    "type": "string",
+    "default": ""
+  },
+  "local_provider_id": {
+    "description": "Local provider id",
+    "type": "string",
+    "default": "local_qwen36"
+  },
+  "cloud_provider_id": {
+    "description": "Cloud provider id",
+    "type": "string",
+    "default": "deepseek"
+  },
+  "token_dpapi_path": {
+    "description": "DPAPI token path",
+    "type": "string",
+    "default": "C:\\ProgramData\\CyberButler\\secrets\\router_signal.token.dpapi"
+  }
+}
