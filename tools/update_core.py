@@ -43,6 +43,7 @@ ALLOWED_ROOT_FILES = {
     "DEPLOYMENT.md",
     "LICENSE",
     ".gitignore",
+    ".gitattributes",
     "requirements-dev.txt",
     "pytest.ini",
     "update-manifest.sig",
