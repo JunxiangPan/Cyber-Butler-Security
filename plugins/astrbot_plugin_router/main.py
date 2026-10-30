@@ -671,7 +671,7 @@ class RouterPlugin(Star):
         if free_mb is None:
             return not bool(getattr(self, "_vram_force_api", False))
         self._vram_free_mb = free_mb
-        threshold = int(self.config.get("vram_low_threshold_mb") or 2048)
+        threshold = int(self.config.get("vram_low_threshold_mb") or 1000)
         required = int(self.config.get("vram_debounce_count") or 3)
         if free_mb < threshold:
             self._vram_low_streak += 1
@@ -904,7 +904,10 @@ class RouterPlugin(Star):
                 )
 
             override = self._resolve_override(event)
-            if game_mode and not override:
+            # Game mode only affects the configured owner's private chat.
+            # Other users fall through to normal local-first/owner fallback
+            # handling, so game mode cannot spend API budget for everyone.
+            if game_mode and not override and self._is_owner(event):
                 api_state = str(self._circuit("api").get("state"))
                 if api_state == "OPEN":
                     await self._send_route_unavailable(event)
@@ -1023,6 +1026,9 @@ class RouterPlugin(Star):
     async def _send_route_unavailable(self, event: AstrMessageEvent) -> None:
         event.stop_event()
         if not event.is_private_chat():
+            logger.info(
+                "[router] group message ignored (no group policy configured)"
+            )
             return
         text = (
             "服务暂时不可用，请稍后重试。"

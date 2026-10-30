@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.5.1",
+  "version": "1.5.2",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -14,8 +14,8 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "6307447c887a9b35ca0fe6007e3768148956d4aa3e702b4a21846d8eec13affc",
-      "size": 10797
+      "sha256": "cbf0bcf3665a8382477725da4a0f06f5a53ead4a5a14e92a1512273ea0e3e706",
+      "size": 12214
     },
     {
       "path": "LICENSE",
@@ -193,13 +193,18 @@
       "size": 6245
     },
     {
+      "path": "RELEASE_NOTES_v1.5.2.md",
+      "sha256": "fde449944116ec3608ad462548f1e9e219f675feb1dd45e6be94b6dd378f5b9c",
+      "size": 4303
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "dfe7d71b3f428eb73ed853f8fded65e2986896e21d69f45ebf06bb623b450e14",
+      "sha256": "ded1b601e81d31ca1f65c4f3ccf2ebd7992b6390e37bc2a86f3837282f1e00cf",
       "size": 6
     },
     {
@@ -333,9 +338,19 @@
       "size": 4584
     },
     {
+      "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/main.py",
+      "sha256": "f61c220831d0a7ff96191317c563c5cc6e21500373c52ba39590ef74d72c01d1",
+      "size": 996722
+    },
+    {
       "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/proactive_message.py",
       "sha256": "53827be1789c54ed22f912dc5a8c3532b7bad6ee7bc9a0dfff6f2db618c893e9",
       "size": 958904
+    },
+    {
+      "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/user_memory.py",
+      "sha256": "641cec2114a66ee3bacad0e678c67f61144a3c61a423bd89a481eaf732c772ec",
+      "size": 558693
     },
     {
       "path": "plugins/astrbot_plugin_at_gate/LICENSE",
@@ -414,13 +429,13 @@
     },
     {
       "path": "plugins/astrbot_plugin_router/_conf_schema.json",
-      "sha256": "0d22940b39db7d892eab9a5b6bded9e8741a91e5da5ee36e6d44162f0f6fb470",
-      "size": 532
+      "sha256": "180ecdd5ba8604c0cedb88ce6bb96127c9167eb7dead3328caca2682f5a07132",
+      "size": 968
     },
     {
       "path": "plugins/astrbot_plugin_router/main.py",
-      "sha256": "b546e6b85b57f11c96508f1417fa0625906261967a8ec02b59ec6f5847adf2a2",
-      "size": 42716
+      "sha256": "d0ce3ac242df2ea2450a4f1fc5ef3144d3b55d45a5ad0851395cd63b8d771432",
+      "size": 43090
     },
     {
       "path": "plugins/astrbot_plugin_router/metadata.yaml",
@@ -973,6 +988,11 @@
       "size": 3706
     },
     {
+      "path": "update-manifest.sig",
+      "sha256": "8680b6038ffa80beb962d41eddd44ac3d85f34bee4d195af01c7a7adc34a7c39",
+      "size": 512
+    },
+    {
       "path": "webui/README.md",
       "sha256": "dd03dfc377931cee39e6af012ff9894a3de40d1e3c51dfe80ab65a361964d958",
       "size": 2546
@@ -996,6 +1016,11 @@
       "path": "webui/file_manager.py",
       "sha256": "026ab14c7775bbf1c84cf22ea0467b35db9977e9181ad52f3da04a6fe74b31a3",
       "size": 6388
+    },
+    {
+      "path": "webui/install-startup-task.ps1",
+      "sha256": "e83bee27b0ae73e1a23d21990b4bde64d16e37350386053fb8e25af0fa272b76",
+      "size": 1463
     },
     {
       "path": "webui/mailer.py",
@@ -1026,6 +1051,11 @@
       "path": "webui/settings.py",
       "sha256": "351e6cde8b8cf25a7814c58ca9f4293ca82996d44c287289aca2e3466898adef",
       "size": 5205
+    },
+    {
+      "path": "webui/start-services.ps1",
+      "sha256": "d28a4fd8565c6990270db9858a91f2e175c521ca025796ab508608c35a14f931",
+      "size": 2961
     },
     {
       "path": "webui/static/dashboard.js",

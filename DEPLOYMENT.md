@@ -200,3 +200,34 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 - 仓库公钥：`public-release/tools/update_pubkey.pem`
 - 三者 RSA-3072，SHA-256 指纹：`3eabcb7813e15e86aff649030aeafc03eb1ebd005b5104c88527bae38fc8de93`
 - 权限：仅 Administrators / SYSTEM 可读写；不进入 Git、不进入 zip。
+
+## Web UI / OTP 开机自启（2026-10-30）
+
+- 启动脚本：`public-release\webui\start-services.ps1`
+- 安装脚本：`public-release\webui\install-startup-task.ps1`
+- 计划任务：`Cyber-Butler Web UI Services`
+- 触发：用户 `PCVP\pjx20` 登录后 20 秒（`AtLogOn`，Interactive / Limited）
+- 不用 `AtStartup`/SYSTEM 的原因：OTP mailer 需要当前用户的 DPAPI 邮件密钥；SYSTEM 下解不开。
+- Web UI：`0.0.0.0:8765`
+- OTP mailer：`127.0.0.1:8766`
+
+手动启动 / 幂等验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "D:\qq苏瑾言大肥鱼\public-release\webui\start-services.ps1"
+Start-ScheduledTask -TaskName 'Cyber-Butler Web UI Services'
+Get-ScheduledTaskInfo -TaskName 'Cyber-Butler Web UI Services'
+```
+
+日志：
+
+```text
+public-release\webui\data\webui-startup.log       启动脚本（每次检查/跳过）
+public-release\webui\data\webui.out.log           Web UI 标准输出
+public-release\webui\data\webui.err.log           Web UI 错误输出
+public-release\webui\data\otp_mailer.log          OTP mailer 内部日志
+public-release\webui\data\otp_mailer.out.log      OTP 标准输出
+public-release\webui\data\otp_mailer.err.log      OTP 错误输出
+```
+
+手动验证结果：首次启动创建 8765/8766；第二次运行保持同一 PID，未重复拉起；计划任务手动运行 `LastTaskResult=0`。

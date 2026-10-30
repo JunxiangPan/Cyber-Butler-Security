@@ -18,5 +18,20 @@
     "description": "DPAPI token path",
     "type": "string",
     "default": "C:\\ProgramData\\CyberButler\\secrets\\router_signal.token.dpapi"
+  },
+  "vram_low_threshold_mb": {
+    "description": "Free VRAM threshold for local routing",
+    "type": "int",
+    "default": 1000
+  },
+  "vram_debounce_count": {
+    "description": "Consecutive low/high samples required before switching",
+    "type": "int",
+    "default": 3
+  },
+  "vram_sample_interval_seconds": {
+    "description": "Minimum seconds between nvidia-smi samples",
+    "type": "int",
+    "default": 15
   }
 }
