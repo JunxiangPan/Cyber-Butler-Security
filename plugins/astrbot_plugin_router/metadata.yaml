@@ -1,0 +1,8 @@
+name: astrbot_plugin_router
+display_name: Router Signal / Gate Skeleton
+desc: Local-only router signal endpoint, state_version persistence and provider-aware gate skeleton.
+version: 0.1.0
+author: Cyber-Butler
+astrbot_version: ">=4.24"
+support_platforms:
+  - aiocqhttp
