@@ -31,6 +31,7 @@ $xaml = @'
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -58,6 +59,7 @@ $xaml = @'
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
@@ -100,6 +102,10 @@ $xaml = @'
         <TextBlock x:Name="ApiKeyNote" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
                    Text="API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log."
                    Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
+
+        <TextBlock x:Name="QuickHelp" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
+                   Text=""
+                   Foreground="#94A3B8" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0"/>
       </Grid>
     </Border>
 
@@ -108,21 +114,34 @@ $xaml = @'
       <Button x:Name="StartButton" Content="Start installation" Width="170" Height="38" Margin="0,0,10,0"
               Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9" FontWeight="SemiBold"/>
       <Button x:Name="ReportButton" Content="Open report folder" Width="170" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="CloseButton" Content="Exit" Width="90" Height="38"/>
+      <Button x:Name="CloseButton" Content="Exit" Width="90" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="HelpButton" Content="Help" Width="90" Height="38" Margin="0,0,10,0"/>
       <CheckBox x:Name="ApprovalCheck" Content="I approve the planned installer steps"
                 Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
     </StackPanel>
 
-    <TextBox Grid.Row="3" x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True"
+    <Grid Grid.Row="3" Margin="0,0,0,10">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <ProgressBar x:Name="InstallProgress" Height="8" Minimum="0" Maximum="100" Value="0"
+                   VerticalAlignment="Center" Foreground="#0EA5E9" Background="#1E293B"/>
+      <TextBlock x:Name="StepText" Grid.Column="1" Text="Ready." Foreground="#94A3B8"
+                 FontSize="11" Margin="12,0,0,0" VerticalAlignment="Center" Width="280"
+                 TextTrimming="CharacterEllipsis"/>
+    </Grid>
+
+    <TextBox Grid.Row="4" x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True"
              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
              FontFamily="Consolas" FontSize="12"
              Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B"
              Padding="14" TextWrapping="NoWrap"/>
 
-    <TextBlock Grid.Row="4" x:Name="StatusText" Text="Ready."
+    <TextBlock Grid.Row="5" x:Name="StatusText" Text="Ready."
                Foreground="#94A3B8" FontSize="12" Margin="0,12,0,0"/>
 
-    <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,8,0,0">
+    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,8,0,0">
       <TextBlock Text="Installer: " Foreground="#475569" FontSize="11"/>
       <TextBlock x:Name="InstallerPathText" Text="" Foreground="#64748B" FontSize="11" TextTrimming="CharacterEllipsis" Width="760"/>
     </StackPanel>
@@ -143,6 +162,10 @@ $preflightButton = $window.FindName('PreflightButton')
 $startButton = $window.FindName('StartButton')
 $reportButton = $window.FindName('ReportButton')
 $closeButton = $window.FindName('CloseButton')
+$helpButton = $window.FindName('HelpButton')
+$quickHelp = $window.FindName('QuickHelp')
+$installProgress = $window.FindName('InstallProgress')
+$stepText = $window.FindName('StepText')
 $approvalCheck = $window.FindName('ApprovalCheck')
 $logBox = $window.FindName('LogBox')
 $statusText = $window.FindName('StatusText')
@@ -163,11 +186,11 @@ $apiKeyNote = $window.FindName('ApiKeyNote')
 $script:UiText = @{
     zh = @{
         Title='Cyber-Butler 安装程序'; Subtitle='v1.6.1 · 可视化安装前端'
-        Warning='安全批准 token 和 TOTP 注册仍在提权控制台中完成，安装器不会静默跳过这些确认。'
+        Warning='只有勾选批准后，GUI 才会提交 approval token；TOTP 在可视化对话框中确认，不再打开第二个命令窗口。'
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
-        PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选）'
+        PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
-        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Approval='我确认执行上述安装步骤'; NeedApproval='请先勾选安装确认。'; TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
+        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Requirement='我确认执行上述安装步骤'; NeedApproval='请先勾选安装确认。'; TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
         PreflightFailed='环境检查失败。'; Starting='正在启动提权安装器...'; Started='安装器已启动，请在提权控制台完成批准和 TOTP。'
         StartFailed='无法启动安装器。'; Admin='已检测到管理员会话。'; NotAdmin='当前不是管理员；开始安装会请求 UAC。'
@@ -177,9 +200,9 @@ $script:UiText = @{
         Title='Cyber-Butler Setup'; Subtitle='v1.6.1 · visual installer front-end'
         Warning='Approval tokens and TOTP enrollment remain in the elevated console; the GUI never auto-approves security steps.'
         InstallPath='Install path'; Tier='Tier'; OwnerQQ='Owner QQ'; Bind='WebUI bind'
-        PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional)'
+        PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional, sk-...)'
         ApiKeyNote='API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log.'
-        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Approval='I approve the planned installer steps'; NeedApproval='Please check the approval box first.'; TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
+        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Requirement='I approve the planned installer steps'; NeedApproval='Please check the approval box first.'; TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
         PreflightFailed='Preflight failed.'; Starting='Starting elevated installer...'; Started='Installer launched. Complete approval and TOTP prompts in the elevated console.'
         StartFailed='Could not start the installer.'; Admin='Administrator session detected.'; NotAdmin='This GUI is not elevated. Start installation will request UAC.'
@@ -208,7 +231,10 @@ function Apply-GuiLanguage {
     $startButton.Content = Get-UiText 'Start'
     $reportButton.Content = Get-UiText 'Report'
     $closeButton.Content = Get-UiText 'Exit'
+    $helpButton.Content = Get-UiText 'Help'
     $approvalCheck.Content = Get-UiText 'Approval'
+    $quickHelp.Text = Get-UiText 'QuickHelp'
+    if ($stepText.Text -eq 'Ready.' -or $stepText.Text -eq '就绪。') { $stepText.Text = Get-UiText 'Ready' }
     if ($statusText.Text -eq '' -or $statusText.Text -eq 'Ready.' -or $statusText.Text -eq '就绪。') {
         $statusText.Text = Get-UiText 'Ready'
     }
@@ -273,12 +299,35 @@ $startButton.Add_Click({
             Cancel = Get-UiText 'Cancel'; TotpReady = Get-UiText 'TotpReady'
         }
         Write-GuiLog (Get-UiText 'Starting')
+        $installProgress.Value = 2
+        $stepText.Text = '2% · starting'
         Start-CyberButlerGuiInstall `
             -Window $window -InstallerPath $installerPath -InstallPath $installPath `
             -Tier $tierValue -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
             -PersonalPluginsPath ([string]$personalPluginsBox.Text) `
+            -ApiKeyFile ([string]$apiKeyFileBox.Text) `
             -OnLog { param($line) Write-GuiLog $line } `
-            -OnStatus { param($line) $statusText.Text = $line } `
+            -OnStatus {
+                param($line)
+                $statusText.Text = $line
+                if ($line -match 'finished') {
+                    $installProgress.Value = 100
+                    $stepText.Text = '100% · complete'
+                    [System.Windows.MessageBox]::Show(
+                        ("Installation completed.`n`nReport: C:\CyberButler\installer-report\install-report.json"),
+                        (Get-UiText 'Title')) | Out-Null
+                } elseif ($line -match 'failed') {
+                    $stepText.Text = 'failed'
+                    [System.Windows.MessageBox]::Show(
+                        ("Installation failed.`n`nReport: C:\CyberButler\installer-report\install-report.json"),
+                        (Get-UiText 'Title')) | Out-Null
+                }
+            } `
+            -OnProgress {
+                param($percent, $message)
+                $installProgress.Value = [int]$percent
+                $stepText.Text = ('{0}% · {1}' -f [int]$percent, $message)
+            } `
             -Text $text | Out-Null
     } catch {
         Write-GuiLog ('START ERROR: ' + $_.Exception.Message)
@@ -293,6 +342,10 @@ $reportButton.Add_Click({
     } else {
         Write-GuiLog ('Report directory not found: ' + $reportDir)
     }
+})
+
+$helpButton.Add_Click({
+    [System.Windows.MessageBox]::Show((Get-UiText 'HelpBody'), (Get-UiText 'Help')) | Out-Null
 })
 
 $closeButton.Add_Click({ $window.Close() })

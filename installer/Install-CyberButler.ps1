@@ -71,6 +71,7 @@ param(
     [switch]$GuiMode,
     [string]$GuiSignalDirectory = '',
     [switch]$SkipSecrets,
+    [switch]$SkipSmtp,
     [switch]$Resume,
     [switch]$Repair,
     [switch]$Rollback,
@@ -654,7 +655,7 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
         $failure = [pscustomobject]@{ step = 'secrets'; message = 'APPROVE SECRETS required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'in_progress'
-        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $AstrBotAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $AstrBotAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -SkipSmtp:$SkipSmtp -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'secrets' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'secrets'; message = ('secrets: ' + [string]$result.status + ' ' + [string]$result.message) }
         } elseif ($result.partial) {

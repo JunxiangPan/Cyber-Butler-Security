@@ -253,6 +253,7 @@ function Invoke-CyberButlerSecrets {
         $Journal = $null,
         [string]$Approval = '',
         [switch]$NonInteractive,
+        [switch]$SkipSmtp,
         [switch]$PlanOnly,
         [scriptblock]$Reader = $null,
         [Nullable[bool]]$StdinInteractive = $null,
@@ -309,7 +310,10 @@ function Invoke-CyberButlerSecrets {
         }
         if (Test-CyberButlerSecureStringEmpty $ApiKey) { $skipApiKey = $true; $ApiKey = $null }
     }
-    if (Test-CyberButlerSecureStringEmpty $SmtpSecret) {
+    if ($SkipSmtp) {
+        $skipSmtp = $true
+        $SmtpSecret = $null
+    } elseif (Test-CyberButlerSecureStringEmpty $SmtpSecret) {
         if ($NonInteractive) {
             $base.status = 'needs_configuration'
             $base.message = 'SmtpSecret is required. Supply -SmtpSecret or run interactively.'

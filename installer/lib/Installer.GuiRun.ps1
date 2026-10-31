@@ -104,8 +104,10 @@ function Start-CyberButlerGuiInstall {
         [string]$OwnerQQ = '',
         [string]$WebUIBind = 'Loopback',
         [string]$PersonalPluginsPath = '',
+        [string]$ApiKeyFile = '',
         [Parameter(Mandatory = $true)][scriptblock]$OnLog,
         [Parameter(Mandatory = $true)][scriptblock]$OnStatus,
+        [scriptblock]$OnProgress = $null,
         [hashtable]$Text = @{}
     )
     $signalDir = Join-Path $env:TEMP ('cb-gui-totp-' + [guid]::NewGuid().ToString('N'))
@@ -129,23 +131,36 @@ function Start-CyberButlerGuiInstall {
     $args = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $InstallerPath,
         '-Tier', $Tier, '-InstallPath', $InstallPath, '-WebUIBind', $WebUIBind,
-        '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir, '-SkipSecrets',
+        '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir,
         '-TestConfigPath', $configPath,
         '-JournalRoot', 'C:\ProgramData\CyberButler\installer\state',
         '-ReportDirectory', 'C:\CyberButler\installer-report'
     )
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
+    if (-not [string]::IsNullOrWhiteSpace($ApiKeyFile)) {
+        $args += @('-ApiKeyFile', $ApiKeyFile, '-SkipSmtp')
+    } else {
+        $args += @('-SkipSecrets')
+    }
 
     $argumentLine = (($args | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"','\"') + '"' } else { $_ } }) -join ' ')
     $script:cbGuiWindow = $Window
     $script:cbGuiOnLog = $OnLog
     $script:cbGuiOnStatus = $OnStatus
+    $script:cbGuiOnProgress = $OnProgress
     $script:cbGuiText = $Text
+    $stdoutPath = Join-Path $signalDir 'installer.out.log'
+    $stderrPath = Join-Path $signalDir 'installer.err.log'
     $process = Start-Process -FilePath 'powershell.exe' `
         -ArgumentList $argumentLine `
         -WorkingDirectory (Split-Path -Parent $InstallerPath) `
-        -WindowStyle Hidden -PassThru
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutPath `
+        -RedirectStandardError $stderrPath `
+        -PassThru
+    $script:cbGuiLogPath = $stdoutPath
+    $script:cbGuiErrPath = $stderrPath
     & $script:cbGuiOnStatus ($script:cbGuiText['Started'])
     $script:cbGuiProcess = $process
     $script:cbGuiSignalDir = $signalDir
@@ -157,6 +172,23 @@ function Start-CyberButlerGuiInstall {
             $script:cbGuiTimer.Stop()
             try { & $script:cbGuiOnStatus ($(if ($script:cbGuiProcess.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' })) } catch { }
             return
+        }
+        if ($script:cbGuiOnProgress -and $script:cbGuiLogPath -and (Test-Path -LiteralPath $script:cbGuiLogPath)) {
+            try {
+                $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 8 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
+                if ($tail.Count -gt 0) {
+                    $last = [string]$tail[$tail.Count - 1]
+                    $percent = 10
+                    if ($last -match 'CORE start') { $percent = 15 }
+                    elseif ($last -match 'CORE downloaded') { $percent = 25 }
+                    elseif ($last -match 'CORE completed') { $percent = 45 }
+                    elseif ($last -match 'ACL') { $percent = 55 }
+                    elseif ($last -match 'TOTP') { $percent = 65 }
+                    elseif ($last -match 'SERVICE registering') { $percent = 80 }
+                    elseif ($last -match 'INSTALLER_OK|Install completed') { $percent = 100 }
+                    $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnProgress $percent $last })
+                }
+            } catch { }
         }
         if ($script:cbGuiTotpSeen) { return }
         $readyPath = Join-Path $script:cbGuiSignalDir 'totp-ready.json'

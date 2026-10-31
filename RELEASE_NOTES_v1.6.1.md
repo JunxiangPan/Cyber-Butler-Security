@@ -16,7 +16,7 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 🖥️ Visual Installer
 
-**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels and runs the installer as a hidden child process; TOTP enrollment is a WPF dialog with the QR image and recovery codes.
+**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels, an inline help panel, a progress bar with current-step text, completion/failure dialogs, and runs the installer as a hidden child process; TOTP enrollment is a WPF dialog with the QR image and recovery codes.
 
 **Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
 
@@ -52,6 +52,8 @@ Clean Windows 11 Pro VM end-to-end acceptance has not yet been run for this draf
 
 The visual installer is a front-end and preflight tool, not a fully silent unattended installer. The first installation still requires a UAC-elevated GUI and explicit approval/TOTP interaction.
 
+Progress is polled from the hidden installer output; there is no per-package ETA.
+
 `update_merge.ps1` still needs a dedicated `webui\.venv` bootstrap/check for targets where that virtual environment is absent.
 
 The release package has not yet been rebuilt or signed for this version.
@@ -82,7 +84,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **界面内预检**：GUI 可以运行只读环境预检并显示 JSON 结果。
 
-**显式批准**：GUI 只有在用户勾选批准后才提供 approval token，不会静默自动批准安全步骤。
+**显式批准**：GUI 只有在用户勾选批准后才提供 approval token，不会静默自动批准安全步骤。界面包含中文/英文说明、进度条、当前步骤、完成/失败提示。
 
 🛡️ 更新完整性
 
@@ -113,6 +115,8 @@ GUI XAML 自检：`GUI_XAML_OK`。
 本草案尚未在干净 Windows 11 Pro VM 上完成端到端验收。
 
 可视化安装器是前端和预检工具，不是完全静默的无人值守安装器；首次安装仍需要提权 GUI 和显式批准/TOTP 操作。
+
+进度来自隐藏安装器输出轮询，不提供精确剩余时间。
 
 `update_merge.ps1` 仍需要补上 `webui\.venv` 的专用创建/检查逻辑，以覆盖虚拟环境缺失的目标机。
 
