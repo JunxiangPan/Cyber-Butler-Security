@@ -147,6 +147,10 @@ function Request-MainApproval {
         return $true
     }
     if ($NonInteractive) { return $false }
+    if (-not (Test-CyberButlerInteractiveStdin)) {
+        Write-Host 'stdin is not interactive; run from an interactive console or pass -NonInteractive and approval tokens.'
+        return $false
+    }
     $answer = Read-Host ("Type {0} to approve {1}" -f $Token, $Step)
     if ($answer -ceq $Token) {
         Add-MainApproval -Approvals $Approvals -Token $Token -Step $Step
@@ -174,6 +178,10 @@ function Request-MainConfirmation {
         return $true
     }
     if ($NonInteractive) { return $false }
+    if (-not (Test-CyberButlerInteractiveStdin)) {
+        Write-Host 'stdin is not interactive; run from an interactive console or pass -NonInteractive and approval tokens.'
+        return $false
+    }
     $answer = Read-Host ("Type {0} to confirm {1}" -f $Token, $Step)
     if ($answer -ceq $Token) {
         Add-MainApproval -Approvals $Approvals -Token $Token -Step $Step
@@ -288,6 +296,17 @@ if (@($preflight.blocking).Count -gt 0) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 $pythonPath = if ($preflight.python_needs_bundle) { $null } else { [string]$preflight.python_resolved_path }
+$pythonBlocking = @($preflight.blocking | Where-Object { $_.id -eq 'python' }).Count -gt 0
+if ($preflight.python_needs_bundle -or -not $preflight.python_usable -or $pythonBlocking) {
+    foreach ($line in @(
+        'Install Python 3.10-3.13 and add it to PATH before running this installer.',
+        'Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this AstrBot release.',
+        'Supply -PythonPackage <path> for offline Python installation.'
+    )) {
+        if (-not $resolution.ManualSteps.Contains($line)) { $resolution.ManualSteps.Add($line) }
+    }
+    $resolution.PlanText = Format-CyberButlerPlan -Resolution $resolution
+}
 
 if ($PlanOnly) {
     Write-Output ('PREFLIGHT admin={0} existing={1} ports={2}' -f $preflight.admin.is_admin, $preflight.install_path.existing_state, $preflight.ports.Count)
@@ -439,6 +458,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'core')) 
         -AstrBotSha256 $AstrBotSha256 -SnowLumaSha256 $SnowLumaSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `
         -DownloadTimeoutSeconds $DownloadTimeoutSeconds -DownloadRetryCount $DownloadRetryCount -ResumeDownload:$ResumeDownload -PythonPath $pythonPath -PythonSource $pythonSource -PythonVersion $pythonVersion -PipLogPath (Join-Path $ReportDirectory 'pip-install.log') `
+        -OwnerQQ $OwnerQQ -ToolServiceAccount $AstrBotAccount -ToolDesktopAccount $DesktopAccount `
         -Journal $journal -JournalStep 'core' -Handlers $Handlers
     Write-Output ('CORE ' + [string]$coreResult.status)
     if ([string]$coreResult.status -eq 'failed') {

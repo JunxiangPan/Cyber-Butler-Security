@@ -255,6 +255,7 @@ function Invoke-CyberButlerSecrets {
         [switch]$NonInteractive,
         [switch]$PlanOnly,
         [scriptblock]$Reader = $null,
+        [Nullable[bool]]$StdinInteractive = $null,
         $Handlers = @{}
     )
 
@@ -297,7 +298,15 @@ function Invoke-CyberButlerSecrets {
             return [pscustomobject]$base
         }
         Write-Host 'Please enter your DeepSeek API Key (leave empty to skip):'
-        $ApiKey = Read-CyberButlerSecureSecret -Prompt 'DeepSeek API Key (input hidden):' -Reader $Reader
+        try {
+            $ApiKey = Read-CyberButlerSecureSecret -Prompt 'DeepSeek API Key (input hidden):' -Reader $Reader -StdinInteractive $StdinInteractive
+        } catch {
+            Write-Host $_.Exception.Message
+            $base.status = 'needs_configuration'
+            $base.message = $_.Exception.Message
+            $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
+            return [pscustomobject]$base
+        }
         if (Test-CyberButlerSecureStringEmpty $ApiKey) { $skipApiKey = $true; $ApiKey = $null }
     }
     if (Test-CyberButlerSecureStringEmpty $SmtpSecret) {
@@ -308,7 +317,15 @@ function Invoke-CyberButlerSecrets {
             return [pscustomobject]$base
         }
         Write-Host 'Please enter your 163 SMTP Auth Code (leave empty to skip):'
-        $SmtpSecret = Read-CyberButlerSecureSecret -Prompt 'SMTP Auth Code (input hidden):' -Reader $Reader
+        try {
+            $SmtpSecret = Read-CyberButlerSecureSecret -Prompt 'SMTP Auth Code (input hidden):' -Reader $Reader -StdinInteractive $StdinInteractive
+        } catch {
+            Write-Host $_.Exception.Message
+            $base.status = 'needs_configuration'
+            $base.message = $_.Exception.Message
+            $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
+            return [pscustomobject]$base
+        }
         if (Test-CyberButlerSecureStringEmpty $SmtpSecret) { $skipSmtp = $true; $SmtpSecret = $null }
     }
 

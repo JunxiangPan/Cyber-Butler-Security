@@ -406,6 +406,18 @@ function Invoke-CyberButlerRollback {
 
     foreach ($step in $steps) {
         if ([string]$step.status -in @('pending', 'skipped', 'rolled_back')) { continue }
+        if ([string]$step.status -eq 'completed') {
+            if (-not $DryRun) {
+                if ($null -eq $step.details -or $step.details -is [string]) { $step.details = [pscustomobject]@{} }
+                $step.details | Add-Member -NotePropertyName undo -NotePropertyValue ([pscustomobject]@{
+                    status = 'preserved'
+                    executed = @()
+                    errors = @()
+                    at = Get-InstallerUtcTimestamp
+                }) -Force
+            }
+            continue
+        }
         $actions = @($step.reverse_actions)
         [array]::Reverse($actions)
         $stepExecuted = New-Object System.Collections.Generic.List[object]

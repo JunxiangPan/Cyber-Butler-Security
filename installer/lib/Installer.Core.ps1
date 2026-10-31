@@ -1,4 +1,4 @@
-﻿# Real core deployment: download, verify, extract, venv, overlay.
+# Real core deployment: download, verify, extract, venv, overlay.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerCoreSourceConfig {
@@ -168,6 +168,7 @@ function Copy-CyberButlerCoreTree {
         $Journal = $null,
         [string]$JournalStep = 'core',
         [string[]]$ExcludeTop = @(),
+        [string[]]$ExcludePatterns = @(),
         [string]$Label = 'files'
     )
 
@@ -182,6 +183,11 @@ function Copy-CyberButlerCoreTree {
         $relative = $file.Substring($sourceFull.Length).TrimStart('\')
         $parts = $relative -split '[\/]'
         if ($parts.Count -gt 0 -and $ExcludeTop -contains $parts[0]) { continue }
+        $skip = $false
+        foreach ($pattern in @($ExcludePatterns)) {
+            if ($relative -like $pattern) { $skip = $true; break }
+        }
+        if ($skip) { continue }
         $selected.Add($file)
     }
 
@@ -219,23 +225,99 @@ function Invoke-CyberButlerPipInstall {
         [Parameter(Mandatory = $true)]
         [string]$Requirements,
         [Parameter(Mandatory = $true)]
-        [string]$LogPath
+        [string]$LogPath,
+        [string]$SitePackagesPath = '',
+        [int]$HeartbeatSeconds = 30,
+        [int]$PollMilliseconds = 1000,
+        [scriptblock]$Clock = $null
     )
 
+    if ($HeartbeatSeconds -lt 15) { $HeartbeatSeconds = 15 }
     $parent = Split-Path -Parent $LogPath
     if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    $stderrPath = $LogPath + '.stderr'
+    Set-Content -LiteralPath $LogPath -Value '' -Encoding UTF8
+    Set-Content -LiteralPath $stderrPath -Value '' -Encoding UTF8
+
+    $quote = { param($value) '"' + ([string]$value).Replace('"', '""') + '"' }
+    $command = (& $quote $PythonPath) + ' -m pip install --disable-pip-version-check --progress-bar on -r ' + (& $quote $Requirements)
+    $argumentLine = '/d /s /c "' + $command + '"'
+    $process = Start-Process -FilePath $env:ComSpec -ArgumentList $argumentLine `
+        -RedirectStandardOutput $LogPath -RedirectStandardError $stderrPath `
+        -NoNewWindow -PassThru
+    if ($null -eq $process) { throw 'failed to start pip' }
+
     $lines = New-Object System.Collections.Generic.List[string]
-    & $PythonPath -m pip install --disable-pip-version-check --progress-bar on -r $Requirements 2>&1 |
-        ForEach-Object {
-            $line = [string]$_
+    $stdoutOffset = 0
+    $stderrOffset = 0
+    $heartbeats = 0
+    $nowProvider = { if ($null -ne $Clock) { [datetime](& $Clock) } else { Get-Date } }
+    $started = [datetime](& $nowProvider)
+    $lastOutput = $started
+
+    $readNew = {
+        param([string]$path, [int]$offset)
+        if (-not (Test-Path -LiteralPath $path)) { return @{ lines = @(); count = $offset } }
+        $all = @(Get-Content -LiteralPath $path -Encoding UTF8 -ErrorAction SilentlyContinue)
+        $new = @()
+        for ($i = $offset; $i -lt $all.Count; $i++) {
+            $new += [string]$all[$i]
+        }
+        return @{ lines = $new; count = $all.Count }
+    }
+
+    while (-not $process.HasExited) {
+        Start-Sleep -Milliseconds ([Math]::Max(50, $PollMilliseconds))
+        $stdout = & $readNew $LogPath $stdoutOffset
+        $stdoutOffset = [int]$stdout.count
+        foreach ($line in @($stdout.lines)) {
+            $lines.Add($line)
+            Write-Host $line
+            $lastOutput = [datetime](& $nowProvider)
+        }
+        $stderr = & $readNew $stderrPath $stderrOffset
+        $stderrOffset = [int]$stderr.count
+        foreach ($line in @($stderr.lines)) {
+            $lines.Add($line)
+            Write-Host $line
+            $lastOutput = [datetime](& $nowProvider)
+        }
+        if ($process.HasExited) { break }
+        $now = [datetime](& $nowProvider)
+        if (($now - $lastOutput).TotalSeconds -ge $HeartbeatSeconds) {
+            $packages = 0
+            if ($SitePackagesPath -and (Test-Path -LiteralPath $SitePackagesPath)) {
+                $packages = @(Get-ChildItem -LiteralPath $SitePackagesPath -Directory -ErrorAction SilentlyContinue).Count
+            }
+            $elapsed = [Math]::Max(0, [int](($now - $started).TotalSeconds))
+            Write-Host ('CORE pip still running... (elapsed: {0}s, packages: {1})' -f $elapsed, $packages)
+            $heartbeats++
+            $lastOutput = $now
+        }
+    }
+
+    $process.WaitForExit()
+    $stdout = & $readNew $LogPath $stdoutOffset
+    $stdoutOffset = [int]$stdout.count
+    foreach ($line in @($stdout.lines)) {
+        $lines.Add($line)
+        Write-Host $line
+    }
+    $stderr = & $readNew $stderrPath $stderrOffset
+    $stderrOffset = [int]$stderr.count
+    if (@($stderr.lines).Count -gt 0) {
+        Add-Content -LiteralPath $LogPath -Value '--- pip stderr ---' -Encoding UTF8
+        foreach ($line in @($stderr.lines)) {
             $lines.Add($line)
             Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8
-            Write-Host $line
         }
+    }
+    Remove-Item -LiteralPath $stderrPath -Force -ErrorAction SilentlyContinue
     return [pscustomobject]@{
-        exit_code = [int]$LASTEXITCODE
+        exit_code = [int]$process.ExitCode
         output = $lines.ToArray()
         log_path = $LogPath
+        heartbeats = $heartbeats
     }
 }
 
@@ -257,6 +339,11 @@ function Test-CyberButlerCoreDeploy {
     if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('AstrBot/.venv/Scripts/python.exe') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'SnowLuma\index.mjs'))) { $missing.Add('SnowLuma/index.mjs') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'tools'))) { $missing.Add('tools') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools\broker.py'))) { $missing.Add('tools/broker.py') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools\email_approval.py'))) { $missing.Add('tools/email_approval.py') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\run.py'))) { $missing.Add('webui/run.py') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\.venv\Scripts\python.exe'))) { $missing.Add('webui/.venv/Scripts/python.exe') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot\data'))) { $missing.Add('AstrBot/data') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'workspace'))) { $missing.Add('workspace') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'data'))) { $missing.Add('data') }
     if (-not (Test-Path -LiteralPath $overlayProbe)) { $missing.Add('overlay probe') }
@@ -290,6 +377,10 @@ function Invoke-CyberButlerCoreDeploy {
         [string]$PythonPath = '',
         [string]$PythonSource = 'system',
         [string]$PythonVersion = '',
+        [string]$WebUIAdminEmail = 'owner@example.com',
+        [string]$OwnerQQ = '',
+        [string]$ToolServiceAccount = '',
+        [string]$ToolDesktopAccount = '',
         [string]$PipLogPath = '',
         [string]$JournalStep = 'core',
         $Journal = $null,
@@ -362,8 +453,10 @@ function Invoke-CyberButlerCoreDeploy {
         $toolsTarget = Join-Path $root 'tools'
         $workspaceTarget = Join-Path $root 'workspace'
         $dataTarget = Join-Path $root 'data'
+        $webTarget = Join-Path $root 'webui'
+        $astrbotDataTarget = Join-Path $astrbotTarget 'data'
 
-        foreach ($path in @($astrbotTarget, $snowTarget, $toolsTarget, $workspaceTarget, $dataTarget)) {
+        foreach ($path in @($astrbotTarget, $snowTarget, $toolsTarget, $workspaceTarget, $dataTarget, $webTarget, $astrbotDataTarget)) {
             if (-not (Test-Path -LiteralPath $path)) {
                 if ($null -ne $Journal) {
                     New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $path -AllowedRoot $root | Out-Null
@@ -386,6 +479,48 @@ function Invoke-CyberButlerCoreDeploy {
             throw "Overlay tree missing: $overlay"
         }
 
+        $releaseRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $toolsSource = Join-Path $releaseRoot 'tools'
+        $webSource = Join-Path $releaseRoot 'webui'
+        if (-not (Test-Path -LiteralPath $toolsSource)) { throw "Tools tree missing: $toolsSource" }
+        if (-not (Test-Path -LiteralPath $webSource)) { throw "Web UI tree missing: $webSource" }
+        Copy-CyberButlerCoreTree -Source $toolsSource -Destination $toolsTarget -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
+            -ExcludeTop @('__pycache__') -ExcludePatterns @('__pycache__\*','*.pyc','*.log','tmp-*','*.dpapi','broker_token.txt','totp_recovery.json') -Label 'tools'
+        Copy-CyberButlerCoreTree -Source $webSource -Destination $webTarget -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
+            -ExcludeTop @('.venv', 'data', 'tests', '__pycache__') -ExcludePatterns @('.venv\*','data\*','tests\*','__pycache__\*','tmp-*','*.pyc','config.json') -Label 'webui'
+
+        $toolReplacements = [ordered]@{
+            'YOUR_PROJECT_PATH' = $root
+            'YOUR_USER_PATH' = $env:USERPROFILE
+            'YOUR_USER_NAME' = $env:USERNAME
+            'YOUR_QQ_ID' = $OwnerQQ
+            'YOUR_SERVICE_USER' = $ToolServiceAccount
+        }
+        foreach ($toolFile in @(Get-ChildItem -LiteralPath $toolsTarget -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.ps1', '.py', '.json', '.psm1', '.cmd', '.bat') })) {
+            $toolText = [IO.File]::ReadAllText($toolFile.FullName)
+            $changed = $false
+            foreach ($key in $toolReplacements.Keys) {
+                $value = [string]$toolReplacements[$key]
+                if ($value -and $toolText.Contains($key)) {
+                    $toolText = $toolText.Replace($key, $value)
+                    $changed = $true
+                }
+            }
+            if ($changed) { [IO.File]::WriteAllText($toolFile.FullName, $toolText, (New-Object Text.UTF8Encoding($false))) }
+        }
+
+        $webConfigPath = Join-Path $webTarget 'config.json'
+        if (-not (Test-Path -LiteralPath $webConfigPath)) {
+            $templatePath = Join-Path $webTarget 'example-config.json'
+            if (Test-Path -LiteralPath $templatePath) {
+                $webConfig = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $webConfig.admin_email = $WebUIAdminEmail
+                $webConfig.project_root = $root
+                $webConfig.file_root = ''
+                Write-InstallerJson -Path $webConfigPath -Value $webConfig
+            }
+        }
+
         if (-not $SkipDependencyInstall) {
             $python = Get-CyberButlerCorePython -PreferredPath $PythonPath
             Write-Host ('CORE creating virtual environment with ' + $python + '...')
@@ -393,12 +528,24 @@ function Invoke-CyberButlerCoreDeploy {
             & $python -m venv $venvDir
             if ($LASTEXITCODE -ne 0) { throw 'python -m venv failed.' }
             $venvPython = Join-Path $venvDir 'Scripts\python.exe'
+            $webVenv = Join-Path $webTarget '.venv'
+            & $python -m venv $webVenv
+            if ($LASTEXITCODE -ne 0) { throw 'webui python -m venv failed.' }
+            $webRequirements = Join-Path $webTarget 'requirements.txt'
+            if ((Test-Path -LiteralPath $webRequirements) -and (Get-Item -LiteralPath $webRequirements).Length -gt 0) {
+                $webPipLog = Join-Path $root 'installer-report\webui-pip-install.log'
+                Write-Host 'CORE installing Web UI dependencies (this may take several minutes)...'
+                Write-Host ('CORE Web UI pip log: ' + $webPipLog)
+                $webPipRun = Invoke-CyberButlerPipInstall -PythonPath (Join-Path $webVenv 'Scripts\python.exe') -Requirements $webRequirements -LogPath $webPipLog -SitePackagesPath (Join-Path $webVenv 'Lib\site-packages')
+                if ($webPipRun.exit_code -ne 0) { throw ("Web UI pip install failed. pip log: " + $webPipLog) }
+                Write-Host 'CORE Web UI dependencies installed.'
+            }
             $requirements = Join-Path $astrbotTarget 'requirements.txt'
             if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
                 $pipLog = if ($PipLogPath) { $PipLogPath } else { Join-Path $root 'installer-report\pip-install.log' }
                 Write-Host 'CORE installing dependencies (this may take several minutes)...'
                 Write-Host ('CORE pip log: ' + $pipLog)
-                $pipRun = Invoke-CyberButlerPipInstall -PythonPath $venvPython -Requirements $requirements -LogPath $pipLog
+                $pipRun = Invoke-CyberButlerPipInstall -PythonPath $venvPython -Requirements $requirements -LogPath $pipLog -SitePackagesPath (Join-Path $venvDir 'Lib\site-packages')
                 if ($pipRun.exit_code -ne 0) {
                     $pipOutput = ($pipRun.output -join "`n")
                     $excerpt = (($pipRun.output | Select-Object -Last 12) -join "`n")
@@ -412,6 +559,8 @@ function Invoke-CyberButlerCoreDeploy {
         } else {
             New-Item -ItemType Directory -Path (Join-Path $astrbotTarget '.venv\Scripts') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $astrbotTarget '.venv\Scripts\python.exe') -Value '' -Encoding ASCII
+            New-Item -ItemType Directory -Path (Join-Path $webTarget '.venv\Scripts') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $webTarget '.venv\Scripts\python.exe') -Value '' -Encoding ASCII
         }
 
         $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Handlers $Handlers
@@ -430,8 +579,10 @@ function Invoke-CyberButlerCoreDeploy {
                 astrbot = $astrbotTarget
                 snowluma = $snowTarget
                 tools = $toolsTarget
+                webui = $webTarget
                 workspace = $workspaceTarget
                 data = $dataTarget
+                astrbot_data = $astrbotDataTarget
             }
         }
     } catch {

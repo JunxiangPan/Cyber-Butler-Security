@@ -25,6 +25,24 @@ Describe 'Installer secrets safety' {
         }
     }
 
+    It 'fails fast when stdin is not interactive' {
+        $base = Join-Path $env:TEMP ('cb-secrets-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $base -Force | Out-Null
+        try {
+            $handlers = @{
+                'secrets.test' = { param($c) [pscustomobject]@{ satisfied = $false; can_manage = $true } }
+                'secrets.write' = { param($c) $true }
+                'secrets.acl' = { param($c) $true }
+            }
+            $result = Invoke-CyberButlerSecrets -Root $base -ReaderAccount 'Reader' -OwnerQQ '<QQ>' -Approval 'APPROVE SECRETS' -StdinInteractive $false -Handlers $handlers
+            $result.status | Should Be 'needs_configuration'
+            $result.message | Should Match 'stdin is not interactive; pass -ApiKey / -SmtpSecret instead'
+            $result.exit_code | Should Be (Get-InstallerExitCode -Name ValidationFailed)
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
     It 'writes fake secret files and never records the secret values' {
         $base = Join-Path $env:TEMP ('cb-secrets-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null

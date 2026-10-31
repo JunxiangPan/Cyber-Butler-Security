@@ -210,16 +210,13 @@ function Resolve-CyberButlerTier {
     }
     if ([string]::IsNullOrWhiteSpace($OwnerQQ)) {
         $manual.Add('Supply -OwnerQQ before a real installation.')
-    $manual.Add('You will be prompted for API Key and SMTP Secret during install, or pass -ApiKey / -SmtpSecret.')
-    $manual.Add('Supply -PythonPackage <path> for offline Python installation.')
     }
+    $manual.Add('You will be prompted for API Key and SMTP Secret during install, or pass -ApiKey / -SmtpSecret.')
 
     if (-not (Test-InstallerAdministrator)) {
         $manual.Add('Run the installer from an elevated PowerShell session.')
     }
     $manual.Add('Scan the TOTP QR code and store the recovery codes offline.')
-    $manual.Add('Install Python 3.10-3.13 and add it to PATH before running this installer.')
-    $manual.Add('Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this AstrBot release.')
     $manual.Add('If `where python` shows WindowsApps before real Python, disable App Execution Aliases for python.exe and python3.exe or move real Python to the front of PATH.')
     $manual.Add('Log in to QQ / SnowLuma on the desktop account.')
 

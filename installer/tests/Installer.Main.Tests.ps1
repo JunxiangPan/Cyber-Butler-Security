@@ -13,6 +13,7 @@ function New-MainTestConfig {
         [ValidateSet('all', 'until-firewall', 'without-totp')]
         [string]$TokenMode = 'all',
         [bool]$PythonMissing = $false,
+        [bool]$PythonTooNew = $false,
         [bool]$CoreFail = $false
     )
 
@@ -22,6 +23,7 @@ $failStep = '__FAIL__'
 $tokenMode = '__TOKENS__'
 $pythonMissing = '__PYTHON_MISSING__' -eq 'true'
 $coreFail = '__CORE_FAIL__' -eq 'true'
+$pythonTooNew = '__PYTHON_TOO_NEW__' -eq 'true'
 $global:cbMainBase = $base
 $global:cbFailStep = $failStep
 $aclBackup = Join-Path $base 'acl.clixml'
@@ -101,6 +103,20 @@ $handlers = @{
 if ($pythonMissing) {
     $handlers['preflight.python'] = { param($c) @() }
 }
+if ($pythonTooNew) {
+    $handlers['preflight.python'] = {
+        param($c)
+        @([pscustomobject]@{
+            found = $true
+            path = 'C:ake\python.exe'
+            candidate_path = 'C:ake\python.exe'
+            python_source = 'system'
+            version = 'Python 3.15.2'
+            version_ok = $false
+            version_too_new = $true
+        })
+    }
+}
 if ($coreFail) {
     $handlers['core.deploy'] = { param($c) Set-Content -LiteralPath (Join-Path $global:cbMainBase 'core-failed.marker') -Value 'called'; [pscustomobject]@{ status = 'failed'; message = 'fake core failure' } }
 }
@@ -148,7 +164,7 @@ return @{
     SmtpSecret = (ConvertTo-SecureString 'fake-smtp-password' -AsPlainText -Force)
 }
 '@
-    $text = $template.Replace('__BASE__', $Base).Replace('__FAIL__', $FailStep).Replace('__TOKENS__', $TokenMode).Replace('__PYTHON_MISSING__', $PythonMissing.ToString().ToLower()).Replace('__CORE_FAIL__', $CoreFail.ToString().ToLower())
+    $text = $template.Replace('__BASE__', $Base).Replace('__FAIL__', $FailStep).Replace('__TOKENS__', $TokenMode).Replace('__PYTHON_MISSING__', $PythonMissing.ToString().ToLower()).Replace('__CORE_FAIL__', $CoreFail.ToString().ToLower()).Replace('__PYTHON_TOO_NEW__', $PythonTooNew.ToString().ToLower())
     $path = Join-Path $Base 'test-config.ps1'
     [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding($true)))
     return $path
@@ -200,6 +216,8 @@ Describe 'Installer main pipeline' {
             $out = & $psExe -NoProfile -ExecutionPolicy Bypass -File $mainScript -PlanOnly -Tier Medium -InstallPath (Join-Path $base 'install') -TestConfigPath $config 2>&1
             $LASTEXITCODE | Should Be 0
             (($out -join "`n") -match 'Mode: PlanOnly') | Should Be $true
+            (($out -join "`n") -match 'Install Python 3.10-3.13') | Should Be $false
+            (($out -join "`n") -match 'Supply -PythonPackage') | Should Be $false
             (Test-Path -LiteralPath (Join-Path $base 'core.marker')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $base 'acl.marker')) | Should Be $false
         } finally {
@@ -234,6 +252,23 @@ Describe 'Installer main pipeline' {
             $report = Get-Content -LiteralPath (Join-Path $base 'report\install-report.json') -Raw -Encoding UTF8 | ConvertFrom-Json
             $pythonStep = @($report.steps | Where-Object { $_.name -eq 'python' })[0]
             $pythonStep.status | Should Be 'completed'
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
+    It 'shows Python manual only when the system Python is too new' {
+        $base = Join-Path $env:TEMP ('cb-main-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $base -Force | Out-Null
+        try {
+            $config = New-MainTestConfig -Base $base -PythonTooNew $true
+            $out = & $psExe -NoProfile -ExecutionPolicy Bypass -File $mainScript -PlanOnly -Tier Medium -InstallPath (Join-Path $base 'install') -TestConfigPath $config 2>&1
+            $LASTEXITCODE | Should Be 0
+            $text = $out -join "`n"
+            ($text -match 'Install Python 3.10-3.13') | Should Be $true
+            ($text -match 'Python 3.14\+') | Should Be $true
+            ($text -match 'Supply -PythonPackage') | Should Be $true
+            ($text -match 'PREFLIGHT_BLOCKING') | Should Be $false
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }

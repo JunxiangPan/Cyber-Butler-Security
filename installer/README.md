@@ -382,6 +382,28 @@ Please enter your 163 SMTP Auth Code (leave empty to skip):
 
 留空的 secret 会在报告中标记为 `PARTIAL (skipped by user)`，不会让安装在中途直接崩溃。
 
+#### `stdin is not interactive`
+
+如果 `powershell -File` 下提示出现后按回车没有反应，或者 stdin 被重定向，
+安装器不会继续等待。它会快速失败并打印：
+
+```text
+stdin is not interactive; pass -ApiKey / -SmtpSecret instead
+```
+
+此时改用明文参数：
+
+```powershell
+.\installer\Install-CyberButler.ps1 `
+  -Tier Medium `
+  -OwnerQQ <YourQQ> `
+  -ApiKey '<YourAPIKey>' `
+  -SmtpSecret '<YourSmtpAuthCode>'
+```
+
+明文参数可能出现在进程命令行中；如果终端本身可交互，仍可只运行脚本并按提示输入。
+不要在聊天、issue 或日志中粘贴真实 API Key / SMTP 授权码。
+
 ### 3. 下载慢或 GitHub 连接失败
 
 Core 下载和 `pip install` 在普通网络下可能需要 5–10 分钟，具体取决于 GitHub、PyPI 和杀毒软件扫描速度。

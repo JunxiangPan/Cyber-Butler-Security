@@ -1,8 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Services.ps1')
 
 function New-CoreFixture {
     param(
@@ -59,6 +60,14 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $base 'install\SnowLuma\index.mjs')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\workspace')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\tools')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $base 'install\webui\run.py')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $base 'install\tools\broker.py')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $base 'install\tools\email_approval.py')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot\data')) | Should Be $true
+            $specs = Get-CyberButlerServiceSpecs -Root (Join-Path $base 'install') -DesktopAccount 'DOMAIN\Desktop'
+            foreach ($spec in $specs) {
+                (Test-Path -LiteralPath $spec.exe) | Should Be $true
+            }
             (Test-Path -LiteralPath (Join-Path $base 'install\data')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot\astrbot\core\tools\message_tools.py')) | Should Be $true
         } finally {
@@ -129,6 +138,33 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath $log) | Should Be $true
             ((Get-Content -LiteralPath $log -Raw) -match 'FAKE_PIP_OUTPUT') | Should Be $true
             (@($result.output) -join "`n") | Should Match 'FAKE_PIP_OUTPUT'
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
+    It 'prints a heartbeat while pip is silent and keeps the full log' {
+        $base = Join-Path $env:TEMP ('cb-pip-heartbeat-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $base -Force | Out-Null
+        try {
+            $fake = Join-Path $base 'fake-pip.cmd'
+            $log = Join-Path $base 'pip-install.log'
+            $requirements = Join-Path $base 'requirements.txt'
+            Set-Content -LiteralPath $requirements -Value '' -Encoding ASCII
+            $fakeText = "@echo off`r`necho Installing collected packages: demo`r`nping -n 6 127.0.0.1 >nul`r`necho Successfully installed demo`r`nexit /b 0"
+            Set-Content -LiteralPath $fake -Value $fakeText -Encoding ASCII
+            $script:cbFakeNow = Get-Date
+            $clock = { $script:cbFakeNow = $script:cbFakeNow.AddSeconds(300); $script:cbFakeNow }
+            $captured = & { Invoke-CyberButlerPipInstall -PythonPath $fake -Requirements $requirements -LogPath $log -HeartbeatSeconds 30 -PollMilliseconds 100 -Clock $clock } 6>&1
+            $text = ($captured | ForEach-Object { [string]$_ }) -join "`n"
+            $result = @($captured | Where-Object { $_.PSObject.Properties['heartbeats'] })[0]
+            $text | Should Match 'CORE pip still running\.\.\.'
+            $result.heartbeats | Should BeGreaterThan 0
+            (@($result.output) -join "`n") | Should Not Match 'CORE pip still running'
+            $raw = Get-Content -LiteralPath $log -Raw
+            $raw | Should Match 'Installing collected packages: demo'
+            $raw | Should Match 'Successfully installed demo'
+            $result.exit_code | Should Be 0
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }

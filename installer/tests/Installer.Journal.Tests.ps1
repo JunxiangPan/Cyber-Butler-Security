@@ -49,7 +49,7 @@ Describe 'Installer journal lifecycle' {
         }
     }
 
-    It 'rolls back a created directory and restores a replaced file' {
+    It 'preserves completed step output on rollback' {
         $base = New-JournalTestRoot
         try {
             $install = Join-Path $base 'install'
@@ -68,14 +68,74 @@ Describe 'Installer journal lifecycle' {
             $result = Invoke-CyberButlerRollback -Journal $journal
             $result.status | Should Be 'rolled_back'
             $result.errors.Count | Should Be 0
-            $result.executed.Count | Should Be 2
-            (Test-Path -LiteralPath $newDir) | Should Be $false
-            (Get-Content -LiteralPath $file -Raw).Trim() | Should Be 'original'
+            $result.executed.Count | Should Be 0
+            (Test-Path -LiteralPath $newDir) | Should Be $true
+            (Get-Content -LiteralPath $file -Raw).Trim() | Should Be 'changed'
 
             $read = Read-CyberButlerJournal -StatePath $journal.StatePath
             $read.State.status | Should Be 'rolled_back'
             ($read.State.steps | Where-Object { $_.name -eq 'files' }).status | Should Be 'completed'
-            ($read.State.steps | Where-Object { $_.name -eq 'files' }).details.undo.status | Should Be 'completed'
+            ($read.State.steps | Where-Object { $_.name -eq 'files' }).details.undo.status | Should Be 'preserved'
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
+    It 'still removes a failed step created by the installer' {
+        $base = New-JournalTestRoot
+        try {
+            $install = Join-Path $base 'install'
+            New-Item -ItemType Directory -Path $install -Force | Out-Null
+            $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $install -Tier Medium
+            Add-CyberButlerJournalStep -Journal $journal -Name 'core' -Status failed | Out-Null
+            $newDir = Join-Path $install 'partial-core'
+            New-CyberButlerTrackedDirectory -Journal $journal -Step 'core' -Path $newDir -AllowedRoot $install | Out-Null
+
+            $result = Invoke-CyberButlerRollback -Journal $journal
+            $result.status | Should Be 'rolled_back'
+            $result.errors.Count | Should Be 0
+            $result.executed.Count | Should Be 1
+            (Test-Path -LiteralPath $newDir) | Should Be $false
+            $read = Read-CyberButlerJournal -StatePath $journal.StatePath
+            ($read.State.steps | Where-Object { $_.name -eq 'core' }).status | Should Be 'failed'
+            ($read.State.steps | Where-Object { $_.name -eq 'core' }).details.undo.status | Should Be 'completed'
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
+    It 'keeps Core output when Services fails during rollback' {
+        $base = New-JournalTestRoot
+        try {
+            $install = Join-Path $base 'install'
+            $astrbot = Join-Path $install 'AstrBot'
+            New-Item -ItemType Directory -Path $astrbot -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $astrbot 'main.py') -Value 'fixture' -Encoding ASCII
+
+            $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $install -Tier Medium
+            Add-CyberButlerJournalStep -Journal $journal -Name 'core' -Status completed | Out-Null
+            Add-CyberButlerReverseAction -Journal $journal -Step 'core' -Action ([pscustomobject]@{
+                type = 'delete-created-directory'
+                path = $astrbot
+                allowed_root = $install
+            })
+            Add-CyberButlerJournalStep -Journal $journal -Name 'services' -Status failed | Out-Null
+            Add-CyberButlerReverseAction -Journal $journal -Step 'services' -Action ([pscustomobject]@{
+                type = 'delete-created-scheduled-task'
+                task_name = 'AstrBot Service'
+            })
+
+            $result = Invoke-CyberButlerRollback -Journal $journal -Handlers @{
+                'delete-created-scheduled-task' = { param($action) }
+            }
+            $result.status | Should Be 'rolled_back'
+            (Test-Path -LiteralPath (Join-Path $astrbot 'main.py')) | Should Be $true
+            (Test-Path -LiteralPath $astrbot) | Should Be $true
+            $read = Read-CyberButlerJournal -StatePath $journal.StatePath
+            ($read.State.steps | Where-Object { $_.name -eq 'core' }).status | Should Be 'completed'
+            ($read.State.steps | Where-Object { $_.name -eq 'services' }).status | Should Be 'failed'
+            ($read.State.steps | Where-Object { $_.name -eq 'core' }).details.undo.status | Should Be 'preserved'
+            ($read.State.steps | Where-Object { $_.name -eq 'services' }).details.undo.status | Should Be 'completed'
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
@@ -90,7 +150,7 @@ Describe 'Installer journal lifecycle' {
             Set-Content -LiteralPath $file -Value 'acl' -Encoding ASCII
 
             $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $install -Tier Medium
-            Add-CyberButlerJournalStep -Journal $journal -Name 'security' -Status completed | Out-Null
+            Add-CyberButlerJournalStep -Journal $journal -Name 'security' -Status failed | Out-Null
             $aclBackup = Backup-CyberButlerAcl -Journal $journal -Step 'security' -Path $file
             (Test-Path -LiteralPath $aclBackup) | Should Be $true
 
@@ -150,7 +210,7 @@ Describe 'Installer journal lifecycle' {
             Add-CyberButlerJournalStep -Journal $journal -Name 'build' -Status in_progress | Out-Null
             $created = Join-Path $install 'created-by-install'
             New-CyberButlerTrackedDirectory -Journal $journal -Step 'build' -Path $created -AllowedRoot $install | Out-Null
-            Add-CyberButlerJournalStep -Journal $journal -Name 'build' -Status completed | Out-Null
+            Add-CyberButlerJournalStep -Journal $journal -Name 'build' -Status failed | Out-Null
 
             $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Rollback -StatePath $journal.StatePath 2>&1
             $LASTEXITCODE | Should Be 0

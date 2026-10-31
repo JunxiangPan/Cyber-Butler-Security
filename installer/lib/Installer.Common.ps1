@@ -96,15 +96,50 @@ function Test-CyberButlerSecureStringEmpty {
     return $false
 }
 
+function Test-CyberButlerInteractiveStdin {
+    param([Nullable[bool]]$Override = $null)
+
+    if ($null -ne $Override) { return [bool]$Override }
+    try {
+        if ([Console]::IsInputRedirected) { return $false }
+        if (-not [Environment]::UserInteractive) { return $false }
+        if ($null -eq $Host.UI.RawUI) { return $false }
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 function Read-CyberButlerSecureSecret {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Prompt,
-        [scriptblock]$Reader = $null
+        [scriptblock]$Reader = $null,
+        [Nullable[bool]]$StdinInteractive = $null
     )
     Write-Host $Prompt
     if ($null -ne $Reader) { return (& $Reader) }
-    return (Read-Host -AsSecureString)
+    if (-not (Test-CyberButlerInteractiveStdin -Override $StdinInteractive)) {
+        throw [System.InvalidOperationException]::new('stdin is not interactive; pass -ApiKey / -SmtpSecret instead')
+    }
+    $secret = New-Object System.Security.SecureString
+    try {
+        while ($true) {
+            $key = [Console]::ReadKey($true)
+            if ($key.Key -eq [ConsoleKey]::Enter) { break }
+            if ($key.Key -eq [ConsoleKey]::Backspace) {
+                if ($secret.Length -gt 0) { $secret.RemoveAt($secret.Length - 1) }
+                continue
+            }
+            if ($key.Key -eq [ConsoleKey]::Escape) { break }
+            if (-not [char]::IsControl($key.KeyChar)) { $secret.AppendChar($key.KeyChar) }
+        }
+    } catch {
+        throw [System.InvalidOperationException]::new('stdin is not interactive; pass -ApiKey / -SmtpSecret instead')
+    } finally {
+        Write-Host ''
+    }
+    return $secret
 }
 
 function Get-CyberButlerInstallStatePath {
