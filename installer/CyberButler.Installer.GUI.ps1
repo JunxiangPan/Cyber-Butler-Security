@@ -284,7 +284,7 @@ $script:UiText = @{
         PathTip='Installationsverzeichnis, Standard C:\CyberButler.'; TierTip='High: separates Dienstkonto; Medium: aktuelles Desktopkonto; Light: geringerer Schutz.'; OwnerTip='Ihr eigenes Haupt-QQ, nicht der Bot.'; BindTip='Loopback: nur lokal; Tailscale: privates Netz; LAN: Netzwerkfreigabe.'; PluginsTip='Optionales Verzeichnis mit private_companion, livingmemory und memorix.'; ApiTip='Optionaler Pfad zu einer DeepSeek-API-Key-Datei (sk-...).'
         Approval='Ich habe die Hinweise gelesen und stimme den Schritten zu'; NeedApproval='Bitte zuerst die Freigabe ankreuzen.'
         TotpTitle='TOTP-Registrierung'; TotpHint='QR-Code scannen und Wiederherstellungscodes offline speichern.'; Scanned='QR-Code gescannt'; Recovery='Wiederherstellungscodes gespeichert'; Confirm='Bestätigen und fortfahren'; Cancel='Abbrechen'; TotpReady='TOTP-Material bereit; warten auf Bestätigung...'; TotpConfirmed='TOTP bestätigt; Dienste werden fortgesetzt...'; Invalid='Ungültige TOTP-Bestätigung.'
-        Ready='Bereit.'; RunningPreflight='Umgebung wird geprüft...'; PreflightDone='Prüfung abgeschlossen.'; PreflightFailed='Umgebungsprüfung fehlgeschlagen.'; Starting='Installer wird gestartet...'; Started='Installer gestartet.'; StartFailed='Installer konnte nicht gestartet werden.'; Admin='Administratorsitzung erkannt.'; NotAdmin='Diese GUI ist nicht erhöht.'; CloseConfirm='Installation läuft. Schließen beendet den Installer und kann eine unvollständige Installation hinterlassen. Beenden?'; CloseConfirmTitle='Installation beenden'; NoReport='Berichtsverzeichnis nicht gefunden: '
+        Ready='Bereit.'; RunningPreflight='Umgebung wird geprüft...'; PreflightDone='Prüfung abgeschlossen. Bitte bestätigen und dann die Installation starten.'; PreflightFailed='Umgebungsprüfung fehlgeschlagen.'; Starting='Installer wird gestartet...'; Started='Installer gestartet.'; StartFailed='Installer konnte nicht gestartet werden.'; Admin='Administratorsitzung erkannt.'; NotAdmin='Diese GUI ist nicht erhöht.'; CloseConfirm='Installation läuft. Schließen beendet den Installer und kann eine unvollständige Installation hinterlassen. Beenden?'; CloseConfirmTitle='Installation beenden'; NoReport='Berichtsverzeichnis nicht gefunden: '
         CheckStatus='Status prüfen'
         StatusTitle='Installationsstatus'
         StatusRunning='Der Installer läuft.'
@@ -351,7 +351,7 @@ $script:UiText = @{
         PathTip='Directorio de instalación, por defecto C:\CyberButler.'; TierTip='High: cuenta de servicio separada; Medium: cuenta actual; Light: menos protección.'; OwnerTip='Su QQ principal, no el del bot.'; BindTip='Loopback: solo local; Tailscale: red privada; LAN: exposición de red.'; PluginsTip='Carpeta opcional con private_companion, livingmemory y memorix.'; ApiTip='Ruta opcional a un archivo de clave DeepSeek (sk-...).'
         Approval='He leído las notas y apruebo estos pasos'; NeedApproval='Marque primero la aprobación.'
         TotpTitle='Registro TOTP'; TotpHint='Escanee el código QR y guarde los códigos de recuperación sin conexión.'; Scanned='He escaneado el QR'; Recovery='He guardado los códigos'; Confirm='Confirmar y continuar'; Cancel='Cancelar'; TotpReady='Material TOTP listo; esperando confirmación...'; TotpConfirmed='TOTP confirmado; continuando servicios...'; Invalid='Confirmación TOTP no válida.'
-        Ready='Listo.'; RunningPreflight='Comprobando entorno...'; PreflightDone='Comprobación completada.'; PreflightFailed='Error en la comprobación.'; Starting='Iniciando instalador...'; Started='Instalador iniciado.'; StartFailed='No se pudo iniciar el instalador.'; Admin='Sesión de administrador detectada.'; NotAdmin='Esta GUI no está elevada.'; CloseConfirm='La instalación está en curso. Cerrar detendrá el instalador y puede dejar una instalación incompleta. ¿Terminar?'; CloseConfirmTitle='Terminar instalación'; NoReport='Carpeta de informes no encontrada: '
+        Ready='Listo.'; RunningPreflight='Comprobando entorno...'; PreflightDone='Comprobación completada. Confirme y luego inicie la instalación.'; PreflightFailed='Error en la comprobación.'; Starting='Iniciando instalador...'; Started='Instalador iniciado.'; StartFailed='No se pudo iniciar el instalador.'; Admin='Sesión de administrador detectada.'; NotAdmin='Esta GUI no está elevada.'; CloseConfirm='La instalación está en curso. Cerrar detendrá el instalador y puede dejar una instalación incompleta. ¿Terminar?'; CloseConfirmTitle='Terminar instalación'; NoReport='Carpeta de informes no encontrada: '
         CheckStatus='Comprobar estado'
         StatusTitle='Estado de instalación'
         StatusRunning='El instalador está en ejecución.'
@@ -418,7 +418,7 @@ $script:UiText = @{
         PathTip='Répertoire d installation, par défaut C:\CyberButler.'; TierTip='High : compte de service séparé ; Medium : compte actuel ; Light : protection réduite.'; OwnerTip='Votre QQ principal, pas celui du bot.'; BindTip='Loopback : local uniquement ; Tailscale : réseau privé ; LAN : exposition réseau.'; PluginsTip='Dossier facultatif avec private_companion, livingmemory et memorix.'; ApiTip='Chemin facultatif vers une clé DeepSeek (sk-...).'
         Approval='J ai lu les notes et j approuve ces étapes'; NeedApproval='Cochez d abord l approbation.'
         TotpTitle='Enregistrement TOTP'; TotpHint='Scannez le QR et conservez les codes de récupération hors ligne.'; Scanned='QR scanné'; Recovery='Codes sauvegardés'; Confirm='Confirmer et continuer'; Cancel='Annuler'; TotpReady='Matériel TOTP prêt ; en attente de confirmation...'; TotpConfirmed='TOTP confirmé ; reprise des services...'; Invalid='Confirmation TOTP invalide.'
-        Ready='Prêt.'; RunningPreflight='Vérification de l environnement...'; PreflightDone='Vérification terminée.'; PreflightFailed='Échec de la vérification.'; Starting='Démarrage de l installateur...'; Started='Installateur démarré.'; StartFailed='Impossible de démarrer l installateur.'; Admin='Session administrateur détectée.'; NotAdmin='Cette interface n est pas élevée.'; CloseConfirm='L installation est en cours. Fermer arrêtera l installateur et peut laisser une installation partielle. Terminer ?'; CloseConfirmTitle='Terminer l installation'; NoReport='Dossier de rapports introuvable : '
+        Ready='Prêt.'; RunningPreflight='Vérification de l environnement...'; PreflightDone='Vérification terminée. Confirmez, puis démarrez l installation.'; PreflightFailed='Échec de la vérification.'; Starting='Démarrage de l installateur...'; Started='Installateur démarré.'; StartFailed='Impossible de démarrer l installateur.'; Admin='Session administrateur détectée.'; NotAdmin='Cette interface n est pas élevée.'; CloseConfirm='L installation est en cours. Fermer arrêtera l installateur et peut laisser une installation partielle. Terminer ?'; CloseConfirmTitle='Terminer l installation'; NoReport='Dossier de rapports introuvable : '
         CheckStatus='Vérifier l état'
         StatusTitle='État de l installation'
         StatusRunning='L installateur est en cours.'
@@ -485,7 +485,7 @@ $script:UiText = @{
         PathTip='インストール先。既定は C:\CyberButler。'; TierTip='High：専用サービスアカウント。Medium：現在のデスクトップ。Light：保護が少ない。'; OwnerTip='自分のメイン QQ。ボット QQ ではありません。'; BindTip='Loopback：ローカルのみ。Tailscale：プライベート網。LAN：LAN 公開。'; PluginsTip='private_companion、livingmemory、memorix を含む任意のフォルダー。'; ApiTip='DeepSeek API Key（sk-...）ファイルの任意パス。'
         Approval='上記を読み、この手順を承認します'; NeedApproval='先に承認にチェックしてください。'
         TotpTitle='TOTP 登録'; TotpHint='QR を読み取り、回復コードをオフライン保存してください。'; Scanned='QR を読み取りました'; Recovery='回復コードを保存しました'; Confirm='確認して続行'; Cancel='キャンセル'; TotpReady='TOTP の準備完了。確認待ち...'; TotpConfirmed='TOTP 確認済み。サービスを続行...'; Invalid='TOTP 確認が無効です。'
-        Ready='準備完了'; RunningPreflight='環境を確認中...'; PreflightDone='確認完了'; PreflightFailed='環境確認に失敗'; Starting='インストーラーを開始中...'; Started='インストーラー開始'; StartFailed='インストーラーを開始できません'; Admin='管理者セッションを検出'; NotAdmin='管理者権限ではありません'; CloseConfirm='インストール中です。閉じるとインストーラーを停止し、不完全な状態になる可能性があります。終了しますか？'; CloseConfirmTitle='インストールを終了'; NoReport='レポートフォルダーが見つかりません：'
+        Ready='準備完了'; RunningPreflight='環境を確認中...'; PreflightDone='確認が完了しました。承認してからインストールを開始してください。'; PreflightFailed='環境確認に失敗'; Starting='インストーラーを開始中...'; Started='インストーラー開始'; StartFailed='インストーラーを開始できません'; Admin='管理者セッションを検出'; NotAdmin='管理者権限ではありません'; CloseConfirm='インストール中です。閉じるとインストーラーを停止し、不完全な状態になる可能性があります。終了しますか？'; CloseConfirmTitle='インストールを終了'; NoReport='レポートフォルダーが見つかりません：'
         CheckStatus='状態確認'
         StatusTitle='インストール状態'
         StatusRunning='インストーラーは実行中です。'
@@ -552,7 +552,7 @@ $script:UiText = @{
         PathTip='설치 경로, 기본값 C:\CyberButler.'; TierTip='High: 별도 서비스 계정; Medium: 현재 데스크톱 계정; Light: 낮은 보호.'; OwnerTip='본인의 메인 QQ이며 봇 QQ가 아닙니다.'; BindTip='Loopback: 로컬만; Tailscale: 사설 네트워크; LAN: 네트워크 노출.'; PluginsTip='private_companion, livingmemory, memorix가 포함된 선택 폴더.'; ApiTip='DeepSeek API Key(sk-...) 파일의 선택 경로.'
         Approval='위 내용을 읽고 이 단계를 승인합니다'; NeedApproval='먼저 승인 확인란을 선택하세요.'
         TotpTitle='TOTP 등록'; TotpHint='QR을 스캔하고 복구 코드를 오프라인으로 저장하세요.'; Scanned='QR 스캔 완료'; Recovery='복구 코드 저장 완료'; Confirm='확인 후 계속'; Cancel='취소'; TotpReady='TOTP 자료 준비됨; 확인 대기 중...'; TotpConfirmed='TOTP 확인됨; 서비스 계속...'; Invalid='TOTP 확인이 유효하지 않습니다.'
-        Ready='준비됨'; RunningPreflight='환경 확인 중...'; PreflightDone='확인 완료'; PreflightFailed='환경 확인 실패'; Starting='설치 프로그램 시작 중...'; Started='설치 프로그램 시작됨'; StartFailed='설치 프로그램을 시작할 수 없습니다'; Admin='관리자 세션 감지됨'; NotAdmin='관리자 권한이 아닙니다'; CloseConfirm='설치가 진행 중입니다. 닫으면 설치 프로그램이 중지되고 불완전한 설치가 남을 수 있습니다. 종료할까요?'; CloseConfirmTitle='설치 종료'; NoReport='보고서 폴더를 찾을 수 없습니다: '
+        Ready='준비됨'; RunningPreflight='환경 확인 중...'; PreflightDone='확인 완료. 승인 후 설치를 시작하세요.'; PreflightFailed='환경 확인 실패'; Starting='설치 프로그램 시작 중...'; Started='설치 프로그램 시작됨'; StartFailed='설치 프로그램을 시작할 수 없습니다'; Admin='관리자 세션 감지됨'; NotAdmin='관리자 권한이 아닙니다'; CloseConfirm='설치가 진행 중입니다. 닫으면 설치 프로그램이 중지되고 불완전한 설치가 남을 수 있습니다. 종료할까요?'; CloseConfirmTitle='설치 종료'; NoReport='보고서 폴더를 찾을 수 없습니다: '
         CheckStatus='상태 확인'
         StatusTitle='설치 상태'
         StatusRunning='설치 프로그램이 실행 중입니다.'
@@ -619,7 +619,7 @@ $script:UiText = @{
         PathTip='Каталог установки, по умолчанию C:\CyberButler.'; TierTip='High: отдельная служебная учётная запись; Medium: текущая; Light: меньше защиты.'; OwnerTip='Ваш основной QQ, а не QQ бота.'; BindTip='Loopback: только локально; Tailscale: частная сеть; LAN: сеть.'; PluginsTip='Необязательная папка с private_companion, livingmemory и memorix.'; ApiTip='Необязательный путь к файлу ключа DeepSeek (sk-...).'
         Approval='Я прочитал примечания и одобряю эти шаги'; NeedApproval='Сначала установите флажок одобрения.'
         TotpTitle='Регистрация TOTP'; TotpHint='Отсканируйте QR и сохраните коды восстановления офлайн.'; Scanned='QR отсканирован'; Recovery='Коды сохранены'; Confirm='Подтвердить и продолжить'; Cancel='Отмена'; TotpReady='Материал TOTP готов; ожидание подтверждения...'; TotpConfirmed='TOTP подтверждён; продолжаем службы...'; Invalid='Неверное подтверждение TOTP.'
-        Ready='Готово.'; RunningPreflight='Проверка окружения...'; PreflightDone='Проверка завершена.'; PreflightFailed='Ошибка проверки.'; Starting='Запуск установщика...'; Started='Установщик запущен.'; StartFailed='Не удалось запустить установщик.'; Admin='Обнаружена сессия администратора.'; NotAdmin='GUI запущен без прав администратора.'; CloseConfirm='Идёт установка. Закрытие остановит установщик и может оставить неполную установку. Завершить?'; CloseConfirmTitle='Завершить установку'; NoReport='Каталог отчётов не найден: '
+        Ready='Готово.'; RunningPreflight='Проверка окружения...'; PreflightDone='Проверка завершена. Подтвердите и затем начните установку.'; PreflightFailed='Ошибка проверки.'; Starting='Запуск установщика...'; Started='Установщик запущен.'; StartFailed='Не удалось запустить установщик.'; Admin='Обнаружена сессия администратора.'; NotAdmin='GUI запущен без прав администратора.'; CloseConfirm='Идёт установка. Закрытие остановит установщик и может оставить неполную установку. Завершить?'; CloseConfirmTitle='Завершить установку'; NoReport='Каталог отчётов не найден: '
         CheckStatus='Проверить статус'
         StatusTitle='Статус установки'
         StatusRunning='Установщик работает.'
@@ -741,7 +741,13 @@ function Apply-GuiLanguage {
     $bindBox.ToolTip = Get-UiText 'BindTip'
     $personalPluginsBox.ToolTip = Get-UiText 'PluginsTip'
     $apiKeyFileBox.ToolTip = Get-UiText 'ApiTip'
-    if ($statusText.Text -eq '' -or $statusText.Text -eq 'Ready.' -or $statusText.Text -eq '就绪。') {
+    if ($script:StatusState -eq 'preflight_done') {
+        $statusText.Text = Get-UiText 'PreflightDone'
+    } elseif ($script:StatusState -eq 'preflight_failed') {
+        $statusText.Text = Get-UiText 'PreflightFailed'
+    } elseif ($script:StatusState -eq 'preflight_running') {
+        $statusText.Text = Get-UiText 'RunningPreflight'
+    } elseif ($statusText.Text -eq '' -or $statusText.Text -eq 'Ready.' -or $statusText.Text -eq '就绪。') {
         $statusText.Text = Get-UiText 'Ready'
     }
 }
@@ -1051,6 +1057,7 @@ function Invoke-GuiPreflight {
     try {
         $installPath = [string]$installPathBox.Text
         if ([string]::IsNullOrWhiteSpace($installPath)) { throw 'Install path is required.' }
+        $script:StatusState = 'preflight_running'
         $statusText.Text = Get-UiText 'RunningPreflight'
         Write-GuiLog ('preflight: ' + $installPath)
         . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
@@ -1059,9 +1066,11 @@ function Invoke-GuiPreflight {
         $result = Get-CyberButlerPreflight -InstallPath $installPath
         $json = $result | ConvertTo-Json -Depth 6
         Write-GuiLog $json
+        $script:StatusState = 'preflight_done'
         $statusText.Text = Get-UiText 'PreflightDone'
     } catch {
         Write-GuiLog ('PREFLIGHT ERROR: ' + $_.Exception.Message)
+        $script:StatusState = 'preflight_failed'
         $statusText.Text = Get-UiText 'PreflightFailed'
     }
 }

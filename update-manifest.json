@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "c3add167a4ee22a6db995931c6d62c87bbfd5cbfe07756e61492209cff3ad585",
-      "size": 11668
+      "sha256": "9bb38dbe2b381d0dc61b3fcfe6854830a57d825526440da79d1604d99cf82c43",
+      "size": 11929
     },
     {
       "path": "docs/使用说明.md",
@@ -284,13 +284,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "ab22d93d1da7dc0badf70beb713322fe7c22063097aead403631a7461b7549c7",
-      "size": 98553
+      "sha256": "29b82a679e89877d09e0770fa68072ed9cdd94b01fd4d0f2dfa43568fa3d63cb",
+      "size": 100194
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "cb9b8594b01ddbe0692bc895d67e3f5dc77c477197031905dc71f4c6f77e4e67",
-      "size": 42432
+      "sha256": "6575097899b2ce946f03afb04a1775cd71237c21af73daf954abf1046d0e06cc",
+      "size": 43277
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -354,8 +354,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "bb12e43218ef413067d9934a65086367e3b7abe2b01310fc891eade659209d8d",
-      "size": 26390
+      "sha256": "6dff833fb1d16bba29d83dd9791c00e77828d38033211fd07e052f6c524831f0",
+      "size": 29144
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
