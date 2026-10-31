@@ -245,8 +245,8 @@ $script:UiText = @{
         BindLoopback='仅本机 (Loopback)'
         BindTailscale='Tailscale 私有网络'
         BindLAN='局域网 (LAN)'
-        OpenLaunchGuide='启动说明'
-        LaunchGuideTitle='启动与维护说明'
+        OpenLaunchGuide='登录与启动说明'
+        LaunchGuideTitle='登录、启动与维护说明'
     }
     en = @{
         Title='Cyber-Butler Setup'; Subtitle='v1.6.1 · visual installer front-end'
@@ -270,8 +270,8 @@ $script:UiText = @{
         BindLoopback='Loopback'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='Startup guide'
-        LaunchGuideTitle='Startup and maintenance guide'
+        OpenLaunchGuide='Login & startup guide'
+        LaunchGuideTitle='Login, startup and maintenance guide'
     }
     de = @{
         Title='Cyber-Butler Installationsprogramm'; Subtitle='v1.6.1 · visueller Installer'
@@ -337,8 +337,8 @@ $script:UiText = @{
         BindLoopback='Nur lokal (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='Startanleitung'
-        LaunchGuideTitle='Start- und Wartungsanleitung'
+        OpenLaunchGuide='Anmeldung & Start'
+        LaunchGuideTitle='Anmeldung, Start und Wartung'
     }
     es = @{
         Title='Instalador de Cyber-Butler'; Subtitle='v1.6.1 · instalador visual'
@@ -404,8 +404,8 @@ $script:UiText = @{
         BindLoopback='Solo local (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='Guía de inicio'
-        LaunchGuideTitle='Guía de inicio y mantenimiento'
+        OpenLaunchGuide='Acceso y inicio'
+        LaunchGuideTitle='Acceso, inicio y mantenimiento'
     }
     fr = @{
         Title='Installateur Cyber-Butler'; Subtitle='v1.6.1 · installateur visuel'
@@ -471,8 +471,8 @@ $script:UiText = @{
         BindLoopback='Local uniquement (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='Guide de démarrage'
-        LaunchGuideTitle='Guide de démarrage et de maintenance'
+        OpenLaunchGuide='Connexion et démarrage'
+        LaunchGuideTitle='Connexion, démarrage et maintenance'
     }
     ja = @{
         Title='Cyber-Butler インストーラー'; Subtitle='v1.6.1 · ビジュアルインストーラー'
@@ -538,8 +538,8 @@ $script:UiText = @{
         BindLoopback='ローカルのみ (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='起動ガイド'
-        LaunchGuideTitle='起動と保守のガイド'
+        OpenLaunchGuide='ログインと起動'
+        LaunchGuideTitle='ログイン・起動・保守'
     }
     ko = @{
         Title='Cyber-Butler 설치 프로그램'; Subtitle='v1.6.1 · 시각적 설치 프로그램'
@@ -605,8 +605,8 @@ $script:UiText = @{
         BindLoopback='로컬만 (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='시작 안내'
-        LaunchGuideTitle='시작 및 유지 관리 안내'
+        OpenLaunchGuide='로그인 및 시작'
+        LaunchGuideTitle='로그인, 시작 및 유지 관리'
     }
     ru = @{
         Title='Установщик Cyber-Butler'; Subtitle='v1.6.1 · визуальный установщик'
@@ -672,8 +672,8 @@ $script:UiText = @{
         BindLoopback='Только локально (Loopback)'
         BindTailscale='Tailscale'
         BindLAN='LAN'
-        OpenLaunchGuide='Руководство по запуску'
-        LaunchGuideTitle='Руководство по запуску и обслуживанию'
+        OpenLaunchGuide='Вход и запуск'
+        LaunchGuideTitle='Вход, запуск и обслуживание'
     }
 }
 

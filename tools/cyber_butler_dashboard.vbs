@@ -1,6 +1,6 @@
 Set fso = CreateObject("Scripting.FileSystemObject")
 base = fso.GetParentFolderName(WScript.ScriptFullName)
-ps1 = fso.BuildPath(base, "cyber_butler_dashboard.ps1")
+ps1 = fso.BuildPath(base, "start-dashboard.ps1")
 project = ""
 If WScript.Arguments.Count > 0 Then project = WScript.Arguments(0)
 cmd = "powershell.exe -NoProfile -Sta -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1 & """"
