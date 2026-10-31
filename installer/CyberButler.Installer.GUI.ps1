@@ -70,6 +70,12 @@ $xaml = @'
       <ComboBox x:Name="LanguageBox" SelectedIndex="0" Width="130" HorizontalAlignment="Right" Margin="0,10,0,0">
         <ComboBoxItem Content="中文"/>
         <ComboBoxItem Content="English"/>
+        <ComboBoxItem Content="Deutsch"/>
+        <ComboBoxItem Content="Español"/>
+        <ComboBoxItem Content="Français"/>
+        <ComboBoxItem Content="日本語"/>
+        <ComboBoxItem Content="한국어"/>
+        <ComboBoxItem Content="Русский"/>
       </ComboBox>
     </StackPanel>
 
@@ -222,9 +228,9 @@ $script:UiText = @{
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
         PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
-        QuickHelp='主人 QQ：你自己的主账号，不是机器人 QQ。安装路径、安全档位和 WebUI 绑定可直接设置；个人插件与 API Key 在“高级选项”中。详细差异点 Help。'
+        QuickHelp='主人 QQ：你自己的主账号，不是机器人 QQ。安装路径、安全档位和 WebUI 绑定可直接设置；个人插件与 API Key 在“高级选项”中。详细差异点“说明”按钮。'
         HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。用于 TOTP 标签、审批/通知路由、YOUR_QQ_ID 和 owner allowlist。机器人 QQ 在 AstrBot/QQ 适配器中单独配置。`n`n安全档位`nHigh：Windows 10/11 x64 + 管理员 + 独立本地服务账户；AstrBot/WebUI 以服务身份运行；TOTP vault 对 Agent 账户有 Deny；LAN 被禁止；隔离最强。`nMedium：使用当前桌面账户，Interactive 计划任务；无法对同一账户强制 TOTP vault Deny；适合单机测试。`nLight：减少 ACL/审计/TOTP egress，仅建议低价值或临时环境。`n档位不改变硬件前提：Windows 10/11 x64、PowerShell 5.1、管理员权限、Python 3.10–3.13。本地模型显存参考：24GB+ 可跑 20–24B；16GB 可跑 7–14B；8GB 可跑 3–7B 量化；无独显或不小于 8GB 时可用 API-only；所有档位都支持 API-only。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大；High 禁止 LAN。`n`n个人插件`n不随开源包发布。需要你已有的 AstrBot 插件目录，包含三个插件：private_companion（我会永远陪着你：角色状态、日程、关系、主动消息、陪伴核心）、livingmemory（长期记忆生命周期）、memorix（图谱+向量混合检索记忆）。安装器只复制这三个名字，不联网下载；获取渠道是你现有 AstrBot/data/plugins 或上游仓库。`n`nAPI Key`n本字段填写包含 DeepSeek API Key 的文件路径，通常 sk-...，只用于 DeepSeek provider。其他大模型或 OpenAI-compatible API 需要在 AstrBot 的 provider 配置/WebUI 中单独添加，不能靠本字段直接切换。DeepSeek Key 获取：https://platform.deepseek.com/api_keys 。`n`n批准勾选`n只有勾选后才会提交 approval token；GUI 不会静默批准安全步骤。"
-        Preflight='检查环境'; Start='开始安装'; Installing='安装中...'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; Advanced='高级选项：个人插件 / API Key'; PathTip='Cyber-Butler 的安装目录，默认 C:\CyberButler。'; TierTip='High：独立服务账户；Medium：当前桌面账户；Light：较低保护。详见 Help。'; OwnerTip='填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。'; BindTip='Loopback 仅本机；Tailscale 私有网络；LAN 局域网暴露。'; PluginsTip='可选目录，包含 private_companion、livingmemory、memorix 三个插件。'; ApiTip='可选 DeepSeek API Key 文件路径，通常 sk-...；获取地址见 Help。'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; RemoveTitle='删除 Cyber-Butler'; RemoveHint='选择要删除的内容。删除不可恢复；同目录下与版本匹配的下载 zip 也会一并删除。'; RemovePackage='只删除安装程序/发布包'; RemoveProject='只删除主项目 C:\CyberButler'; RemoveBoth='同时删除发布包和主项目'; Continue='继续'; RemoveConfirm2='二次确认：确定执行不可恢复的删除吗？'; RemoveBothDone='主项目已删除；发布包将在 GUI 退出后删除。'; RemovePackageDone='发布包将在 GUI 退出后删除。'; RemoveProjectDone='主项目已删除。'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; StatusStep='步骤完成度'; StatusStepEta='当前步骤预计剩余'; StatusTotalEta='总预计剩余'; StatusElapsed='已用时间'; StatusProcessDetail='进程详情'; StatusTOTP='TOTP 状态'; StatusLog='日志'; StatusNote='预计值基于当前阶段和日志活动，不是保证值。'; Copy='复制'; RefreshStatus='刷新'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
+        Preflight='检查环境'; Start='开始安装'; Installing='安装中...'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; Advanced='高级选项：个人插件 / API Key'; PathTip='Cyber-Butler 的安装目录，默认 C:\CyberButler。'; TierTip='High：独立服务账户；Medium：当前桌面账户；Light：较低保护。详见“说明”。'; OwnerTip='填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。'; BindTip='Loopback 仅本机；Tailscale 私有网络；LAN 局域网暴露。'; PluginsTip='可选目录，包含 private_companion、livingmemory、memorix 三个插件。'; ApiTip='可选 DeepSeek API Key 文件路径，通常 sk-...；获取地址见“说明”。'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; RemoveTitle='删除 Cyber-Butler'; RemoveHint='选择要删除的内容。删除不可恢复；同目录下与版本匹配的下载 zip 也会一并删除。'; RemovePackage='只删除安装程序/发布包'; RemoveProject='只删除主项目 C:\CyberButler'; RemoveBoth='同时删除发布包和主项目'; Continue='继续'; RemoveConfirm2='二次确认：确定执行不可恢复的删除吗？'; RemoveBothDone='主项目已删除；发布包将在 GUI 退出后删除。'; RemovePackageDone='发布包将在 GUI 退出后删除。'; RemoveProjectDone='主项目已删除。'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; StatusStep='步骤完成度'; StatusStepEta='当前步骤预计剩余'; StatusTotalEta='总预计剩余'; StatusElapsed='已用时间'; StatusProcessDetail='进程详情'; StatusTOTP='TOTP 状态'; StatusLog='日志'; StatusNote='预计值基于当前阶段和日志活动，不是保证值。'; Copy='复制'; RefreshStatus='刷新'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
         Approval='我已阅读上方说明，确认执行这些安装步骤'; NeedApproval='请先勾选安装确认。'
         TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，等待扫码和确认...'; TotpConfirmed='TOTP 已确认，继续安装服务...'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
@@ -248,11 +254,93 @@ $script:UiText = @{
         StartFailed='Could not start the installer.'; Admin='Administrator session detected.'; NotAdmin='This GUI is not elevated. Start installation will request UAC.'; CloseConfirm='Installation is running. Closing the window will stop the hidden installer and may leave a partial install. Terminate?'; CloseConfirmTitle='Terminate installation'
         NoReport='Report directory not found: '
     }
+    de = @{
+        Title='Cyber-Butler Installationsprogramm'; Subtitle='v1.6.1 · visueller Installer'
+        Warning='Die GUI übergibt Freigabetoken erst nach Ihrer ausdrücklichen Bestätigung. TOTP wird in einem Dialog bestätigt.'
+        InstallPath='Installationspfad'; Tier='Sicherheitsstufe'; OwnerQQ='Eigentümer-QQ'; Bind='WebUI-Bindung'
+        PersonalPlugins='Persönliche Plugins'; ApiKeyFile='API-Key-Datei (optional, sk-...)'
+        ApiKeyNote='API-Keys werden nicht in der GUI gespeichert.'
+        QuickHelp='Eigentümer-QQ: Ihr eigenes Hauptkonto, nicht der Bot. Pfad, Stufe und WebUI-Bindung sind direkt einstellbar; persönliche Plugins und API-Key unter Erweitert. Details über Hilfe.'
+        Preflight='Umgebung prüfen'; Start='Installation starten'; Installing='Installation läuft...'; Report='Bericht öffnen'; Exit='Beenden'; Help='Hilfe'; Remove='Entfernen'; Advanced='Erweitert: persönliche Plugins / API-Key'
+        PathTip='Installationsverzeichnis, Standard C:\CyberButler.'; TierTip='High: separates Dienstkonto; Medium: aktuelles Desktopkonto; Light: geringerer Schutz.'; OwnerTip='Ihr eigenes Haupt-QQ, nicht der Bot.'; BindTip='Loopback: nur lokal; Tailscale: privates Netz; LAN: Netzwerkfreigabe.'; PluginsTip='Optionales Verzeichnis mit private_companion, livingmemory und memorix.'; ApiTip='Optionaler Pfad zu einer DeepSeek-API-Key-Datei (sk-...).'
+        Approval='Ich habe die Hinweise gelesen und stimme den Schritten zu'; NeedApproval='Bitte zuerst die Freigabe ankreuzen.'
+        TotpTitle='TOTP-Registrierung'; TotpHint='QR-Code scannen und Wiederherstellungscodes offline speichern.'; Scanned='QR-Code gescannt'; Recovery='Wiederherstellungscodes gespeichert'; Confirm='Bestätigen und fortfahren'; Cancel='Abbrechen'; TotpReady='TOTP-Material bereit; warten auf Bestätigung...'; TotpConfirmed='TOTP bestätigt; Dienste werden fortgesetzt...'; Invalid='Ungültige TOTP-Bestätigung.'
+        Ready='Bereit.'; RunningPreflight='Umgebung wird geprüft...'; PreflightDone='Prüfung abgeschlossen.'; PreflightFailed='Umgebungsprüfung fehlgeschlagen.'; Starting='Installer wird gestartet...'; Started='Installer gestartet.'; StartFailed='Installer konnte nicht gestartet werden.'; Admin='Administratorsitzung erkannt.'; NotAdmin='Diese GUI ist nicht erhöht.'; CloseConfirm='Installation läuft. Schließen beendet den Installer und kann eine unvollständige Installation hinterlassen. Beenden?'; CloseConfirmTitle='Installation beenden'; NoReport='Berichtsverzeichnis nicht gefunden: '
+    }
+    es = @{
+        Title='Instalador de Cyber-Butler'; Subtitle='v1.6.1 · instalador visual'
+        Warning='La GUI entrega los tokens solo tras su aprobación explícita. TOTP se confirma en un diálogo.'
+        InstallPath='Ruta de instalación'; Tier='Nivel de seguridad'; OwnerQQ='QQ del propietario'; Bind='Enlace WebUI'
+        PersonalPlugins='Plugins personales'; ApiKeyFile='Archivo de API Key (opcional, sk-...)'
+        ApiKeyNote='Las API Keys no se guardan en esta GUI.'
+        QuickHelp='QQ del propietario: su cuenta principal, no el bot. Ruta, nivel y enlace se configuran aquí; plugins y API Key en Avanzado. Consulte Ayuda.'
+        Preflight='Comprobar entorno'; Start='Iniciar instalación'; Installing='Instalando...'; Report='Abrir informe'; Exit='Salir'; Help='Ayuda'; Remove='Desinstalar'; Advanced='Avanzado: plugins / API Key'
+        PathTip='Directorio de instalación, por defecto C:\CyberButler.'; TierTip='High: cuenta de servicio separada; Medium: cuenta actual; Light: menos protección.'; OwnerTip='Su QQ principal, no el del bot.'; BindTip='Loopback: solo local; Tailscale: red privada; LAN: exposición de red.'; PluginsTip='Carpeta opcional con private_companion, livingmemory y memorix.'; ApiTip='Ruta opcional a un archivo de clave DeepSeek (sk-...).'
+        Approval='He leído las notas y apruebo estos pasos'; NeedApproval='Marque primero la aprobación.'
+        TotpTitle='Registro TOTP'; TotpHint='Escanee el código QR y guarde los códigos de recuperación sin conexión.'; Scanned='He escaneado el QR'; Recovery='He guardado los códigos'; Confirm='Confirmar y continuar'; Cancel='Cancelar'; TotpReady='Material TOTP listo; esperando confirmación...'; TotpConfirmed='TOTP confirmado; continuando servicios...'; Invalid='Confirmación TOTP no válida.'
+        Ready='Listo.'; RunningPreflight='Comprobando entorno...'; PreflightDone='Comprobación completada.'; PreflightFailed='Error en la comprobación.'; Starting='Iniciando instalador...'; Started='Instalador iniciado.'; StartFailed='No se pudo iniciar el instalador.'; Admin='Sesión de administrador detectada.'; NotAdmin='Esta GUI no está elevada.'; CloseConfirm='La instalación está en curso. Cerrar detendrá el instalador y puede dejar una instalación incompleta. ¿Terminar?'; CloseConfirmTitle='Terminar instalación'; NoReport='Carpeta de informes no encontrada: '
+    }
+    fr = @{
+        Title='Installateur Cyber-Butler'; Subtitle='v1.6.1 · installateur visuel'
+        Warning='L interface ne transmet les jetons qu après votre approbation explicite. TOTP est confirmé dans une boîte de dialogue.'
+        InstallPath='Chemin d installation'; Tier='Niveau de sécurité'; OwnerQQ='QQ propriétaire'; Bind='Liaison WebUI'
+        PersonalPlugins='Plugins personnels'; ApiKeyFile='Fichier de clé API (facultatif, sk-...)'
+        ApiKeyNote='Les clés API ne sont pas stockées dans cette interface.'
+        QuickHelp='QQ propriétaire : votre compte principal, pas le bot. Chemin, niveau et liaison se règlent ici ; plugins et clé API dans Avancé. Voir Aide.'
+        Preflight='Vérifier l environnement'; Start='Démarrer l installation'; Installing='Installation...'; Report='Ouvrir le rapport'; Exit='Quitter'; Help='Aide'; Remove='Désinstaller'; Advanced='Avancé : plugins / clé API'
+        PathTip='Répertoire d installation, par défaut C:\CyberButler.'; TierTip='High : compte de service séparé ; Medium : compte actuel ; Light : protection réduite.'; OwnerTip='Votre QQ principal, pas celui du bot.'; BindTip='Loopback : local uniquement ; Tailscale : réseau privé ; LAN : exposition réseau.'; PluginsTip='Dossier facultatif avec private_companion, livingmemory et memorix.'; ApiTip='Chemin facultatif vers une clé DeepSeek (sk-...).'
+        Approval='J ai lu les notes et j approuve ces étapes'; NeedApproval='Cochez d abord l approbation.'
+        TotpTitle='Enregistrement TOTP'; TotpHint='Scannez le QR et conservez les codes de récupération hors ligne.'; Scanned='QR scanné'; Recovery='Codes sauvegardés'; Confirm='Confirmer et continuer'; Cancel='Annuler'; TotpReady='Matériel TOTP prêt ; en attente de confirmation...'; TotpConfirmed='TOTP confirmé ; reprise des services...'; Invalid='Confirmation TOTP invalide.'
+        Ready='Prêt.'; RunningPreflight='Vérification de l environnement...'; PreflightDone='Vérification terminée.'; PreflightFailed='Échec de la vérification.'; Starting='Démarrage de l installateur...'; Started='Installateur démarré.'; StartFailed='Impossible de démarrer l installateur.'; Admin='Session administrateur détectée.'; NotAdmin='Cette interface n est pas élevée.'; CloseConfirm='L installation est en cours. Fermer arrêtera l installateur et peut laisser une installation partielle. Terminer ?'; CloseConfirmTitle='Terminer l installation'; NoReport='Dossier de rapports introuvable : '
+    }
+    ja = @{
+        Title='Cyber-Butler インストーラー'; Subtitle='v1.6.1 · ビジュアルインストーラー'
+        Warning='承認チェック後だけ承認トークンを渡します。TOTP はダイアログで確認します。'
+        InstallPath='インストール先'; Tier='セキュリティレベル'; OwnerQQ='オーナー QQ'; Bind='WebUI バインド'
+        PersonalPlugins='個人プラグイン'; ApiKeyFile='API Key ファイル（任意、sk-...）'
+        ApiKeyNote='API Key はこの画面に保存されません。'
+        QuickHelp='オーナー QQ：ボットではなく自分のメイン QQ。パス・レベル・バインドはここで設定し、個人プラグインと API Key は詳細設定にあります。詳細は説明を参照。'
+        Preflight='環境を確認'; Start='インストール開始'; Installing='インストール中...'; Report='レポートを開く'; Exit='終了'; Help='説明'; Remove='削除'; Advanced='詳細設定：個人プラグイン / API Key'
+        PathTip='インストール先。既定は C:\CyberButler。'; TierTip='High：専用サービスアカウント。Medium：現在のデスクトップ。Light：保護が少ない。'; OwnerTip='自分のメイン QQ。ボット QQ ではありません。'; BindTip='Loopback：ローカルのみ。Tailscale：プライベート網。LAN：LAN 公開。'; PluginsTip='private_companion、livingmemory、memorix を含む任意のフォルダー。'; ApiTip='DeepSeek API Key（sk-...）ファイルの任意パス。'
+        Approval='上記を読み、この手順を承認します'; NeedApproval='先に承認にチェックしてください。'
+        TotpTitle='TOTP 登録'; TotpHint='QR を読み取り、回復コードをオフライン保存してください。'; Scanned='QR を読み取りました'; Recovery='回復コードを保存しました'; Confirm='確認して続行'; Cancel='キャンセル'; TotpReady='TOTP の準備完了。確認待ち...'; TotpConfirmed='TOTP 確認済み。サービスを続行...'; Invalid='TOTP 確認が無効です。'
+        Ready='準備完了'; RunningPreflight='環境を確認中...'; PreflightDone='確認完了'; PreflightFailed='環境確認に失敗'; Starting='インストーラーを開始中...'; Started='インストーラー開始'; StartFailed='インストーラーを開始できません'; Admin='管理者セッションを検出'; NotAdmin='管理者権限ではありません'; CloseConfirm='インストール中です。閉じるとインストーラーを停止し、不完全な状態になる可能性があります。終了しますか？'; CloseConfirmTitle='インストールを終了'; NoReport='レポートフォルダーが見つかりません：'
+    }
+    ko = @{
+        Title='Cyber-Butler 설치 프로그램'; Subtitle='v1.6.1 · 시각적 설치 프로그램'
+        Warning='승인 확인 후에만 승인 토큰을 전달합니다. TOTP는 대화상자에서 확인합니다.'
+        InstallPath='설치 경로'; Tier='보안 등급'; OwnerQQ='소유자 QQ'; Bind='WebUI 바인딩'
+        PersonalPlugins='개인 플러그인'; ApiKeyFile='API Key 파일 (선택, sk-...)'
+        ApiKeyNote='API Key는 이 화면에 저장되지 않습니다.'
+        QuickHelp='소유자 QQ: 봇이 아닌 본인의 메인 QQ입니다. 경로, 등급, 바인딩은 여기서 설정하고 개인 플러그인과 API Key는 고급 옵션에 있습니다. 자세한 내용은 도움말을 보세요.'
+        Preflight='환경 확인'; Start='설치 시작'; Installing='설치 중...'; Report='보고서 열기'; Exit='종료'; Help='도움말'; Remove='삭제'; Advanced='고급: 개인 플러그인 / API Key'
+        PathTip='설치 경로, 기본값 C:\CyberButler.'; TierTip='High: 별도 서비스 계정; Medium: 현재 데스크톱 계정; Light: 낮은 보호.'; OwnerTip='본인의 메인 QQ이며 봇 QQ가 아닙니다.'; BindTip='Loopback: 로컬만; Tailscale: 사설 네트워크; LAN: 네트워크 노출.'; PluginsTip='private_companion, livingmemory, memorix가 포함된 선택 폴더.'; ApiTip='DeepSeek API Key(sk-...) 파일의 선택 경로.'
+        Approval='위 내용을 읽고 이 단계를 승인합니다'; NeedApproval='먼저 승인 확인란을 선택하세요.'
+        TotpTitle='TOTP 등록'; TotpHint='QR을 스캔하고 복구 코드를 오프라인으로 저장하세요.'; Scanned='QR 스캔 완료'; Recovery='복구 코드 저장 완료'; Confirm='확인 후 계속'; Cancel='취소'; TotpReady='TOTP 자료 준비됨; 확인 대기 중...'; TotpConfirmed='TOTP 확인됨; 서비스 계속...'; Invalid='TOTP 확인이 유효하지 않습니다.'
+        Ready='준비됨'; RunningPreflight='환경 확인 중...'; PreflightDone='확인 완료'; PreflightFailed='환경 확인 실패'; Starting='설치 프로그램 시작 중...'; Started='설치 프로그램 시작됨'; StartFailed='설치 프로그램을 시작할 수 없습니다'; Admin='관리자 세션 감지됨'; NotAdmin='관리자 권한이 아닙니다'; CloseConfirm='설치가 진행 중입니다. 닫으면 설치 프로그램이 중지되고 불완전한 설치가 남을 수 있습니다. 종료할까요?'; CloseConfirmTitle='설치 종료'; NoReport='보고서 폴더를 찾을 수 없습니다: '
+    }
+    ru = @{
+        Title='Установщик Cyber-Butler'; Subtitle='v1.6.1 · визуальный установщик'
+        Warning='GUI передаёт токены только после явного подтверждения. TOTP подтверждается в диалоге.'
+        InstallPath='Путь установки'; Tier='Уровень безопасности'; OwnerQQ='QQ владельца'; Bind='Привязка WebUI'
+        PersonalPlugins='Личные плагины'; ApiKeyFile='Файл API Key (необязательно, sk-...)'
+        ApiKeyNote='API Key не сохраняются в этом интерфейсе.'
+        QuickHelp='QQ владельца: ваш основной QQ, а не бот. Путь, уровень и привязка настраиваются здесь; плагины и API Key — в разделе Дополнительно. Подробности в Справке.'
+        Preflight='Проверить окружение'; Start='Начать установку'; Installing='Установка...'; Report='Открыть отчёт'; Exit='Выход'; Help='Справка'; Remove='Удалить'; Advanced='Дополнительно: плагины / API Key'
+        PathTip='Каталог установки, по умолчанию C:\CyberButler.'; TierTip='High: отдельная служебная учётная запись; Medium: текущая; Light: меньше защиты.'; OwnerTip='Ваш основной QQ, а не QQ бота.'; BindTip='Loopback: только локально; Tailscale: частная сеть; LAN: сеть.'; PluginsTip='Необязательная папка с private_companion, livingmemory и memorix.'; ApiTip='Необязательный путь к файлу ключа DeepSeek (sk-...).'
+        Approval='Я прочитал примечания и одобряю эти шаги'; NeedApproval='Сначала установите флажок одобрения.'
+        TotpTitle='Регистрация TOTP'; TotpHint='Отсканируйте QR и сохраните коды восстановления офлайн.'; Scanned='QR отсканирован'; Recovery='Коды сохранены'; Confirm='Подтвердить и продолжить'; Cancel='Отмена'; TotpReady='Материал TOTP готов; ожидание подтверждения...'; TotpConfirmed='TOTP подтверждён; продолжаем службы...'; Invalid='Неверное подтверждение TOTP.'
+        Ready='Готово.'; RunningPreflight='Проверка окружения...'; PreflightDone='Проверка завершена.'; PreflightFailed='Ошибка проверки.'; Starting='Запуск установщика...'; Started='Установщик запущен.'; StartFailed='Не удалось запустить установщик.'; Admin='Обнаружена сессия администратора.'; NotAdmin='GUI запущен без прав администратора.'; CloseConfirm='Идёт установка. Закрытие остановит установщик и может оставить неполную установку. Завершить?'; CloseConfirmTitle='Завершить установку'; NoReport='Каталог отчётов не найден: '
+    }
 }
 
 function Get-UiText([string]$key) {
-    $lang = if ($languageBox.SelectedIndex -eq 1) { 'en' } else { 'zh' }
-    return [string]$script:UiText[$lang][$key]
+    $langs = @('zh', 'en', 'de', 'es', 'fr', 'ja', 'ko', 'ru')
+    $index = [Math]::Max(0, [Math]::Min($langs.Count - 1, [int]$languageBox.SelectedIndex))
+    $lang = $langs[$index]
+    $value = $script:UiText[$lang][$key]
+    if ([string]::IsNullOrWhiteSpace([string]$value)) { $value = $script:UiText['en'][$key] }
+    return [string]$value
 }
 
 function Apply-GuiLanguage {
