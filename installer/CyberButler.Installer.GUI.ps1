@@ -116,7 +116,7 @@ $xaml = @'
       <Button x:Name="ReportButton" Content="Open report folder" Width="170" Height="38" Margin="0,0,10,0"/>
       <Button x:Name="CloseButton" Content="Exit" Width="90" Height="38" Margin="0,0,10,0"/>
       <Button x:Name="HelpButton" Content="Help" Width="90" Height="38" Margin="0,0,10,0"/>
-      <CheckBox x:Name="ApprovalCheck" Content="I approve the planned installer steps"
+      <CheckBox x:Name="ApprovalCheck" Content="I have read the notes above and approve these installer steps"
                 Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
     </StackPanel>
 
@@ -190,21 +190,29 @@ $script:UiText = @{
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
         PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
-        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Requirement='我确认执行上述安装步骤'; NeedApproval='请先勾选安装确认。'; TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
+        QuickHelp='主人 QQ：用于 TOTP 和审批路由的 QQ 号，不是密码。 安全档位：High 使用独立服务账户；Medium 使用当前桌面账户；Light 保护最少。 WebUI 绑定：Loopback 仅本机；Tailscale 私有网络；LAN 暴露到局域网。 个人插件：三个可选插件的目录，留空跳过。 API Key：DeepSeek 云端密钥（sk-...），可选文件；获取地址 https://platform.deepseek.com/api_keys ，留空则只用本地模型。 勾选批准：表示你已阅读说明并同意安装器执行这些步骤，GUI 不会静默批准。'
+        HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n用于 TOTP 账户名和审批/通知路由，不是 QQ 密码。`n`n安全档位`nHigh：独立低权限服务账户，AstrBot/WebUI 以服务身份运行，TOTP vault 对 Agent 账户有 Deny，隔离最强。`nMedium：AstrBot/WebUI 使用当前桌面账户，TOTP vault 无法对同一账户强制 Deny；适合单机测试。`nLight：最少保护，仅建议临时或低价值环境。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大，必须确认防火墙。`n`n个人插件`n可选目录，包含 private_companion、livingmemory、memorix 三个插件；留空不安装。`n`nAPI Key`nDeepSeek 云模型密钥，通常以 sk- 开头。获取地址：https://platform.deepseek.com/api_keys 。本界面填的是包含密钥的文件路径；留空则跳过云端密钥。`n`n批准勾选`n只有勾选后才会提交 approval token；不会静默自动批准安全步骤。"
+        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'
+        Approval='我已阅读上方说明，确认执行这些安装步骤'; NeedApproval='请先勾选安装确认。'
+        TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
-        PreflightFailed='环境检查失败。'; Starting='正在启动提权安装器...'; Started='安装器已启动，请在提权控制台完成批准和 TOTP。'
+        PreflightFailed='环境检查失败。'; Starting='正在启动安装器...'; Started='安装器已启动，进度和 TOTP 将显示在本窗口。'
         StartFailed='无法启动安装器。'; Admin='已检测到管理员会话。'; NotAdmin='当前不是管理员；开始安装会请求 UAC。'
         NoReport='报告目录不存在：'
     }
     en = @{
         Title='Cyber-Butler Setup'; Subtitle='v1.6.1 · visual installer front-end'
-        Warning='Approval tokens and TOTP enrollment remain in the elevated console; the GUI never auto-approves security steps.'
+        Warning='The GUI supplies approval tokens only after your explicit approval. TOTP is confirmed in a dialog; no second command window is used.'
         InstallPath='Install path'; Tier='Tier'; OwnerQQ='Owner QQ'; Bind='WebUI bind'
         PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional, sk-...)'
         ApiKeyNote='API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log.'
-        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Requirement='I approve the planned installer steps'; NeedApproval='Please check the approval box first.'; TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
+        QuickHelp='Owner QQ: QQ number used for TOTP/approval routing, not a password. Tier: High = separate service account; Medium = current desktop account; Light = minimal protection. WebUI bind: Loopback = local only; Tailscale = private tailnet; LAN = network exposure. Personal plugins: optional folder for the three personal plugins; leave blank to skip. API key: DeepSeek cloud key (sk-...), optional file; get it at https://platform.deepseek.com/api_keys ; leave blank for local-only. Approval checkbox: you have read the notes and authorize these steps; GUI never auto-approves silently.'
+        HelpBody="Cyber-Butler installer options`n`nOwner QQ`nUsed for the TOTP account label and approval/notification routing. It is not your QQ password.`n`nSecurity tier`nHigh: separate low-privilege service account; AstrBot/WebUI run as service; TOTP vault denies the agent account; strongest isolation.`nMedium: AstrBot/WebUI use the current desktop account; a same-account TOTP vault deny is not enforceable; suitable for single-machine testing.`nLight: minimal protection; only for temporary or low-value environments.`n`nWebUI bind`nLoopback: 127.0.0.1 only, safest.`nTailscale: private tailnet access; requires Tailscale.`nLAN: reachable on the local network; largest exposure; verify firewall rules.`n`nPersonal plugins`nOptional folder containing private_companion, livingmemory, and memorix; leave blank to skip.`n`nAPI key`nDeepSeek cloud model key, usually starts with sk-. Get one at https://platform.deepseek.com/api_keys . This field expects a file path containing the key; leave blank to skip cloud credentials.`n`nApproval checkbox`nIt supplies approval tokens only after it is checked; the GUI never silently approves security steps."
+        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'
+        Approval='I have read the notes above and approve these installer steps'; NeedApproval='Please check the approval box first.'
+        TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
-        PreflightFailed='Preflight failed.'; Starting='Starting elevated installer...'; Started='Installer launched. Complete approval and TOTP prompts in the elevated console.'
+        PreflightFailed='Preflight failed.'; Starting='Starting installer...'; Started='Installer started; progress and TOTP are shown in this window.'
         StartFailed='Could not start the installer.'; Admin='Administrator session detected.'; NotAdmin='This GUI is not elevated. Start installation will request UAC.'
         NoReport='Report directory not found: '
     }
