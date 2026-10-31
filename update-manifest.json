@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.5.3",
+  "version": "1.6.0",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "ef0f0d36f8f55db8fcf089c25d9e12e8a55e43666a0bdb03f5d837465dfb3617",
-      "size": 1806
+      "sha256": "bad3fb89caf6d61a9793f45744d8a644d76e18377498242a44db0f40186fd5ca",
+      "size": 1982
     },
     {
       "path": "DEPLOYMENT.md",
@@ -203,13 +203,18 @@
       "size": 6908
     },
     {
+      "path": "RELEASE_NOTES_v1.6.0.md",
+      "sha256": "eb22564e859df90dc5294283f114fa51f9ecf2df7b3cc4efb60d750a0d50a0a6",
+      "size": 7064
+    },
+    {
       "path": "SECURITY.md",
       "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
       "size": 26743
     },
     {
       "path": "VERSION",
-      "sha256": "c03e3824001f39b9518249b8d6522422fc4de7227e12a568c0164662b03b7758",
+      "sha256": "cb1d9a30bc4ab8a397f39b7d786bb82aca0b816077eefc35d7c822017d75f6a5",
       "size": 6
     },
     {
@@ -256,6 +261,191 @@
       "path": "docs/使用说明.md",
       "sha256": "2de427c31ecb9b15f41d04f66fb253b6afd3f1b765b966e3bb66a5c2399b850c",
       "size": 78010
+    },
+    {
+      "path": "installer/Install-CyberButler.ps1",
+      "sha256": "062495655ecc9ee3d84096149cce8297aff33d86476bb5892e966eb43e889fcc",
+      "size": 35899
+    },
+    {
+      "path": "installer/Migrate-EnableIsolation.ps1",
+      "sha256": "517a9d382c974f449ace43e729bcfb40812aa81cbfbd56a120d0728928b2bf51",
+      "size": 22359
+    },
+    {
+      "path": "installer/README.md",
+      "sha256": "708c4dcba53c5d1a8460717cd268c062a02de2323ce20e2f3409b4d80f619fe7",
+      "size": 20980
+    },
+    {
+      "path": "installer/core-sources.json",
+      "sha256": "52db0943d4675530d10fdef34124e9e73e0bcde9660758c7f4906ca2c1f23c7d",
+      "size": 768
+    },
+    {
+      "path": "installer/lib/Installer.Accounts.ps1",
+      "sha256": "6513e3b4c4b8a75d9b34b82c6dbf8a7efa6f550bc534aec8517414587756c63d",
+      "size": 13750
+    },
+    {
+      "path": "installer/lib/Installer.Acl.ps1",
+      "sha256": "a3b6774ea0e1b05bedc0c502778486a5221e952191ecdf17b9bf64f041fcf2c2",
+      "size": 10933
+    },
+    {
+      "path": "installer/lib/Installer.Common.ps1",
+      "sha256": "e00d52d421c864d6ff2536ac712d999480fe845d49f4f7362526be23e6972fa6",
+      "size": 8231
+    },
+    {
+      "path": "installer/lib/Installer.Core.ps1",
+      "sha256": "c9f032dfad58c24980025ba7d7556bf385526102ddcfb498b6ec3295efd1df48",
+      "size": 22858
+    },
+    {
+      "path": "installer/lib/Installer.Diagnostics.ps1",
+      "sha256": "f1910b3da2725d188d53b98ffa1651fcd9536322044771c08946f686b8dbc735",
+      "size": 9983
+    },
+    {
+      "path": "installer/lib/Installer.Firewall.ps1",
+      "sha256": "43a494409c0ea7e99a71b9e37e0b5caf55be01560197e2a4006b40087219174b",
+      "size": 13377
+    },
+    {
+      "path": "installer/lib/Installer.Journal.ps1",
+      "sha256": "1357c723107fae653c38eec344a009216e1652046967d59c4dd516316d725cca",
+      "size": 17216
+    },
+    {
+      "path": "installer/lib/Installer.Preflight.ps1",
+      "sha256": "d590390aac611fe0270d169d7c715a0d19a4ce22444b2d5f31f9a53831bc45a6",
+      "size": 16197
+    },
+    {
+      "path": "installer/lib/Installer.Python.ps1",
+      "sha256": "7008400ba3f90a2df4e4d163d78f1a58f7fe7a8d02851a8bd430c5800324aa9d",
+      "size": 10177
+    },
+    {
+      "path": "installer/lib/Installer.Report.ps1",
+      "sha256": "4174d76624bad3af41befc1a244d361f318a63499a0e60727d600c737a5bb500",
+      "size": 5117
+    },
+    {
+      "path": "installer/lib/Installer.Secrets.ps1",
+      "sha256": "c4f3bfd2872ab675c8d625a351e33c4e03166ff6233870b86198c4642b725755",
+      "size": 19227
+    },
+    {
+      "path": "installer/lib/Installer.Services.ps1",
+      "sha256": "4423f0026bb49689195828e3eb934628b3b7d19958d805ebd255cd6bd36bd8e9",
+      "size": 18496
+    },
+    {
+      "path": "installer/lib/Installer.Tier.ps1",
+      "sha256": "3d7f8db82e1f209aa01719312f63787e56588df2629678023773e2a3850f93d3",
+      "size": 9763
+    },
+    {
+      "path": "installer/lib/Installer.Totp.ps1",
+      "sha256": "216ea6f986c8ffbdfc7138486825c70391e6e82f8b1551861ade44f75427a7e3",
+      "size": 23001
+    },
+    {
+      "path": "installer/lib/totp_material.py",
+      "sha256": "c91643b7f7cfae7877cc0448975b892c6eec0e6938a1a281479f5ba44440f680",
+      "size": 2870
+    },
+    {
+      "path": "installer/profiles/high.json",
+      "sha256": "5cd071d42cfe546c51807e073b0364209b5c8b97f4104655dad8c13306f45b75",
+      "size": 528
+    },
+    {
+      "path": "installer/profiles/light.json",
+      "sha256": "706e87113ddc7aa407d2c244b5b64c898352b0a43714b76e2d5635c0017f6cb6",
+      "size": 526
+    },
+    {
+      "path": "installer/profiles/medium.json",
+      "sha256": "879cb52030f32208fae1e56dfc00c7b15cc102bb539445c9fc01055dd0d539ef",
+      "size": 529
+    },
+    {
+      "path": "installer/tests/Installer.Accounts.Tests.ps1",
+      "sha256": "f396ea638a6e4f68be987e9e4a8f6a47d9da30194179bbd4e8ce9304d85d4c26",
+      "size": 9461
+    },
+    {
+      "path": "installer/tests/Installer.Acl.Tests.ps1",
+      "sha256": "af84bc2998f5b95c51d640295e7c9612cdc6c014c3d69db39065d49674c89681",
+      "size": 8173
+    },
+    {
+      "path": "installer/tests/Installer.Core.Tests.ps1",
+      "sha256": "5626365f0e2f7dd1fc77092afb23acb3e455ecba521e9149ba42b2dd8c8c9188",
+      "size": 9823
+    },
+    {
+      "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
+      "sha256": "28cb4800614ca9d8c4bc61ccd9ae8179c501cec556c7b387ebeac36f73f807da",
+      "size": 3635
+    },
+    {
+      "path": "installer/tests/Installer.Firewall.Tests.ps1",
+      "sha256": "d2363e0b510291504234f8f18d4701ee30204b2abf2e6a4a6b2bdb855e6e4299",
+      "size": 8222
+    },
+    {
+      "path": "installer/tests/Installer.Journal.Tests.ps1",
+      "sha256": "14d326b6b7142a21ff05b5abb0c601fc89a2978b5ab16dd5dd528800609eab1a",
+      "size": 8787
+    },
+    {
+      "path": "installer/tests/Installer.Main.Tests.ps1",
+      "sha256": "38511a5c76eaec8c9f242bc8585fe898bdcddf1b6eb9049829fd6db44a57c0ea",
+      "size": 22739
+    },
+    {
+      "path": "installer/tests/Installer.Migration.Tests.ps1",
+      "sha256": "adfe718572431b641474ed3d5e11e7501e608eae40a7f4f79079cc5bd5e96bb8",
+      "size": 10009
+    },
+    {
+      "path": "installer/tests/Installer.Preflight.Tests.ps1",
+      "sha256": "bb318663e847ccf92aa12e002ded1743b9b7486f24d95bff20193cf27fb5a6fe",
+      "size": 7780
+    },
+    {
+      "path": "installer/tests/Installer.Python.Tests.ps1",
+      "sha256": "3ace5a4d82949a0dbb1a4dbf6bb5f3d4ee9c9035ab508c348ab60d5d34405523",
+      "size": 2679
+    },
+    {
+      "path": "installer/tests/Installer.Report.Tests.ps1",
+      "sha256": "9678627139309c0889a242c70922d55ad8e638d00765a048855d03c4f08dcf08",
+      "size": 4057
+    },
+    {
+      "path": "installer/tests/Installer.Secrets.Tests.ps1",
+      "sha256": "89a06f5b2395381b598b3f7642ec3828bea20cf134b5877e3ffb61074ed0d9ff",
+      "size": 11608
+    },
+    {
+      "path": "installer/tests/Installer.Services.Tests.ps1",
+      "sha256": "42956b868c1cbdb8850a93ae8c10e289d98f68f03745c34b508c19b5dde02a66",
+      "size": 8624
+    },
+    {
+      "path": "installer/tests/Installer.Tier.Tests.ps1",
+      "sha256": "daea44912fcb45c922b9d48a3976d7691f0e0465f8c8a5f324836ca0756934f6",
+      "size": 5649
+    },
+    {
+      "path": "installer/tests/Installer.Totp.Tests.ps1",
+      "sha256": "92ee8311244c464a71a49e5f1b3ec50ae9447f19a8c9e11744cc2bddd37a0cb6",
+      "size": 13990
     },
     {
       "path": "overlay/astrbot/core/agent/runners/tool_loop_agent_runner.py",
@@ -1009,8 +1199,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "1a2daba532681b0b9dc0ff134dc8d9078863dc1c05a224709256b39cecfde11e",
-      "size": 11361
+      "sha256": "07ac60c3483012a38ac21ab71a2652bec69890f4d96d4679ad7ea59c9d5b3861",
+      "size": 11375
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1059,13 +1249,13 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "1931d3a60d7dd967944dc9ded3989aa7b989c398b825ce4d4525901bdfcf57cc",
-      "size": 15463
+      "sha256": "bec31eee2e3c81d29e0c0def0d10659c6e1c61acee0e13bdd828f767aea8b4ca",
+      "size": 15799
     },
     {
       "path": "webui/auth.py",
-      "sha256": "75420f313fa176f80ccc4aaab424cce54fbdbc20d30795c04c641cabfcb16d9d",
-      "size": 3809
+      "sha256": "6526f5d6bb0e0e56fa118bca8137fd322ea5bee3ffa699b7196d480a11866a35",
+      "size": 3920
     },
     {
       "path": "webui/example-config.json",
@@ -1109,8 +1299,8 @@
     },
     {
       "path": "webui/settings.py",
-      "sha256": "351e6cde8b8cf25a7814c58ca9f4293ca82996d44c287289aca2e3466898adef",
-      "size": 5205
+      "sha256": "c06fe4ce388b44aa4f1f8d3d8e07b0af79566fe00107effd7fd0f92bfd404189",
+      "size": 5335
     },
     {
       "path": "webui/start-services.ps1",
@@ -1194,8 +1384,8 @@
     },
     {
       "path": "webui/store.py",
-      "sha256": "af4606435fe702a67b599b92b7687223a0d5184ad4b42750011e6154732c43b8",
-      "size": 4722
+      "sha256": "db6ce44e380fc2f23c6ac4db03709e6812af92b472d500042fe44195eef764e6",
+      "size": 4842
     },
     {
       "path": "webui/templates/dashboard.html",
