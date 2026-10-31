@@ -137,47 +137,15 @@ function Start-CyberButlerGuiInstall {
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
 
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = 'powershell.exe'
-    $psi.Arguments = (($args | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"','\"') + '"' } else { $_ } }) -join ' ')
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.WorkingDirectory = Split-Path -Parent $InstallerPath
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $psi
+    $argumentLine = (($args | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"','\"') + '"' } else { $_ } }) -join ' ')
     $script:cbGuiWindow = $Window
     $script:cbGuiOnLog = $OnLog
     $script:cbGuiOnStatus = $OnStatus
     $script:cbGuiText = $Text
-
-    $process.add_OutputDataReceived({
-        param($sender, $e)
-        if ($null -eq $e.Data) { return }
-        $line = [string]$e.Data
-        if ($line -match 'TOTP_SECRET=|TOTP_URI=|TOTP_RECOVERY_|Base32 Secret|Grouped:|otpauth URI|Recovery codes') { return }
-        try { $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnLog $line }) } catch { }
-    })
-    $process.add_ErrorDataReceived({
-        param($sender, $e)
-        if ($null -ne $e.Data) {
-            try { $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnLog ([string]$e.Data) }) } catch { }
-        }
-    })
-    $process.add_Exited({
-        param($sender, $e)
-        try {
-            $script:cbGuiWindow.Dispatcher.Invoke([Action]{
-                if ($script:cbGuiTimer) { $script:cbGuiTimer.Stop() }
-                & $script:cbGuiOnStatus ($(if ($sender.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' }))
-            })
-        } catch { }
-    })
-
-    [void]$process.Start()
-    $process.BeginOutputReadLine()
-    $process.BeginErrorReadLine()
+    $process = Start-Process -FilePath 'powershell.exe' `
+        -ArgumentList $argumentLine `
+        -WorkingDirectory (Split-Path -Parent $InstallerPath) `
+        -WindowStyle Hidden -PassThru
     & $script:cbGuiOnStatus ($script:cbGuiText['Started'])
     $script:cbGuiProcess = $process
     $script:cbGuiSignalDir = $signalDir
@@ -185,6 +153,11 @@ function Start-CyberButlerGuiInstall {
     $script:cbGuiTimer = New-Object System.Windows.Threading.DispatcherTimer
     $script:cbGuiTimer.Interval = [TimeSpan]::FromSeconds(1)
     $script:cbGuiTimer.add_Tick({
+        if ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited) {
+            $script:cbGuiTimer.Stop()
+            try { & $script:cbGuiOnStatus ($(if ($script:cbGuiProcess.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' })) } catch { }
+            return
+        }
         if ($script:cbGuiTotpSeen) { return }
         $readyPath = Join-Path $script:cbGuiSignalDir 'totp-ready.json'
         if (-not (Test-Path -LiteralPath $readyPath)) { return }
