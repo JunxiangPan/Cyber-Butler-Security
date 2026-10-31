@@ -1,0 +1,101 @@
+# v1.6.1 - Installer Reliability and Visual Setup
+
+v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the production layout, creates its mailer token when missing, and keeps the Web UI available when the optional OTP mailer cannot start. It also adds a WPF front-end and the updater metadata fix needed by production merges.
+
+⚠️ Note: A v1.5.3 installation must use the full installer to cross the release-key and overlay-format change. The legacy updater and the v1.6.0 merge path are not a supported bootstrap route.
+
+🔧 Installer Reliability
+
+**Web UI root**: `start-services.ps1` now detects both the production `webui` layout and the `public-release` layout before resolving `webui-config.json`.
+
+**Mailer token**: a missing `webui\data\mailer_token` is generated as 32 random bytes encoded as 64 hex characters; an existing token is preserved.
+
+**Non-blocking OTP**: an OTP mailer failure is logged as a warning and no longer prevents the Web UI from starting or aborts the whole service assertion.
+
+**Config fallback**: a `webui\config.json` layout is accepted when the root-level `webui-config.json` is absent.
+
+🖥️ Visual Installer
+
+**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file.
+
+**Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
+
+**Explicit handoff**: the privileged installation runs in a visible elevated console so approval tokens and TOTP enrollment remain explicit, auditable user actions. The GUI does not silently auto-approve security steps.
+
+🛡️ Update Integrity
+
+**Overlay metadata**: `update_merge_core.py` skips `overlay/overlay-manifest.json` as release metadata instead of treating it as an AstrBot runtime overlay target.
+
+**Public key allowlist**: `tools/update_pubkey.pem` is accepted by the updater allowlist; other `.pem` files remain rejected.
+
+**Version**: the repository version is now `1.6.1`.
+
+✅ Verification
+
+Host Pester: 144 passed, 0 failed.
+
+GUI XAML self-test: `GUI_XAML_OK`.
+
+Existing updater tests: 11 passed.
+
+⚠️ Known Limitations
+
+Clean Windows 11 Pro VM end-to-end acceptance has not yet been run for this draft.
+
+The visual installer is a front-end and preflight tool, not a fully silent unattended installer; approval and TOTP steps remain in the elevated console.
+
+`update_merge.ps1` still needs a dedicated `webui\.venv` bootstrap/check for targets where that virtual environment is absent.
+
+The release package has not yet been rebuilt or signed for this version.
+
+---
+
+# v1.6.1 - 安装可靠性修复与可视化安装
+
+v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结构，在缺少 mailer token 时自动生成，并在可选 OTP mailer 启动失败时保持 Web UI 可用。本版本同时加入 WPF 前端，以及 production merge 所需的 updater metadata 修复。
+
+⚠️ 注意：v1.5.3 安装必须使用完整安装器跨越发布密钥和 overlay 格式变更。旧更新器和 v1.6.0 的 merge 路径不是受支持的 bootstrap 路径。
+
+🔧 安装可靠性
+
+**Web UI root**：`start-services.ps1` 现在同时识别生产 `webui` 目录结构和 `public-release` 目录结构，再解析 `webui-config.json`。
+
+**Mailer token**：`webui\data\mailer_token` 不存在时，生成 32 字节随机数并编码为 64 位 hex；已有 token 不覆盖。
+
+**OTP 非阻塞**：OTP mailer 启动失败只写 warning，不再阻止 Web UI 启动，也不再让整个 Services 断言失败。
+
+**配置回退**：根级 `webui-config.json` 不存在时，接受 `webui\config.json` 布局。
+
+🖥️ 可视化安装器
+
+**WPF 前端**：`installer\CyberButler.Installer.GUI.ps1` 收集安装路径、Tier、Owner QQ、WebUI 绑定、可选个人插件路径和可选 API key 文件。
+
+**界面内预检**：GUI 可以运行只读环境预检并显示 JSON 结果。
+
+**显式交接**：特权安装仍在可见的提权控制台中执行，批准 token 和 TOTP 扫码/恢复码确认保持为显式、可审计的用户操作。GUI 不会静默自动批准安全步骤。
+
+🛡️ 更新完整性
+
+**Overlay metadata**：`update_merge_core.py` 将 `overlay/overlay-manifest.json` 作为发布元数据跳过，不再把它当作 AstrBot 运行时 overlay 目标。
+
+**公钥放行**：更新器 allowlist 接受 `tools/update_pubkey.pem`；其他 `.pem` 继续拒绝。
+
+**版本**：仓库版本更新为 `1.6.1`。
+
+✅ 验证
+
+主机 Pester：144 passed，0 failed。
+
+GUI XAML 自检：`GUI_XAML_OK`。
+
+现有 updater 测试：11 passed。
+
+⚠️ 已知限制
+
+本草案尚未在干净 Windows 11 Pro VM 上完成端到端验收。
+
+可视化安装器是前端和预检工具，不是完全静默的无人值守安装器；批准和 TOTP 步骤仍在提权控制台中完成。
+
+`update_merge.ps1` 仍需要补上 `webui\.venv` 的专用创建/检查逻辑，以覆盖虚拟环境缺失的目标机。
+
+本版本的发布包尚未重新构建或签名。

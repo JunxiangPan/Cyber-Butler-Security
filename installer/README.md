@@ -1,4 +1,4 @@
-# Cyber-Butler Installer (v1.6.0)
+﻿# Cyber-Butler Installer (v1.6.1)
 
 One installer, three declarative profiles, one pipeline.
 
@@ -27,6 +27,24 @@ Core deployment is implemented with pinned official AstrBot and SnowLuma
 URLs/SHA-256 in `core-sources.json`. Local packages can be supplied with
 `-AstrBotPackage` / `-SnowLumaPackage`. Real privileged execution still
 remains a clean-Windows-VM acceptance step.
+
+## Visual installer
+
+Launch the WPF front-end from an elevated interactive desktop:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -STA `
+  -File .\installer\CyberButler.Installer.GUI.ps1
+```
+
+The GUI collects the install path, tier, owner QQ, WebUI bind, optional
+personal-plugins path, and an optional API-key file. It can run a read-only
+preflight and then launches the privileged installer in a visible elevated
+console. Approval tokens and TOTP enrollment stay in that console; this is
+intentional so the GUI cannot silently auto-approve security steps.
+
+The `-SelfTest` switch loads the XAML without showing the window; it is used by
+Pester only.
 
 ## Main installer
 
