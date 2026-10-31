@@ -427,6 +427,8 @@ function Start-CyberButlerGuiInstall {
     )
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
+    if ($Tier -eq 'High') { $args += @('-EnableIsolation', 'true') }
+    if ($Tier -eq 'Light') { $args += @('-AcceptLowerSecurity') }
     if (-not [string]::IsNullOrWhiteSpace($ApiKeyFile)) {
         $args += @('-ApiKeyFile', $ApiKeyFile, '-SkipSmtp')
     } else {

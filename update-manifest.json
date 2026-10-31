@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "e497ceab1168876563781ca31b762bccfd6455b247a7892988725e696773333f",
-      "size": 12127
+      "sha256": "ebb72569e5207818e6c2bad59166e31cbd529d45d6b370ba5125ac723aeac808",
+      "size": 12383
     },
     {
       "path": "docs/使用说明.md",
@@ -284,8 +284,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "3dd69808de1116c38705e631d9ce99cde817d46954777146b353fa9b8108c125",
-      "size": 101026
+      "sha256": "a7dcb19ebb74cb94a17e901d4f74cffbe9dd4c52e4e52affbf5c237390d0b0d1",
+      "size": 101046
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -939,8 +939,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.vbs",
-      "sha256": "43c51cfda9fb717988f4ba7b28b39f00c3289238156ca52ae4becaace3475a76",
-      "size": 475
+      "sha256": "e5c24b62ba8fee66e1f91c214ee0a45c4f412f4f2d40bfec19d5c7b8400cc1f6",
+      "size": 468
     },
     {
       "path": "tools/daily_audit.py",
@@ -1246,6 +1246,11 @@
       "path": "tools/snowluma_guard.py",
       "sha256": "af4b47b53320afd3f2b0a577e9c296c718fc96aa24c7b5fee74578d7198d6f95",
       "size": 27706
+    },
+    {
+      "path": "tools/start-dashboard.ps1",
+      "sha256": "52a229cddd1e26aa60319074262b3cfac5b3561ce966e2887e7702b1c908baf8",
+      "size": 1504
     },
     {
       "path": "tools/start-game-mode.ps1",
