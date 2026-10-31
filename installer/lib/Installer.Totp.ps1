@@ -290,6 +290,12 @@ function Set-CyberButlerTotpVaultAcl {
         $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($AstrBotAccount, 'FullControl', $inherit, $prop, $deny)))
     }
     Set-Acl -LiteralPath $VaultPath -AclObject $acl -ErrorAction Stop
+    $singleAccountMarker = Join-Path $VaultPath 'single-account.marker'
+    if ($denyAstrBot) {
+        Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue
+    } else {
+        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: AstrBot and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
+    }
     return $backup
 }
 

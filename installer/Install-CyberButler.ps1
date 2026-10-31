@@ -621,7 +621,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
             }
             if (-not $failure) {
                 Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'in_progress'
-                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$true -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
+                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
                 if (-not (Complete-MainSecurityStep -Name 'totp' -Result $result)) {
                     $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP: ' + [string]$result.status + ' ' + [string]$result.message) }
                 }
@@ -660,6 +660,16 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
         } elseif ($result.partial) {
             Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'skipped' -Reason ([string]$result.message)
         }
+    }
+}
+
+# Record single-account TOTP limitation for the Broker ACL verifier.
+if (-not $failure -and (Test-Path -LiteralPath $vaultPath)) {
+    $singleAccountMarker = Join-Path $vaultPath 'single-account.marker'
+    if (-not $resolution.Isolation) {
+        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: AstrBot and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
+    } else {
+        Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue
     }
 }
 

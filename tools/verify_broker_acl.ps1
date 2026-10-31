@@ -44,6 +44,7 @@ $secretPath = @($secretPaths | Where-Object { Test-Path -LiteralPath $_ } | Sele
 $recoveryPath = @($recoveryPaths | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
 if ($secretPath.Count -eq 0) { $bad.Add('missing protected TOTP secret under tools/totp-vault or tools') }
 if ($recoveryPath.Count -eq 0) { $bad.Add('missing protected TOTP recovery store under tools/totp-vault or tools') }
+$singleAccount = Test-Path -LiteralPath (Join-Path $vault 'single-account.marker')
 foreach ($secretPath in @($secretPath + $recoveryPath)) {
     if (-not $secretPath) { continue }
     try {
@@ -53,7 +54,7 @@ foreach ($secretPath in @($secretPath + $recoveryPath)) {
             (([string]$_.IdentityReference) -eq $ServiceUser -or ([string]$_.IdentityReference).Contains([string][char]92 + $ServiceUser)) -and
             $_.FileSystemRights -match 'Read|ReadData|ReadAttributes|ReadExtendedAttributes|ReadPermissions'
         })
-        if ($denyRead.Count -eq 0) {
+        if (-not $singleAccount -and $denyRead.Count -eq 0) {
             $bad.Add("missing explicit Deny Read for $ServiceUser on $secretPath")
         }
     } catch {
