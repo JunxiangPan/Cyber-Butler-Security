@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "tier": "High",
+  "label": "High",
+  "enableIsolation": true,
+  "codeAcl": "service-rx-admin-f",
+  "totpVault": "deny-service",
+  "totpDestructive": true,
+  "totpEgress": true,
+  "routerFailClosed": true,
+  "autoCloudFallback": true,
+  "shellTools": false,
+  "webUIBind": "Loopback",
+  "allowLan": false,
+  "firewall": "loopback-tailscale-only",
+  "audit": "full",
+  "dailyAudit": true,
+  "brokerAccount": "SYSTEM",
+  "astrbotAccount": "service",
+  "webUIAccount": "service",
+  "snowLumaAccount": "desktop"
+}

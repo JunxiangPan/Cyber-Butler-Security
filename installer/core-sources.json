@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "astrbot": {
+    "version": "4.29.3",
+    "size_bytes": 7844413,
+    "url": "https://github.com/AstrBotDevs/AstrBot/archive/refs/tags/v4.29.3.zip",
+    "sha256": "4f7187273a3fa3e9bea327e1338dcff7567af5ab095c4847da12452ad22d8508"
+  },
+  "snowluma": {
+    "version": "2.2.1",
+    "size_bytes": 43015802,
+    "url": "https://github.com/SnowLuma/SnowLuma/releases/download/v2.2.1/SnowLuma-v2.2.1-win-x64.zip",
+    "sha256": "09a3fbbf42ea805c4d61b5e67bec2a46ef341fa803f211d78c40796cb7f535dc"
+  },
+  "python": {
+    "version": "3.13.17",
+    "url": "https://www.python.org/ftp/python/3.13.17/python-3.13.17-amd64.exe",
+    "sha256": "5da012101ba2e17113a9a1cd901e9ce1441086f2b7ecb5de06ec94163899a190",
+    "size_bytes": 29941280
+  }
+}

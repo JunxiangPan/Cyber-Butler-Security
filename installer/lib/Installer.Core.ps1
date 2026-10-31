@@ -1,0 +1,452 @@
+﻿# Real core deployment: download, verify, extract, venv, overlay.
+# Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
+
+function Get-CyberButlerCoreSourceConfig {
+    param(
+        [string]$CoreSourcesPath = ''
+    )
+    if ([string]::IsNullOrWhiteSpace($CoreSourcesPath)) {
+        $CoreSourcesPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'core-sources.json'
+    }
+    if (-not (Test-Path -LiteralPath $CoreSourcesPath)) {
+        throw "Core source config not found: $CoreSourcesPath"
+    }
+    return (Get-Content -LiteralPath $CoreSourcesPath -Raw -Encoding UTF8 | ConvertFrom-Json)
+}
+
+function Resolve-CyberButlerCoreSource {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [string]$PackagePath = '',
+        [string]$Sha256 = '',
+        $Config
+    )
+
+    $entry = $Config.$Name
+    if ($null -eq $entry) { throw "Core source entry missing: $Name" }
+    $url = if ($PackagePath) { $PackagePath } else { [string]$entry.url }
+    $hash = if ($Sha256) { $Sha256 } else { [string]$entry.sha256 }
+    if ([string]::IsNullOrWhiteSpace($url)) { throw "Core source URL missing: $Name" }
+    if ([string]::IsNullOrWhiteSpace($hash)) { throw "Core source SHA-256 missing: $Name" }
+    return [pscustomobject]@{
+        name = $Name
+        url = $url
+        sha256 = $hash.ToLowerInvariant()
+        version = [string]$entry.version
+        size_bytes = if ($entry.size_bytes) { [long]$entry.size_bytes } else { 0 }
+    }
+}
+
+function Get-CyberButlerCorePython {
+    param([string]$PreferredPath = '')
+    if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf)) { return [IO.Path]::GetFullPath($PreferredPath) }
+    $command = Get-Command python.exe -ErrorAction SilentlyContinue
+    if (-not $command) { $command = Get-Command py.exe -ErrorAction SilentlyContinue }
+    if (-not $command) { throw 'Python was not found.' }
+    return [string]$command.Source
+}
+
+function Invoke-CyberButlerCoreDownload {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Source,
+        [Parameter(Mandatory = $true)]
+        [string]$Destination,
+        [int]$TimeoutSeconds = 300,
+        [int]$RetryCount = 3,
+        [switch]$Resume
+    )
+    $parent = Split-Path -Parent $Destination
+    if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    if ($Source.url -match '^https?://') {
+        $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+        $lastError = $null
+        for ($attempt = 1; $attempt -le [Math]::Max(1, $RetryCount); $attempt++) {
+            try {
+                if ($curl) {
+                    $curlArgs = @('-L', '--fail', '--progress-bar', '--connect-timeout', '30', '--max-time', [string]$TimeoutSeconds, '-o', $Destination)
+                    if ($Resume -and (Test-Path -LiteralPath $Destination)) { $curlArgs += @('-C', '-') }
+                    $curlArgs += $Source.url
+                    & $curl.Source @curlArgs
+                    if ($LASTEXITCODE -ne 0) { throw "curl exit code $LASTEXITCODE" }
+                } else {
+                    if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue }
+                    Invoke-WebRequest -Uri $Source.url -OutFile $Destination -UseBasicParsing -TimeoutSec ([Math]::Max(1, $TimeoutSeconds)) -ErrorAction Stop
+                }
+                $lastError = $null
+                break
+            } catch {
+                $lastError = $_
+                if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue }
+                if ($attempt -lt $RetryCount) { Start-Sleep -Seconds ([Math]::Min(8, $attempt * 2)) }
+            }
+        }
+        if ($null -ne $lastError -or -not (Test-Path -LiteralPath $Destination)) {
+            $hint = if ($Source.url -match 'github\.com') {
+                ' GitHub is unreachable or returned an error. Check network, DNS, proxy/VPN, and firewall; or pass a local package with -AstrBotPackage / -SnowLumaPackage.'
+            } else { '' }
+            throw ("Download failed for {0} after {1} attempt(s): {2}.{3}" -f $Source.name, $RetryCount, $lastError.Exception.Message, $hint)
+        }
+    } elseif (Test-Path -LiteralPath $Source.url -PathType Leaf) {
+        Copy-Item -LiteralPath $Source.url -Destination $Destination -Force
+    } else {
+        throw "Core source is not a reachable URL or local file: $($Source.url)"
+    }
+    $actual = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $Source.sha256) {
+        throw "SHA-256 mismatch for $($Source.name): expected $($Source.sha256), got $actual"
+    }
+    return $Destination
+}
+
+function Expand-CyberButlerCoreArchive {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Archive,
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
+    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+    Expand-Archive -LiteralPath $Archive -DestinationPath $Destination -Force -ErrorAction Stop
+    return $Destination
+}
+
+function Find-CyberButlerCoreRoot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [string]$Marker
+    )
+    if (Test-Path -LiteralPath (Join-Path $Path $Marker)) { return $Path }
+    foreach ($dir in @(Get-ChildItem -LiteralPath $Path -Directory -ErrorAction SilentlyContinue)) {
+        if (Test-Path -LiteralPath (Join-Path $dir.FullName $Marker)) { return $dir.FullName }
+    }
+    return $null
+}
+
+function Get-CyberButlerCoreFileList {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Source
+    )
+    $files = New-Object System.Collections.Generic.List[string]
+    $stack = New-Object System.Collections.Generic.Stack[string]
+    $stack.Push([IO.Path]::GetFullPath($Source))
+    while ($stack.Count -gt 0) {
+        $dir = $stack.Pop()
+        try {
+            $entries = [IO.Directory]::EnumerateFileSystemEntries($dir)
+        } catch {
+            throw ("CORE cannot enumerate directory " + $dir + ": " + $_.Exception.Message)
+        }
+        foreach ($entry in $entries) {
+            $attributes = [IO.File]::GetAttributes($entry)
+            if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                Write-Host ('CORE skipping reparse point ' + $entry)
+                continue
+            }
+            if (($attributes -band [IO.FileAttributes]::Directory) -ne 0) {
+                $stack.Push($entry)
+            } else {
+                $files.Add($entry)
+            }
+        }
+    }
+    return $files.ToArray()
+}
+
+function Copy-CyberButlerCoreTree {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
+        [Parameter(Mandatory = $true)]
+        [string]$Destination,
+        [Parameter(Mandatory = $true)]
+        [string]$AllowedRoot,
+        $Journal = $null,
+        [string]$JournalStep = 'core',
+        [string[]]$ExcludeTop = @(),
+        [string]$Label = 'files'
+    )
+
+    $sourceFull = [IO.Path]::GetFullPath($Source)
+    $destFull = [IO.Path]::GetFullPath($Destination)
+    if (-not [IO.Directory]::Exists($sourceFull)) { throw "Source tree missing: $sourceFull" }
+
+    Write-Host ('CORE scanning ' + $Label + ' source...')
+    $allFiles = @(Get-CyberButlerCoreFileList -Source $sourceFull)
+    $selected = New-Object System.Collections.Generic.List[string]
+    foreach ($file in $allFiles) {
+        $relative = $file.Substring($sourceFull.Length).TrimStart('\')
+        $parts = $relative -split '[\/]'
+        if ($parts.Count -gt 0 -and $ExcludeTop -contains $parts[0]) { continue }
+        $selected.Add($file)
+    }
+
+    Write-Host ('CORE copying ' + $Label + ' (' + $selected.Count + ' files)...')
+    $index = 0
+    foreach ($file in $selected) {
+        $index++
+        $relative = $file.Substring($sourceFull.Length).TrimStart('\')
+        $target = Join-Path $destFull $relative
+        $parent = Split-Path -Parent $target
+        if ($parent) { [IO.Directory]::CreateDirectory($parent) | Out-Null }
+        if ([IO.File]::Exists($target)) {
+            if ($null -ne $Journal) {
+                Backup-CyberButlerFile -Journal $Journal -Step $JournalStep -Path $target -AllowedRoot $AllowedRoot | Out-Null
+            }
+            [IO.File]::SetAttributes($target, [IO.FileAttributes]::Normal)
+        } elseif ($null -ne $Journal) {
+            Add-CyberButlerReverseAction -Journal $Journal -Step $JournalStep -Action ([pscustomobject]@{
+                type = 'delete-created-file'
+                path = [IO.Path]::GetFullPath($target)
+                allowed_root = [IO.Path]::GetFullPath($AllowedRoot)
+            })
+        }
+        [IO.File]::Copy($file, $target, $true)
+        if (($index % 50) -eq 0 -or $index -eq $selected.Count) {
+            Write-Host ('CORE ' + $Label + ' ' + $index + '/' + $selected.Count)
+        }
+    }
+}
+
+function Invoke-CyberButlerPipInstall {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PythonPath,
+        [Parameter(Mandatory = $true)]
+        [string]$Requirements,
+        [Parameter(Mandatory = $true)]
+        [string]$LogPath
+    )
+
+    $parent = Split-Path -Parent $LogPath
+    if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    $lines = New-Object System.Collections.Generic.List[string]
+    & $PythonPath -m pip install --disable-pip-version-check --progress-bar on -r $Requirements 2>&1 |
+        ForEach-Object {
+            $line = [string]$_
+            $lines.Add($line)
+            Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8
+            Write-Host $line
+        }
+    return [pscustomobject]@{
+        exit_code = [int]$LASTEXITCODE
+        output = $lines.ToArray()
+        log_path = $LogPath
+    }
+}
+
+function Test-CyberButlerCoreDeploy {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$InstallPath,
+        $Handlers = @{}
+    )
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.test') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.test' -Context ([pscustomobject]@{ InstallPath = $InstallPath }))
+    }
+    $root = [IO.Path]::GetFullPath($InstallPath)
+    $astrbot = Join-Path $root 'AstrBot'
+    $venvPython = Join-Path $astrbot '.venv\Scripts\python.exe'
+    $overlayProbe = Join-Path $astrbot 'astrbot\core\tools\message_tools.py'
+    $missing = New-Object System.Collections.Generic.List[string]
+    if (-not (Test-Path -LiteralPath (Join-Path $astrbot 'main.py'))) { $missing.Add('AstrBot/main.py') }
+    if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('AstrBot/.venv/Scripts/python.exe') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'SnowLuma\index.mjs'))) { $missing.Add('SnowLuma/index.mjs') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools'))) { $missing.Add('tools') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'workspace'))) { $missing.Add('workspace') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'data'))) { $missing.Add('data') }
+    if (-not (Test-Path -LiteralPath $overlayProbe)) { $missing.Add('overlay probe') }
+    $satisfied = $missing.Count -eq 0
+    return [pscustomobject]@{
+        satisfied = [bool]$satisfied
+        install_path = $root
+        astrbot = $astrbot
+        venv_python = $venvPython
+        missing = $missing.ToArray()
+        reason = if ($satisfied) { 'core tree present' } else { 'core tree incomplete: ' + ($missing -join ', ') }
+    }
+}
+
+function Invoke-CyberButlerCoreDeploy {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$InstallPath,
+        [string]$ExistingState = 'None',
+        [string]$Tier = 'Medium',
+        [string]$AstrBotPackage = '',
+        [string]$SnowLumaPackage = '',
+        [string]$AstrBotSha256 = '',
+        [string]$SnowLumaSha256 = '',
+        [string]$CoreSourcesPath = '',
+        [switch]$SkipDependencyInstall,
+        [int]$DownloadTimeoutSeconds = 300,
+        [int]$DownloadRetryCount = 3,
+        [switch]$ResumeDownload,
+        [string]$PythonPath = '',
+        [string]$PythonSource = 'system',
+        [string]$PythonVersion = '',
+        [string]$PipLogPath = '',
+        [string]$JournalStep = 'core',
+        $Journal = $null,
+        $Handlers = @{}
+    )
+
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy' -Context ([pscustomobject]@{
+            Root = $InstallPath; ExistingState = $ExistingState; Tier = $Tier
+        }))
+    }
+
+    $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
+    if ($test.satisfied) {
+        $reason = 'core deployment already satisfied: ' + [string]$test.reason
+        return [pscustomobject]@{
+            status = 'skipped'; changed = $false; exit_code = 0; test = $test
+            reason = $reason; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion
+            paths = [pscustomobject]@{
+                astrbot = Join-Path $test.install_path 'AstrBot'
+                snowluma = Join-Path $test.install_path 'SnowLuma'
+                tools = Join-Path $test.install_path 'tools'
+                workspace = Join-Path $test.install_path 'workspace'
+                data = Join-Path $test.install_path 'data'
+            }
+        }
+    }
+
+    $root = [IO.Path]::GetFullPath($InstallPath)
+    $createdDirs = New-Object System.Collections.Generic.List[string]
+    $staging = Join-Path $root ('.installer-staging-' + [guid]::NewGuid().ToString('N'))
+    $stepStarted = $false
+    if ($null -ne $Journal) {
+        Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status in_progress | Out-Null
+        $stepStarted = $true
+        New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $staging -AllowedRoot $root | Out-Null
+    } else {
+        New-Item -ItemType Directory -Path $staging -Force | Out-Null
+    }
+    $createdDirs.Add($staging)
+
+    try {
+        $config = Get-CyberButlerCoreSourceConfig -CoreSourcesPath $CoreSourcesPath
+        $astrbotSource = Resolve-CyberButlerCoreSource -Name 'astrbot' -PackagePath $AstrBotPackage -Sha256 $AstrBotSha256 -Config $config
+        $snowSource = Resolve-CyberButlerCoreSource -Name 'snowluma' -PackagePath $SnowLumaPackage -Sha256 $SnowLumaSha256 -Config $config
+
+        $astrbotArchive = Join-Path $staging 'astrbot.zip'
+        $snowArchive = Join-Path $staging 'snowluma.zip'
+        $astrbotSize = if ($astrbotSource.size_bytes -gt 0) { '{0:N1} MB' -f ($astrbotSource.size_bytes / 1MB) } else { 'unknown size' }
+        $snowSize = if ($snowSource.size_bytes -gt 0) { '{0:N1} MB' -f ($snowSource.size_bytes / 1MB) } else { 'unknown size' }
+        Write-Host ('CORE downloading ' + $astrbotSource.name + ' ' + $astrbotSource.version + ' (' + $astrbotSize + ')...')
+        Invoke-CyberButlerCoreDownload -Source $astrbotSource -Destination $astrbotArchive -TimeoutSeconds $DownloadTimeoutSeconds -RetryCount $DownloadRetryCount -Resume:$ResumeDownload | Out-Null
+        Write-Host ('CORE downloaded ' + $astrbotSource.name + '.')
+        Write-Host ('CORE downloading ' + $snowSource.name + ' ' + $snowSource.version + ' (' + $snowSize + ')...')
+        Invoke-CyberButlerCoreDownload -Source $snowSource -Destination $snowArchive -TimeoutSeconds $DownloadTimeoutSeconds -RetryCount $DownloadRetryCount -Resume:$ResumeDownload | Out-Null
+        Write-Host ('CORE downloaded ' + $snowSource.name + '.')
+        Write-Host 'CORE extracting AstrBot archive...'
+        $rawAstrbot = Expand-CyberButlerCoreArchive -Archive $astrbotArchive -Destination (Join-Path $staging 'astrbot-raw')
+        Write-Host 'CORE extracting SnowLuma archive...'
+        $rawSnow = Expand-CyberButlerCoreArchive -Archive $snowArchive -Destination (Join-Path $staging 'snow-raw')
+        Write-Host 'CORE archives extracted.'
+        $astrbotRoot = Find-CyberButlerCoreRoot -Path $rawAstrbot -Marker 'main.py'
+        $snowRoot = Find-CyberButlerCoreRoot -Path $rawSnow -Marker 'index.mjs'
+        if (-not $astrbotRoot) { throw 'AstrBot archive does not contain main.py.' }
+        if (-not $snowRoot) { throw 'SnowLuma archive does not contain index.mjs.' }
+
+        Write-Host 'CORE creating target directories...'
+        $astrbotTarget = Join-Path $root 'AstrBot'
+        $snowTarget = Join-Path $root 'SnowLuma'
+        $toolsTarget = Join-Path $root 'tools'
+        $workspaceTarget = Join-Path $root 'workspace'
+        $dataTarget = Join-Path $root 'data'
+
+        foreach ($path in @($astrbotTarget, $snowTarget, $toolsTarget, $workspaceTarget, $dataTarget)) {
+            if (-not (Test-Path -LiteralPath $path)) {
+                if ($null -ne $Journal) {
+                    New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $path -AllowedRoot $root | Out-Null
+                } else {
+                    New-Item -ItemType Directory -Path $path -Force | Out-Null
+                }
+                $createdDirs.Add($path)
+            }
+        }
+
+        Copy-CyberButlerCoreTree -Source $astrbotRoot -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep -ExcludeTop @('data', '.venv') -Label 'AstrBot'
+        Copy-CyberButlerCoreTree -Source $snowRoot -Destination $snowTarget -AllowedRoot $snowTarget -Journal $Journal -JournalStep $JournalStep -ExcludeTop @('data', 'config', 'logs') -Label 'SnowLuma'
+
+        $overlay = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'overlay'
+        if (Test-Path -LiteralPath $overlay) {
+            Write-Host 'CORE applying overlay...'
+            Copy-CyberButlerCoreTree -Source $overlay -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep -Label 'overlay'
+            Write-Host 'CORE overlay applied.'
+        } else {
+            throw "Overlay tree missing: $overlay"
+        }
+
+        if (-not $SkipDependencyInstall) {
+            $python = Get-CyberButlerCorePython -PreferredPath $PythonPath
+            Write-Host ('CORE creating virtual environment with ' + $python + '...')
+            $venvDir = Join-Path $astrbotTarget '.venv'
+            & $python -m venv $venvDir
+            if ($LASTEXITCODE -ne 0) { throw 'python -m venv failed.' }
+            $venvPython = Join-Path $venvDir 'Scripts\python.exe'
+            $requirements = Join-Path $astrbotTarget 'requirements.txt'
+            if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
+                $pipLog = if ($PipLogPath) { $PipLogPath } else { Join-Path $root 'installer-report\pip-install.log' }
+                Write-Host 'CORE installing dependencies (this may take several minutes)...'
+                Write-Host ('CORE pip log: ' + $pipLog)
+                $pipRun = Invoke-CyberButlerPipInstall -PythonPath $venvPython -Requirements $requirements -LogPath $pipLog
+                if ($pipRun.exit_code -ne 0) {
+                    $pipOutput = ($pipRun.output -join "`n")
+                    $excerpt = (($pipRun.output | Select-Object -Last 12) -join "`n")
+                    if ($pipOutput -match 'Requires-Python|No matching distribution|Could not find a version') {
+                        throw ("pip dependency resolution failed. AstrBot supports Python 3.10-3.13; Python 3.14+ is not supported by faiss-cpu. Install Python 3.13 and retry. pip log: " + $pipLog + ". Tail: " + $excerpt)
+                    }
+                    throw ("pip install -r requirements.txt failed. pip log: " + $pipLog + ". Tail: " + $excerpt)
+                }
+                Write-Host 'CORE dependencies installed.'
+            }
+        } else {
+            New-Item -ItemType Directory -Path (Join-Path $astrbotTarget '.venv\Scripts') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $astrbotTarget '.venv\Scripts\python.exe') -Value '' -Encoding ASCII
+        }
+
+        $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Handlers $Handlers
+        if (-not $asserted.satisfied) { throw ('Core deployment assertion failed: ' + ($asserted.missing -join ', ')) }
+        if (-not (Test-Path -LiteralPath $workspaceTarget)) { throw 'workspace directory missing.' }
+        if (-not (Test-Path -LiteralPath $dataTarget)) { throw 'data directory missing.' }
+
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        if ($null -ne $Journal -and $stepStarted) {
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'core deployment completed'; existing_state = $ExistingState; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion }) | Out-Null
+        }
+        return [pscustomobject]@{
+            status = 'completed'; changed = $true; exit_code = 0; test = $asserted; existing_state = $ExistingState
+            reason = 'core deployment completed'; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion
+            paths = [pscustomobject]@{
+                astrbot = $astrbotTarget
+                snowluma = $snowTarget
+                tools = $toolsTarget
+                workspace = $workspaceTarget
+                data = $dataTarget
+            }
+        }
+    } catch {
+        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        if ($ExistingState -eq 'None') {
+            $paths = @($createdDirs)
+            [array]::Reverse($paths)
+            foreach ($path in $paths) {
+                if ($path -eq $staging) { continue }
+                if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+        }
+        if ($null -ne $Journal -and $stepStarted) {
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $_.Exception.Message }) | Out-Null
+        }
+        return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = $_.Exception.Message; reason = $_.Exception.Message; created_dirs = $createdDirs.ToArray() }
+    }
+}

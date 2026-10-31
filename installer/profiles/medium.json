@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "tier": "Medium",
+  "label": "Medium",
+  "enableIsolation": false,
+  "codeAcl": "desktop-rx-admin-f",
+  "totpVault": "same-account",
+  "totpDestructive": true,
+  "totpEgress": true,
+  "routerFailClosed": true,
+  "autoCloudFallback": true,
+  "shellTools": false,
+  "webUIBind": "Loopback",
+  "allowLan": true,
+  "firewall": "loopback-only",
+  "audit": "broker-auth",
+  "dailyAudit": true,
+  "brokerAccount": "SYSTEM",
+  "astrbotAccount": "desktop",
+  "webUIAccount": "desktop",
+  "snowLumaAccount": "desktop"
+}

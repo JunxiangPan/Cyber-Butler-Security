@@ -21,6 +21,8 @@ qbittorrent*.txt
 !webui/static/i18n/*.json
 !plugins/astrbot_plugin_webui_bridge/_conf_schema.json
 !webui/config.example.json
+!installer/profiles/*.json
+!installer/core-sources.json
 **/config.json
 **/cmd_config.json
 AstrBot/data/config/
