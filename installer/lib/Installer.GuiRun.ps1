@@ -103,7 +103,9 @@ function Show-CyberButlerStatusWindow {
         [string]$Title = 'Install status',
         [string]$Text = '',
         [string]$Copy = 'Copy',
-        [string]$Close = 'Close'
+        [string]$Close = 'Close',
+        [string]$Refresh = 'Refresh',
+        [scriptblock]$RefreshScript = $null
     )
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -135,12 +137,32 @@ function Show-CyberButlerStatusWindow {
     $dialog.Owner = $Owner
     $dialog.FindName('StatusTitle').Text = $Title
     $dialog.FindName('StatusBody').Text = $Text
+    $dialog.FindName('RefreshStatusButton').Content = $Refresh
     $dialog.FindName('CopyStatusButton').Content = $Copy
     $dialog.FindName('CloseStatusButton').Content = $Close
+    $dialog.FindName('RefreshStatusButton').Add_Click({
+        if ($RefreshScript) {
+            try { $dialog.FindName('StatusBody').Text = [string](& $RefreshScript) } catch { }
+        }
+    })
     $dialog.FindName('CopyStatusButton').Add_Click({
         try { [System.Windows.Clipboard]::SetText($dialog.FindName('StatusBody').Text) } catch { }
     })
     $dialog.FindName('CloseStatusButton').Add_Click({ $dialog.Close() })
+    if ($RefreshScript) {
+        $timer = New-Object System.Windows.Threading.DispatcherTimer
+        $timer.Interval = [TimeSpan]::FromSeconds(3)
+        $timer.add_Tick({
+            try {
+                $next = [string](& $RefreshScript)
+                if ($next -and $next -ne [string]$dialog.FindName('StatusBody').Text) {
+                    $dialog.FindName('StatusBody').Text = $next
+                }
+            } catch { }
+        })
+        $timer.Start()
+        $dialog.Add_Closed({ $timer.Stop() })
+    }
     [void]$dialog.ShowDialog()
 }
 
