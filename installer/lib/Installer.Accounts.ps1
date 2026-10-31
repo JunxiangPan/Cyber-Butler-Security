@@ -147,8 +147,18 @@ function Test-CyberButlerAccount {
         $adminsGroup = Get-LocalGroup -SID 'S-1-5-32-544' -ErrorAction Stop
         $usersMembers = @(Get-LocalGroupMember -Group $usersGroup.Name -ErrorAction SilentlyContinue)
         $adminsMembers = @(Get-LocalGroupMember -Group $adminsGroup.Name -ErrorAction SilentlyContinue)
-        $result.in_users_group = [bool](@($usersMembers | Where-Object { [string]$_.Name -eq $AccountName }).Count -gt 0)
-        $result.in_administrators_group = [bool](@($adminsMembers | Where-Object { [string]$_.Name -eq $AccountName }).Count -gt 0)
+        $accountSid = [string]$user.SID.Value
+        $matchesAccount = {
+            param($member)
+            $memberSid = [string]$member.SID.Value
+            if ($accountSid -and $memberSid) { return $memberSid -eq $accountSid }
+            $memberName = [string]$member.Name
+            $slash = $memberName.LastIndexOf([char]92)
+            if ($slash -ge 0) { $memberName = $memberName.Substring($slash + 1) }
+            return $memberName -eq $AccountName
+        }
+        $result.in_users_group = [bool](@($usersMembers | Where-Object { & $matchesAccount $_ }).Count -gt 0)
+        $result.in_administrators_group = [bool](@($adminsMembers | Where-Object { & $matchesAccount $_ }).Count -gt 0)
     } catch {
         $result.reason = 'group-membership-unreadable'
     }
@@ -314,9 +324,15 @@ function Invoke-CyberButlerAccountSetup {
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
     } catch {
+        $after = $null
+        try { $after = Test-CyberButlerAccount -AccountName $AccountName -Handlers $Handlers } catch { }
         $undo = Undo-CyberButlerAccount -AccountName $AccountName -Created $created -Handlers $Handlers
         $base.status = 'failed'
         $base.message = $_.Exception.Message
+        if ($after -and $_.Exception.Message -like '*assertion failed*') {
+            $base.message = ('account assertion failed: enabled={0}; users_group={1}; administrators_group={2}; deny_interactive={3}; batch_logon={4}; reason={5}' -f $after.enabled, $after.in_users_group, $after.in_administrators_group, $after.deny_interactive, $after.batch_logon, $after.reason)
+        }
+        $base.test = $after
         $base.undo = $undo
         $base.exit_code = if ($undo.action -eq 'failed') { Get-InstallerExitCode -Name RollbackFailed } else { Get-InstallerExitCode -Name ValidationFailed }
         if ($null -ne $Journal) {

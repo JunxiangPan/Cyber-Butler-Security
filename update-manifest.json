@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "ebb72569e5207818e6c2bad59166e31cbd529d45d6b370ba5125ac723aeac808",
-      "size": 12383
+      "sha256": "14e05adb7c5846628779f10804dbeeff47b843ca6cb80e998bad578372514905",
+      "size": 12562
     },
     {
       "path": "docs/使用说明.md",
@@ -354,8 +354,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "6dff833fb1d16bba29d83dd9791c00e77828d38033211fd07e052f6c524831f0",
-      "size": 29144
+      "sha256": "be6be4327dfe154751b5b29d66e76217f43c659ad1a6a74302b36855ff660c72",
+      "size": 29281
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
