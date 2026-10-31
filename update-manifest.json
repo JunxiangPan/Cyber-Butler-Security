@@ -24,8 +24,8 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "5899ff477608d25c5991f5b9501c6096b6b22acdb94e8c2d0baf462cb8e0baa5",
-      "size": 6619
+      "sha256": "6f4a668643438b6097bf398e587dc69ef50fb562dcec86dab7707d35a7a6f106",
+      "size": 6715
     },
     {
       "path": "README.md",
@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "9cfca9654a756fba55d9e78b45e6192fd01872b7110d624ddc75cd8851cee5a2",
-      "size": 8416
+      "sha256": "9e715aff38cbd8280588e872f15b11df076a539bb906aa8a9f7463a8e07b1d32",
+      "size": 8701
     },
     {
       "path": "docs/使用说明.md",
@@ -284,8 +284,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "770505d20fa3daa1d726633afc3b636c357b421bac880ea265dc40e62c7c87a1",
-      "size": 32613
+      "sha256": "ba9c87496bcbfcd002847c9b4a1636827ddd34b8e58b954864633d8f799c03e5",
+      "size": 38307
     },
     {
       "path": "installer/Install-CyberButler.ps1",

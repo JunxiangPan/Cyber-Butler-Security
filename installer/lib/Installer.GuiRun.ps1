@@ -96,6 +96,54 @@ function Show-CyberButlerTotpDialog {
 }
 
 
+
+function Show-CyberButlerStatusWindow {
+    param(
+        [Parameter(Mandatory = $true)]$Owner,
+        [string]$Title = 'Install status',
+        [string]$Text = '',
+        [string]$Copy = 'Copy',
+        [string]$Close = 'Close'
+    )
+    $xaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Install status" Width="760" Height="640"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#0F172A">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="StatusTitle" Text="Install status" Foreground="#F8FAFC" FontSize="22" FontWeight="SemiBold"/>
+    <TextBox x:Name="StatusBody" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
+             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+             FontFamily="Consolas" FontSize="12" Background="#020617"
+             Foreground="#CBD5E1" BorderBrush="#1E293B" Padding="12"
+             TextWrapping="NoWrap" Margin="0,12,0,0"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="CopyStatusButton" Width="100" Height="34" Margin="0,0,8,0"/>
+      <Button x:Name="CloseStatusButton" Width="90" Height="34"/>
+    </StackPanel>
+  </Grid>
+</Window>
+'@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    $dialog.Owner = $Owner
+    $dialog.FindName('StatusTitle').Text = $Title
+    $dialog.FindName('StatusBody').Text = $Text
+    $dialog.FindName('CopyStatusButton').Content = $Copy
+    $dialog.FindName('CloseStatusButton').Content = $Close
+    $dialog.FindName('CopyStatusButton').Add_Click({
+        try { [System.Windows.Clipboard]::SetText($dialog.FindName('StatusBody').Text) } catch { }
+    })
+    $dialog.FindName('CloseStatusButton').Add_Click({ $dialog.Close() })
+    [void]$dialog.ShowDialog()
+}
+
 function Show-CyberButlerPostInstallWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,

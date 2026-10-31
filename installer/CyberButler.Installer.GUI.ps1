@@ -184,7 +184,7 @@ $script:UiText = @{
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
         QuickHelp='主人 QQ：填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。它用于 TOTP 标签、审批/通知路由和 owner allowlist；机器人 QQ 在 AstrBot/QQ 适配器里单独配置。安全档位：High/Medium/Light 的区别见 Help；系统至少 Windows 10/11 x64、管理员权限、PowerShell 5.1、Python 3.10–3.13，档位不改变这些前提。本地模型显存建议：24GB+ 用 20–24B，16GB 用 7–14B，8GB 用 3–7B，无独显可用 API-only。WebUI 绑定：Loopback 仅本机；Tailscale 私有网络；LAN 暴露局域网（High 禁止 LAN）。个人插件：不随包发布，需要你已有的 AstrBot 插件目录，包含 private_companion（陪伴核心）、livingmemory（长期记忆）、memorix（图谱+向量记忆）；安装器只复制这三个插件，不下载。API Key：本字段只写 DeepSeek 的 sk-... 密钥；其他大模型/兼容 API 需要在 AstrBot 的 provider 配置中单独添加，不能在这里直接切换。获取 DeepSeek Key：https://platform.deepseek.com/api_keys 。批准勾选：表示你已阅读说明并授权安装器执行这些步骤。'
         HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。用于 TOTP 标签、审批/通知路由、YOUR_QQ_ID 和 owner allowlist。机器人 QQ 在 AstrBot/QQ 适配器中单独配置。`n`n安全档位`nHigh：Windows 10/11 x64 + 管理员 + 独立本地服务账户；AstrBot/WebUI 以服务身份运行；TOTP vault 对 Agent 账户有 Deny；LAN 被禁止；隔离最强。`nMedium：使用当前桌面账户，Interactive 计划任务；无法对同一账户强制 TOTP vault Deny；适合单机测试。`nLight：减少 ACL/审计/TOTP egress，仅建议低价值或临时环境。`n档位不改变硬件前提：Windows 10/11 x64、PowerShell 5.1、管理员权限、Python 3.10–3.13。本地模型显存参考：24GB+ 可跑 20–24B；16GB 可跑 7–14B；8GB 可跑 3–7B 量化；无独显或不小于 8GB 时可用 API-only；所有档位都支持 API-only。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大；High 禁止 LAN。`n`n个人插件`n不随开源包发布。需要你已有的 AstrBot 插件目录，包含三个插件：private_companion（我会永远陪着你：角色状态、日程、关系、主动消息、陪伴核心）、livingmemory（长期记忆生命周期）、memorix（图谱+向量混合检索记忆）。安装器只复制这三个名字，不联网下载；获取渠道是你现有 AstrBot/data/plugins 或上游仓库。`n`nAPI Key`n本字段填写包含 DeepSeek API Key 的文件路径，通常 sk-...，只用于 DeepSeek provider。其他大模型或 OpenAI-compatible API 需要在 AstrBot 的 provider 配置/WebUI 中单独添加，不能靠本字段直接切换。DeepSeek Key 获取：https://platform.deepseek.com/api_keys 。`n`n批准勾选`n只有勾选后才会提交 approval token；GUI 不会静默批准安全步骤。"
-        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
+        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; StatusStep='步骤完成度'; StatusStepEta='当前步骤预计剩余'; StatusTotalEta='总预计剩余'; StatusElapsed='已用时间'; StatusProcessDetail='进程详情'; StatusTOTP='TOTP 状态'; StatusLog='日志'; StatusNote='预计值基于当前阶段和日志活动，不是保证值。'; Copy='复制'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
         Approval='我已阅读上方说明，确认执行这些安装步骤'; NeedApproval='请先勾选安装确认。'
         TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
@@ -200,7 +200,7 @@ $script:UiText = @{
         ApiKeyNote='API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log.'
         QuickHelp='Owner QQ: enter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, and owner allowlist; the bot QQ is configured separately in AstrBot/QQ. Tier: see Help for High/Medium/Light; all require Windows 10/11 x64, admin, PowerShell 5.1 and Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B, no dGPU for API-only. WebUI bind: Loopback local only; Tailscale private tailnet; LAN network exposure (High rejects LAN). Personal plugins: not bundled; provide an existing AstrBot plugin folder with private_companion (companion core), livingmemory (long-term memory), memorix (graph+vector memory); the installer copies only these, never downloads. API key: this field writes a DeepSeek sk-... key only; other models/OpenAI-compatible endpoints must be configured in AstrBot providers, not switched here. Get a DeepSeek key: https://platform.deepseek.com/api_keys . Approval checkbox: you have read the notes and authorize these steps.'
         HelpBody="Cyber-Butler installer options`n`nOwner QQ`nEnter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, YOUR_QQ_ID and the owner allowlist. The bot QQ is configured separately in AstrBot/QQ.`n`nSecurity tier`nHigh: Windows 10/11 x64 + admin + a dedicated local service account; AstrBot/WebUI run as services; TOTP vault denies the agent account; LAN is rejected; strongest isolation.`nMedium: current desktop account with Interactive scheduled tasks; a same-account TOTP vault deny cannot be enforced; suitable for single-machine testing.`nLight: reduced ACL/audit/TOTP egress; only for temporary or low-value environments.`nTier does not change the hardware baseline: Windows 10/11 x64, PowerShell 5.1, admin rights, Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B quantized, no dGPU for API-only; every tier supports API-only.`n`nWebUI bind`nLoopback: 127.0.0.1 only, safest.`nTailscale: private tailnet access; requires Tailscale.`nLAN: reachable on the local network; largest exposure; High rejects LAN.`n`nPersonal plugins`nNot bundled. Provide an existing AstrBot plugin folder containing private_companion (the companion core: character state, schedule, relationships, proactive messages), livingmemory (long-term memory lifecycle), and memorix (graph+vector hybrid memory). The installer copies only those three and never downloads them; obtain them from your existing AstrBot/data/plugins or their upstream repositories.`n`nAPI key`nThis field takes a file path containing a DeepSeek API key (usually sk-...) and writes only the DeepSeek provider secret. Other models or OpenAI-compatible endpoints must be configured in AstrBot providers/WebUI; this field does not switch providers. Get a DeepSeek key: https://platform.deepseek.com/api_keys .`n`nApproval checkbox`nIt supplies approval tokens only after it is checked; the GUI never silently approves security steps."
-        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Remove='Uninstall'; RemoveConfirm='This stops services and permanently deletes the project install directory and ProgramData state. Continue?'; RemoveDone='Uninstall completed.'; RemoveFailed='Uninstall failed: '; CheckStatus='Check status'; StatusTitle='Install status'; StatusRunning='The installer is running.'; StatusStalled='The installer process exists, but there has been no new output for a long time; it may be stalled.'; StatusWaitingTotp='Waiting for TOTP confirmation.'; StatusCompleted='Installation has completed.'; StatusFailed='Installation failed.'; StatusNoActive='No active installation and no successful report found.'; StatusStage='Stage'; StatusProcess='Installer process'; StatusLastOutput='Last output'; StatusReport='Report status'; StatusPorts='Service ports'; PostTitle='Installation complete'; PostSubtitle='The three services are installed and running. Next, open the WebUI and configure the bot QQ and model provider.'; PostNext='Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> store TOTP recovery codes offline.'; OpenWebUI='Open WebUI'; OpenAstrBot='Open AstrBot'; OpenGuide='Install guide'; OpenReport='Install report'; Close='Close'
+        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Remove='Uninstall'; RemoveConfirm='This stops services and permanently deletes the project install directory and ProgramData state. Continue?'; RemoveDone='Uninstall completed.'; RemoveFailed='Uninstall failed: '; CheckStatus='Check status'; StatusTitle='Install status'; StatusRunning='The installer is running.'; StatusStalled='The installer process exists, but there has been no new output for a long time; it may be stalled.'; StatusWaitingTotp='Waiting for TOTP confirmation.'; StatusCompleted='Installation has completed.'; StatusFailed='Installation failed.'; StatusNoActive='No active installation and no successful report found.'; StatusStage='Stage'; StatusProcess='Installer process'; StatusLastOutput='Last output'; StatusReport='Report status'; StatusPorts='Service ports'; StatusStep='Step completion'; StatusStepEta='Step ETA'; StatusTotalEta='Overall ETA'; StatusElapsed='Elapsed'; StatusProcessDetail='Process details'; StatusTOTP='TOTP state'; StatusLog='Log'; StatusNote='ETAs are heuristic from the current stage and log activity, not guarantees.'; Copy='Copy'; PostTitle='Installation complete'; PostSubtitle='The three services are installed and running. Next, open the WebUI and configure the bot QQ and model provider.'; PostNext='Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> store TOTP recovery codes offline.'; OpenWebUI='Open WebUI'; OpenAstrBot='Open AstrBot'; OpenGuide='Install guide'; OpenReport='Install report'; Close='Close'
         Approval='I have read the notes above and approve these installer steps'; NeedApproval='Please check the approval box first.'
         TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
@@ -273,6 +273,15 @@ function Get-GuiStageText([int]$Percent) {
     return 'starting'
 }
 
+function Format-GuiDuration([int]$Seconds) {
+    if ($Seconds -lt 0) { return 'unknown' }
+    if ($Seconds -lt 60) { return ($Seconds.ToString() + 's') }
+    $m = [int]($Seconds / 60)
+    $s = [int]($Seconds % 60)
+    if ($m -lt 60) { return ('{0}m {1}s' -f $m, $s) }
+    return ('{0}h {1}m' -f [int]($m / 60), ($m % 60))
+}
+
 function Show-GuiInstallStatus {
     $reportPath = 'C:\CyberButler\installer-report\install-report.json'
     $reportStatus = ''
@@ -286,65 +295,115 @@ function Show-GuiInstallStatus {
             if ($f.Success) { $reportFailure = $f.Groups[1].Value.Replace('\n', "`n") }
         } catch { }
     }
+
     $running = $false
     $processText = 'not running'
+    $processDetail = 'n/a'
+    $elapsedSec = 0
     if ($script:cbGuiProcess) {
         try {
             $running = -not $script:cbGuiProcess.HasExited
             $processText = ('PID {0}, {1}' -f $script:cbGuiProcess.Id, $(if ($running) { 'running' } else { 'exited' }))
+            $proc = Get-Process -Id $script:cbGuiProcess.Id -ErrorAction SilentlyContinue
+            if ($proc) {
+                $elapsedSec = [int]((Get-Date) - $proc.StartTime).TotalSeconds
+                $processDetail = ('CPU {0:N1}s, WS {1:N0} MB, started {2:yyyy-MM-dd HH:mm:ss}' -f $proc.CPU, ($proc.WorkingSet64 / 1MB), $proc.StartTime)
+            }
         } catch { }
     }
+
     $lastText = 'no log'
     $ageSeconds = $null
+    $tail = @()
     if ($script:cbGuiLogPath -and (Test-Path -LiteralPath $script:cbGuiLogPath)) {
         try {
             $last = Get-Item -LiteralPath $script:cbGuiLogPath
             $lastText = $last.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')
             $ageSeconds = [int]((Get-Date) - $last.LastWriteTime).TotalSeconds
+            $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 12 -ErrorAction SilentlyContinue)
         } catch { }
     }
+    $logText = ($tail -join "`n")
+
     $totpReady = $false
     $totpConfirmed = $false
     if ($script:cbGuiSignalDir) {
         $totpReady = Test-Path -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-ready.json')
         $totpConfirmed = Test-Path -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json')
     }
+
     $percent = [int]$installProgress.Value
     $stage = Get-GuiStageText $percent
-    if ($totpReady -and -not $totpConfirmed) { $percent = [Math]::Max($percent, 65); $stage = 'TOTP: waiting for confirmation' }
+    $stageStart = 0; $stageEnd = 10; $stageNominal = 60
+    if ($percent -ge 10 -and $percent -lt 25) { $stageStart = 10; $stageEnd = 25; $stageNominal = 120 }
+    elseif ($percent -ge 25 -and $percent -lt 45) { $stageStart = 25; $stageEnd = 45; $stageNominal = 300 }
+    elseif ($percent -ge 45 -and $percent -lt 55) { $stageStart = 45; $stageEnd = 55; $stageNominal = 60 }
+    elseif ($percent -ge 55 -and $percent -lt 65) { $stageStart = 55; $stageEnd = 65; $stageNominal = 30 }
+    elseif ($percent -ge 65 -and $percent -lt 75) { $stageStart = 65; $stageEnd = 75; $stageNominal = 180 }
+    elseif ($percent -ge 75 -and $percent -lt 95) { $stageStart = 75; $stageEnd = 95; $stageNominal = 120 }
+    elseif ($percent -ge 95) { $stageStart = 95; $stageEnd = 100; $stageNominal = 30 }
+    $stepPercent = 100
+    if ($stageEnd -gt $stageStart) {
+        $stepPercent = [int]((($percent - $stageStart) / ($stageEnd - $stageStart)) * 100)
+        $stepPercent = [Math]::Max(0, [Math]::Min(100, $stepPercent))
+    }
+    if ($stage -match 'pip') {
+        if ($logText -match 'Successfully installed') { $stepPercent = 100 }
+        elseif ($logText -match 'Installing collected packages') { $stepPercent = [Math]::Max($stepPercent, 70) }
+        elseif ($elapsedSec -gt 0) { $stepPercent = [Math]::Max($stepPercent, [Math]::Min(95, [int](($elapsedSec / $stageNominal) * 100))) }
+    }
+    if ($totpReady -and -not $totpConfirmed) {
+        $percent = [Math]::Max($percent, 65)
+        $stage = 'TOTP: waiting for confirmation'
+        $stageStart = 65; $stageEnd = 75; $stageNominal = 0; $stepPercent = 100
+    }
+    $stepRemaining = if ($stageNominal -gt 0) { [int]($stageNominal * (1 - ($stepPercent / 100))) } else { 0 }
+    $totalNominal = if ($percent -lt 25) { 600 } elseif ($percent -lt 45) { 480 } elseif ($percent -lt 55) { 240 } elseif ($percent -lt 65) { 180 } elseif ($percent -lt 75) { 120 } elseif ($percent -lt 95) { 90 } else { 30 }
+    $totalRemaining = [int](($totalNominal * (1 - ($percent / 100))) + $stepRemaining)
+    if ($totpReady -and -not $totpConfirmed) { $totalRemaining = $null }
+
     $ports = @()
+    $tasks = @()
     if ($percent -ge 80 -or $reportStatus -eq 'success') {
         $ports = @(Get-NetTCPConnection -State Listen -LocalPort 6185,18090,8765 -ErrorAction SilentlyContinue |
             Select-Object -ExpandProperty LocalPort -Unique | Sort-Object)
+        $tasks = @(Get-ScheduledTask -ErrorAction SilentlyContinue |
+            Where-Object { $_.TaskName -match 'AstrBot Service|AstrBot TOTP Broker|Cyber-Butler Web UI' } |
+            Select-Object TaskName,State)
     }
 
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add((Get-UiText 'StatusStage') + ': ' + $percent + '% · ' + $stage)
-    $lines.Add((Get-UiText 'StatusProcess') + ': ' + $processText)
-    $lines.Add((Get-UiText 'StatusLastOutput') + ': ' + $lastText)
-    if ($null -ne $ageSeconds) { $lines.Add('Age: ' + $ageSeconds + ' seconds') }
-    if ($reportStatus) { $lines.Add((Get-UiText 'StatusReport') + ': ' + $reportStatus) }
-    if ($ports.Count -gt 0) { $lines.Add((Get-UiText 'StatusPorts') + ': ' + ($ports -join ', ')) }
-    if ($script:LastProgressMessage) { $lines.Add('Last message: ' + $script:LastProgressMessage) }
+    $headline = Get-UiText 'StatusRunning'
+    if ($reportStatus -eq 'success') { $headline = Get-UiText 'StatusCompleted' }
+    elseif ($reportStatus -eq 'failed' -or ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited)) { $headline = Get-UiText 'StatusFailed' }
+    elseif ($totpReady -and -not $totpConfirmed) { $headline = Get-UiText 'StatusWaitingTotp' }
+    elseif ($running -and $ageSeconds -ne $null -and $ageSeconds -gt 300) { $headline = Get-UiText 'StatusStalled' }
+    elseif (-not $running -and -not $reportStatus) { $headline = Get-UiText 'StatusNoActive' }
 
-    if ($running) {
-        if ($totpReady -and -not $totpConfirmed) {
-            $headline = Get-UiText 'StatusWaitingTotp'
-        } elseif ($ageSeconds -ne $null -and $ageSeconds -gt 300) {
-            $headline = Get-UiText 'StatusStalled'
-        } else {
-            $headline = Get-UiText 'StatusRunning'
-        }
-    } elseif ($reportStatus -eq 'success') {
-        $headline = Get-UiText 'StatusCompleted'
-    } elseif ($reportStatus -eq 'failed' -or ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited)) {
-        $headline = Get-UiText 'StatusFailed'
-        if ($reportFailure) { $lines.Add('Failure: ' + $reportFailure) }
-        if (-not $reportStatus) { $lines.Add('The installer process exited before writing a report.') }
-    } else {
-        $headline = Get-UiText 'StatusNoActive'
-    }
-    [System.Windows.MessageBox]::Show(($headline + "`n`n" + ($lines -join "`n")), (Get-UiText 'StatusTitle')) | Out-Null
+    $lines.Add('STATUS: ' + $headline)
+    $lines.Add((Get-UiText 'StatusStage') + ': ' + $percent + '% · ' + $stage)
+    $lines.Add((Get-UiText 'StatusStep') + ': ' + $stepPercent + '%')
+    $lines.Add((Get-UiText 'StatusStepEta') + ': ' + $(if ($stageNominal -gt 0) { Format-GuiDuration $stepRemaining } else { 'waiting for user' }))
+    $lines.Add((Get-UiText 'StatusTotalEta') + ': ' + $(if ($null -eq $totalRemaining) { 'waiting for TOTP confirmation' } else { Format-GuiDuration $totalRemaining }))
+    $lines.Add((Get-UiText 'StatusElapsed') + ': ' + (Format-GuiDuration $elapsedSec))
+    $lines.Add((Get-UiText 'StatusProcess') + ': ' + $processText)
+    $lines.Add((Get-UiText 'StatusProcessDetail') + ': ' + $processDetail)
+    $lines.Add((Get-UiText 'StatusLastOutput') + ': ' + $lastText + $(if ($null -ne $ageSeconds) { ' (' + $ageSeconds + 's ago)' } else { '' }))
+    $lines.Add((Get-UiText 'StatusTOTP') + ': ' + $(if ($totpConfirmed) { 'confirmed' } elseif ($totpReady) { 'ready, waiting for confirmation' } else { 'not reached' }))
+    if ($reportStatus) { $lines.Add((Get-UiText 'StatusReport') + ': ' + $reportStatus) }
+    if ($reportFailure) { $lines.Add('Failure: ' + $reportFailure) }
+    if ($ports.Count -gt 0) { $lines.Add((Get-UiText 'StatusPorts') + ': ' + ($ports -join ', ')) }
+    foreach ($task in $tasks) { $lines.Add('Task: ' + $task.TaskName + ' = ' + $task.State) }
+    if ($script:LastProgressMessage) { $lines.Add('Last message: ' + $script:LastProgressMessage) }
+    $lines.Add('Signal dir: ' + $script:cbGuiSignalDir)
+    $lines.Add('Output log: ' + $script:cbGuiLogPath)
+    $lines.Add('Report: ' + $reportPath)
+    $lines.Add('')
+    $lines.Add('--- last 12 log lines ---')
+    foreach ($line in $tail) { $lines.Add([string]$line) }
+    $lines.Add('')
+    $lines.Add((Get-UiText 'StatusNote'))
+    Show-CyberButlerStatusWindow -Owner $window -Title (Get-UiText 'StatusTitle') -Text ($lines -join "`n") -Copy (Get-UiText 'Copy') -Close (Get-UiText 'Close')
 }
 
 function Remove-CyberButlerGuiInstall([string]$Root) {
