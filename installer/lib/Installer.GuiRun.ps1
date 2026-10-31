@@ -105,6 +105,52 @@ function Show-CyberButlerTotpDialog {
 
 
 
+
+function Show-CyberButlerInfoWindow {
+    param(
+        [Parameter(Mandatory = $true)]$Owner,
+        [string]$Title = 'Information',
+        [string]$Text = '',
+        [string]$Copy = 'Copy',
+        [string]$Close = 'Close'
+    )
+    $xaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Information" Width="760" Height="620"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#0F172A">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="InfoTitle" Text="Information" Foreground="#F8FAFC" FontSize="22" FontWeight="SemiBold"/>
+    <TextBox x:Name="InfoBody" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
+             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+             FontFamily="Segoe UI" FontSize="12" Background="#020617"
+             Foreground="#CBD5E1" BorderBrush="#1E293B" Padding="12"
+             TextWrapping="Wrap" Margin="0,12,0,0"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="InfoCopy" Width="100" Height="34" Margin="0,0,8,0"/>
+      <Button x:Name="InfoClose" Width="90" Height="34"/>
+    </StackPanel>
+  </Grid>
+</Window>
+'@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    $dialog.Owner = $Owner
+    $dialog.FindName('InfoTitle').Text = $Title
+    $dialog.FindName('InfoBody').Text = $Text
+    $dialog.FindName('InfoCopy').Content = $Copy
+    $dialog.FindName('InfoClose').Content = $Close
+    $dialog.FindName('InfoCopy').Add_Click({ try { [System.Windows.Clipboard]::SetText($dialog.FindName('InfoBody').Text) } catch { } })
+    $dialog.FindName('InfoClose').Add_Click({ $dialog.Close() })
+    [void]$dialog.ShowDialog()
+}
+
 function Show-CyberButlerStatusWindow {
     param(
         $Owner = $null,
@@ -271,6 +317,7 @@ function Show-CyberButlerPostInstallWindow {
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
         [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
+        [string]$LaunchGuideText = '',
         [hashtable]$Text = @{},
         [switch]$SelfTest
     )
@@ -298,8 +345,9 @@ function Show-CyberButlerPostInstallWindow {
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,14,0,0">
       <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="130" Height="36" Margin="0,0,8,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
       <Button x:Name="OpenAstrBotButton" Content="Open AstrBot" Width="130" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="OpenGuideButton" Content="Install guide" Width="130" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="OpenReportButton" Content="Open report" Width="120" Height="36" Margin="0,0,8,0"/>
+      <Button x:Name="OpenGuideButton" Content="Install guide" Width="120" Height="36" Margin="0,0,8,0"/>
+      <Button x:Name="OpenLaunchButton" Content="Startup guide" Width="130" Height="36" Margin="0,0,8,0"/>
+      <Button x:Name="OpenReportButton" Content="Open report" Width="110" Height="36" Margin="0,0,8,0"/>
       <Button x:Name="ClosePostButton" Content="Close" Width="90" Height="36"/>
     </StackPanel>
     <TextBlock Grid.Row="4" Text="" Foreground="#64748B" FontSize="11" Margin="0,16,0,0" TextWrapping="Wrap"/>
@@ -324,11 +372,13 @@ function Show-CyberButlerPostInstallWindow {
     $dialog.FindName('OpenWebUIButton').Content = $(if ($Text['OpenWebUI']) { $Text['OpenWebUI'] } else { 'Open WebUI' })
     $dialog.FindName('OpenAstrBotButton').Content = $(if ($Text['OpenAstrBot']) { $Text['OpenAstrBot'] } else { 'Open AstrBot' })
     $dialog.FindName('OpenGuideButton').Content = $(if ($Text['OpenGuide']) { $Text['OpenGuide'] } else { 'Install guide' })
+    $dialog.FindName('OpenLaunchButton').Content = $(if ($Text['OpenLaunchGuide']) { $Text['OpenLaunchGuide'] } else { 'Startup guide' })
     $dialog.FindName('OpenReportButton').Content = $(if ($Text['OpenReport']) { $Text['OpenReport'] } else { 'Open report' })
     $dialog.FindName('ClosePostButton').Content = $(if ($Text['Close']) { $Text['Close'] } else { 'Close' })
     $dialog.FindName('OpenWebUIButton').Add_Click({ try { Start-Process $WebUIUrl } catch { } })
     $dialog.FindName('OpenAstrBotButton').Add_Click({ try { Start-Process $AstrBotUrl } catch { } })
     $dialog.FindName('OpenGuideButton').Add_Click({ if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) { Start-Process $GuidePath } })
+    $dialog.FindName('OpenLaunchButton').Add_Click({ if ($LaunchGuideText) { Show-CyberButlerInfoWindow -Owner $dialog -Title $(if ($Text['LaunchGuideTitle']) { $Text['LaunchGuideTitle'] } else { 'Startup guide' }) -Text $LaunchGuideText -Copy $(if ($Text['Copy']) { $Text['Copy'] } else { 'Copy' }) -Close $(if ($Text['Close']) { $Text['Close'] } else { 'Close' }) } })
     $dialog.FindName('OpenReportButton').Add_Click({ if (Test-Path -LiteralPath $ReportPath) { Start-Process $ReportPath } elseif (Test-Path -LiteralPath (Split-Path -Parent $ReportPath)) { Start-Process (Split-Path -Parent $ReportPath) } })
     $dialog.FindName('ClosePostButton').Add_Click({ $dialog.Close() })
     [void]$dialog.ShowDialog()

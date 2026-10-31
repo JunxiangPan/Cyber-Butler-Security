@@ -692,6 +692,19 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'services
     }
 }
 
+if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'shortcut')) {
+    Add-MainJournalStep -Journal $journal -Name 'shortcut' -Status 'in_progress'
+    try {
+        $shortcutScript = Join-Path $InstallPath 'tools\create_dashboard_shortcut.ps1'
+        if (-not (Test-Path -LiteralPath $shortcutScript)) { throw ('Desktop shortcut helper missing: ' + $shortcutScript) }
+        & $shortcutScript -ProjectRoot $InstallPath | Out-Host
+        Add-MainJournalStep -Journal $journal -Name 'shortcut' -Status 'completed' -Reason 'desktop shortcut created'
+    } catch {
+        Add-MainJournalStep -Journal $journal -Name 'shortcut' -Status 'completed' -Reason ('desktop shortcut warning: ' + $_.Exception.Message)
+        Write-InstallerLine ('Desktop shortcut warning: ' + $_.Exception.Message) -Level WARN
+    }
+}
+
 if ($failure -and [string]$failure.kind -eq 'needs_approval') {
     Write-InstallerLine 'Interactive approval is required.' -Level BLOCKING
     $report = Write-MainReport -Status 'needs_approval' -Diagnostics $diagnostics -Journal $journal -Approvals $approvals `
