@@ -424,8 +424,8 @@
     },
     {
       "path": "installer/tests/Installer.Overlay.Tests.ps1",
-      "sha256": "88635314c4cccfd04bc2b2855ca60836ce7da7564ba4572a08502f3ff4808a97",
-      "size": 6676
+      "sha256": "ff807069864e2e91bfc903726001a89d727eded53d5070bae34221b31d223784",
+      "size": 9403
     },
     {
       "path": "installer/tests/Installer.PersonalPlugins.Tests.ps1",
@@ -549,8 +549,8 @@
     },
     {
       "path": "overlay/overlay-manifest.json",
-      "sha256": "f6fb0d44a98e70b8cde462a66fc4c4e477284eabe08bc0e2954891b26ccd39aa",
-      "size": 4287
+      "sha256": "018d237a17cd432e67c0686e9d5943cf89cad5f4e4de5f7cf0ef20de9fdcc2ce",
+      "size": 5357
     },
     {
       "path": "plugins/astrbot_plugin_at_gate/LICENSE",
@@ -1179,8 +1179,8 @@
     },
     {
       "path": "tools/sign_release.py",
-      "sha256": "12e6e70120fcd877fd1ee0dad0571d328823e1571454a5edadfdabcca1104b6d",
-      "size": 1093
+      "sha256": "c4126af78c0c875ccdc6b94a671d375572157d27a8f59bca9d48f8ff80edd606",
+      "size": 1125
     },
     {
       "path": "tools/snowluma_guard.py",
