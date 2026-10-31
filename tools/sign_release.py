@@ -19,7 +19,7 @@ def main() -> int:
     args = parser.parse_args()
 
     manifest = Path(args.manifest)
-    signature = Path(args.signature) if args.signature else manifest.with_suffix(manifest.suffix + ".sig")
+    signature = Path(args.signature) if args.signature else manifest.with_suffix(".sig")
     private_key = serialization.load_pem_private_key(Path(args.key).read_bytes(), password=None)
     data = manifest.read_bytes()
     sig = private_key.sign(data, padding.PKCS1v15(), hashes.SHA256())
