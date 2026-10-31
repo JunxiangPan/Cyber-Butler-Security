@@ -1,4 +1,4 @@
-# GUI orchestration helpers for the Cyber-Butler installer.
+﻿# GUI orchestration helpers for the Cyber-Butler installer.
 # Keep the privileged install in a hidden child process and surface only the
 # approval/TOTP steps through the WPF window.
 
@@ -139,30 +139,38 @@ function Start-CyberButlerGuiInstall {
     $psi.WorkingDirectory = Split-Path -Parent $InstallerPath
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $psi
+    $script:cbGuiWindow = $Window
+    $script:cbGuiOnLog = $OnLog
+    $script:cbGuiOnStatus = $OnStatus
+    $script:cbGuiText = $Text
 
     $process.add_OutputDataReceived({
         param($sender, $e)
         if ($null -eq $e.Data) { return }
         $line = [string]$e.Data
         if ($line -match 'TOTP_SECRET=|TOTP_URI=|TOTP_RECOVERY_|Base32 Secret|Grouped:|otpauth URI|Recovery codes') { return }
-        $Window.Dispatcher.Invoke([Action]{ & $OnLog $line })
+        try { $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnLog $line }) } catch { }
     })
     $process.add_ErrorDataReceived({
         param($sender, $e)
-        if ($null -ne $e.Data) { $Window.Dispatcher.Invoke([Action]{ & $OnLog ([string]$e.Data) }) }
+        if ($null -ne $e.Data) {
+            try { $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnLog ([string]$e.Data) }) } catch { }
+        }
     })
     $process.add_Exited({
         param($sender, $e)
-        $Window.Dispatcher.Invoke([Action]{
-            if ($script:cbGuiTimer) { $script:cbGuiTimer.Stop() }
-            & $OnStatus ($(if ($sender.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' }))
-        })
+        try {
+            $script:cbGuiWindow.Dispatcher.Invoke([Action]{
+                if ($script:cbGuiTimer) { $script:cbGuiTimer.Stop() }
+                & $script:cbGuiOnStatus ($(if ($sender.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' }))
+            })
+        } catch { }
     })
 
     [void]$process.Start()
     $process.BeginOutputReadLine()
     $process.BeginErrorReadLine()
-    & $OnStatus ($Text['Started'])
+    & $script:cbGuiOnStatus ($script:cbGuiText['Started'])
     $script:cbGuiProcess = $process
     $script:cbGuiSignalDir = $signalDir
     $script:cbGuiTotpSeen = $false
@@ -174,16 +182,16 @@ function Start-CyberButlerGuiInstall {
         if (-not (Test-Path -LiteralPath $readyPath)) { return }
         $script:cbGuiTotpSeen = $true
         $script:cbGuiTimer.Stop()
-        $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $Window `
-            -Title $Text['TotpTitle'] -Hint $Text['TotpHint'] `
-            -Scanned $Text['Scanned'] -Recovery $Text['Recovery'] `
-            -Confirm $Text['Confirm'] -Cancel $Text['Cancel']
+        $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $script:cbGuiWindow `
+            -Title $script:cbGuiText['TotpTitle'] -Hint $script:cbGuiText['TotpHint'] `
+            -Scanned $script:cbGuiText['Scanned'] -Recovery $script:cbGuiText['Recovery'] `
+            -Confirm $script:cbGuiText['Confirm'] -Cancel $script:cbGuiText['Cancel']
         if ($null -eq $result) { $result = [pscustomobject]@{ scanned = $false; recovery_saved = $false } }
         [pscustomobject]@{
             scanned = [bool]$result.scanned
             recovery_saved = [bool]$result.recovery_saved
         } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json') -Encoding UTF8
-        & $OnLog ($Text['TotpReady'])
+        & $script:cbGuiOnLog ($script:cbGuiText['TotpReady'])
     })
     $script:cbGuiTimer.Start()
     return $process
