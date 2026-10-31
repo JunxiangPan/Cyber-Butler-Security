@@ -30,7 +30,9 @@ VERSION_RE = re.compile(r"^[0-9]+(?:\.[0-9]+){1,3}(?:[-+][0-9A-Za-z.-]+)?$")
 ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", "webui/", "installer/", ".github/")
 ALLOWED_ROOT_FILES = {
     "VERSION",
+    "START-INSTALLER.cmd",
     "README.md",
+    "README-INSTALL.md",
     "README_en.md",
     "README_zh.md",
     "README_ja.md",
