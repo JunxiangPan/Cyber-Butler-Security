@@ -106,6 +106,10 @@ def _normalise_path(value: object) -> str:
 
 def is_allowed_path(value: object) -> bool:
     """Return True only for a code/docs path that may be replaced."""
+    # Release public key is intentionally allowed (used by verify_release.py).
+    # All other .pem files remain blocked by SENSITIVE_SUFFIXES.
+    if str(value).replace("\\", "/").casefold() == "tools/update_pubkey.pem":
+        return True
     try:
         path = _normalise_path(value)
     except UpdateSafetyError:

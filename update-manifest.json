@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "f57ef2d7989aeba30757f67c413074ef12771d45bced8af30106500a22d0223b",
-      "size": 2014
+      "sha256": "178809d4eab879077e79e58c3a22d58170d522bfeacc58ba6736ae18f48fecfd",
+      "size": 2164
     },
     {
       "path": "DEPLOYMENT.md",
@@ -329,8 +329,8 @@
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
-      "sha256": "d590390aac611fe0270d169d7c715a0d19a4ce22444b2d5f31f9a53831bc45a6",
-      "size": 16197
+      "sha256": "6a192febb86ca64bc7523ff94dedcdc500f9a4086a50959692ebbc304652fd7c",
+      "size": 16194
     },
     {
       "path": "installer/lib/Installer.Python.ps1",
@@ -349,8 +349,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "bf99f12fe17c13aae25d45933ff57fa0c32e0133e2f43dc52a8b8c7fcc018351",
-      "size": 27541
+      "sha256": "b32630ffa394df30653f466312baff3fcd263088f36dcece556412c875ad01a7",
+      "size": 38277
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -439,8 +439,8 @@
     },
     {
       "path": "installer/tests/Installer.Preflight.Tests.ps1",
-      "sha256": "bb318663e847ccf92aa12e002ded1743b9b7486f24d95bff20193cf27fb5a6fe",
-      "size": 7780
+      "sha256": "550c539832581ef496a619cce9253b9d34e1e86b11105929ccb773e1da696fab",
+      "size": 7774
     },
     {
       "path": "installer/tests/Installer.Python.Tests.ps1",
@@ -459,8 +459,8 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "3ac5aad3d979adc1fb62db8c360cfafeeb5ce7dffad4e0af7931dcd4b0936365",
-      "size": 10838
+      "sha256": "04c5dc901eeeacb2143cc09d43d029663aac7027589fb791c22724eb69bdcea7",
+      "size": 12685
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",
@@ -1209,8 +1209,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "07ac60c3483012a38ac21ab71a2652bec69890f4d96d4679ad7ea59c9d5b3861",
-      "size": 11375
+      "sha256": "52a7e2a45d3062d371413c8a2675e91f31cfd362de5f2dea883a9cfad4a3de2e",
+      "size": 11621
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1231,6 +1231,11 @@
       "path": "tools/update_merge_core.py",
       "sha256": "b82e0a3483c04d35f0461e2dcaf47879dbb94dcbab3f53e8f87fabe48a65496d",
       "size": 19249
+    },
+    {
+      "path": "tools/update_pubkey.pem",
+      "sha256": "283a5117b951506cdc4eceba4b0063c71b5a745634caa7d6e7be77ade0f2b7d3",
+      "size": 625
     },
     {
       "path": "tools/verify_broker_acl.ps1",
