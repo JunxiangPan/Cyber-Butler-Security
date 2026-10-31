@@ -108,4 +108,54 @@ Describe 'Installer overlay compatibility' {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
     }
+
+    It 'declares real official hashes or a local-only reason' {
+        $manifestPath = Join-Path (Split-Path $installerRoot -Parent) 'overlay\overlay-manifest.json'
+        $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($manifest.files).Count | Should Be 15
+        foreach ($file in @($manifest.files)) {
+            if ($null -eq $file.official_sha256 -or [string]::IsNullOrWhiteSpace([string]$file.official_sha256)) {
+                ([string]$file.reason) | Should Match 'local-only'
+            } else {
+                ([string]$file.official_sha256) | Should Match '^[0-9a-f]{64}$'
+            }
+        }
+    }
+
+    It 'warns and continues when an official file hash differs' {
+        $base = New-OverlayTestRoot
+        try {
+            $astrbot = Join-Path $base 'AstrBot'
+            $overlay = Join-Path $base 'overlay'
+            New-Item -ItemType Directory -Path (Join-Path $astrbot 'astrbot\core') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $overlay 'astrbot\core') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $astrbot 'VERSION') -Value '4.29.3' -Encoding ASCII
+            Set-Content -LiteralPath (Join-Path $astrbot 'astrbot\core\demo.py') -Value 'official' -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $overlay 'astrbot\core\demo.py') -Value 'overlay' -Encoding UTF8
+            $overlayHash = (Get-FileHash -LiteralPath (Join-Path $overlay 'astrbot\core\demo.py') -Algorithm SHA256).Hash.ToLowerInvariant()
+            $manifest = [ordered]@{
+                schema = 1
+                based_on_astrbot_version = '4.29.3'
+                files = @([ordered]@{
+                    path = 'astrbot/core/demo.py'
+                    official_sha256 = ('0' * 64)
+                    overlay_sha256 = $overlayHash
+                    reason = 'test'
+                    depends_on = @()
+                })
+            }
+            Write-InstallerJson -Path (Join-Path $overlay 'overlay-manifest.json') -Value $manifest
+            $captured = & { Test-CyberButlerOverlayManifest -AstrBotPath $astrbot -OverlayPath $overlay } 6>&1
+            $text = ($captured | ForEach-Object { [string]$_ }) -join "`n"
+            $text | Should Match 'WARN'
+            $text | Should Match 'AstrBot has been upgraded; overlay needs re-adaptation'
+            $text | Should Match 'astrbot/core/demo.py'
+            $result = @($captured | Where-Object { $_.PSObject.Properties['warnings'] })[0]
+            $result.warnings.Count | Should Be 1
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
 }
+
+
