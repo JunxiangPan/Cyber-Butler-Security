@@ -38,7 +38,7 @@ function Get-CyberButlerAccountLogonRights {
     $sid = [string]$user.SID.Value
     $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
     try {
-        & secedit.exe /export /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
+        & secedit.exe /export /cfg $tmp /areas USER_RIGHTS 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) {
             throw 'secedit export failed'
         }
@@ -70,7 +70,7 @@ function Set-CyberButlerLogonRight {
     $sid = [string]$user.SID.Value
     $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
     try {
-        & secedit.exe /export /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
+        & secedit.exe /export /cfg $tmp /areas USER_RIGHTS 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) { throw 'secedit export failed' }
         $lines = New-Object System.Collections.Generic.List[string]
         foreach ($line in Get-Content -LiteralPath $tmp -Encoding Unicode) { $lines.Add($line) }
@@ -95,7 +95,7 @@ function Set-CyberButlerLogonRight {
         $securityDbDir = Join-Path $env:SystemRoot 'security\database'
         Push-Location -LiteralPath $securityDbDir
         try {
-            $configureOutput = & secedit.exe /configure /db 'secedit.sdb' /cfg $tmp /areas SECURITYPOLICY 2>&1
+            $configureOutput = & secedit.exe /configure /db 'secedit.sdb' /cfg $tmp /areas USER_RIGHTS 2>&1
         } finally {
             Pop-Location
         }
