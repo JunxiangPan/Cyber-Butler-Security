@@ -1,6 +1,10 @@
 ﻿# Local service-account lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
+if (-not ('CyberButler.LsaRights' -as [type])) {
+    Add-Type -Path (Join-Path $PSScriptRoot 'CyberButlerLsaRights.cs')
+}
+
 function New-CyberButlerRandomPassword {
     $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*'
     $bytes = New-Object byte[] 32
@@ -25,33 +29,18 @@ function Get-CyberButlerAccountLogonRights {
         batch_logon = $null
         error = $null
     }
-    if (-not (Get-Command secedit.exe -ErrorAction SilentlyContinue)) {
-        $result.error = 'secedit.exe is unavailable'
-        return [pscustomobject]$result
-    }
-
     $user = Get-LocalUser -Name $AccountName -ErrorAction SilentlyContinue
     if (-not $user) {
         $result.error = 'account not found'
         return [pscustomobject]$result
     }
-    $sid = [string]$user.SID.Value
-    $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
     try {
-        & secedit.exe /export /cfg $tmp /areas USER_RIGHTS 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) {
-            throw 'secedit export failed'
-        }
-        $lines = Get-Content -LiteralPath $tmp -Encoding Unicode -ErrorAction Stop
-        $denyLine = $lines | Where-Object { $_ -match '^SeDenyInteractiveLogonRight\s*=' } | Select-Object -First 1
-        $batchLine = $lines | Where-Object { $_ -match '^SeBatchLogonRight\s*=' } | Select-Object -First 1
-        $result.deny_interactive = [bool]($denyLine -and $denyLine -match [regex]::Escape($sid))
-        $result.batch_logon = [bool]($batchLine -and $batchLine -match [regex]::Escape($sid))
+        $rights = @([CyberButler.LsaRights]::GetRights([string]$user.SID.Value))
         $result.readable = $true
+        $result.deny_interactive = [bool]($rights -contains 'SeDenyInteractiveLogonRight')
+        $result.batch_logon = [bool]($rights -contains 'SeBatchLogonRight')
     } catch {
         $result.error = $_.Exception.Message
-    } finally {
-        if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
     }
     return [pscustomobject]$result
 }
@@ -66,51 +55,13 @@ function Set-CyberButlerLogonRight {
         [switch]$Remove
     )
 
+    if ($Remove) { throw 'Removing individual LSA rights is not supported.' }
     $user = Get-LocalUser -Name $AccountName -ErrorAction Stop
-    $sid = [string]$user.SID.Value
-    $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
-    try {
-        & secedit.exe /export /cfg $tmp /areas USER_RIGHTS 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) { throw 'secedit export failed' }
-        $lines = New-Object System.Collections.Generic.List[string]
-        foreach ($line in Get-Content -LiteralPath $tmp -Encoding Unicode) { $lines.Add($line) }
-        $matched = $false
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            if ($lines[$i] -notmatch ('^' + [regex]::Escape($Right) + '\s*=')) { continue }
-            $matched = $true
-            $values = @(($lines[$i] -split '=', 2)[1] -split ',')
-            $values = @($values | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-            $sidToken = '*' + $sid
-            if ($Remove) {
-                $values = @($values | Where-Object { $_.TrimStart('*') -ne $sid })
-            } elseif (@($values | ForEach-Object { $_.TrimStart('*') }) -notcontains $sid) {
-                $values += $sidToken
-            }
-            $lines[$i] = $Right + ' = ' + ($values -join ',')
-        }
-        if (-not $matched -and -not $Remove) {
-            $lines.Add($Right + ' = *' + $sid)
-        }
-        [IO.File]::WriteAllLines($tmp, $lines, (New-Object Text.UnicodeEncoding($false, $true)))
-        $securityDbDir = Join-Path $env:SystemRoot 'security\database'
-        Push-Location -LiteralPath $securityDbDir
-        try {
-            $configureOutput = & secedit.exe /configure /db 'secedit.sdb' /cfg $tmp /areas USER_RIGHTS 2>&1
-        } finally {
-            Pop-Location
-        }
-        if ($LASTEXITCODE -ne 0) { throw ('secedit configure failed: ' + (($configureOutput | ForEach-Object { [string]$_ }) -join ' ')) }
-        $verified = Get-CyberButlerAccountLogonRights -AccountName $AccountName
-        if ($Remove) {
-            $stillPresent = if ($Right -eq 'SeDenyInteractiveLogonRight') { $verified.deny_interactive } elseif ($Right -eq 'SeBatchLogonRight') { $verified.batch_logon } else { $false }
-            if ($stillPresent) { throw ('secedit did not remove ' + $Right) }
-        } else {
-            $present = if ($Right -eq 'SeDenyInteractiveLogonRight') { $verified.deny_interactive } elseif ($Right -eq 'SeBatchLogonRight') { $verified.batch_logon } else { $true }
-            if (-not $present) { throw ('secedit did not apply ' + $Right) }
-        }
-    } finally {
-        if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
-    }
+    [CyberButler.LsaRights]::AddRights([string]$user.SID.Value, @($Right))
+    $verified = Get-CyberButlerAccountLogonRights -AccountName $AccountName
+    if ($Right -eq 'SeDenyInteractiveLogonRight' -and -not $verified.deny_interactive) { throw ('LSA did not apply ' + $Right) }
+    if ($Right -eq 'SeBatchLogonRight' -and -not $verified.batch_logon) { throw ('LSA did not apply ' + $Right) }
+    if (-not $verified.readable) { throw ('LSA rights are unreadable: ' + $verified.error) }
 }
 
 function Test-CyberButlerAccount {
