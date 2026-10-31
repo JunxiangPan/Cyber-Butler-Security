@@ -110,7 +110,6 @@ $xaml = @'
     </Border>
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14">
-      <Button x:Name="PreflightButton" Content="Run preflight" Width="140" Height="38" Margin="0,0,10,0"/>
       <Button x:Name="StartButton" Content="Start installation" Width="160" Height="38" Margin="0,0,10,0"
               Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9" FontWeight="SemiBold"/>
       <Button x:Name="ReportButton" Content="Open report folder" Width="140" Height="38" Margin="0,0,10,0"/>
@@ -159,7 +158,6 @@ $ownerQQBox = $window.FindName('OwnerQQBox')
 $bindBox = $window.FindName('BindBox')
 $personalPluginsBox = $window.FindName('PersonalPluginsBox')
 $apiKeyFileBox = $window.FindName('ApiKeyFileBox')
-$preflightButton = $window.FindName('PreflightButton')
 $startButton = $window.FindName('StartButton')
 $reportButton = $window.FindName('ReportButton')
 $removeButton = $window.FindName('RemoveButton')
@@ -237,7 +235,6 @@ function Apply-GuiLanguage {
     $personalPluginsLabel.Text = Get-UiText 'PersonalPlugins'
     $apiKeyFileLabel.Text = Get-UiText 'ApiKeyFile'
     $apiKeyNote.Text = Get-UiText 'ApiKeyNote'
-    $preflightButton.Content = Get-UiText 'Preflight'
     $startButton.Content = Get-UiText 'Start'
     $reportButton.Content = Get-UiText 'Report'
     $closeButton.Content = Get-UiText 'Exit'
@@ -262,7 +259,7 @@ function Write-GuiLog([string]$message) {
 
 function Set-GuiBusy([bool]$Busy) {
     foreach ($control in @(
-        $preflightButton, $startButton, $reportButton, $removeButton, $helpButton,
+        $startButton, $reportButton, $removeButton, $helpButton,
         $languageBox, $installPathBox, $tierBox, $ownerQQBox, $bindBox,
         $personalPluginsBox, $apiKeyFileBox, $approvalCheck
     )) {
@@ -272,13 +269,19 @@ function Set-GuiBusy([bool]$Busy) {
 }
 
 function Remove-CyberButlerGuiInstall([string]$Root) {
-    $full = [IO.Path]::GetFullPath($Root).TrimEnd('')
-    $rootOfDrive = [IO.Path]::GetPathRoot($full).TrimEnd('')
+    $full = [IO.Path]::GetFullPath($Root).TrimEnd([char]92)
+    $rootOfDrive = [IO.Path]::GetPathRoot($full).TrimEnd([char]92)
     if ([string]::IsNullOrWhiteSpace($full) -or $full -eq $rootOfDrive -or $full.Length -lt 4) {
         throw ('Refusing to remove unsafe root: ' + $full)
     }
-    if ($full -match '^[A-Za-z]:\Windows(\|$)' -or $full -match '^[A-Za-z]:\Program Files') {
+    $sysRoot = [IO.Path]::GetFullPath($env:SystemRoot).TrimEnd([char]92)
+    $progFiles = [IO.Path]::GetFullPath($env:ProgramFiles).TrimEnd([char]92)
+    $sep = [IO.Path]::DirectorySeparatorChar
+    if (($full -eq $sysRoot) -or $full.StartsWith($sysRoot + $sep, [StringComparison]::OrdinalIgnoreCase)) {
         throw ('Refusing to remove system directory: ' + $full)
+    }
+    if (($full -eq $progFiles) -or $full.StartsWith($progFiles + $sep, [StringComparison]::OrdinalIgnoreCase)) {
+        throw ('Refusing to remove Program Files directory: ' + $full)
     }
     foreach ($marker in @('VERSION', 'AstrBot', 'webui', 'tools')) {
         if (-not (Test-Path -LiteralPath (Join-Path $full $marker))) {
@@ -325,27 +328,24 @@ function Get-SelectedComboText($combo) {
     return [string]$combo.SelectedItem
 }
 
-$preflightButton.Add_Click({
+function Invoke-GuiPreflight {
     try {
         $installPath = [string]$installPathBox.Text
         if ([string]::IsNullOrWhiteSpace($installPath)) { throw 'Install path is required.' }
         $statusText.Text = Get-UiText 'RunningPreflight'
         Write-GuiLog ('preflight: ' + $installPath)
-        $common = Join-Path $installerRoot 'lib\Installer.Common.ps1'
-        $tier = Join-Path $installerRoot 'lib\Installer.Tier.ps1'
-        $preflight = Join-Path $installerRoot 'lib\Installer.Preflight.ps1'
-        $command = '& { . ' + (ConvertTo-CyberButlerPowerShellLiteral $common) + '; . ' +
-            (ConvertTo-CyberButlerPowerShellLiteral $tier) + '; . ' +
-            (ConvertTo-CyberButlerPowerShellLiteral $preflight) + '; Get-CyberButlerPreflight -InstallPath ' +
-            (ConvertTo-CyberButlerPowerShellLiteral $installPath) + ' | ConvertTo-Json -Depth 6 }'
-        $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $command 2>&1 | Out-String
-        Write-GuiLog $output.Trim()
+        . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
+        . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
+        . (Join-Path $installerRoot 'lib\Installer.Preflight.ps1')
+        $result = Get-CyberButlerPreflight -InstallPath $installPath
+        $json = $result | ConvertTo-Json -Depth 6
+        Write-GuiLog $json
         $statusText.Text = Get-UiText 'PreflightDone'
     } catch {
         Write-GuiLog ('PREFLIGHT ERROR: ' + $_.Exception.Message)
         $statusText.Text = Get-UiText 'PreflightFailed'
     }
-})
+}
 
 $startButton.Add_Click({
     try {
@@ -456,6 +456,7 @@ $window.Add_Loaded({
     } else {
         Write-GuiLog (Get-UiText 'Admin')
     }
+    Invoke-GuiPreflight
 })
 
 if ($SelfTest) {
