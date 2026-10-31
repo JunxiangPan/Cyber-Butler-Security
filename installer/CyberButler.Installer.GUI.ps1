@@ -229,7 +229,7 @@ $script:UiText = @{
         TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，等待扫码和确认...'; TotpConfirmed='TOTP 已确认，继续安装服务...'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
         PreflightFailed='环境检查失败。'; Starting='正在启动安装器...'; Started='安装器已启动，进度和 TOTP 将显示在本窗口。'
-        StartFailed='无法启动安装器。'; Admin='已检测到管理员会话。'; NotAdmin='当前不是管理员；开始安装会请求 UAC。'
+        StartFailed='无法启动安装器。'; Admin='已检测到管理员会话。'; NotAdmin='当前不是管理员；开始安装会请求 UAC。'; CloseConfirm='安装正在进行。关闭窗口会终止隐藏安装器，并可能留下不完整安装。确定终止吗？'; CloseConfirmTitle='终止安装'
         NoReport='报告目录不存在：'
     }
     en = @{
@@ -245,7 +245,7 @@ $script:UiText = @{
         TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; waiting for scan and confirmation...'; TotpConfirmed='TOTP confirmed; continuing services...'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
         PreflightFailed='Preflight failed.'; Starting='Starting installer...'; Started='Installer started; progress and TOTP are shown in this window.'
-        StartFailed='Could not start the installer.'; Admin='Administrator session detected.'; NotAdmin='This GUI is not elevated. Start installation will request UAC.'
+        StartFailed='Could not start the installer.'; Admin='Administrator session detected.'; NotAdmin='This GUI is not elevated. Start installation will request UAC.'; CloseConfirm='Installation is running. Closing the window will stop the hidden installer and may leave a partial install. Terminate?'; CloseConfirmTitle='Terminate installation'
         NoReport='Report directory not found: '
     }
 }
@@ -721,16 +721,34 @@ $removeButton.Add_Click({
     }
 })
 
-$closeButton.Add_Click({
+function Stop-GuiProcessTree([int]$ProcessId) {
+    try {
+        foreach ($child in @(Get-CimInstance Win32_Process -Filter ("ParentProcessId = " + $ProcessId) -ErrorAction SilentlyContinue)) {
+            Stop-GuiProcessTree -ProcessId ([int]$child.ProcessId)
+        }
+    } catch { }
+    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+}
+
+$script:GuiCloseConfirmed = $false
+$window.Add_Closing({
+    param($sender, $eventArgs)
+    if ($script:GuiCloseConfirmed) { return }
     if ($script:cbGuiProcess -and -not $script:cbGuiProcess.HasExited) {
         $answer = [System.Windows.MessageBox]::Show(
-            'Installation is running. Exit will stop the hidden installer and may leave a partial install. Continue?',
-            (Get-UiText 'Exit'), 'YesNo', 'Warning')
-        if ($answer -ne 'Yes') { return }
-        try { Stop-Process -Id $script:cbGuiProcess.Id -Force -ErrorAction SilentlyContinue } catch { }
+            (Get-UiText 'CloseConfirm'), (Get-UiText 'CloseConfirmTitle'), 'YesNo', 'Warning')
+        if ($answer -ne 'Yes') {
+            $eventArgs.Cancel = $true
+            return
+        }
+        if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
+        $script:GuiCompletionShown = $true
+        Stop-GuiProcessTree -ProcessId $script:cbGuiProcess.Id
     }
-    $window.Close()
+    $script:GuiCloseConfirmed = $true
 })
+
+$closeButton.Add_Click({ $window.Close() })
 
 $window.Add_Loaded({
     Apply-GuiLanguage
