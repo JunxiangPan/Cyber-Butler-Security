@@ -177,7 +177,8 @@ function Show-CyberButlerPostInstallWindow {
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
         [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
-        [hashtable]$Text = @{}
+        [hashtable]$Text = @{},
+        [switch]$SelfTest
     )
     $title = if ($Text['PostTitle']) { $Text['PostTitle'] } else { 'Installation complete' }
     $xaml = @'
@@ -213,6 +214,7 @@ function Show-CyberButlerPostInstallWindow {
 '@
     $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
     $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    if ($SelfTest) { return $true }
     $dialog.Owner = $Owner
     $dialog.FindName('PostTitle').Text = $title
     $dialog.FindName('PostSubtitle').Text = $(if ($Text['PostSubtitle']) { $Text['PostSubtitle'] } else { 'The three services are installed. Open the WebUI and configure the bot account and model provider next.' })

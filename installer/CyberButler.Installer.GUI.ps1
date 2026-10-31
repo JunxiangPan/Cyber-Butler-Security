@@ -429,6 +429,54 @@ function Show-GuiInstallStatus {
     Show-CyberButlerStatusWindow -Owner $window -Title (Get-UiText 'StatusTitle') -Text $text -Copy (Get-UiText 'Copy') -Close (Get-UiText 'Close') -Refresh (Get-UiText 'RefreshStatus') -RefreshScript { Get-GuiInstallStatusText }
 }
 
+function Show-GuiCompletionIfReady {
+    if ($script:GuiCompletionShown) { return }
+    $reportPath = 'C:\CyberButler\installer-report\install-report.json'
+    $status = ''
+    $failure = ''
+    if (Test-Path -LiteralPath $reportPath) {
+        try {
+            $raw = Get-Content -LiteralPath $reportPath -Raw
+            $m = [regex]::Match($raw, '"status"\s*:\s*"([^"]+)"')
+            if ($m.Success) { $status = $m.Groups[1].Value }
+            $f = [regex]::Match($raw, '"failure"\s*:\s*\{[^\}]*?"message"\s*:\s*"([^"]+)"', [Text.RegularExpressions.RegexOptions]::Singleline)
+            if ($f.Success) { $failure = $f.Groups[1].Value.Replace('\n', "`n") }
+        } catch { }
+    }
+    if ($status -eq 'success') {
+        $script:GuiCompletionShown = $true
+        if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
+        Set-GuiBusy $false
+        $installProgress.Value = 100
+        $postText = @{
+            PostTitle = Get-UiText 'PostTitle'
+            PostSubtitle = Get-UiText 'PostSubtitle'
+            PostNext = Get-UiText 'PostNext'
+            OpenWebUI = Get-UiText 'OpenWebUI'
+            OpenAstrBot = Get-UiText 'OpenAstrBot'
+            OpenGuide = Get-UiText 'OpenGuide'
+            OpenReport = Get-UiText 'OpenReport'
+            Close = Get-UiText 'Close'
+        }
+        $guidePath = Join-Path (Split-Path -Parent $installerRoot) 'README-INSTALL.md'
+        try {
+            Show-CyberButlerPostInstallWindow -Owner $window -InstallPath $script:GuiInstallPath `
+                -ReportPath $reportPath -GuidePath $guidePath -Text $postText
+        } catch {
+            [System.Windows.MessageBox]::Show(
+                ("Installation completed.`n`nReport: " + $reportPath),
+                (Get-UiText 'Title')) | Out-Null
+        }
+    } elseif ($status -eq 'failed') {
+        $script:GuiCompletionShown = $true
+        if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
+        Set-GuiBusy $false
+        $message = "Installation failed.`n`nReport: $reportPath"
+        if ($failure) { $message += "`n`nFailure: $failure" }
+        [System.Windows.MessageBox]::Show($message, (Get-UiText 'Title')) | Out-Null
+    }
+}
+
 function Remove-CyberButlerGuiInstall([string]$Root) {
     $full = [IO.Path]::GetFullPath($Root).TrimEnd([char]92)
     $rootOfDrive = [IO.Path]::GetPathRoot($full).TrimEnd([char]92)
@@ -528,9 +576,11 @@ $startButton.Add_Click({
             Started = Get-UiText 'Started'; TotpTitle = Get-UiText 'TotpTitle'
             TotpHint = Get-UiText 'TotpHint'; Scanned = Get-UiText 'Scanned'
             Recovery = Get-UiText 'Recovery'; Confirm = Get-UiText 'Confirm'
-            Cancel = Get-UiText 'Cancel'; TotpReady = Get-UiText 'TotpReady'
+            Cancel = Get-UiText 'Cancel'; TotpReady = Get-UiText 'TotpReady'; TotpConfirmed = Get-UiText 'TotpConfirmed'
         }
         Set-GuiBusy $true
+        $script:GuiInstallPath = $installPath
+        $script:GuiCompletionShown = $false
         $script:GuiStageStartedAt = Get-Date
         $script:GuiStagePercent = 0
         Write-GuiLog (Get-UiText 'Starting')
@@ -544,34 +594,7 @@ $startButton.Add_Click({
             -OnStatus {
                 param($line)
                 $statusText.Text = $line
-                if ($line -match 'finished') {
-                    Set-GuiBusy $false
-                    $installProgress.Value = 100
-                    $postText = @{
-                        PostTitle = Get-UiText 'PostTitle'
-                        PostSubtitle = Get-UiText 'PostSubtitle'
-                        PostNext = Get-UiText 'PostNext'
-                        OpenWebUI = Get-UiText 'OpenWebUI'
-                        OpenAstrBot = Get-UiText 'OpenAstrBot'
-                        OpenGuide = Get-UiText 'OpenGuide'
-                        OpenReport = Get-UiText 'OpenReport'
-                        Close = Get-UiText 'Close'
-                    }
-                    $guidePath = Join-Path (Split-Path -Parent $installerRoot) 'README-INSTALL.md'
-                    try {
-                        Show-CyberButlerPostInstallWindow -Owner $window -InstallPath $installPath `
-                            -ReportPath 'C:\CyberButler\installer-report\install-report.json' `
-                            -GuidePath $guidePath -Text $postText
-                    } catch {
-                        [System.Windows.MessageBox]::Show(
-                            ("Installation completed.`n`nReport: C:\CyberButler\installer-report\install-report.json"),
-                            (Get-UiText 'Title')) | Out-Null
-                    }
-                } elseif ($line -match 'failed') {
-                    [System.Windows.MessageBox]::Show(
-                        ("Installation failed.`n`nReport: C:\CyberButler\installer-report\install-report.json"),
-                        (Get-UiText 'Title')) | Out-Null
-                }
+                if ($line -match 'finished|failed') { Show-GuiCompletionIfReady }
             } `
             -OnProgress {
                 param($percent, $message)
@@ -586,6 +609,10 @@ $startButton.Add_Click({
                 }
             } `
             -Text $text | Out-Null
+        $script:GuiCompletionTimer = New-Object System.Windows.Threading.DispatcherTimer
+        $script:GuiCompletionTimer.Interval = [TimeSpan]::FromSeconds(2)
+        $script:GuiCompletionTimer.add_Tick({ try { Show-GuiCompletionIfReady } catch { } })
+        $script:GuiCompletionTimer.Start()
     } catch {
         Set-GuiBusy $false
         Write-GuiLog ('START ERROR: ' + $_.Exception.Message)
