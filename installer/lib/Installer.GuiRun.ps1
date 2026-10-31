@@ -2,6 +2,14 @@
 # Keep the privileged install in a hidden child process and surface only the
 # approval/TOTP steps through the WPF window.
 
+function Write-CyberButlerGuiError {
+    param([string]$Message)
+    try {
+        $path = Join-Path $env:TEMP 'CyberButler-Installer-GUI-error.log'
+        Add-Content -LiteralPath $path -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
+    } catch { }
+}
+
 function Show-CyberButlerTotpDialog {
     param(
         [Parameter(Mandatory = $true)][string]$ReadyPath,
@@ -182,16 +190,27 @@ function Start-CyberButlerGuiInstall {
         if (-not (Test-Path -LiteralPath $readyPath)) { return }
         $script:cbGuiTotpSeen = $true
         $script:cbGuiTimer.Stop()
-        $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $script:cbGuiWindow `
-            -Title $script:cbGuiText['TotpTitle'] -Hint $script:cbGuiText['TotpHint'] `
-            -Scanned $script:cbGuiText['Scanned'] -Recovery $script:cbGuiText['Recovery'] `
-            -Confirm $script:cbGuiText['Confirm'] -Cancel $script:cbGuiText['Cancel']
+        $result = $null
+        try {
+            $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $script:cbGuiWindow `
+                -Title $script:cbGuiText['TotpTitle'] -Hint $script:cbGuiText['TotpHint'] `
+                -Scanned $script:cbGuiText['Scanned'] -Recovery $script:cbGuiText['Recovery'] `
+                -Confirm $script:cbGuiText['Confirm'] -Cancel $script:cbGuiText['Cancel']
+        } catch {
+            $message = 'TOTP dialog failed: ' + $_.Exception.Message
+            Write-CyberButlerGuiError $message
+            try { & $script:cbGuiOnLog $message } catch { }
+            $ready = Get-Content -LiteralPath $readyPath -Raw | ConvertFrom-Json
+            $fallback = "TOTP material is ready.`n`nQR: $($ready.qr_path)`nRecovery: $($ready.recovery_path)`n`nOpen both files, scan the QR, save the recovery codes, then click Yes."
+            $answer = [System.Windows.MessageBox]::Show($fallback, 'TOTP enrollment', 'YesNo', 'Warning')
+            $result = [pscustomobject]@{ scanned = ($answer -eq 'Yes'); recovery_saved = ($answer -eq 'Yes') }
+        }
         if ($null -eq $result) { $result = [pscustomobject]@{ scanned = $false; recovery_saved = $false } }
         [pscustomobject]@{
             scanned = [bool]$result.scanned
             recovery_saved = [bool]$result.recovery_saved
         } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json') -Encoding UTF8
-        & $script:cbGuiOnLog ($script:cbGuiText['TotpReady'])
+        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { }
     })
     $script:cbGuiTimer.Start()
     return $process
