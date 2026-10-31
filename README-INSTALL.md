@@ -43,7 +43,7 @@ Double-click `START-INSTALLER.cmd` at the release root. It opens the WPF install
 3. 在 GUI 中选择安装路径、Tier、主人 QQ、WebUI 绑定。
 4. 阅读界面说明，勾选批准。
 5. 点击“开始安装”。
-6. 等待进度条、当前步骤和日志。Core/pip 阶段可能需要几分钟。
+6. 等待进度条、当前步骤和日志。Core/pip 阶段可能需要几分钟。安装期间可点击“检查状态”查看进程、阶段、最后输出、报告和端口。
 7. TOTP 对话框出现后：
    - 用手机扫描二维码
    - 离线保存 recovery codes
