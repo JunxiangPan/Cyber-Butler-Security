@@ -31,13 +31,21 @@ foreach ($path in $paths) {
     }
 }
 
-$secretNames = @('totp_secret.dpapi', 'totp_recovery.json')
-foreach ($name in $secretNames) {
-    $secretPath = Join-Path (Join-Path $root 'tools') $name
-    if (-not (Test-Path -LiteralPath $secretPath)) {
-        $bad.Add("missing protected TOTP file: $secretPath")
-        continue
-    }
+$vault = Join-Path (Join-Path $root 'tools') 'totp-vault'
+$secretPaths = @(
+    (Join-Path $vault 'totp_secret.dpapi'),
+    (Join-Path (Join-Path $root 'tools') 'totp_secret.dpapi')
+)
+$recoveryPaths = @(
+    (Join-Path $vault 'recovery_hashes.json'),
+    (Join-Path (Join-Path $root 'tools') 'totp_recovery.json')
+)
+$secretPath = @($secretPaths | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
+$recoveryPath = @($recoveryPaths | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
+if ($secretPath.Count -eq 0) { $bad.Add('missing protected TOTP secret under tools/totp-vault or tools') }
+if ($recoveryPath.Count -eq 0) { $bad.Add('missing protected TOTP recovery store under tools/totp-vault or tools') }
+foreach ($secretPath in @($secretPath + $recoveryPath)) {
+    if (-not $secretPath) { continue }
     try {
         $secretAcl = Get-Acl -LiteralPath $secretPath
         $denyRead = @($secretAcl.Access | Where-Object {

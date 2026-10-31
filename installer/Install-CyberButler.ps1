@@ -68,6 +68,9 @@ param(
 
     [switch]$PlanOnly,
     [switch]$NonInteractive,
+    [switch]$GuiMode,
+    [string]$GuiSignalDirectory = '',
+    [switch]$SkipSecrets,
     [switch]$Resume,
     [switch]$Repair,
     [switch]$Rollback,
@@ -550,6 +553,20 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
     }
 }
 
+# Harden tools/ and AstrBot/.venv before the TOTP vault deny ACE is applied.
+if (-not $failure) {
+    try {
+        $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $AstrBotAccount -DesktopUser $DesktopAccount -Handlers $Handlers
+        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status ([string]$brokerAcl.status) -Reason ([string]$brokerAcl.reason)
+        if ([string]$brokerAcl.status -eq 'failed') {
+            $failure = [pscustomobject]@{ step = 'broker_acl'; message = ('broker ACL: ' + [string]$brokerAcl.message) }
+        }
+    } catch {
+        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status 'failed' -Reason $_.Exception.Message
+        $failure = [pscustomobject]@{ step = 'broker_acl'; message = ('broker ACL hardening failed: ' + $_.Exception.Message) }
+    }
+}
+
 $totpScanned = $Scanned.IsPresent
 $totpRecovery = $RecoverySaved.IsPresent
 if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) {
@@ -564,12 +581,45 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
             $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP material generation failed: ' + $_.Exception.Message) }
         }
         if (-not $failure) {
-            $totpScanned = Request-MainConfirmation -Token 'SCANNED' -Step 'totp' -AlreadyConfirmed:$totpScanned -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive
-            $totpRecovery = Request-MainConfirmation -Token 'RECOVERY-SAVED' -Step 'totp' -AlreadyConfirmed:$totpRecovery -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive
-            if (-not $totpScanned -or -not $totpRecovery) {
+            if ($GuiMode) {
+                if ([string]::IsNullOrWhiteSpace($GuiSignalDirectory)) {
+                    $failure = [pscustomobject]@{ step = 'totp'; message = 'GUI signal directory is required in GuiMode' }
+                } else {
+                    New-Item -ItemType Directory -Path $GuiSignalDirectory -Force | Out-Null
+                    $readyPath = Join-Path $GuiSignalDirectory 'totp-ready.json'
+                    $confirmPath = Join-Path $GuiSignalDirectory 'totp-confirm.json'
+                    $ready = [pscustomobject]@{
+                        status = 'ready'
+                        qr_path = [string]$totpPrepared.qr_path
+                        recovery_path = [string]$totpPrepared.recovery_path
+                        at = Get-InstallerUtcTimestamp
+                    }
+                    $ready | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $readyPath -Encoding UTF8
+                    $deadline = (Get-Date).AddMinutes(15)
+                    while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $confirmPath)) {
+                        Start-Sleep -Seconds 1
+                    }
+                    if (-not (Test-Path -LiteralPath $confirmPath)) {
+                        $failure = [pscustomobject]@{ step = 'totp'; message = 'GUI did not confirm TOTP enrollment within 15 minutes'; kind = 'needs_approval' }
+                    } else {
+                        try {
+                            $confirmation = Get-Content -LiteralPath $confirmPath -Raw | ConvertFrom-Json
+                            $totpScanned = [bool]$confirmation.scanned
+                            $totpRecovery = [bool]$confirmation.recovery_saved
+                        } catch {
+                            $failure = [pscustomobject]@{ step = 'totp'; message = ('invalid TOTP GUI confirmation: ' + $_.Exception.Message) }
+                        }
+                    }
+                }
+            } else {
+                $totpScanned = Request-MainConfirmation -Token 'SCANNED' -Step 'totp' -AlreadyConfirmed:$totpScanned -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive
+                $totpRecovery = Request-MainConfirmation -Token 'RECOVERY-SAVED' -Step 'totp' -AlreadyConfirmed:$totpRecovery -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive
+            }
+            if (-not $failure -and (-not $totpScanned -or -not $totpRecovery)) {
                 Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'failed' -Reason 'needs scan/recovery confirmation'
                 $failure = [pscustomobject]@{ step = 'totp'; message = 'SCANNED and RECOVERY-SAVED confirmation required'; kind = 'needs_approval' }
-            } else {
+            }
+            if (-not $failure) {
                 Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'in_progress'
                 $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
                 if (-not (Complete-MainSecurityStep -Name 'totp' -Result $result)) {
@@ -593,7 +643,9 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'firewall
     }
 }
 
-if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'secrets')) {
+if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journal -Name 'secrets')) {
+    Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'skipped' -Reason 'skipped by GUI mode'
+} elseif (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'secrets')) {
     if ((Test-CyberButlerSecureStringEmpty $ApiKey) -and $ApiKeyFile -and (Test-Path -LiteralPath $ApiKeyFile)) {
         try { $ApiKey = ConvertTo-SecureString ((Get-Content -LiteralPath $ApiKeyFile -Raw).Trim()) -AsPlainText -Force } catch { }
     }

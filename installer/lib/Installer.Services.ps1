@@ -1,4 +1,4 @@
-# Scheduled-task and service-health lifecycle for the installer.
+﻿# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -46,6 +46,29 @@ function Get-CyberButlerTaskPrincipalSpec {
     }
 }
 
+
+function Invoke-CyberButlerBrokerAclHardening {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$ServiceUser = '',
+        [string]$DesktopUser = '',
+        $Handlers = @{}
+    )
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'services.broker-acl') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'services.broker-acl' -Context ([pscustomobject]@{ Root = $Root }))
+    }
+    $script = Join-Path $Root 'tools\harden_broker_runtime.ps1'
+    if (-not (Test-Path -LiteralPath $script)) {
+        return [pscustomobject]@{ status = 'skipped'; reason = 'harden_broker_runtime.ps1 missing' }
+    }
+    if ([string]::IsNullOrWhiteSpace($ServiceUser)) { $ServiceUser = $DesktopUser }
+    if ([string]::IsNullOrWhiteSpace($ServiceUser)) { throw 'Broker ACL hardening needs a service or desktop user' }
+    $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -ServiceUser $ServiceUser -DesktopUser $DesktopUser 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw ('Broker ACL hardening failed: ' + (($output | ForEach-Object { [string]$_ }) -join ' '))
+    }
+    return [pscustomobject]@{ status = 'completed'; output = (($output | ForEach-Object { [string]$_ }) -join "`n") }
+}
 
 function Get-CyberButlerServiceSpecs {
     param(

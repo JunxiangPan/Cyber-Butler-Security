@@ -16,7 +16,7 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 🖥️ Visual Installer
 
-**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file.
+**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels.
 
 **Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
 
@@ -28,6 +28,14 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 **Public key allowlist**: `tools/update_pubkey.pem` is accepted by the updater allowlist; other `.pem` files remain rejected.
 
+**TOTP runtime paths**: the Broker now resolves `tools/totp-vault/totp_secret.dpapi` and `recovery_hashes.json`, with a legacy fallback to the old root paths.
+
+**Broker ACL**: the installer hardens `tools` and `AstrBot/.venv` before TOTP enrollment, removing broad `Authenticated Users` write access.
+
+**WebUI data protection**: updater protection now covers `webui/data/mailer_token` and the TOTP vault files.
+
+**Language**: the visual installer has Chinese/English UI labels.
+
 **Version**: the repository version is now `1.6.1`.
 
 ✅ Verification
@@ -36,7 +44,7 @@ Host Pester: 144 passed, 0 failed.
 
 GUI XAML self-test: `GUI_XAML_OK`.
 
-Existing updater tests: 11 passed.
+Relevant pytest: 18 passed.
 
 ⚠️ Known Limitations
 
@@ -80,6 +88,14 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **公钥放行**：更新器 allowlist 接受 `tools/update_pubkey.pem`；其他 `.pem` 继续拒绝。
 
+**TOTP 运行路径**：Broker 现在解析 `tools/totp-vault/totp_secret.dpapi` 和 `recovery_hashes.json`，并兼容旧的根路径。
+
+**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`，移除过宽的 `Authenticated Users` 写权限。
+
+**WebUI 数据保护**：更新器保护范围增加 `webui/data/mailer_token` 和 TOTP vault 文件。
+
+**语言**：可视化安装器支持中文/英文界面标签。
+
 **版本**：仓库版本更新为 `1.6.1`。
 
 ✅ 验证
@@ -88,7 +104,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 GUI XAML 自检：`GUI_XAML_OK`。
 
-现有 updater 测试：11 passed。
+相关 pytest：18 passed。
 
 ⚠️ 已知限制
 

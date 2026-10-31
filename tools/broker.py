@@ -33,8 +33,11 @@ ROOT = Path(r"YOUR_PROJECT_PATH")
 BROKER = ROOT / "tools" / "broker"
 QUARANTINE = BROKER / "quarantine"
 STAGING = BROKER / "staging"
-SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
-RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
+TOTP_VAULT = ROOT / "tools" / "totp-vault"
+SECRET_FILE = TOTP_VAULT / "totp_secret.dpapi"
+RECOVERY_FILE = TOTP_VAULT / "recovery_hashes.json"
+LEGACY_SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
+LEGACY_RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
 TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
 LOG = ROOT / "tools" / "totp_broker.log"
 AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
@@ -133,10 +136,26 @@ def ensure_token() -> str:
     return TOKEN_FILE.read_text(encoding="utf-8").strip()
 
 
+def _secret_file() -> Path:
+    if SECRET_FILE.is_file():
+        return SECRET_FILE
+    if LEGACY_SECRET_FILE.is_file():
+        return LEGACY_SECRET_FILE
+    return SECRET_FILE
+
+
+def _recovery_file() -> Path:
+    if RECOVERY_FILE.is_file():
+        return RECOVERY_FILE
+    if LEGACY_RECOVERY_FILE.is_file():
+        return LEGACY_RECOVERY_FILE
+    return RECOVERY_FILE
+
+
 def secret() -> str:
     if win32crypt is None:
         raise RuntimeError("win32crypt is required to read the DPAPI secret")
-    encrypted = SECRET_FILE.read_bytes()
+    encrypted = _secret_file().read_bytes()
     plain = win32crypt.CryptUnprotectData(encrypted, None, None, None, 0)
     return plain[1].decode("utf-8")
 
@@ -290,11 +309,12 @@ def verify_code(code: str) -> str:
         return ""
     if len(code) == 8 and code.isalnum():
         try:
-            store = json.loads(RECOVERY_FILE.read_text(encoding="utf-8"))
+            recovery_path = _recovery_file()
+            store = json.loads(recovery_path.read_text(encoding="utf-8"))
             digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
             if digest in store.get("sha256", []) and digest not in store.get("used", []):
                 store.setdefault("used", []).append(digest)
-                RECOVERY_FILE.write_text(
+                recovery_path.write_text(
                     json.dumps(store, ensure_ascii=False, indent=2), encoding="utf-8"
                 )
                 return "recovery"
