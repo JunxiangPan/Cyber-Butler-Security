@@ -334,7 +334,7 @@ if ($PlanOnly) {
 if ($Repair) {
     $diagnostics = Get-CyberButlerDiagnostics -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel `
         -Isolation $resolution.Isolation -Root $InstallPath -ServiceAccount $ServiceAccountName `
-        -AstrBotAccount $AstrBotAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
+        -TotpReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
     $report = Write-MainReport -Status 'repair' -Diagnostics $diagnostics -Journal $null -Approvals @() `
         -Steps @() -Failure $null -Message 'Repair mode runs diagnostics only.' -ReportDirectory $ReportDirectory `
         -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel -Isolation $resolution.Isolation -Handlers $Handlers
@@ -509,9 +509,8 @@ if (Test-Path -LiteralPath $pythonAclPath) { $aclPaths = @($aclPaths) + $pythonA
 function Complete-MainSecurityStep {
     param([string]$Name, $Result)
     if ([string]$Result.status -eq 'completed' -or [string]$Result.status -eq 'skipped' -or [string]$Result.status -eq 'unsupported') {
-        if (-not (Get-CyberButlerJournalStep -Journal $journal -Name $Name)) {
-            Add-MainJournalStep -Journal $journal -Name $Name -Status $(if ([string]$Result.status -eq 'unsupported') { 'skipped' } else { [string]$Result.status }) -Reason ([string]$Result.message)
-        }
+        $finalStatus = if ([string]$Result.status -eq 'unsupported') { 'skipped' } else { [string]$Result.status }
+        Add-MainJournalStep -Journal $journal -Name $Name -Status $finalStatus -Reason ([string]$Result.message)
         return $true
     }
     return $false

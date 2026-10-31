@@ -43,6 +43,7 @@ function Get-CyberButlerDiagnostics {
         [bool]$Isolation = $false,
         [string]$Root = 'C:\CyberButler',
         [string]$ServiceAccount = 'CyberButlerSvc',
+        [string]$TotpReaderAccount = 'BUILTIN\Administrators',
         [string]$AstrBotAccount = '',
         [ValidateSet('Loopback', 'Tailscale', 'LAN')]
         [string]$WebUIBind = 'Loopback',
@@ -53,7 +54,7 @@ function Get-CyberButlerDiagnostics {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'diagnostics.run') {
         $result = Invoke-CyberButlerHandler -Handlers $Handlers -Name 'diagnostics.run' -Context ([pscustomobject]@{
             Tier = $Tier; EffectiveTier = $EffectiveTier; Isolation = $Isolation
-            Root = $Root; ServiceAccount = $ServiceAccount; AstrBotAccount = $AstrBotAccount; WebUIBind = $WebUIBind
+            Root = $Root; ServiceAccount = $ServiceAccount; TotpReaderAccount = $TotpReaderAccount; AstrBotAccount = $AstrBotAccount; WebUIBind = $WebUIBind
         })
         foreach ($item in @($result.items)) {
             $items.Add((New-CyberButlerDiagnosticItem -Id ([string]$item.id) -Label ([string]$item.label) -Status ([string]$item.status) -Reason ([string]$item.reason)))
@@ -121,7 +122,7 @@ function Get-CyberButlerDiagnostics {
         $vaultAclReason = 'TOTP vault missing'
         if (Test-Path -LiteralPath $vault) {
             if (Get-Command Test-CyberButlerTotpVaultAcl -ErrorAction SilentlyContinue) {
-                $aclCheck = Test-CyberButlerTotpVaultAcl -VaultPath $vault -ReaderAccount $ServiceAccount -AstrBotAccount $AstrBotAccount
+                $aclCheck = Test-CyberButlerTotpVaultAcl -VaultPath $vault -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$Isolation
                 if ($aclCheck.satisfied) { $vaultAclStatus = 'ENABLED'; $vaultAclReason = 'vault ACL is restricted' }
                 else { $vaultAclStatus = 'PARTIAL'; $vaultAclReason = $aclCheck.reason }
             } else { $vaultAclStatus = 'PARTIAL'; $vaultAclReason = 'vault exists but ACL checker is unavailable' }

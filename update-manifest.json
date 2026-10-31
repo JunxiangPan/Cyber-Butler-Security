@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "e3d98914d6134329fed4b92618cf3fc348607139b7217f922eac8e6a189283ef",
-      "size": 9619
+      "sha256": "14f58fd776a55d44d040b6fdab658593e9575eb03a442e7e9f6db833a6c0d65f",
+      "size": 9836
     },
     {
       "path": "docs/使用说明.md",
@@ -284,8 +284,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "95bba4737b8e27e5f3e7de4811178f23160d327285b3af74417e8ac1e479046a",
-      "size": 44732
+      "sha256": "5d0cb77dc6f63427001688efc44358cf645252e30c63e62f0694032995dbeedd",
+      "size": 45833
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -354,8 +354,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "20e242990ecadd271360d0c8ca92027c83fe83c1697dc66e85d91a22e489da3f",
-      "size": 20979
+      "sha256": "4a746f00de9261f2a03f420dfa1c4b97dd37c88a75de2c790a507af248d94472",
+      "size": 21044
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
