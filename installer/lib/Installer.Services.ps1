@@ -1,4 +1,4 @@
-# Scheduled-task and service-health lifecycle for the installer.
+﻿# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -87,10 +87,13 @@ function Get-CyberButlerServiceSpecs {
     $webPython = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
     $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
+    $hidden = Join-Path $rootFull 'tools\run-python-hidden.ps1'
+    $astrbotArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $hidden + '" -Python "' + $python + '" -Script "main.py" -WorkDir "' + (Join-Path $rootFull 'AstrBot') + '" -StdOut "' + (Join-Path $rootFull 'AstrBot\data\logs\service-astrbot-launcher.out.log') + '" -StdErr "' + (Join-Path $rootFull 'AstrBot\data\logs\service-astrbot-launcher.err.log') + '"'
+    $webArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $hidden + '" -Python "' + $webPython + '" -Script "run.py" -WorkDir "' + (Join-Path $rootFull 'webui') + '" -StdOut "' + (Join-Path $rootFull 'webui\data\webui-launcher.out.log') + '" -StdErr "' + (Join-Path $rootFull 'webui\data\webui-launcher.err.log') + '"'
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $pythonw; args = 'main.py'; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
+        [pscustomobject]@{ name = 'AstrBot Service'; exe = (Join-Path $PSHOME 'powershell.exe'); args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $webPythonw; args = 'run.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
+        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = (Join-Path $PSHOME 'powershell.exe'); args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
     )
 }
 

@@ -92,7 +92,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **TOTP 运行路径**：Broker 现在解析 `tools/totp-vault/totp_secret.dpapi` 和 `recovery_hashes.json`，并兼容旧的根路径。
 
-**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`。单账户 Medium 模式会在 `single-account.marker` 中记录无法强制 TOTP vault Deny 的限制；High 隔离仍要求显式 Deny。AstrBot、Broker 和 WebUI 在可用时使用 `pythonw.exe` 启动，避免桌面残留控制台窗口。
+**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`。单账户 Medium 模式会在 `single-account.marker` 中记录无法强制 TOTP vault Deny 的限制；High 隔离仍要求显式 Deny。AstrBot 和 WebUI 通过 `tools/run-python-hidden.ps1` 以隐藏窗口和重定向启动 `python.exe`；Broker 优先使用 `pythonw.exe`。桌面不会残留控制台窗口。
 
 **WebUI 数据保护**：更新器保护范围增加 `webui/data/mailer_token` 和 TOTP vault 文件。
 
