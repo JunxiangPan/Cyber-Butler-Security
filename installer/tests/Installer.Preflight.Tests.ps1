@@ -12,7 +12,7 @@ Describe 'Installer preflight' {
             $p = Get-CyberButlerPreflight -InstallPath $target -OutputPath $json
             $p.schema | Should Be 1
             $p.read_only | Should Be $true
-            $p.ports.Count | Should Be 6
+            $p.ports.Count | Should Be 5
             $p.install_path.has_existing_install | Should Be $false
             $p.install_path.existing_state | Should Be 'None'
             (Test-Path -LiteralPath $target) | Should Be $false
@@ -129,7 +129,7 @@ Describe 'Installer preflight' {
         $target = Join-Path $env:TEMP ('cb-preflight-ports-' + [guid]::NewGuid().ToString('N'))
         try {
             $p = Get-CyberButlerPreflight -InstallPath $target
-            foreach ($port in @(6185, 18090, 8765, 8766, 11434, 11435)) {
+            foreach ($port in @(6185, 18090, 8765, 11434, 11435)) {
                 $matches = @($p.ports | Where-Object { $_.port -eq $port })
                 $matches.Count | Should Be 1
                 $matches[0].in_use.GetType().Name | Should Be 'Boolean'

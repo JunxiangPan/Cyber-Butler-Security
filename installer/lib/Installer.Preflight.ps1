@@ -1,4 +1,4 @@
-# Read-only preflight for the Cyber-Butler installer.
+﻿# Read-only preflight for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 before this file.
 
 if (-not (Get-Command Get-CyberButlerExistingState -ErrorAction SilentlyContinue)) {
@@ -275,7 +275,7 @@ function Get-CyberButlerPreflight {
     [CmdletBinding()]
     param(
         [string]$InstallPath = 'C:\CyberButler',
-        [int[]]$Ports = @(6185, 18090, 8765, 8766, 11434, 11435),
+        [int[]]$Ports = @(6185, 18090, 8765, 11434, 11435),
         [string]$OutputPath = '',
         [string[]]$PythonCandidates = @(),
         $Handlers = @{}

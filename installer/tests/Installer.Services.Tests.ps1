@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
@@ -138,6 +138,37 @@ Describe 'Installer services safety' {
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
+    }
+
+    It 'formats service assertion details with task and port names' {
+        $assertion = [pscustomobject]@{
+            satisfied = $false
+            tasks = @(
+                [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exists = $true; principal_ok = $true; state = 'Ready'; last_task_result = '0x00000000'; port = 18090 }
+            )
+            ports = @(
+                [pscustomobject]@{ port = 18090; listening = $false; healthy = $false; owner_pid = $null }
+            )
+        }
+        $text = Format-CyberButlerServiceAssertion -Assertion $assertion
+        $text | Should Match 'Service assertion failed'
+        $text | Should Match 'AstrBot TOTP Broker'
+        $text | Should Match '18090 not listening'
+        $text | Should Match 'task exited immediately'
+    }
+
+    It 'saves a service diagnostics snapshot' {
+        $base = Join-Path $env:TEMP ('cb-services-diag-' + [guid]::NewGuid().ToString('N'))
+        $logDir = Join-Path (Join-Path (Join-Path $base 'AstrBot') 'data') 'logs'
+        New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $logDir 'astrbot.log') -Value 'line' -Encoding UTF8
+        try {
+            $dir = Save-CyberButlerServicesDiagnostics -Root $base -SnapshotRoot (Join-Path $base 'diag') -Assertion ([pscustomobject]@{ satisfied = $false; tasks = @(); ports = @() })
+            (Test-Path -LiteralPath $dir) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $dir 'assertion.json')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path (Join-Path $dir 'logs') 'astrbot.tail.txt')) | Should Be $true
+            (Get-Content -LiteralPath (Join-Path $dir 'assertion.json') -Raw) | Should Match 'satisfied'
+        } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
     It 'stops listeners owned by the install root by port' {

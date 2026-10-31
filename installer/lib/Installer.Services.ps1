@@ -1,4 +1,4 @@
-﻿# Scheduled-task and service-health lifecycle for the installer.
+# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -13,6 +13,23 @@ function Resolve-CyberButlerTaskAccount {
     if ($Account -ieq 'SYSTEM') { return 'NT AUTHORITY\SYSTEM' }
     if ($Account -ieq $env:USERNAME) { return [Security.Principal.WindowsIdentity]::GetCurrent().Name }
     return ($env:COMPUTERNAME + '\' + $Account)
+}
+
+function ConvertTo-CyberButlerCanonicalPrincipal {
+    param([string]$Name)
+    if ([string]::IsNullOrWhiteSpace($Name)) { return '' }
+    $n = $Name.Trim()
+    if ($n -notmatch '\\') {
+        switch -Regex ($n) {
+            '^(?i)SYSTEM$'          { return 'NT AUTHORITY\SYSTEM' }
+            '^(?i)LOCAL SERVICE$'   { return 'NT AUTHORITY\LOCAL SERVICE' }
+            '^(?i)NETWORK SERVICE$' { return 'NT AUTHORITY\NETWORK SERVICE' }
+            default                 { return ($env:COMPUTERNAME + '\' + $n) }
+        }
+    }
+    $parts = $n -split '\\', 2
+    if ($parts[0] -ieq $env:COMPUTERNAME) { return ($env:COMPUTERNAME + '\' + $parts[1]) }
+    return $n
 }
 
 function Get-CyberButlerTaskPrincipalSpec {
@@ -46,8 +63,7 @@ function Get-CyberButlerServiceSpecs {
     return @(
         [pscustomobject]@{ name = 'AstrBot Service'; exe = $python; args = 'main.py'; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $python; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $webPython; args = 'run.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
-        [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $python; args = (Join-Path $rootFull 'tools\email_approval.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 }
+        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $webPython; args = 'run.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
     )
 }
 
@@ -66,7 +82,9 @@ function Test-CyberButlerPortHealth {
             $async = $client.BeginConnect('127.0.0.1', $port, $null, $null)
             $ok = $async.AsyncWaitHandle.WaitOne($TimeoutMilliseconds, $false) -and $client.Connected
         } catch { $ok = $false } finally { $client.Close() }
-        $results.Add([pscustomobject][ordered]@{ port = $port; healthy = [bool]$ok })
+        $listener = @(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $ownerPid = if ($listener.Count -gt 0) { [int]$listener[0].OwningProcess } else { $null }
+        $results.Add([pscustomobject][ordered]@{ port = $port; healthy = [bool]$ok; listening = [bool]($listener.Count -gt 0); owner_pid = $ownerPid })
     }
     return $results.ToArray()
 }
@@ -110,14 +128,23 @@ function Test-CyberButlerServices {
             'service' { (Resolve-CyberButlerTaskAccount -Account $ServiceAccount) }
             default { (Resolve-CyberButlerTaskAccount -Account $DesktopAccount -CurrentUser:([string]::IsNullOrWhiteSpace($DesktopAccount))) }
         }
+        $action = if ($task -and @($task.Actions).Count -gt 0) { $task.Actions[0] } else { $null }
+        $lastTaskResult = $null
+        if ($task) {
+            try { $lastTaskResult = ('0x{0:X8}' -f [uint32](Get-ScheduledTaskInfo -TaskName $spec.name).LastTaskResult) } catch { $lastTaskResult = 'unknown' }
+        }
         $taskRows.Add([pscustomobject][ordered]@{
             name = $spec.name
             exists = [bool]$task
             state = if ($task) { [string]$task.State } else { $null }
             principal = $principal
             expected_principal = $expected
-            principal_ok = ([string]$principal -ieq [string]$expected)
+            principal_ok = ((ConvertTo-CyberButlerCanonicalPrincipal $principal) -ieq (ConvertTo-CyberButlerCanonicalPrincipal $expected))
             port = $spec.port
+            action_execute = if ($action) { [string]$action.Execute } else { $null }
+            action_arguments = if ($action) { [string]$action.Arguments } else { $null }
+            action_workdir = if ($action) { [string]$action.WorkingDirectory } else { $null }
+            last_task_result = $lastTaskResult
         })
     }
     $result['tasks'] = $taskRows.ToArray()
@@ -125,6 +152,15 @@ function Test-CyberButlerServices {
     $result['satisfied'] = (@($result['tasks'] | Where-Object { -not ($_.exists -and $_.principal_ok) }).Count -eq 0) -and
         (@($result['ports'] | Where-Object { -not $_.healthy }).Count -eq 0)
     if (-not $result['satisfied']) { $result['reason'] = 'service-task-or-port-not-ready' }
+    $reasons = New-Object System.Collections.Generic.List[string]
+    foreach ($row in @($result['tasks'])) {
+        if (-not $row.exists) { $reasons.Add($row.name + ': task missing') }
+        elseif (-not $row.principal_ok) { $reasons.Add($row.name + ': principal mismatch') }
+    }
+    foreach ($row in @($result['ports'])) {
+        if (-not $row.healthy) { $reasons.Add('port ' + $row.port + ' not listening') }
+    }
+    $result['reasons'] = $reasons.ToArray()
     return [pscustomobject]$result
 }
 
@@ -240,6 +276,20 @@ function Set-CyberButlerServiceTasks {
     }
 
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
+    # 确保 AstrBot 写文件日志，plugin smoke 断言能读到 data\logs\astrbot.log
+    $astrbotData = Join-Path $Root 'AstrBot\data'
+    $astrbotLogs = Join-Path $astrbotData 'logs'
+    New-Item -ItemType Directory -Force -Path $astrbotLogs -ErrorAction SilentlyContinue | Out-Null
+    $astrbotCfg = Join-Path $astrbotData 'cmd_config.json'
+    if (Test-Path -LiteralPath $astrbotCfg) {
+        try {
+            $cfgRaw = Get-Content -LiteralPath $astrbotCfg -Raw
+            if ($cfgRaw -match '"log_file_enable":\s*false') {
+                $cfgRaw = $cfgRaw -replace '"log_file_enable":\s*false', '"log_file_enable": true'
+                Set-Content -LiteralPath $astrbotCfg -Value $cfgRaw -Encoding UTF8 -NoNewline
+            }
+        } catch { }
+    }
     $ports = @($specs | ForEach-Object { [int]$_.port })
     $beforePids = @(Get-CyberButlerPortOwnerIds -Ports $ports)
     $created = New-Object System.Collections.Generic.List[object]
@@ -380,6 +430,119 @@ function Test-CyberButlerPluginLoadSmoke {
     return [pscustomobject]@{ ok = $true; reason = 'ok'; message = ''; failed = @(); lines = @(); tail = $tail }
 }
 
+function Save-CyberButlerServicesDiagnostics {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$SnapshotRoot = '',
+        $Assertion = $null
+    )
+    if ([string]::IsNullOrWhiteSpace($SnapshotRoot)) {
+        $programData = if ($env:ProgramData) { $env:ProgramData } else { 'C:\ProgramData' }
+        $SnapshotRoot = Join-Path $programData 'CyberButler\installer\diagnostics'
+    }
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $dir = Join-Path $SnapshotRoot ('services-' + $stamp)
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    $taskDir = Join-Path $dir 'tasks'
+    $portDir = Join-Path $dir 'ports'
+    $logDir = Join-Path $dir 'logs'
+    New-Item -ItemType Directory -Path $taskDir, $portDir, $logDir -Force | Out-Null
+
+    $taskNames = @('AstrBot Service','AstrBot TOTP Broker','Cyber-Butler Web UI Services')
+    $info = New-Object System.Collections.Generic.List[string]
+    foreach ($name in $taskNames) {
+        $task = Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
+        if ($task) {
+            try {
+                Export-ScheduledTask -TaskName $name | Out-File -LiteralPath (Join-Path $taskDir ($name + '.xml')) -Encoding utf8
+            } catch {
+                ('EXPORT_FAILED: ' + $_.Exception.Message) | Out-File -LiteralPath (Join-Path $taskDir ($name + '.export-error.txt')) -Encoding utf8
+            }
+            try {
+                $taskInfo = Get-ScheduledTaskInfo -TaskName $name
+                $info.Add(('## ' + $name))
+                $info.Add(($taskInfo | Format-List * | Out-String))
+            } catch {
+                ('TASKINFO_FAILED: ' + $_.Exception.Message) | Out-File -LiteralPath (Join-Path $taskDir ($name + '.taskinfo-error.txt')) -Encoding utf8
+            }
+        } else {
+            'task-missing' | Out-File -LiteralPath (Join-Path $taskDir ($name + '.missing.txt')) -Encoding utf8
+        }
+    }
+    $info -join "`n" | Out-File -LiteralPath (Join-Path $taskDir 'task-info.txt') -Encoding utf8
+
+    foreach ($port in @(6185, 18090, 8765, 8766)) {
+        try {
+            $connections = @(Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue)
+            if ($connections.Count -eq 0) { 'no listener' | Out-File -LiteralPath (Join-Path $portDir ($port.ToString() + '.txt')) -Encoding utf8 }
+            else { $connections | Format-List * | Out-File -LiteralPath (Join-Path $portDir ($port.ToString() + '.txt')) -Encoding utf8 }
+        } catch {
+            ('PORT_QUERY_FAILED: ' + $_.Exception.Message) | Out-File -LiteralPath (Join-Path $portDir ($port.ToString() + '.txt')) -Encoding utf8
+        }
+    }
+
+    $logPaths = [ordered]@{
+        'astrbot' = Join-Path $Root 'AstrBot\data\logs\astrbot.log'
+        'broker' = Join-Path $Root 'tools\totp_broker.log'
+        'webui-startup' = Join-Path $Root 'webui\data\webui-startup.log'
+        'webui-out' = Join-Path $Root 'webui\data\webui.out.log'
+        'webui-err' = Join-Path $Root 'webui\data\webui.err.log'
+        'otp-mailer-out' = Join-Path $Root 'webui\data\otp_mailer.out.log'
+        'otp-mailer-err' = Join-Path $Root 'webui\data\otp_mailer.err.log'
+    }
+    foreach ($key in $logPaths.Keys) {
+        $path = [string]$logPaths[$key]
+        $out = Join-Path $logDir ($key + '.tail.txt')
+        if (Test-Path -LiteralPath $path) {
+            Get-Content -LiteralPath $path -Tail 50 -ErrorAction SilentlyContinue | Out-File -LiteralPath $out -Encoding utf8
+        } else {
+            ([string]$path + ' MISSING') | Out-File -LiteralPath $out -Encoding utf8
+        }
+    }
+    if ($null -ne $Assertion) {
+        $Assertion | ConvertTo-Json -Depth 8 | Out-File -LiteralPath (Join-Path $dir 'assertion.json') -Encoding utf8
+    }
+    $programDataPath = if ($env:ProgramData) { $env:ProgramData } else { 'C:\ProgramData' }
+    $emailPath = Join-Path $programDataPath 'CyberButler\email_secret.json'
+    $emailState = if (Test-Path -LiteralPath $emailPath) { 'EXISTS' } else { 'MISSING' }
+    $emailState | Out-File -LiteralPath (Join-Path $dir 'email-secret.exists.txt') -Encoding utf8
+    return $dir
+}
+
+function Format-CyberButlerServiceAssertion {
+    param($Assertion)
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add('Service assertion failed:')
+    $seenPorts = New-Object System.Collections.Generic.List[int]
+    foreach ($task in @($Assertion.tasks)) {
+        $parts = New-Object System.Collections.Generic.List[string]
+        if (-not $task.exists) {
+            $parts.Add('task missing')
+        } elseif (-not $task.principal_ok) {
+            $parts.Add('principal mismatch')
+        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00000000') {
+            $parts.Add('task exited immediately')
+        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00041301') {
+            $parts.Add('task is running (LastTaskResult=0x00041301)')
+        } elseif ([string]$task.last_task_result -and [string]$task.last_task_result -ne '0x00000000' -and [string]$task.last_task_result -ne '0x00041301') {
+            $parts.Add('LastTaskResult=' + [string]$task.last_task_result)
+        } elseif ([string]$task.state) {
+            $parts.Add('State=' + [string]$task.state + ', LastTaskResult=' + [string]$task.last_task_result)
+        }
+        $portRow = @($Assertion.ports | Where-Object { [int]$_.port -eq [int]$task.port } | Select-Object -First 1)
+        if ($portRow.Count -gt 0) {
+            $seenPorts.Add([int]$task.port)
+            if (-not $portRow[0].listening -and -not $portRow[0].healthy) { $parts.Add('port ' + [int]$task.port + ' not listening') }
+        }
+        if ($parts.Count -gt 0) { $lines.Add('- ' + [string]$task.name + ': ' + ($parts -join ', ')) }
+    }
+    foreach ($portRow in @($Assertion.ports)) {
+        if ($seenPorts -contains [int]$portRow.port) { continue }
+        if (-not $portRow.listening -and -not $portRow.healthy) { $lines.Add('- port ' + [int]$portRow.port + ' not listening') }
+    }
+    return ($lines -join "`n")
+}
+
 function Assert-CyberButlerServices {
     param(
         [Parameter(Mandatory = $true)]
@@ -393,16 +556,41 @@ function Assert-CyberButlerServices {
         $Handlers = @{}
     )
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'services.assert') {
-        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'services.assert' -Context ([pscustomobject]@{ Root = $Root; ServiceAccount = $ServiceAccount; DesktopAccount = $DesktopAccount }))
+        $handlerResult = Invoke-CyberButlerHandler -Handlers $Handlers -Name 'services.assert' -Context ([pscustomobject]@{ Root = $Root; ServiceAccount = $ServiceAccount; DesktopAccount = $DesktopAccount })
+        if ($handlerResult -is [bool]) {
+            return [pscustomobject]@{ satisfied = [bool]$handlerResult; elapsed_seconds = 0; attempts = 1; tasks = @(); ports = @(); reasons = if ($handlerResult) { @() } else { @('handler returned false') } }
+        }
+        return $handlerResult
     }
-    $deadline = (Get-Date).AddSeconds([Math]::Max(1, $TimeoutSeconds))
+    $started = Get-Date
+    $deadline = $started.AddSeconds([Math]::Max(1, $TimeoutSeconds))
+    $attempts = 0
+    $last = $null
     do {
-        $test = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
-        if ($test.satisfied) { return $true }
+        $attempts++
+        $last = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
+        if ($last.satisfied) {
+            return [pscustomobject]@{
+                satisfied = $true
+                elapsed_seconds = [int]((Get-Date) - $started).TotalSeconds
+                attempts = $attempts
+                tasks = @($last.tasks)
+                ports = @($last.ports)
+                reasons = @()
+            }
+        }
         Start-Sleep -Seconds 2
     } while ((Get-Date) -lt $deadline)
-    return $false
+    return [pscustomobject]@{
+        satisfied = $false
+        elapsed_seconds = [int]((Get-Date) - $started).TotalSeconds
+        attempts = $attempts
+        tasks = if ($last) { @($last.tasks) } else { @() }
+        ports = if ($last) { @($last.ports) } else { @() }
+        reasons = if ($last -and $last.reasons) { @($last.reasons) } else { @('service task or port not ready') }
+    }
 }
+
 
 function Undo-CyberButlerServices {
     param(
@@ -488,7 +676,7 @@ function Invoke-CyberButlerServices {
     $approvalState = Get-CyberButlerApprovalState -Required 'APPROVE SERVICES' -Approval $Approval -NonInteractive:$NonInteractive -PlanOnly:$PlanOnly
     if ($approvalState -eq 'plan') {
         $base.status = 'plan'
-        $base.message = 'Would register or update four scheduled tasks and wait for ports.'
+        $base.message = 'Would register or update three scheduled tasks and wait for ports.'
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
     }
@@ -504,6 +692,8 @@ function Invoke-CyberButlerServices {
     $createdTasks = @()
     $startedPids = @()
     $taskBackups = @{}
+    $serviceAssertion = $null
+    $diagnosticsPath = $null
     try {
         $applied = Set-CyberButlerServiceTasks -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
         $createdTasks = @($applied.created)
@@ -519,7 +709,16 @@ function Invoke-CyberButlerServices {
             }
         }
         $asserted = Assert-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
-        if (-not $asserted) { throw 'Service assertion failed.' }
+        if (-not $asserted.satisfied) {
+            $serviceAssertion = $asserted
+            try {
+                $diagnosticsPath = Save-CyberButlerServicesDiagnostics -Root $Root -Assertion $asserted
+            } catch {
+                Write-Warning ('Service diagnostics snapshot failed: ' + $_.Exception.Message)
+                $diagnosticsPath = $null
+            }
+            throw (Format-CyberButlerServiceAssertion -Assertion $asserted)
+        }
         $pluginSmoke = Test-CyberButlerPluginLoadSmoke -Root $Root -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
         if (-not $pluginSmoke.ok) {
             throw ($pluginSmoke.message + "`n" + ((@($pluginSmoke.lines) + @($pluginSmoke.tail)) -join "`n"))
@@ -541,8 +740,15 @@ function Invoke-CyberButlerServices {
         $base.message = $_.Exception.Message
         $base.undo = $undo
         $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
+        $base.service_assertion = $serviceAssertion
+        $base.diagnostics_path = $diagnosticsPath
         if ($null -ne $Journal) {
-            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $_.Exception.Message; undo = $undo.action }) | Out-Null
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{
+                error = $_.Exception.Message
+                undo = $undo.action
+                assertion = $serviceAssertion
+                diagnostics_path = $diagnosticsPath
+            }) | Out-Null
         }
         return [pscustomobject]$base
     }
