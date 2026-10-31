@@ -2,6 +2,14 @@
 # Keep the privileged install in a hidden child process and surface only the
 # approval/TOTP steps through the WPF window.
 
+
+function Get-CyberButlerSafeLogLine([string]$Line) {
+    if ($Line -match '(?i)(recovery codes|qr image|base32 secret|grouped:|otpauth uri|TOTP_(SECRET|URI|RECOVERY)|^\s*\d+\.\s+[A-Z0-9]{8})') {
+        return '[TOTP output redacted]'
+    }
+    return $Line
+}
+
 function Write-CyberButlerGuiError {
     param([string]$Message)
     try {
@@ -169,6 +177,92 @@ function Show-CyberButlerStatusWindow {
     [void]$dialog.ShowDialog()
 }
 
+
+function Show-CyberButlerRemoveDialog {
+    param(
+        $Owner = $null,
+        [hashtable]$Text = @{},
+        [switch]$SelfTest
+    )
+    $xaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Remove Cyber-Butler" Width="600" Height="430"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#0F172A">
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="RemoveTitle" Text="Remove Cyber-Butler" Foreground="#F8FAFC" FontSize="22" FontWeight="SemiBold"/>
+    <StackPanel Grid.Row="1" Margin="0,16,0,0">
+      <TextBlock x:Name="RemoveHint" Text="Choose what to remove. This cannot be undone." Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,14"/>
+      <RadioButton x:Name="RemovePackage" GroupName="RemoveChoice" Foreground="#F8FAFC" Margin="0,0,0,12"/>
+      <RadioButton x:Name="RemoveProject" GroupName="RemoveChoice" Foreground="#F8FAFC" Margin="0,0,0,12"/>
+      <RadioButton x:Name="RemoveBoth" GroupName="RemoveChoice" Foreground="#F8FAFC"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+      <Button x:Name="RemoveCancel" Width="100" Height="36" Margin="0,0,10,0"/>
+      <Button x:Name="RemoveContinue" Width="140" Height="36" Background="#DC2626" Foreground="#FFFFFF" BorderBrush="#DC2626" FontWeight="SemiBold"/>
+    </StackPanel>
+  </Grid>
+</Window>
+'@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    if ($SelfTest) { return $true }
+    $dialog.Owner = $Owner
+    $dialog.FindName('RemoveTitle').Text = $(if ($Text['RemoveTitle']) { $Text['RemoveTitle'] } else { 'Remove Cyber-Butler' })
+    $dialog.FindName('RemoveHint').Text = $(if ($Text['RemoveHint']) { $Text['RemoveHint'] } else { 'Choose what to remove. This cannot be undone.' })
+    $dialog.FindName('RemovePackage').Content = $(if ($Text['RemovePackage']) { $Text['RemovePackage'] } else { 'Installer / downloaded package only' })
+    $dialog.FindName('RemoveProject').Content = $(if ($Text['RemoveProject']) { $Text['RemoveProject'] } else { 'Installed Cyber-Butler project only' })
+    $dialog.FindName('RemoveBoth').Content = $(if ($Text['RemoveBoth']) { $Text['RemoveBoth'] } else { 'Both installer package and installed project' })
+    $dialog.FindName('RemoveCancel').Content = $(if ($Text['Cancel']) { $Text['Cancel'] } else { 'Cancel' })
+    $dialog.FindName('RemoveContinue').Content = $(if ($Text['Continue']) { $Text['Continue'] } else { 'Continue' })
+    $script:cbRemoveChoice = $null
+    $dialog.FindName('RemoveContinue').Add_Click({
+        if ($dialog.FindName('RemovePackage').IsChecked) { $script:cbRemoveChoice = 'package' }
+        elseif ($dialog.FindName('RemoveProject').IsChecked) { $script:cbRemoveChoice = 'project' }
+        elseif ($dialog.FindName('RemoveBoth').IsChecked) { $script:cbRemoveChoice = 'both' }
+        else { return }
+        $dialog.Close()
+    })
+    $dialog.FindName('RemoveCancel').Add_Click({ $script:cbRemoveChoice = $null; $dialog.Close() })
+    [void]$dialog.ShowDialog()
+    return $script:cbRemoveChoice
+}
+
+function Remove-CyberButlerPackage {
+    param([Parameter(Mandatory = $true)][string]$InstallerRoot)
+    $packageRoot = Split-Path -Parent ([IO.Path]::GetFullPath($InstallerRoot)).TrimEnd([char]92)
+    if (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'START-INSTALLER.cmd'))) {
+        throw ('Refusing to remove package without START-INSTALLER.cmd: ' + $packageRoot)
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'installer\CyberButler.Installer.GUI.ps1'))) {
+        throw ('Refusing to remove package without installer GUI: ' + $packageRoot)
+    }
+    $targets = New-Object System.Collections.Generic.List[string]
+    $targets.Add($packageRoot)
+    $versionPath = Join-Path $packageRoot 'VERSION'
+    if (Test-Path -LiteralPath $versionPath) {
+        try {
+            $version = (Get-Content -LiteralPath $versionPath -Raw).Trim()
+            $zip = Join-Path (Split-Path -Parent $packageRoot) ('public-release-v' + $version + '.zip')
+            if ($version -and (Test-Path -LiteralPath $zip)) { $targets.Add($zip) }
+        } catch { }
+    }
+    $commands = @()
+    foreach ($target in $targets) {
+        $escaped = $target.Replace("'", "''")
+        $commands += ("Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction SilentlyContinue")
+    }
+    $command = 'Start-Sleep -Seconds 2; ' + ($commands -join '; ')
+    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $command) | Out-Null
+    return ($targets -join '; ')
+}
+
 function Show-CyberButlerPostInstallWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,
@@ -324,7 +418,7 @@ function Start-CyberButlerGuiInstall {
             try {
                 $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 40 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
                 if ($tail.Count -gt 0) {
-                    $last = [string]$tail[$tail.Count - 1]
+                    $last = Get-CyberButlerSafeLogLine ([string]$tail[$tail.Count - 1])
                     $text = ($tail -join "`n")
                     $target = 10
                     if ($text -match 'CORE start') { $target = 15 }

@@ -575,7 +575,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
         $failure = [pscustomobject]@{ step = 'totp'; message = 'APPROVE TOTP required'; kind = 'needs_approval' }
     } else {
         try {
-            $totpPrepared = Show-CyberButlerTotpEnrollment -Root $InstallPath -VaultPath $vaultPath -Issuer 'Cyber-Butler' -Account $OwnerQQ -Handlers $Handlers
+            $totpPrepared = Show-CyberButlerTotpEnrollment -Root $InstallPath -VaultPath $vaultPath -Issuer 'Cyber-Butler' -Account $OwnerQQ -SuppressSecrets:$GuiMode -Handlers $Handlers
         } catch {
             Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'failed' -Reason ('material generation failed: ' + $_.Exception.Message)
             $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP material generation failed: ' + $_.Exception.Message) }
@@ -624,6 +624,12 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
                 $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
                 if (-not (Complete-MainSecurityStep -Name 'totp' -Result $result)) {
                     $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP: ' + [string]$result.status + ' ' + [string]$result.message) }
+                } else {
+                    $qrPath = Join-Path $vaultPath 'totp_qr.png'
+                    if (Test-Path -LiteralPath $qrPath) {
+                        Remove-Item -LiteralPath $qrPath -Force -ErrorAction SilentlyContinue
+                        Write-InstallerLine 'TOTP QR image removed after enrollment.' -Level INFO
+                    }
                 }
             }
         }

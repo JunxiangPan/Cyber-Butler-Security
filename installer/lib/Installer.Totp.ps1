@@ -171,6 +171,7 @@ function Show-CyberButlerTotpEnrollment {
         [string]$Issuer,
         [Parameter(Mandatory = $true)]
         [string]$Account,
+        [switch]$SuppressSecrets,
         $Handlers = @{}
     )
 
@@ -186,7 +187,9 @@ function Show-CyberButlerTotpEnrollment {
 
     Write-Host ''
     Write-Host '================ TOTP ENROLLMENT ================'
-    if ($existing) {
+    if ($SuppressSecrets) {
+        Write-Host 'TOTP material is ready. Use the GUI dialog to scan and save recovery codes; sensitive details are not written to the log.'
+    } elseif ($existing) {
         Write-Host 'Existing TOTP material found; it will not be regenerated.'
         Write-Host ('QR image: ' + $paths.qr)
         Write-Host ('Recovery codes: ' + $paths.recovery)
@@ -216,8 +219,10 @@ function Show-CyberButlerTotpEnrollment {
             Write-Host ('Recovery codes: ' + $paths.recovery)
         }
     }
-    Write-Host 'Scan the QR image or enter the Base32 Secret in your TOTP app.'
-    Write-Host 'Then confirm SCANNED and RECOVERY-SAVED.'
+    if (-not $SuppressSecrets) {
+        Write-Host 'Scan the QR image or enter the Base32 Secret in your TOTP app.'
+        Write-Host 'Then confirm SCANNED and RECOVERY-SAVED.'
+    }
     Write-Host '================================================'
     Write-Host ''
 

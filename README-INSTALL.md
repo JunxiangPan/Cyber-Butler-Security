@@ -172,16 +172,42 @@ C:\ProgramData\CyberButler\         安装状态和诊断
 删除程序 / Uninstall
 ```
 
-确认后会：
+选择删除范围：
+
+```text
+只删除安装程序/发布包
+只删除主项目 C:\CyberButler
+同时删除发布包和主项目
+```
+
+然后进行二次确认。
+
+主项目删除会：
 
 - 停止并删除三个计划任务
 - 停止项目端口上的进程
 - 删除 Cyber-Butler 防火墙规则
 - 删除安装目录
 - 删除 `C:\ProgramData\CyberButler`
-- 不删除发布包、下载的 zip 或源目录
 
-## 10. 安全提醒 / Security
+发布包删除会删除解压后的发布目录；如果同目录下存在与版本匹配的 `public-release-v*.zip`，也会一并删除。
+
+卸载不可恢复；确认前先备份需要保留的数据。
+
+## 10. 日志与二维码 / Logs and QR
+
+- GUI 模式不再把 TOTP secret、恢复码或二维码路径写入安装器日志。
+- 状态窗口也会过滤这些行。
+- TOTP 确认成功后，安装器会删除 `C:\CyberButler	ools	otp-vault	otp_qr.png`。
+- 旧版本留下的临时日志可能包含敏感内容，建议清理：
+
+```powershell
+Remove-Item "$env:TEMP\cb-gui-totp-*" -Recurse -Force -ErrorAction SilentlyContinue
+```
+
+如果旧日志或二维码已经外泄，必须重新生成 TOTP，不要继续使用旧的 recovery codes。
+
+## 11. 安全提醒 / Security
 
 - TOTP secret 和 recovery codes 只离线保存。
 - 不要把 API Key、SMTP 授权码、TOTP secret 发到聊天或仓库。
