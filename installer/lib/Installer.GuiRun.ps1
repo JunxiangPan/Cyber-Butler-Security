@@ -303,6 +303,7 @@ function Start-CyberButlerGuiInstall {
     $script:cbGuiErrPath = $stderrPath
     & $script:cbGuiOnStatus ($script:cbGuiText['Started'])
     $script:cbGuiProcess = $process
+    $script:cbGuiStartTime = Get-Date
     $script:cbGuiSignalDir = $signalDir
     $script:cbGuiTotpSeen = $false
     $script:cbGuiPercent = 0
@@ -365,6 +366,7 @@ function Start-CyberButlerGuiInstall {
             recovery_saved = [bool]$result.recovery_saved
         } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json') -Encoding UTF8
         try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { }
+        $script:cbGuiTimer.Start()
     })
     $script:cbGuiTimer.Start()
     return $process

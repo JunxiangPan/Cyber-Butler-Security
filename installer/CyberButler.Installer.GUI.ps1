@@ -312,6 +312,7 @@ function Get-GuiInstallStatusText {
         } catch { }
     }
 
+    if ($elapsedSec -eq 0 -and $script:cbGuiStartTime) { $elapsedSec = [int]((Get-Date) - $script:cbGuiStartTime).TotalSeconds }
     $lastText = 'no log'
     $ageSeconds = $null
     $tail = @()
@@ -335,6 +336,7 @@ function Get-GuiInstallStatusText {
     $percent = [int]$installProgress.Value
     $stage = Get-GuiStageText $percent
     $stageStartedAt = $script:GuiStageStartedAt
+    if (-not $stageStartedAt -and $script:cbGuiStartTime) { $stageStartedAt = $script:cbGuiStartTime }
     if (-not $stageStartedAt -and $script:cbGuiProcess) {
         try { $stageStartedAt = $script:cbGuiProcess.StartTime } catch { }
     }
@@ -374,6 +376,9 @@ function Get-GuiInstallStatusText {
     for ($i = $stageIndex + 1; $i -lt $nominalStages.Count; $i++) { $laterRemaining += [int]$nominalStages[$i] }
     $totalRemaining = [int]($stepRemaining + $laterRemaining)
     if ($totpReady -and -not $totpConfirmed) { $totalRemaining = $null }
+    if ($reportStatus -eq 'success') {
+        $percent = 100; $stage = 'complete'; $stepPercent = 100; $stepRemaining = 0; $totalRemaining = 0
+    }
 
     $ports = @()
     $tasks = @()
