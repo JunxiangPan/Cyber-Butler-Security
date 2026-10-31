@@ -264,8 +264,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "062495655ecc9ee3d84096149cce8297aff33d86476bb5892e966eb43e889fcc",
-      "size": 35899
+      "sha256": "8da9be78a6add17c61f4f37d38d24f57c0a12ea8b76981876bef07967c9c4dba",
+      "size": 37076
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -274,8 +274,8 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "708c4dcba53c5d1a8460717cd268c062a02de2323ce20e2f3409b4d80f619fe7",
-      "size": 20980
+      "sha256": "42db83332cd962aee75ae9f94ee0f3da0d3ef6654433a75f31f043c62275d590",
+      "size": 21654
     },
     {
       "path": "installer/core-sources.json",
@@ -294,13 +294,13 @@
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
-      "sha256": "e00d52d421c864d6ff2536ac712d999480fe845d49f4f7362526be23e6972fa6",
-      "size": 8231
+      "sha256": "982aa209da8ec44ada9e19ba3cbeba1010fb9974efb182ad6f0ab9cd3fd5234b",
+      "size": 9614
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "c9f032dfad58c24980025ba7d7556bf385526102ddcfb498b6ec3295efd1df48",
-      "size": 22858
+      "sha256": "128b2d50d66f01e650d2478e174752d54e4268e55aeb4eaa8729a1f59ed8952d",
+      "size": 31404
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -314,8 +314,8 @@
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
-      "sha256": "1357c723107fae653c38eec344a009216e1652046967d59c4dd516316d725cca",
-      "size": 17216
+      "sha256": "b37b844f2dc850fa897b2db933840cf373fc5fb38013cf65e5a148ba7e179ffa",
+      "size": 17764
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
@@ -334,8 +334,8 @@
     },
     {
       "path": "installer/lib/Installer.Secrets.ps1",
-      "sha256": "c4f3bfd2872ab675c8d625a351e33c4e03166ff6233870b86198c4642b725755",
-      "size": 19227
+      "sha256": "addd45f2718011bf318b40b12cf7c7af7511196db8f03b8ff5cd1f87b73f5d23",
+      "size": 19975
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
@@ -344,8 +344,8 @@
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
-      "sha256": "3d7f8db82e1f209aa01719312f63787e56588df2629678023773e2a3850f93d3",
-      "size": 9763
+      "sha256": "76770da31aa3fbec440fc1de588e8c30a76293e217f765d654abfe20855649f4",
+      "size": 9480
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
@@ -384,8 +384,8 @@
     },
     {
       "path": "installer/tests/Installer.Core.Tests.ps1",
-      "sha256": "5626365f0e2f7dd1fc77092afb23acb3e455ecba521e9149ba42b2dd8c8c9188",
-      "size": 9823
+      "sha256": "68e63f547374e0d6c87a5694b87e4aa4814bb3b8ada56d6ff63d3fb8ae1d7154",
+      "size": 12296
     },
     {
       "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
@@ -399,13 +399,13 @@
     },
     {
       "path": "installer/tests/Installer.Journal.Tests.ps1",
-      "sha256": "14d326b6b7142a21ff05b5abb0c601fc89a2978b5ab16dd5dd528800609eab1a",
-      "size": 8787
+      "sha256": "76e3f8d1c4e985890ae8ca709ec2433b91fa925c896ef200981531c1b5e3398d",
+      "size": 12243
     },
     {
       "path": "installer/tests/Installer.Main.Tests.ps1",
-      "sha256": "38511a5c76eaec8c9f242bc8585fe898bdcddf1b6eb9049829fd6db44a57c0ea",
-      "size": 22739
+      "sha256": "1a906feab2866dd7d4f76a43d21d835ecba2542651ce7f3bf77e6dd7c58a1220",
+      "size": 24397
     },
     {
       "path": "installer/tests/Installer.Migration.Tests.ps1",
@@ -429,8 +429,8 @@
     },
     {
       "path": "installer/tests/Installer.Secrets.Tests.ps1",
-      "sha256": "89a06f5b2395381b598b3f7642ec3828bea20cf134b5877e3ffb61074ed0d9ff",
-      "size": 11608
+      "sha256": "d372161830defa61f5804622f7216df67d128456bae6e716796d9fa52452421e",
+      "size": 12624
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
