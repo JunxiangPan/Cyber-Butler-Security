@@ -115,19 +115,33 @@ $xaml = @'
           <ComboBoxItem Content="LAN"/>
         </ComboBox>
 
-        <TextBlock x:Name="PersonalPluginsLabel" Grid.Row="2" Grid.Column="0" Text="Personal plugins" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="PersonalPluginsBox" Margin="0,12,0,0"
-                 Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+        <Expander x:Name="AdvancedExpander" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
+                  IsExpanded="False" Foreground="#CBD5E1" Margin="0,14,0,0"
+                  Header="Advanced: personal plugins / API key">
+          <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="180"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="20"/>
+              <ColumnDefinition Width="180"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="PersonalPluginsLabel" Grid.Row="0" Grid.Column="0" Text="Personal plugins" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="PersonalPluginsBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+            <TextBlock x:Name="ApiKeyFileLabel" Grid.Row="0" Grid.Column="3" Text="API key file (optional)" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="4" x:Name="ApiKeyFileBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+            <TextBlock x:Name="ApiKeyNote" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
+                       Text="API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log."
+                       Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
+          </Grid>
+        </Expander>
 
-        <TextBlock x:Name="ApiKeyFileLabel" Grid.Row="2" Grid.Column="3" Text="API key file (optional)" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
-        <TextBox Grid.Row="2" Grid.Column="4" x:Name="ApiKeyFileBox" Margin="0,12,0,0"
-                 Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
-
-        <TextBlock x:Name="ApiKeyNote" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
-                   Text="API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log."
-                   Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
-
-        <TextBlock x:Name="QuickHelp" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
+        <TextBlock x:Name="QuickHelp" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
                    Text=""
                    Foreground="#A8B7CB" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0"/>
       </Grid>
@@ -187,6 +201,7 @@ $logBox = $window.FindName('LogBox')
 $statusText = $window.FindName('StatusText')
 $installerPathText = $window.FindName('InstallerPathText')
 $installerPathText.Text = $installerPath
+$installerPathText.ToolTip = $installerPath
 $languageBox = $window.FindName('LanguageBox')
 $headerTitle = $window.FindName('HeaderTitle')
 $headerSubtitle = $window.FindName('HeaderSubtitle')
@@ -198,6 +213,7 @@ $bindLabel = $window.FindName('BindLabel')
 $personalPluginsLabel = $window.FindName('PersonalPluginsLabel')
 $apiKeyFileLabel = $window.FindName('ApiKeyFileLabel')
 $apiKeyNote = $window.FindName('ApiKeyNote')
+$advancedExpander = $window.FindName('AdvancedExpander')
 
 $script:UiText = @{
     zh = @{
@@ -206,9 +222,9 @@ $script:UiText = @{
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
         PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
-        QuickHelp='主人 QQ：填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。它用于 TOTP 标签、审批/通知路由和 owner allowlist；机器人 QQ 在 AstrBot/QQ 适配器里单独配置。安全档位：High/Medium/Light 的区别见 Help；系统至少 Windows 10/11 x64、管理员权限、PowerShell 5.1、Python 3.10–3.13，档位不改变这些前提。本地模型显存建议：24GB+ 用 20–24B，16GB 用 7–14B，8GB 用 3–7B，无独显可用 API-only。WebUI 绑定：Loopback 仅本机；Tailscale 私有网络；LAN 暴露局域网（High 禁止 LAN）。个人插件：不随包发布，需要你已有的 AstrBot 插件目录，包含 private_companion（陪伴核心）、livingmemory（长期记忆）、memorix（图谱+向量记忆）；安装器只复制这三个插件，不下载。API Key：本字段只写 DeepSeek 的 sk-... 密钥；其他大模型/兼容 API 需要在 AstrBot 的 provider 配置中单独添加，不能在这里直接切换。获取 DeepSeek Key：https://platform.deepseek.com/api_keys 。批准勾选：表示你已阅读说明并授权安装器执行这些步骤。'
+        QuickHelp='主人 QQ：你自己的主账号，不是机器人 QQ。安装路径、安全档位和 WebUI 绑定可直接设置；个人插件与 API Key 在“高级选项”中。详细差异点 Help。'
         HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。用于 TOTP 标签、审批/通知路由、YOUR_QQ_ID 和 owner allowlist。机器人 QQ 在 AstrBot/QQ 适配器中单独配置。`n`n安全档位`nHigh：Windows 10/11 x64 + 管理员 + 独立本地服务账户；AstrBot/WebUI 以服务身份运行；TOTP vault 对 Agent 账户有 Deny；LAN 被禁止；隔离最强。`nMedium：使用当前桌面账户，Interactive 计划任务；无法对同一账户强制 TOTP vault Deny；适合单机测试。`nLight：减少 ACL/审计/TOTP egress，仅建议低价值或临时环境。`n档位不改变硬件前提：Windows 10/11 x64、PowerShell 5.1、管理员权限、Python 3.10–3.13。本地模型显存参考：24GB+ 可跑 20–24B；16GB 可跑 7–14B；8GB 可跑 3–7B 量化；无独显或不小于 8GB 时可用 API-only；所有档位都支持 API-only。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大；High 禁止 LAN。`n`n个人插件`n不随开源包发布。需要你已有的 AstrBot 插件目录，包含三个插件：private_companion（我会永远陪着你：角色状态、日程、关系、主动消息、陪伴核心）、livingmemory（长期记忆生命周期）、memorix（图谱+向量混合检索记忆）。安装器只复制这三个名字，不联网下载；获取渠道是你现有 AstrBot/data/plugins 或上游仓库。`n`nAPI Key`n本字段填写包含 DeepSeek API Key 的文件路径，通常 sk-...，只用于 DeepSeek provider。其他大模型或 OpenAI-compatible API 需要在 AstrBot 的 provider 配置/WebUI 中单独添加，不能靠本字段直接切换。DeepSeek Key 获取：https://platform.deepseek.com/api_keys 。`n`n批准勾选`n只有勾选后才会提交 approval token；GUI 不会静默批准安全步骤。"
-        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; RemoveTitle='删除 Cyber-Butler'; RemoveHint='选择要删除的内容。删除不可恢复；同目录下与版本匹配的下载 zip 也会一并删除。'; RemovePackage='只删除安装程序/发布包'; RemoveProject='只删除主项目 C:\CyberButler'; RemoveBoth='同时删除发布包和主项目'; Continue='继续'; RemoveConfirm2='二次确认：确定执行不可恢复的删除吗？'; RemoveBothDone='主项目已删除；发布包将在 GUI 退出后删除。'; RemovePackageDone='发布包将在 GUI 退出后删除。'; RemoveProjectDone='主项目已删除。'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; StatusStep='步骤完成度'; StatusStepEta='当前步骤预计剩余'; StatusTotalEta='总预计剩余'; StatusElapsed='已用时间'; StatusProcessDetail='进程详情'; StatusTOTP='TOTP 状态'; StatusLog='日志'; StatusNote='预计值基于当前阶段和日志活动，不是保证值。'; Copy='复制'; RefreshStatus='刷新'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
+        Preflight='检查环境'; Start='开始安装'; Installing='安装中...'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; Advanced='高级选项：个人插件 / API Key'; PathTip='Cyber-Butler 的安装目录，默认 C:\CyberButler。'; TierTip='High：独立服务账户；Medium：当前桌面账户；Light：较低保护。详见 Help。'; OwnerTip='填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。'; BindTip='Loopback 仅本机；Tailscale 私有网络；LAN 局域网暴露。'; PluginsTip='可选目录，包含 private_companion、livingmemory、memorix 三个插件。'; ApiTip='可选 DeepSeek API Key 文件路径，通常 sk-...；获取地址见 Help。'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'; RemoveTitle='删除 Cyber-Butler'; RemoveHint='选择要删除的内容。删除不可恢复；同目录下与版本匹配的下载 zip 也会一并删除。'; RemovePackage='只删除安装程序/发布包'; RemoveProject='只删除主项目 C:\CyberButler'; RemoveBoth='同时删除发布包和主项目'; Continue='继续'; RemoveConfirm2='二次确认：确定执行不可恢复的删除吗？'; RemoveBothDone='主项目已删除；发布包将在 GUI 退出后删除。'; RemovePackageDone='发布包将在 GUI 退出后删除。'; RemoveProjectDone='主项目已删除。'; CheckStatus='检查状态'; StatusTitle='安装状态'; StatusRunning='安装器正在运行。'; StatusStalled='安装器进程还在，但已经很久没有新输出，可能卡住。'; StatusWaitingTotp='正在等待 TOTP 确认。'; StatusCompleted='安装已经完成。'; StatusFailed='安装失败。'; StatusNoActive='当前没有正在运行的安装，也没有找到成功报告。'; StatusStage='当前阶段'; StatusProcess='安装器进程'; StatusLastOutput='最后输出'; StatusReport='报告状态'; StatusPorts='服务端口'; StatusStep='步骤完成度'; StatusStepEta='当前步骤预计剩余'; StatusTotalEta='总预计剩余'; StatusElapsed='已用时间'; StatusProcessDetail='进程详情'; StatusTOTP='TOTP 状态'; StatusLog='日志'; StatusNote='预计值基于当前阶段和日志活动，不是保证值。'; Copy='复制'; RefreshStatus='刷新'; PostTitle='安装完成'; PostSubtitle='三个服务已安装并启动。下一步打开 WebUI，配置机器人 QQ 和模型 provider。'; PostNext='下一步：打开 WebUI -> 配置机器人 QQ 适配器 -> 添加其他模型 provider -> 发测试消息 -> 离线保存 TOTP 恢复码。'; OpenWebUI='打开 WebUI'; OpenAstrBot='打开 AstrBot'; OpenGuide='安装说明'; OpenReport='安装报告'; Close='关闭'
         Approval='我已阅读上方说明，确认执行这些安装步骤'; NeedApproval='请先勾选安装确认。'
         TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，等待扫码和确认...'; TotpConfirmed='TOTP 已确认，继续安装服务...'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
@@ -222,9 +238,9 @@ $script:UiText = @{
         InstallPath='Install path'; Tier='Tier'; OwnerQQ='Owner QQ'; Bind='WebUI bind'
         PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional, sk-...)'
         ApiKeyNote='API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log.'
-        QuickHelp='Owner QQ: enter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, and owner allowlist; the bot QQ is configured separately in AstrBot/QQ. Tier: see Help for High/Medium/Light; all require Windows 10/11 x64, admin, PowerShell 5.1 and Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B, no dGPU for API-only. WebUI bind: Loopback local only; Tailscale private tailnet; LAN network exposure (High rejects LAN). Personal plugins: not bundled; provide an existing AstrBot plugin folder with private_companion (companion core), livingmemory (long-term memory), memorix (graph+vector memory); the installer copies only these, never downloads. API key: this field writes a DeepSeek sk-... key only; other models/OpenAI-compatible endpoints must be configured in AstrBot providers, not switched here. Get a DeepSeek key: https://platform.deepseek.com/api_keys . Approval checkbox: you have read the notes and authorize these steps.'
+        QuickHelp='Owner QQ: your own main account, not the bot QQ. Set path, tier and WebUI bind here; personal plugins and API key are under Advanced. Open Help for details.'
         HelpBody="Cyber-Butler installer options`n`nOwner QQ`nEnter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, YOUR_QQ_ID and the owner allowlist. The bot QQ is configured separately in AstrBot/QQ.`n`nSecurity tier`nHigh: Windows 10/11 x64 + admin + a dedicated local service account; AstrBot/WebUI run as services; TOTP vault denies the agent account; LAN is rejected; strongest isolation.`nMedium: current desktop account with Interactive scheduled tasks; a same-account TOTP vault deny cannot be enforced; suitable for single-machine testing.`nLight: reduced ACL/audit/TOTP egress; only for temporary or low-value environments.`nTier does not change the hardware baseline: Windows 10/11 x64, PowerShell 5.1, admin rights, Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B quantized, no dGPU for API-only; every tier supports API-only.`n`nWebUI bind`nLoopback: 127.0.0.1 only, safest.`nTailscale: private tailnet access; requires Tailscale.`nLAN: reachable on the local network; largest exposure; High rejects LAN.`n`nPersonal plugins`nNot bundled. Provide an existing AstrBot plugin folder containing private_companion (the companion core: character state, schedule, relationships, proactive messages), livingmemory (long-term memory lifecycle), and memorix (graph+vector hybrid memory). The installer copies only those three and never downloads them; obtain them from your existing AstrBot/data/plugins or their upstream repositories.`n`nAPI key`nThis field takes a file path containing a DeepSeek API key (usually sk-...) and writes only the DeepSeek provider secret. Other models or OpenAI-compatible endpoints must be configured in AstrBot providers/WebUI; this field does not switch providers. Get a DeepSeek key: https://platform.deepseek.com/api_keys .`n`nApproval checkbox`nIt supplies approval tokens only after it is checked; the GUI never silently approves security steps."
-        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Remove='Uninstall'; RemoveConfirm='This stops services and permanently deletes the project install directory and ProgramData state. Continue?'; RemoveDone='Uninstall completed.'; RemoveFailed='Uninstall failed: '; RemoveTitle='Remove Cyber-Butler'; RemoveHint='Choose what to remove. This cannot be undone; a matching downloaded zip in the same parent folder is removed too.'; RemovePackage='Installer / release package only'; RemoveProject='Installed C:\CyberButler project only'; RemoveBoth='Both release package and installed project'; Continue='Continue'; RemoveConfirm2='Second confirmation: delete permanently? This cannot be undone.'; RemoveBothDone='Project removed; the release package will be removed after this GUI exits.'; RemovePackageDone='The release package will be removed after this GUI exits.'; RemoveProjectDone='The installed project was removed.'; CheckStatus='Check status'; StatusTitle='Install status'; StatusRunning='The installer is running.'; StatusStalled='The installer process exists, but there has been no new output for a long time; it may be stalled.'; StatusWaitingTotp='Waiting for TOTP confirmation.'; StatusCompleted='Installation has completed.'; StatusFailed='Installation failed.'; StatusNoActive='No active installation and no successful report found.'; StatusStage='Stage'; StatusProcess='Installer process'; StatusLastOutput='Last output'; StatusReport='Report status'; StatusPorts='Service ports'; StatusStep='Step completion'; StatusStepEta='Step ETA'; StatusTotalEta='Overall ETA'; StatusElapsed='Elapsed'; StatusProcessDetail='Process details'; StatusTOTP='TOTP state'; StatusLog='Log'; StatusNote='ETAs are heuristic from the current stage and log activity, not guarantees.'; Copy='Copy'; RefreshStatus='Refresh'; PostTitle='Installation complete'; PostSubtitle='The three services are installed and running. Next, open the WebUI and configure the bot QQ and model provider.'; PostNext='Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> store TOTP recovery codes offline.'; OpenWebUI='Open WebUI'; OpenAstrBot='Open AstrBot'; OpenGuide='Install guide'; OpenReport='Install report'; Close='Close'
+        Preflight='Run preflight'; Start='Start installation'; Installing='Installing...'; Report='Open report folder'; Exit='Exit'; Help='Help'; Remove='Uninstall'; Advanced='Advanced: personal plugins / API key'; PathTip='Cyber-Butler install directory (default C:\CyberButler).'; TierTip='High: separate service account; Medium: current desktop account; Light: reduced protection. See Help.'; OwnerTip='Your own main QQ (owner/admin account), not the bot QQ.'; BindTip='Loopback: local only; Tailscale: private tailnet; LAN: network exposure.'; PluginsTip='Optional folder containing private_companion, livingmemory and memorix.'; ApiTip='Optional DeepSeek API key file path (usually sk-...); see Help for the URL.'; RemoveConfirm='This stops services and permanently deletes the project install directory and ProgramData state. Continue?'; RemoveDone='Uninstall completed.'; RemoveFailed='Uninstall failed: '; RemoveTitle='Remove Cyber-Butler'; RemoveHint='Choose what to remove. This cannot be undone; a matching downloaded zip in the same parent folder is removed too.'; RemovePackage='Installer / release package only'; RemoveProject='Installed C:\CyberButler project only'; RemoveBoth='Both release package and installed project'; Continue='Continue'; RemoveConfirm2='Second confirmation: delete permanently? This cannot be undone.'; RemoveBothDone='Project removed; the release package will be removed after this GUI exits.'; RemovePackageDone='The release package will be removed after this GUI exits.'; RemoveProjectDone='The installed project was removed.'; CheckStatus='Check status'; StatusTitle='Install status'; StatusRunning='The installer is running.'; StatusStalled='The installer process exists, but there has been no new output for a long time; it may be stalled.'; StatusWaitingTotp='Waiting for TOTP confirmation.'; StatusCompleted='Installation has completed.'; StatusFailed='Installation failed.'; StatusNoActive='No active installation and no successful report found.'; StatusStage='Stage'; StatusProcess='Installer process'; StatusLastOutput='Last output'; StatusReport='Report status'; StatusPorts='Service ports'; StatusStep='Step completion'; StatusStepEta='Step ETA'; StatusTotalEta='Overall ETA'; StatusElapsed='Elapsed'; StatusProcessDetail='Process details'; StatusTOTP='TOTP state'; StatusLog='Log'; StatusNote='ETAs are heuristic from the current stage and log activity, not guarantees.'; Copy='Copy'; RefreshStatus='Refresh'; PostTitle='Installation complete'; PostSubtitle='The three services are installed and running. Next, open the WebUI and configure the bot QQ and model provider.'; PostNext='Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> store TOTP recovery codes offline.'; OpenWebUI='Open WebUI'; OpenAstrBot='Open AstrBot'; OpenGuide='Install guide'; OpenReport='Install report'; Close='Close'
         Approval='I have read the notes above and approve these installer steps'; NeedApproval='Please check the approval box first.'
         TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; waiting for scan and confirmation...'; TotpConfirmed='TOTP confirmed; continuing services...'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
@@ -258,7 +274,14 @@ function Apply-GuiLanguage {
     $removeButton.Content = Get-UiText 'Remove'
     $statusButton.Content = Get-UiText 'CheckStatus'
     $approvalCheck.Content = Get-UiText 'Approval'
+    $advancedExpander.Header = Get-UiText 'Advanced'
     $quickHelp.Text = Get-UiText 'QuickHelp'
+    $installPathBox.ToolTip = Get-UiText 'PathTip'
+    $tierBox.ToolTip = Get-UiText 'TierTip'
+    $ownerQQBox.ToolTip = Get-UiText 'OwnerTip'
+    $bindBox.ToolTip = Get-UiText 'BindTip'
+    $personalPluginsBox.ToolTip = Get-UiText 'PluginsTip'
+    $apiKeyFileBox.ToolTip = Get-UiText 'ApiTip'
     if ($statusText.Text -eq '' -or $statusText.Text -eq 'Ready.' -or $statusText.Text -eq '就绪。') {
         $statusText.Text = Get-UiText 'Ready'
     }
@@ -274,6 +297,7 @@ function Write-GuiLog([string]$message) {
 
 
 function Set-GuiBusy([bool]$Busy) {
+    $startButton.Content = if ($Busy) { Get-UiText 'Installing' } else { Get-UiText 'Start' }
     foreach ($control in @(
         $startButton, $reportButton, $removeButton, $helpButton,
         $languageBox, $installPathBox, $tierBox, $ownerQQBox, $bindBox,

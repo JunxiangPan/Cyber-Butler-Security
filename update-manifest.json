@@ -24,8 +24,8 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "6f4a668643438b6097bf398e587dc69ef50fb562dcec86dab7707d35a7a6f106",
-      "size": 6715
+      "sha256": "87f575605a21edf1d830078ca7e69b3de0c53da32a9814cfb6190215b2754e75",
+      "size": 7619
     },
     {
       "path": "README.md",
@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "13c1acdc6ad371d54c7ffc9d34096e92c923f1e67ecdf4ac3b1eaa770d075638",
-      "size": 10225
+      "sha256": "57fba0d97ce5ff6c2843158ddbb50592e613e980bd56ce4cb6fb4b214936cb6f",
+      "size": 10724
     },
     {
       "path": "docs/使用说明.md",
@@ -284,13 +284,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "5d0cb77dc6f63427001688efc44358cf645252e30c63e62f0694032995dbeedd",
-      "size": 45833
+      "sha256": "c33eaae1da4343a6e31a6898b320418461fc1bce3d2a13f2258644e3533e0a25",
+      "size": 49086
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "ec6aedb3251fa4f36be8e5b527f5ed2854a2c5b9c49670073ace1df7b4e408fe",
-      "size": 42038
+      "sha256": "cb9b8594b01ddbe0692bc895d67e3f5dc77c477197031905dc71f4c6f77e4e67",
+      "size": 42432
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -354,8 +354,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "4a746f00de9261f2a03f420dfa1c4b97dd37c88a75de2c790a507af248d94472",
-      "size": 21044
+      "sha256": "bb12e43218ef413067d9934a65086367e3b7abe2b01310fc891eade659209d8d",
+      "size": 26390
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
@@ -404,8 +404,8 @@
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "8ab873139ee0e5bd1915bf7081576227aea01bb4c2683c88bae3b42bb2c3e722",
-      "size": 23328
+      "sha256": "80ce8a224d206396432c00480699e5953c80b23b91720f5a26553f3c99a1e0d2",
+      "size": 23591
     },
     {
       "path": "installer/lib/totp_material.py",
