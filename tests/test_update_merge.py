@@ -267,3 +267,27 @@ def test_baseline_detects_local_change(tmp_path: Path) -> None:
     assert update_merge_core.baseline_changes(target, overlay) == []
     path.write_bytes(b"local change")
     assert update_merge_core.baseline_changes(target, overlay) == ["tools/broker.py"]
+
+
+def test_apply_overlay_skips_overlay_manifest_metadata(tmp_path: Path) -> None:
+    staging = tmp_path / "staging"
+    target = tmp_path / "target"
+    (staging / "overlay" / "astrbot" / "core").mkdir(parents=True)
+    (target / "AstrBot" / "astrbot" / "core").mkdir(parents=True)
+    metadata = b'{"schema": 1, "files": []}\n'
+    runtime = b'print("runtime overlay")\n'
+    (staging / "overlay" / "overlay-manifest.json").write_bytes(metadata)
+    (staging / "overlay" / "astrbot" / "core" / "x.py").write_bytes(runtime)
+    manifest = _manifest(
+        [
+            ("overlay/overlay-manifest.json", metadata),
+            ("overlay/astrbot/core/x.py", runtime),
+        ]
+    )
+
+    result = update_merge_core.apply_overlay(staging, target, manifest)
+
+    assert result["skipped"] == ["overlay/overlay-manifest.json"]
+    assert "AstrBot/astrbot/core/x.py" in result["applied"]
+    assert (target / "AstrBot" / "astrbot" / "core" / "x.py").read_bytes() == runtime
+    assert not (target / "overlay" / "overlay-manifest.json").exists()

@@ -284,6 +284,10 @@ def apply_overlay(
     candidates: list[tuple[dict, str, Path, str]] = []
     for entry in entries:
         source_rel = _norm(entry.get("path"))
+        if source_rel == "overlay/overlay-manifest.json":
+            # Release metadata, not an AstrBot runtime overlay target.
+            skipped.append(source_rel)
+            continue
         source = _safe_under(staging, staging / Path(source_rel))
         if not source.is_file():
             logger.warning("overlay source missing; skipped: %s", source_rel)
