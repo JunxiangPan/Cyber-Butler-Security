@@ -1,4 +1,4 @@
-﻿# State journal, backups, and reverse actions for the Cyber-Butler installer.
+# State journal, backups, and reverse actions for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 before this file.
 
 function Save-CyberButlerJournal {
@@ -350,6 +350,11 @@ function Invoke-CyberButlerReverseAction {
                     throw "PID $processId no longer matches $($Action.expected_name)"
                 }
                 Stop-Process -Id $processId -Force -ErrorAction Stop
+            }
+        }
+        'stop-install-port-processes' {
+            if (Get-Command Stop-CyberButlerInstallProcesses -ErrorAction SilentlyContinue) {
+                Stop-CyberButlerInstallProcesses -Root ([string]$Action.root) -Ports @($Action.ports) | Out-Null
             }
         }
         'delete-created-account' {

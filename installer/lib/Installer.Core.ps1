@@ -358,6 +358,32 @@ function Test-CyberButlerCoreDeploy {
     }
 }
 
+function Test-CyberButlerCoreImportSmoke {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$InstallPath,
+        [Parameter(Mandatory = $true)]
+        [string]$PythonPath,
+        $Handlers = @{}
+    )
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.import') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.import' -Context ([pscustomobject]@{ InstallPath = $InstallPath }))
+    }
+    $astrbot = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'AstrBot'
+    Push-Location $astrbot
+    try {
+        $output = @(& $PythonPath -c 'import astrbot.core' 2>&1)
+        $code = [int]$LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
+    return [pscustomobject]@{
+        ok = ($code -eq 0)
+        exit_code = $code
+        output = @($output | ForEach-Object { [string]$_ })
+    }
+}
+
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -555,6 +581,14 @@ function Invoke-CyberButlerCoreDeploy {
                     throw ("pip install -r requirements.txt failed. pip log: " + $pipLog + ". Tail: " + $excerpt)
                 }
                 Write-Host 'CORE dependencies installed.'
+            }
+            if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
+                Write-Host 'CORE import smoke: astrbot.core'
+                $smoke = Test-CyberButlerCoreImportSmoke -InstallPath $root -PythonPath $venvPython -Handlers $Handlers
+                if (-not $smoke.ok) {
+                    throw ('AstrBot import smoke failed (exit ' + $smoke.exit_code + '): ' + ((@($smoke.output) | Select-Object -Last 8) -join ' | '))
+                }
+                Write-Host 'CORE import smoke: ok'
             }
         } else {
             New-Item -ItemType Directory -Path (Join-Path $astrbotTarget '.venv\Scripts') -Force | Out-Null

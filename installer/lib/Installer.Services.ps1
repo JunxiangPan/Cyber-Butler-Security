@@ -180,6 +180,47 @@ function Get-CyberButlerPortOwnerIds {
     return $ids.ToArray()
 }
 
+function Get-CyberButlerInstallPortOwnerIds {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+        [int[]]$Ports = @(6185, 18090, 8765, 8766)
+    )
+    $rootFull = [IO.Path]::GetFullPath($Root).TrimEnd('')
+    $ids = New-Object System.Collections.Generic.List[int]
+    if (-not (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue)) { return @() }
+    foreach ($port in @($Ports)) {
+        try {
+            foreach ($connection in @(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue)) {
+                $ownerId = [int]$connection.OwningProcess
+                if ($ownerId -le 0 -or $ids.Contains($ownerId)) { continue }
+                $proc = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $ownerId) -ErrorAction SilentlyContinue
+                if (-not $proc -or -not $proc.CommandLine) { continue }
+                if (([string]$proc.CommandLine).IndexOf($rootFull, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                    $ids.Add($ownerId)
+                }
+            }
+        } catch { }
+    }
+    return $ids.ToArray()
+}
+
+function Stop-CyberButlerInstallProcesses {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+        [int[]]$Ports = @(6185, 18090, 8765, 8766)
+    )
+    $stopped = New-Object System.Collections.Generic.List[int]
+    foreach ($processId in @(Get-CyberButlerInstallPortOwnerIds -Root $Root -Ports $Ports)) {
+        try {
+            Stop-Process -Id $processId -Force -ErrorAction Stop
+            $stopped.Add([int]$processId)
+        } catch { }
+    }
+    return $stopped.ToArray()
+}
+
 function Set-CyberButlerServiceTasks {
     param(
         [Parameter(Mandatory = $true)]
@@ -275,6 +316,7 @@ function Undo-CyberButlerServices {
             Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
         }
     }
+    $stoppedByPort = @(Stop-CyberButlerInstallProcesses -Root $Root)
     foreach ($taskName in @($TaskBackups.Keys)) {
         $backup = $TaskBackups[$taskName]
         if ($backup -and (Test-Path -LiteralPath $backup)) {
@@ -286,7 +328,7 @@ function Undo-CyberButlerServices {
         $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
         if ($process) { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue }
     }
-    return [pscustomobject]@{ action = 'removed'; tasks = @($CreatedTasks); processes = @($StartedProcessIds) }
+    return [pscustomobject]@{ action = 'removed'; tasks = @($CreatedTasks); processes = @($StartedProcessIds); port_processes = @($stoppedByPort) }
 }
 
 function Invoke-CyberButlerServices {

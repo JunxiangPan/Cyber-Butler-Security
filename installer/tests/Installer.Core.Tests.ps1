@@ -1,4 +1,4 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
@@ -188,4 +188,13 @@ Describe 'Installer core deployment' {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
     }
+
+    It 'imports astrbot.core with the pinned overlay pair' {
+        $repoRoot = Split-Path $installerRoot -Parent
+        $python = Join-Path $repoRoot 'AstrBot\.venv\Scripts\python.exe'
+        if (-not (Test-Path -LiteralPath $python)) { return }
+        $smoke = Test-CyberButlerCoreImportSmoke -InstallPath $repoRoot -PythonPath $python
+        $smoke.ok | Should Be $true
+    }
 }
+
