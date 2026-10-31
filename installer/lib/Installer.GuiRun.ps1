@@ -99,13 +99,14 @@ function Show-CyberButlerTotpDialog {
 
 function Show-CyberButlerStatusWindow {
     param(
-        [Parameter(Mandatory = $true)]$Owner,
+        $Owner = $null,
         [string]$Title = 'Install status',
         [string]$Text = '',
         [string]$Copy = 'Copy',
         [string]$Close = 'Close',
         [string]$Refresh = 'Refresh',
-        [scriptblock]$RefreshScript = $null
+        [scriptblock]$RefreshScript = $null,
+        [switch]$SelfTest
     )
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -126,6 +127,7 @@ function Show-CyberButlerStatusWindow {
              Foreground="#CBD5E1" BorderBrush="#1E293B" Padding="12"
              TextWrapping="NoWrap" Margin="0,12,0,0"/>
     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="RefreshStatusButton" Width="100" Height="34" Margin="0,0,8,0"/>
       <Button x:Name="CopyStatusButton" Width="100" Height="34" Margin="0,0,8,0"/>
       <Button x:Name="CloseStatusButton" Width="90" Height="34"/>
     </StackPanel>
@@ -134,6 +136,7 @@ function Show-CyberButlerStatusWindow {
 '@
     $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
     $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    if ($SelfTest) { return $true }
     $dialog.Owner = $Owner
     $dialog.FindName('StatusTitle').Text = $Title
     $dialog.FindName('StatusBody').Text = $Text

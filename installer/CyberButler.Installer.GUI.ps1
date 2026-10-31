@@ -606,7 +606,11 @@ $helpButton.Add_Click({
     [System.Windows.MessageBox]::Show((Get-UiText 'HelpBody'), (Get-UiText 'Help')) | Out-Null
 })
 
-$statusButton.Add_Click({ Show-GuiInstallStatus })
+$statusButton.Add_Click({
+    try { Show-GuiInstallStatus } catch {
+        [System.Windows.MessageBox]::Show(('Status check failed: ' + $_.Exception.Message), 'Install status') | Out-Null
+    }
+})
 
 $removeButton.Add_Click({
     if ($script:cbGuiProcess -and -not $script:cbGuiProcess.HasExited) {
