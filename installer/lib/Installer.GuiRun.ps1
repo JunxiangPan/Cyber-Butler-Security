@@ -235,6 +235,7 @@ function Start-CyberButlerGuiInstall {
     $script:cbGuiProcess = $process
     $script:cbGuiSignalDir = $signalDir
     $script:cbGuiTotpSeen = $false
+    $script:cbGuiPercent = 0
     $script:cbGuiTimer = New-Object System.Windows.Threading.DispatcherTimer
     $script:cbGuiTimer.Interval = [TimeSpan]::FromSeconds(1)
     $script:cbGuiTimer.add_Tick({
@@ -245,18 +246,26 @@ function Start-CyberButlerGuiInstall {
         }
         if ($script:cbGuiOnProgress -and $script:cbGuiLogPath -and (Test-Path -LiteralPath $script:cbGuiLogPath)) {
             try {
-                $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 8 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
+                $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 40 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
                 if ($tail.Count -gt 0) {
                     $last = [string]$tail[$tail.Count - 1]
-                    $percent = 10
-                    if ($last -match 'CORE start') { $percent = 15 }
-                    elseif ($last -match 'CORE downloaded') { $percent = 25 }
-                    elseif ($last -match 'CORE completed') { $percent = 45 }
-                    elseif ($last -match 'ACL') { $percent = 55 }
-                    elseif ($last -match 'TOTP') { $percent = 65 }
-                    elseif ($last -match 'SERVICE registering') { $percent = 80 }
-                    elseif ($last -match 'INSTALLER_OK|Install completed') { $percent = 100 }
-                    $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnProgress $percent $last })
+                    $text = ($tail -join "`n")
+                    $target = 10
+                    if ($text -match 'CORE start') { $target = 15 }
+                    if ($text -match 'CORE downloaded') { $target = 25 }
+                    if ($text -match 'Using cached|Installing collected|Successfully installed|Requirement already satisfied') { $target = 35 }
+                    if ($text -match 'CORE completed') { $target = 45 }
+                    if ($text -match 'ACL') { $target = 55 }
+                    if ($text -match 'TOTP') { $target = 65 }
+                    if ($text -match 'SERVICE registering') { $target = 80 }
+                    if ($text -match 'INSTALLER_OK|Install completed') { $target = 100 }
+                    if ($target -gt $script:cbGuiPercent) { $script:cbGuiPercent = $target }
+                    $percent = $script:cbGuiPercent
+                    $message = $last
+                    if ($last -match 'Using cached|Installing collected|Successfully installed|Requirement already satisfied') {
+                        $message = 'Core: pip install in progress (this can take several minutes)'
+                    }
+                    $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnProgress $percent $message })
                 }
             } catch { }
         }

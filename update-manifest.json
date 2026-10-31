@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.0",
+  "version": "1.6.1",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -23,9 +23,14 @@
       "size": 35161
     },
     {
+      "path": "README-INSTALL.md",
+      "sha256": "23d1bd414b6463435274a53eff494a8c69dd22d220c9b8df5921e3db8da35d28",
+      "size": 6393
+    },
+    {
       "path": "README.md",
-      "sha256": "1b61e33781156a7b8aca1fc7dae5840f462d86c0e7570c93ae35b316bff31e6a",
-      "size": 22533
+      "sha256": "6eb7a95ef979a1a8d32f0c5feeee70a5263f490941dad3aad3456bd77e45e2eb",
+      "size": 24289
     },
     {
       "path": "README_de.md",
@@ -64,8 +69,8 @@
     },
     {
       "path": "README_zh.md",
-      "sha256": "79a89ee93d38c7ec44ca3647786381d777afba31b01063493dc85d01b9a45ede",
-      "size": 20102
+      "sha256": "4b4c7bca649ab13fa543b73a4400ef2e5fd981338cbbde0d350937052d0acb50",
+      "size": 21752
     },
     {
       "path": "RELEASE_NOTES_v1.0.0.md",
@@ -208,13 +213,23 @@
       "size": 8113
     },
     {
+      "path": "RELEASE_NOTES_v1.6.1.md",
+      "sha256": "9cfca9654a756fba55d9e78b45e6192fd01872b7110d624ddc75cd8851cee5a2",
+      "size": 8416
+    },
+    {
       "path": "SECURITY.md",
-      "sha256": "4ac2a24db3d490422d55ca0d630f5743ee14cd2a2b4854d6539aba7947a9d84e",
-      "size": 26743
+      "sha256": "7c075334d0aae7d32b6b3a1ef267c782be981b1f5432e245e9472e83da22efd3",
+      "size": 28604
+    },
+    {
+      "path": "START-INSTALLER.cmd",
+      "sha256": "5534640f55bf976764c737132964a1c1147418904d361a3b0386ee3d3c365b3f",
+      "size": 267
     },
     {
       "path": "VERSION",
-      "sha256": "cb1d9a30bc4ab8a397f39b7d786bb82aca0b816077eefc35d7c822017d75f6a5",
+      "sha256": "6430a242e9486093ef6f71d9086d48f61ba102f0d2fb0f5b95334c6007a46db3",
       "size": 6
     },
     {
@@ -263,9 +278,14 @@
       "size": 78010
     },
     {
+      "path": "installer/CyberButler.Installer.GUI.ps1",
+      "sha256": "3d7e62c93c15a30a38fed67919f13172785aff1b6c0f03b3b9f32fba70d63ebe",
+      "size": 33103
+    },
+    {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "94a1f5d6dee9e321b1cf09a4556d444861c5733d59c39105fe5494a57ce00ca4",
-      "size": 38247
+      "sha256": "8b72bc18871746eacb1e161250e84e40d5a1cfec837c57c6d09d1418fcfbd30e",
+      "size": 42061
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -274,8 +294,18 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "a87b4e1ce4e324437b4353523e130514df93fe0af27ce237ee57972cedb6b1b3",
-      "size": 23210
+      "sha256": "53839a32459e7a39cfac8d91b1222c6cab3137ae3063e769513f98c75ac427c2",
+      "size": 23998
+    },
+    {
+      "path": "installer/Start-CyberButler-Installer.cmd",
+      "sha256": "d99b27edcd85950a142c1702187595beba899e96d2958023b259d2e734226284",
+      "size": 65
+    },
+    {
+      "path": "installer/Start-CyberButler-Installer.vbs",
+      "sha256": "c9272b7d89bbf17d7d4bd7347d5c3e8c03176ac35c867efaaf0232ce30493bca",
+      "size": 647
     },
     {
       "path": "installer/core-sources.json",
@@ -313,6 +343,16 @@
       "size": 13377
     },
     {
+      "path": "installer/lib/Installer.Gui.ps1",
+      "sha256": "fd467490894d9e8531bd5a4149ae4fed2dfc1663e478a87dfcd951e61b8ae82c",
+      "size": 1768
+    },
+    {
+      "path": "installer/lib/Installer.GuiRun.ps1",
+      "sha256": "a47739d82d36033695c4c99cb697dfaf42c4af60be87b262d0405f76fdcaec87",
+      "size": 16362
+    },
+    {
       "path": "installer/lib/Installer.Journal.ps1",
       "sha256": "a66e6de6ec71f395d188a47f48b9cf7a2d44592c5cade78bd22fe9bbedf825b7",
       "size": 18037
@@ -344,13 +384,13 @@
     },
     {
       "path": "installer/lib/Installer.Secrets.ps1",
-      "sha256": "addd45f2718011bf318b40b12cf7c7af7511196db8f03b8ff5cd1f87b73f5d23",
-      "size": 19975
+      "sha256": "3040162bbd1d54d4401b7434f0222014de9390c961b83d866950ca620bf41b37",
+      "size": 20087
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "b32630ffa394df30653f466312baff3fcd263088f36dcece556412c875ad01a7",
-      "size": 38277
+      "sha256": "031c42c977e6b7d1eac7141ed39ea8ae3f88646967720e6ae1f8634cd863fc66",
+      "size": 40212
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -359,8 +399,8 @@
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "216ea6f986c8ffbdfc7138486825c70391e6e82f8b1551861ade44f75427a7e3",
-      "size": 23001
+      "sha256": "8ab873139ee0e5bd1915bf7081576227aea01bb4c2683c88bae3b42bb2c3e722",
+      "size": 23328
     },
     {
       "path": "installer/lib/totp_material.py",
@@ -406,6 +446,11 @@
       "path": "installer/tests/Installer.Firewall.Tests.ps1",
       "sha256": "d2363e0b510291504234f8f18d4701ee30204b2abf2e6a4a6b2bdb855e6e4299",
       "size": 8222
+    },
+    {
+      "path": "installer/tests/Installer.Gui.Tests.ps1",
+      "sha256": "f2dd49cbab1a34ff874005b3da40710677ad30999e22dceefdb84eb93636788a",
+      "size": 1593
     },
     {
       "path": "installer/tests/Installer.Journal.Tests.ps1",
@@ -834,8 +879,8 @@
     },
     {
       "path": "tests/test_update_merge.py",
-      "sha256": "78ac3d57a87a9e6c8214230f4b149145707044bfe063724747efa4e6d5bb9c73",
-      "size": 9632
+      "sha256": "83ccea215bde6e0001a34b11f86f278ce07a90c30ad93769a5f2f1310d67c189",
+      "size": 10968
     },
     {
       "path": "tests/test_update_safety.py",
@@ -854,8 +899,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "6a13b48feb86df832d72a3ce71fa19942e354bd3a265b8457923546d875a3c31",
-      "size": 33596
+      "sha256": "2c120acfc908e86a8221e7c9726767f37a58a7c1639a7b3109a52ad0159e4f68",
+      "size": 34194
     },
     {
       "path": "tools/build_update_manifest.py",
@@ -1153,6 +1198,16 @@
       "size": 5242
     },
     {
+      "path": "tools/run-python-hidden.ps1",
+      "sha256": "e32cda1d94559e9e5cf0f1637ac6387d78c61519c6f9947aa611f7ba5321738e",
+      "size": 1122
+    },
+    {
+      "path": "tools/run-python-hidden.vbs",
+      "sha256": "a093ab034a64bdc0b4a33380b7613c7eec24c32bf8092e14d8a664b85a7663a6",
+      "size": 589
+    },
+    {
       "path": "tools/sanitize_for_release.py",
       "sha256": "ed96dcd463131318393d82e565702fdef10622d827a262be0cb8b2384d6b7f7f",
       "size": 4027
@@ -1209,8 +1264,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "52a7e2a45d3062d371413c8a2675e91f31cfd362de5f2dea883a9cfad4a3de2e",
-      "size": 11621
+      "sha256": "7244a1b5ede13f98611d591d0e9796220b1469b39253909edcb629ed05c8d57f",
+      "size": 11675
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1229,8 +1284,8 @@
     },
     {
       "path": "tools/update_merge_core.py",
-      "sha256": "b82e0a3483c04d35f0461e2dcaf47879dbb94dcbab3f53e8f87fabe48a65496d",
-      "size": 19249
+      "sha256": "84ac60ac6c64cb9365b1fa27fc382e4713b4186805ed7f9c351d3662b3ec8ea0",
+      "size": 19655
     },
     {
       "path": "tools/update_pubkey.pem",
@@ -1239,8 +1294,8 @@
     },
     {
       "path": "tools/verify_broker_acl.ps1",
-      "sha256": "b6f9bc2beb62e1b0f6b39ab36df5b857697d526c8c6571c29e144a10740effa3",
-      "size": 2384
+      "sha256": "9bbcc626bbb01771d917b1c849c4858ede887ecc62ff99587378bb5da9c6b223",
+      "size": 3051
     },
     {
       "path": "tools/verify_release.py",
@@ -1319,8 +1374,8 @@
     },
     {
       "path": "webui/start-services.ps1",
-      "sha256": "d28a4fd8565c6990270db9858a91f2e175c521ca025796ab508608c35a14f931",
-      "size": 2961
+      "sha256": "8b1278e2a7c877b0b89bb752cd80ba67daa3b02f1ff7b22813ce8ea5254112bc",
+      "size": 4514
     },
     {
       "path": "webui/static/dashboard.js",

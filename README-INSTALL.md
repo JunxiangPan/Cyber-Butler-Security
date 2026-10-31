@@ -150,7 +150,7 @@ installer\                          安装器、GUI、TOTP、服务脚本
 installer\Start-CyberButler-Installer.vbs
 installer\CyberButler.Installer.GUI.ps1
 VERSION                             版本号
-RELEASE_NOTES_v1.6.1.md             发布说明
+docs/releases/RELEASE_NOTES_v1.6.1.md  发布说明（历史版本也在此目录）
 AstrBot\ / webui\ / tools\           安装载荷
 ```
 

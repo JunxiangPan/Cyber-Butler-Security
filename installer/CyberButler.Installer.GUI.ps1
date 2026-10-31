@@ -120,17 +120,8 @@ $xaml = @'
                 Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
     </StackPanel>
 
-    <Grid Grid.Row="3" Margin="0,0,0,10">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-      <ProgressBar x:Name="InstallProgress" Height="8" Minimum="0" Maximum="100" Value="0"
-                   VerticalAlignment="Center" Foreground="#0EA5E9" Background="#1E293B"/>
-      <TextBlock x:Name="StepText" Grid.Column="1" Text="Ready." Foreground="#94A3B8"
-                 FontSize="11" Margin="12,0,0,0" VerticalAlignment="Center" Width="280"
-                 TextTrimming="CharacterEllipsis"/>
-    </Grid>
+    <ProgressBar Grid.Row="3" x:Name="InstallProgress" Height="8" Minimum="0" Maximum="100" Value="0"
+                 VerticalAlignment="Center" Foreground="#0EA5E9" Background="#1E293B" Margin="0,0,0,10"/>
 
     <TextBox Grid.Row="4" x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True"
              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
@@ -165,7 +156,6 @@ $closeButton = $window.FindName('CloseButton')
 $helpButton = $window.FindName('HelpButton')
 $quickHelp = $window.FindName('QuickHelp')
 $installProgress = $window.FindName('InstallProgress')
-$stepText = $window.FindName('StepText')
 $approvalCheck = $window.FindName('ApprovalCheck')
 $logBox = $window.FindName('LogBox')
 $statusText = $window.FindName('StatusText')
@@ -242,7 +232,6 @@ function Apply-GuiLanguage {
     $removeButton.Content = Get-UiText 'Remove'
     $approvalCheck.Content = Get-UiText 'Approval'
     $quickHelp.Text = Get-UiText 'QuickHelp'
-    if ($stepText.Text -eq 'Ready.' -or $stepText.Text -eq '就绪。') { $stepText.Text = Get-UiText 'Ready' }
     if ($statusText.Text -eq '' -or $statusText.Text -eq 'Ready.' -or $statusText.Text -eq '就绪。') {
         $statusText.Text = Get-UiText 'Ready'
     }
@@ -372,7 +361,6 @@ $startButton.Add_Click({
         Set-GuiBusy $true
         Write-GuiLog (Get-UiText 'Starting')
         $installProgress.Value = 2
-        $stepText.Text = '2% · starting'
         Start-CyberButlerGuiInstall `
             -Window $window -InstallerPath $installerPath -InstallPath $installPath `
             -Tier $tierValue -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
@@ -385,7 +373,6 @@ $startButton.Add_Click({
                 if ($line -match 'finished') {
                     Set-GuiBusy $false
                     $installProgress.Value = 100
-                    $stepText.Text = '100% · complete'
                     $postText = @{
                         PostTitle = Get-UiText 'PostTitle'
                         PostSubtitle = Get-UiText 'PostSubtitle'
@@ -407,7 +394,6 @@ $startButton.Add_Click({
                             (Get-UiText 'Title')) | Out-Null
                     }
                 } elseif ($line -match 'failed') {
-                    $stepText.Text = 'failed'
                     [System.Windows.MessageBox]::Show(
                         ("Installation failed.`n`nReport: C:\CyberButler\installer-report\install-report.json"),
                         (Get-UiText 'Title')) | Out-Null
@@ -415,8 +401,11 @@ $startButton.Add_Click({
             } `
             -OnProgress {
                 param($percent, $message)
-                $installProgress.Value = [int]$percent
-                $stepText.Text = ('{0}% · {1}' -f [int]$percent, $message)
+                if ([int]$percent -gt $installProgress.Value) { $installProgress.Value = [int]$percent }
+                if ($message -and $message -ne $script:LastProgressMessage) {
+                    $script:LastProgressMessage = $message
+                    Write-GuiLog ('progress ' + [int]$percent + '% · ' + $message)
+                }
             } `
             -Text $text | Out-Null
     } catch {
