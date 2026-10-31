@@ -30,7 +30,7 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 **TOTP runtime paths**: the Broker now resolves `tools/totp-vault/totp_secret.dpapi` and `recovery_hashes.json`, with a legacy fallback to the old root paths.
 
-**Broker ACL**: the installer hardens `tools` and `AstrBot/.venv` before TOTP enrollment, removing broad `Authenticated Users` write access.
+**Broker ACL**: the installer hardens `tools` and `AstrBot/.venv` before TOTP enrollment, and enforces the explicit TOTP vault deny for the desktop account even when the installer runs as that same account.
 
 **WebUI data protection**: updater protection now covers `webui/data/mailer_token` and the TOTP vault files.
 
@@ -90,7 +90,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **TOTP 运行路径**：Broker 现在解析 `tools/totp-vault/totp_secret.dpapi` 和 `recovery_hashes.json`，并兼容旧的根路径。
 
-**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`，移除过宽的 `Authenticated Users` 写权限。
+**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`，即使安装器以桌面账户运行，也强制设置 TOTP vault 的显式 Deny。
 
 **WebUI 数据保护**：更新器保护范围增加 `webui/data/mailer_token` 和 TOTP vault 文件。
 

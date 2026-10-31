@@ -270,7 +270,6 @@ function Set-CyberButlerTotpVaultAcl {
     $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $astrbotSid = ([System.Security.Principal.NTAccount]$AstrBotAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
     $denyAstrBot = [bool]$RequireAstrBotDeny
-    if ($currentSid -eq $astrbotSid) { $denyAstrBot = $false }
 
     # Remove stale explicit denies that would still block the installer or the
     # single-account AstrBot identity. Inherited rules were already removed.
