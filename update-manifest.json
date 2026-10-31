@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "5ac427d536baae085a0b38d8e25f61feace51b1fc54b0d14a843dd9508a534a6",
-      "size": 12879
+      "sha256": "1c98be8b5b6a5b7c509cd98c1ab8c0357ba3b01dc12d0a56a42ef39d0966a822",
+      "size": 12918
     },
     {
       "path": "docs/使用说明.md",
@@ -319,8 +319,8 @@
     },
     {
       "path": "installer/lib/Installer.Accounts.ps1",
-      "sha256": "a5ac59ef0e7be47cdac0103eb8d90eac8f37725f8f53a6c95c20d2e8f7d90fdd",
-      "size": 15084
+      "sha256": "0eed17cec628f40d87e83b6f7d8b767e62336575cb621620d05e23939299f5a4",
+      "size": 16087
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",

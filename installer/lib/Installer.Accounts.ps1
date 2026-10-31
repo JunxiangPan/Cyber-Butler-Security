@@ -69,7 +69,7 @@ function Set-CyberButlerLogonRight {
     $user = Get-LocalUser -Name $AccountName -ErrorAction Stop
     $sid = [string]$user.SID.Value
     $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
-    $db = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.sdb')
+    $db = Join-Path $env:SystemRoot 'security\database\secedit.sdb'
     try {
         & secedit.exe /export /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) { throw 'secedit export failed' }
@@ -93,11 +93,18 @@ function Set-CyberButlerLogonRight {
             $lines.Add($Right + ' = *' + $sid)
         }
         [IO.File]::WriteAllLines($tmp, $lines, (New-Object Text.UnicodeEncoding($false, $true)))
-        & secedit.exe /configure /db $db /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'secedit configure failed' }
+        $configureOutput = & secedit.exe /configure /db $db /cfg $tmp /areas SECURITYPOLICY 2>&1
+        if ($LASTEXITCODE -ne 0) { throw ('secedit configure failed: ' + (($configureOutput | ForEach-Object { [string]$_ }) -join ' ')) }
+        $verified = Get-CyberButlerAccountLogonRights -AccountName $AccountName
+        if ($Remove) {
+            $stillPresent = if ($Right -eq 'SeDenyInteractiveLogonRight') { $verified.deny_interactive } elseif ($Right -eq 'SeBatchLogonRight') { $verified.batch_logon } else { $false }
+            if ($stillPresent) { throw ('secedit did not remove ' + $Right) }
+        } else {
+            $present = if ($Right -eq 'SeDenyInteractiveLogonRight') { $verified.deny_interactive } elseif ($Right -eq 'SeBatchLogonRight') { $verified.batch_logon } else { $true }
+            if (-not $present) { throw ('secedit did not apply ' + $Right) }
+        }
     } finally {
         if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
-        if (Test-Path -LiteralPath $db) { Remove-Item -LiteralPath $db -Force -ErrorAction SilentlyContinue }
     }
 }
 
