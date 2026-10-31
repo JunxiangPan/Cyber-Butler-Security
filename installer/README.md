@@ -39,12 +39,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -STA `
 
 The GUI collects the install path, tier, owner QQ, WebUI bind, optional
 personal-plugins path, and an optional API-key file. It can run a read-only
-preflight and then launches the privileged installer in a visible elevated
-console. Approval tokens and TOTP enrollment stay in that console; this is
-intentional so the GUI cannot silently auto-approve security steps.
+preflight and then runs the privileged installer as a hidden child process.
+Approval tokens are supplied only after the explicit GUI approval checkbox;
+TOTP enrollment opens a WPF dialog with the QR image and recovery codes.
 
 The `-SelfTest` switch loads the XAML without showing the window; it is used by
-Pester only.
+Pester only. The GUI must be started from an elevated session; the launcher
+requests UAC when needed.
+
 
 ## Main installer
 

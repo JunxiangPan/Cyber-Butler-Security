@@ -1,4 +1,4 @@
-﻿# Scheduled-task and service-health lifecycle for the installer.
+# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -82,11 +82,15 @@ function Get-CyberButlerServiceSpecs {
     $rootFull = [IO.Path]::GetFullPath($Root)
     if (-not $DesktopAccount) { $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name }
     $python = Join-Path $rootFull 'AstrBot\.venv\Scripts\python.exe'
+    $pythonw = Join-Path $rootFull 'AstrBot\.venv\Scripts\pythonw.exe'
+    if (-not (Test-Path -LiteralPath $pythonw)) { $pythonw = $python }
     $webPython = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
+    $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
+    if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $python; args = 'main.py'; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
-        [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $python; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $webPython; args = 'run.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
+        [pscustomobject]@{ name = 'AstrBot Service'; exe = $pythonw; args = 'main.py'; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
+        [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
+        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $webPythonw; args = 'run.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
     )
 }
 

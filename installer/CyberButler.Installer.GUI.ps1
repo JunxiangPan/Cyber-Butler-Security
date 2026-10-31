@@ -16,6 +16,7 @@ $installerRoot = $PSScriptRoot
 $installerPath = Join-Path $installerRoot 'Install-CyberButler.ps1'
 $guiHelper = Join-Path $installerRoot 'lib\Installer.Gui.ps1'
 . $guiHelper
+. (Join-Path $installerRoot 'lib\Installer.GuiRun.ps1')
 
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -251,28 +252,34 @@ $preflightButton.Add_Click({
 
 $startButton.Add_Click({
     try {
+        if (-not $approvalCheck.IsChecked) {
+            [System.Windows.MessageBox]::Show((Get-UiText 'NeedApproval'), (Get-UiText 'Title')) | Out-Null
+            return
+        }
+        if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+            [System.Windows.MessageBox]::Show((Get-UiText 'NotAdmin'), (Get-UiText 'Title')) | Out-Null
+            return
+        }
         $installPath = [string]$installPathBox.Text
         if ([string]::IsNullOrWhiteSpace($installPath)) { throw 'Install path is required.' }
         $tierValue = Get-SelectedComboText $tierBox
         if ([string]::IsNullOrWhiteSpace($tierValue)) { $tierValue = 'Medium' }
         $bindValue = Get-SelectedComboText $bindBox
         if ([string]::IsNullOrWhiteSpace($bindValue)) { $bindValue = 'Loopback' }
-        if (-not (Test-Path -LiteralPath $installerPath)) { throw ('Installer not found: ' + $installerPath) }
-
-        $command = New-CyberButlerInteractiveInstallCommand `
-            -InstallerPath $installerPath `
-            -Tier $tierValue `
-            -InstallPath $installPath `
-            -OwnerQQ ([string]$ownerQQBox.Text) `
-            -WebUIBind $bindValue `
+        $text = @{
+            Started = Get-UiText 'Started'; TotpTitle = Get-UiText 'TotpTitle'
+            TotpHint = Get-UiText 'TotpHint'; Scanned = Get-UiText 'Scanned'
+            Recovery = Get-UiText 'Recovery'; Confirm = Get-UiText 'Confirm'
+            Cancel = Get-UiText 'Cancel'; TotpReady = Get-UiText 'TotpReady'
+        }
+        Write-GuiLog (Get-UiText 'Starting')
+        Start-CyberButlerGuiInstall `
+            -Window $window -InstallerPath $installerPath -InstallPath $installPath `
+            -Tier $tierValue -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
             -PersonalPluginsPath ([string]$personalPluginsBox.Text) `
-            -ApiKeyFile ([string]$apiKeyFileBox.Text)
-        Write-GuiLog 'Starting elevated installer console...'
-        Write-GuiLog $command
-        Start-Process -FilePath 'powershell.exe' `
-            -Verb RunAs `
-            -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-NoExit', '-Command', $command) | Out-Null
-        $statusText.Text = Get-UiText 'Started'
+            -OnLog { param($line) Write-GuiLog $line } `
+            -OnStatus { param($line) $statusText.Text = $line } `
+            -Text $text | Out-Null
     } catch {
         Write-GuiLog ('START ERROR: ' + $_.Exception.Message)
         $statusText.Text = Get-UiText 'StartFailed'

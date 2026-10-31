@@ -16,11 +16,11 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 🖥️ Visual Installer
 
-**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels.
+**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels and runs the installer as a hidden child process; TOTP enrollment is a WPF dialog with the QR image and recovery codes.
 
 **Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
 
-**Explicit handoff**: the privileged installation runs in a visible elevated console so approval tokens and TOTP enrollment remain explicit, auditable user actions. The GUI does not silently auto-approve security steps.
+**Explicit approval**: the GUI requires an explicit approval checkbox before it supplies the approval tokens. It never auto-approves silently.
 
 🛡️ Update Integrity
 
@@ -50,11 +50,13 @@ Relevant pytest: 18 passed.
 
 Clean Windows 11 Pro VM end-to-end acceptance has not yet been run for this draft.
 
-The visual installer is a front-end and preflight tool, not a fully silent unattended installer; approval and TOTP steps remain in the elevated console.
+The visual installer is a front-end and preflight tool, not a fully silent unattended installer. The first installation still requires a UAC-elevated GUI and explicit approval/TOTP interaction.
 
 `update_merge.ps1` still needs a dedicated `webui\.venv` bootstrap/check for targets where that virtual environment is absent.
 
 The release package has not yet been rebuilt or signed for this version.
+
+AstrBot and Web UI remain Interactive scheduled tasks; logging off the desktop session can still terminate them. Use an auto-logon policy or a non-interactive service model for unattended deployment.
 
 ---
 
@@ -76,11 +78,11 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 🖥️ 可视化安装器
 
-**WPF 前端**：`installer\CyberButler.Installer.GUI.ps1` 收集安装路径、Tier、Owner QQ、WebUI 绑定、可选个人插件路径和可选 API key 文件。
+**WPF 前端**：`installer\CyberButler.Installer.GUI.ps1` 收集安装路径、Tier、Owner QQ、WebUI 绑定、可选个人插件路径和可选 API key 文件。界面支持中文/英文，安装器作为隐藏子进程运行；TOTP 注册使用带 QR 和恢复码的 WPF 对话框。
 
 **界面内预检**：GUI 可以运行只读环境预检并显示 JSON 结果。
 
-**显式交接**：特权安装仍在可见的提权控制台中执行，批准 token 和 TOTP 扫码/恢复码确认保持为显式、可审计的用户操作。GUI 不会静默自动批准安全步骤。
+**显式批准**：GUI 只有在用户勾选批准后才提供 approval token，不会静默自动批准安全步骤。
 
 🛡️ 更新完整性
 
@@ -90,7 +92,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **TOTP 运行路径**：Broker 现在解析 `tools/totp-vault/totp_secret.dpapi` 和 `recovery_hashes.json`，并兼容旧的根路径。
 
-**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`。单账户 Medium 模式会在 `single-account.marker` 中记录无法强制 TOTP vault Deny 的限制；High 隔离仍要求显式 Deny。
+**Broker ACL**：安装器在 TOTP 注册前硬化 `tools` 和 `AstrBot/.venv`。单账户 Medium 模式会在 `single-account.marker` 中记录无法强制 TOTP vault Deny 的限制；High 隔离仍要求显式 Deny。AstrBot、Broker 和 WebUI 在可用时使用 `pythonw.exe` 启动，避免桌面残留控制台窗口。
 
 **WebUI 数据保护**：更新器保护范围增加 `webui/data/mailer_token` 和 TOTP vault 文件。
 
@@ -110,8 +112,10 @@ GUI XAML 自检：`GUI_XAML_OK`。
 
 本草案尚未在干净 Windows 11 Pro VM 上完成端到端验收。
 
-可视化安装器是前端和预检工具，不是完全静默的无人值守安装器；批准和 TOTP 步骤仍在提权控制台中完成。
+可视化安装器是前端和预检工具，不是完全静默的无人值守安装器；首次安装仍需要提权 GUI 和显式批准/TOTP 操作。
 
 `update_merge.ps1` 仍需要补上 `webui\.venv` 的专用创建/检查逻辑，以覆盖虚拟环境缺失的目标机。
 
 本版本的发布包尚未重新构建或签名。
+
+AstrBot 和 Web UI 仍是 Interactive 计划任务；注销桌面会话仍可能终止它们。无人值守部署需要自动登录策略或非交互服务模式。
