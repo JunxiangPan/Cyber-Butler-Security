@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "bad3fb89caf6d61a9793f45744d8a644d76e18377498242a44db0f40186fd5ca",
-      "size": 1982
+      "sha256": "f57ef2d7989aeba30757f67c413074ef12771d45bced8af30106500a22d0223b",
+      "size": 2014
     },
     {
       "path": "DEPLOYMENT.md",
@@ -204,8 +204,8 @@
     },
     {
       "path": "RELEASE_NOTES_v1.6.0.md",
-      "sha256": "eb22564e859df90dc5294283f114fa51f9ecf2df7b3cc4efb60d750a0d50a0a6",
-      "size": 7064
+      "sha256": "7fa3b642d93715448632a37cdda13cda0f36ba94300f9c2d724c52090c00309a",
+      "size": 8113
     },
     {
       "path": "SECURITY.md",
@@ -264,8 +264,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "8da9be78a6add17c61f4f37d38d24f57c0a12ea8b76981876bef07967c9c4dba",
-      "size": 37076
+      "sha256": "94a1f5d6dee9e321b1cf09a4556d444861c5733d59c39105fe5494a57ce00ca4",
+      "size": 38247
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -274,8 +274,8 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "42db83332cd962aee75ae9f94ee0f3da0d3ef6654433a75f31f043c62275d590",
-      "size": 21654
+      "sha256": "a87b4e1ce4e324437b4353523e130514df93fe0af27ce237ee57972cedb6b1b3",
+      "size": 23210
     },
     {
       "path": "installer/core-sources.json",
@@ -299,8 +299,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "128b2d50d66f01e650d2478e174752d54e4268e55aeb4eaa8729a1f59ed8952d",
-      "size": 31404
+      "sha256": "66babfce3a7e9e374d2aeae707b2c76a576aaa10bb5d530f91e43e0e785bb376",
+      "size": 35673
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -314,8 +314,18 @@
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
-      "sha256": "b37b844f2dc850fa897b2db933840cf373fc5fb38013cf65e5a148ba7e179ffa",
-      "size": 17764
+      "sha256": "a66e6de6ec71f395d188a47f48b9cf7a2d44592c5cade78bd22fe9bbedf825b7",
+      "size": 18037
+    },
+    {
+      "path": "installer/lib/Installer.Overlay.ps1",
+      "sha256": "54a7f94533a71a22e2a3546dcbeeec0662949bdc112da33cef25b685613c7d9c",
+      "size": 3563
+    },
+    {
+      "path": "installer/lib/Installer.PersonalPlugins.ps1",
+      "sha256": "3bb914b0760b9162f0154496b48bf45e9e7b90e445c2e2a45ecee09d6d7d378c",
+      "size": 7673
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
@@ -339,8 +349,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "4423f0026bb49689195828e3eb934628b3b7d19958d805ebd255cd6bd36bd8e9",
-      "size": 18496
+      "sha256": "bf99f12fe17c13aae25d45933ff57fa0c32e0133e2f43dc52a8b8c7fcc018351",
+      "size": 27541
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -384,8 +394,8 @@
     },
     {
       "path": "installer/tests/Installer.Core.Tests.ps1",
-      "sha256": "68e63f547374e0d6c87a5694b87e4aa4814bb3b8ada56d6ff63d3fb8ae1d7154",
-      "size": 12296
+      "sha256": "c54ec46c50b0757ed6f0b3a30466b6ff01b7b97f135a061f476ae6925030e2c1",
+      "size": 16645
     },
     {
       "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
@@ -404,13 +414,28 @@
     },
     {
       "path": "installer/tests/Installer.Main.Tests.ps1",
-      "sha256": "1a906feab2866dd7d4f76a43d21d835ecba2542651ce7f3bf77e6dd7c58a1220",
-      "size": 24397
+      "sha256": "134c7d82f50a9049c093991bd1021a5722c2654987b1a66ba06e917689239c25",
+      "size": 24530
     },
     {
       "path": "installer/tests/Installer.Migration.Tests.ps1",
       "sha256": "adfe718572431b641474ed3d5e11e7501e608eae40a7f4f79079cc5bd5e96bb8",
       "size": 10009
+    },
+    {
+      "path": "installer/tests/Installer.Overlay.Tests.ps1",
+      "sha256": "88635314c4cccfd04bc2b2855ca60836ce7da7564ba4572a08502f3ff4808a97",
+      "size": 6676
+    },
+    {
+      "path": "installer/tests/Installer.PersonalPlugins.Tests.ps1",
+      "sha256": "708b6aa5d7cfb9b422a2efa28611a670a359f10981f5124d3d0bef2a1e123953",
+      "size": 8242
+    },
+    {
+      "path": "installer/tests/Installer.PluginSmoke.Tests.ps1",
+      "sha256": "e769b42d47c3611f4f2e7eebad464d142842e966fb41aea9e9b5d1d30c57a316",
+      "size": 4862
     },
     {
       "path": "installer/tests/Installer.Preflight.Tests.ps1",
@@ -434,8 +459,8 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "42956b868c1cbdb8850a93ae8c10e289d98f68f03745c34b508c19b5dde02a66",
-      "size": 8624
+      "sha256": "3ac5aad3d979adc1fb62db8c360cfafeeb5ce7dffad4e0af7931dcd4b0936365",
+      "size": 10838
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",
@@ -463,6 +488,11 @@
       "size": 84143
     },
     {
+      "path": "overlay/astrbot/core/db/po.py",
+      "sha256": "de396483b7726ac1386b501f3c904225b5a001c48a74f363e8e2cf37995dfde2",
+      "size": 22606
+    },
+    {
       "path": "overlay/astrbot/core/db/sqlite.py",
       "sha256": "cf6733fa120db14fb85eb8f6f51292e60cea3cf25b58c2b1cfc7501cf0301287",
       "size": 108777
@@ -473,9 +503,19 @@
       "size": 29545
     },
     {
+      "path": "overlay/astrbot/core/provider/decision.py",
+      "sha256": "37103c0fde7e959c63d40f5c39a984bfb29be3c6b74a4f1e9f7b2faa2d5d66f3",
+      "size": 6667
+    },
+    {
       "path": "overlay/astrbot/core/provider/entities.py",
       "sha256": "d3ae6c3221d1dfa59b15d8d7bf27a09691d43d873c1ec2df26fa4dee44d65191",
       "size": 23531
+    },
+    {
+      "path": "overlay/astrbot/core/provider/provider.py",
+      "sha256": "574be0309752a982178572d7aa99e0db1a543da9204d59d5c020da369a77f81d",
+      "size": 18697
     },
     {
       "path": "overlay/astrbot/core/star/context.py",
@@ -508,44 +548,9 @@
       "size": 7775
     },
     {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_livingmemory/core/event_handler_modules/memory_reflection.py",
-      "sha256": "8bed53e7d40a1ed3c05adba6219b2d127f58295c2ee8732090dd3a969f378764",
-      "size": 45630
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_memorix/memorix/amemorix/services/summary_service.py",
-      "sha256": "48b72efc96b68f17d45c023793c0a6ec1e36d4ef1947ca97b6a0bd65009eebba",
-      "size": 16847
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_memorix/memorix/core/utils/model_routing.py",
-      "sha256": "fa26c5fa3a854e451629c71d00fe659e3c6349c0841453e366758cd97f95caf6",
-      "size": 2640
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_memorix/memorix/core/utils/summary_importer.py",
-      "sha256": "4173d5bd11b2e727ad69a73e44c999129bef11973ce8582f3f788ac42702fbe7",
-      "size": 18562
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_memorix/memorix/providers/astrbot_provider_bridge.py",
-      "sha256": "ef60df4e2e67309959d7ba0993ceb4b0e25b7a3a452315737784e44084c77485",
-      "size": 4584
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/main.py",
-      "sha256": "f61c220831d0a7ff96191317c563c5cc6e21500373c52ba39590ef74d72c01d1",
-      "size": 996722
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/proactive_message.py",
-      "sha256": "53827be1789c54ed22f912dc5a8c3532b7bad6ee7bc9a0dfff6f2db618c893e9",
-      "size": 958904
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_private_companion/user_memory.py",
-      "sha256": "641cec2114a66ee3bacad0e678c67f61144a3c61a423bd89a481eaf732c772ec",
-      "size": 558693
+      "path": "overlay/overlay-manifest.json",
+      "sha256": "f6fb0d44a98e70b8cde462a66fc4c4e477284eabe08bc0e2954891b26ccd39aa",
+      "size": 4287
     },
     {
       "path": "plugins/astrbot_plugin_at_gate/LICENSE",
@@ -856,6 +861,11 @@
       "path": "tools/build_update_manifest.py",
       "sha256": "fd631e0b0ed52dd6b7c4e31d3661ff3bf0bee603d5601523ef79e6b2b6b60686",
       "size": 2346
+    },
+    {
+      "path": "tools/check-overlay-compat.py",
+      "sha256": "a64b13b6a5df93665ef4884ddca8bbc04039de7e2e1f44d59c03e7d7a8abb153",
+      "size": 7790
     },
     {
       "path": "tools/check_update.ps1",
