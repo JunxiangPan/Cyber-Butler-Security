@@ -61,7 +61,7 @@ function Set-CyberButlerLogonRight {
         [Parameter(Mandatory = $true)]
         [string]$AccountName,
         [Parameter(Mandatory = $true)]
-        [ValidateSet('SeDenyInteractiveLogonRight', 'SeBatchLogonRight')]
+        [ValidateSet('SeDenyInteractiveLogonRight', 'SeBatchLogonRight', 'SeServiceLogonRight')]
         [string]$Right,
         [switch]$Remove
     )
@@ -81,15 +81,16 @@ function Set-CyberButlerLogonRight {
             $matched = $true
             $values = @(($lines[$i] -split '=', 2)[1] -split ',')
             $values = @($values | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+            $sidToken = '*' + $sid
             if ($Remove) {
-                $values = @($values | Where-Object { $_ -ne $sid })
-            } elseif ($values -notcontains $sid) {
-                $values += $sid
+                $values = @($values | Where-Object { $_.TrimStart('*') -ne $sid })
+            } elseif (@($values | ForEach-Object { $_.TrimStart('*') }) -notcontains $sid) {
+                $values += $sidToken
             }
             $lines[$i] = $Right + ' = ' + ($values -join ',')
         }
         if (-not $matched -and -not $Remove) {
-            $lines.Add($Right + ' = ' + $sid)
+            $lines.Add($Right + ' = *' + $sid)
         }
         [IO.File]::WriteAllLines($tmp, $lines, (New-Object Text.UnicodeEncoding($false, $true)))
         & secedit.exe /configure /db $db /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
@@ -201,8 +202,23 @@ function New-CyberButlerLocalAccount {
     $password = ConvertTo-SecureString -String $passwordText -AsPlainText -Force
     try {
         $user = New-LocalUser -Name $AccountName -Password $password -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -ErrorAction Stop
-        try { Set-CyberButlerLogonRight -AccountName $AccountName -Right SeDenyInteractiveLogonRight } catch { }
-        try { Set-CyberButlerLogonRight -AccountName $AccountName -Right SeBatchLogonRight } catch { }
+        $usersGroupName = (Get-LocalGroup -SID 'S-1-5-32-545' -ErrorAction Stop).Name
+        try {
+            Add-LocalGroupMember -Group $usersGroupName -Member $AccountName -ErrorAction Stop
+        } catch {
+            $alreadyMember = $false
+            try {
+                $members = @(Get-LocalGroupMember -Group $usersGroupName -ErrorAction SilentlyContinue)
+                $alreadyMember = [bool](@($members | Where-Object { [string]$_.SID.Value -eq [string]$user.SID.Value }).Count -gt 0)
+            } catch { }
+            if (-not $alreadyMember) { throw ('Add-LocalGroupMember failed: ' + $_.Exception.Message) }
+        }
+        $rightErrors = @()
+        foreach ($right in @('SeDenyInteractiveLogonRight', 'SeBatchLogonRight', 'SeServiceLogonRight')) {
+            try { Set-CyberButlerLogonRight -AccountName $AccountName -Right $right -ErrorAction Stop }
+            catch { $rightErrors += ($right + ': ' + $_.Exception.Message) }
+        }
+        if ($rightErrors.Count -gt 0) { throw ('Logon right configuration failed: ' + ($rightErrors -join '; ')) }
         return [pscustomobject]@{ created = $true; account_name = $AccountName; sid = [string]$user.SID.Value }
     } catch {
         throw "New-LocalUser failed: $($_.Exception.Message)"
