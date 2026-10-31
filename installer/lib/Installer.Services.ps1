@@ -274,6 +274,112 @@ function Set-CyberButlerServiceTasks {
     return [pscustomobject]@{ created = $created.ToArray(); started_process_ids = $newPids; task_backups = $taskBackups; started_at = Get-InstallerUtcTimestamp }
 }
 
+function Get-CyberButlerAstrBotLogFiles {
+    param([Parameter(Mandatory = $true)][string]$Root)
+    $data = Join-Path $Root 'AstrBot\data'
+    $candidates = @(
+        (Join-Path $data 'logs\astrbot.log'),
+        (Join-Path $data 'service-astrbot-stack.log')
+    )
+    $found = New-Object System.Collections.Generic.List[string]
+    foreach ($path in $candidates) { if (Test-Path -LiteralPath $path) { $found.Add($path) } }
+    if ($found.Count -eq 0 -and (Test-Path -LiteralPath $data)) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $data -Filter 'service-astrbot*.log' -File -ErrorAction SilentlyContinue)) {
+            $found.Add($file.FullName)
+        }
+        if ($found.Count -eq 0) {
+            foreach ($file in @(Get-ChildItem -LiteralPath $data -Filter '*.log' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10)) {
+                $found.Add($file.FullName)
+            }
+        }
+    }
+    return $found.ToArray()
+}
+
+function Get-CyberButlerFailedPluginNames {
+    param([string[]]$Lines)
+    $names = New-Object System.Collections.Generic.List[string]
+    foreach ($line in @($Lines)) {
+        $match = [regex]::Match([string]$line, 'Failed to (?:load|import) plugin ([A-Za-z0-9_.-]+)')
+        if ($match.Success -and -not $names.Contains($match.Groups[1].Value)) { $names.Add($match.Groups[1].Value) }
+    }
+    return $names.ToArray()
+}
+
+function Get-CyberButlerPluginFailureBlocks {
+    param([string[]]$Lines, [string[]]$Names)
+    $blocks = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt @($Lines).Count; $i++) {
+        $line = [string]$Lines[$i]
+        $match = [regex]::Match($line, 'Failed to (?:load|import) plugin ([A-Za-z0-9_.-]+)')
+        if (-not $match.Success -or $Names -notcontains $match.Groups[1].Value) { continue }
+        $block = New-Object System.Collections.Generic.List[string]
+        $block.Add($line)
+        for ($j = $i + 1; $j -lt @($Lines).Count -and $j -le $i + 60; $j++) {
+            $next = [string]$Lines[$j]
+            $block.Add($next)
+            if ($next -match '^-{10,}$') { break }
+        }
+        $blocks.Add(($block -join "`n"))
+    }
+    return $blocks.ToArray()
+}
+
+function Test-CyberButlerPluginLoadSmoke {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$PersonalPluginsPath = '',
+        [int]$StartupTimeoutSeconds = 120,
+        $Handlers = @{}
+    )
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'services.plugin-smoke') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'services.plugin-smoke' -Context ([pscustomobject]@{ Root = $Root; PersonalPluginsPath = $PersonalPluginsPath }))
+    }
+    $cbs = @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')
+    $personal = @('astrbot_plugin_private_companion','astrbot_plugin_livingmemory','astrbot_plugin_memorix')
+    $logs = @(Get-CyberButlerAstrBotLogFiles -Root $Root)
+    if ($logs.Count -eq 0) {
+        return [pscustomobject]@{ ok = $false; reason = 'no_log'; message = 'no AstrBot log found at expected paths'; failed = @(); lines = @() }
+    }
+    $startedAt = Get-Date
+    $lastNotice = 0
+    $tail = @()
+    $started = $false
+    while (((Get-Date) - $startedAt).TotalSeconds -lt [Math]::Max(1, $StartupTimeoutSeconds)) {
+        $all = New-Object System.Collections.Generic.List[string]
+        foreach ($path in $logs) {
+            try { foreach ($line in @(Get-Content -LiteralPath $path -Tail 400 -ErrorAction SilentlyContinue)) { $all.Add([string]$line) } } catch { }
+        }
+        $tail = @($all | Select-Object -Last 20)
+        if (($all -join "`n") -match 'AstrBot started\.') { $started = $true; break }
+        $elapsed = [int]((Get-Date) - $startedAt).TotalSeconds
+        if ($elapsed -ge ($lastNotice + 10)) {
+            Write-Host ('waiting for AstrBot startup... (' + $elapsed + 's)')
+            $lastNotice = $elapsed
+        }
+        Start-Sleep -Seconds 1
+    }
+    $allLines = New-Object System.Collections.Generic.List[string]
+    foreach ($path in $logs) {
+        try { foreach ($line in @(Get-Content -LiteralPath $path -Tail 1000 -ErrorAction SilentlyContinue)) { $allLines.Add([string]$line) } } catch { }
+    }
+    $tail = @($allLines | Select-Object -Last 20)
+    $failed = @(Get-CyberButlerFailedPluginNames -Lines $allLines)
+    $blocked = @($failed | Where-Object { $cbs -contains $_ })
+    if ($PersonalPluginsPath) {
+        $blocked += @($failed | Where-Object { $personal -contains $_ })
+    }
+    $blocked = @($blocked | Select-Object -Unique)
+    if ($blocked.Count -gt 0) {
+        $blocks = @(Get-CyberButlerPluginFailureBlocks -Lines $allLines -Names $blocked)
+        return [pscustomobject]@{ ok = $false; reason = 'plugin_failure'; message = ('plugin load failed: ' + ($blocked -join ', ')); failed = $blocked; lines = $blocks; tail = $tail }
+    }
+    if (-not $started) {
+        return [pscustomobject]@{ ok = $false; reason = 'startup_timeout'; message = ('AstrBot did not finish startup within ' + [int]$StartupTimeoutSeconds + 's'); failed = $failed; lines = $tail; tail = $tail }
+    }
+    return [pscustomobject]@{ ok = $true; reason = 'ok'; message = ''; failed = @(); lines = @(); tail = $tail }
+}
+
 function Assert-CyberButlerServices {
     param(
         [Parameter(Mandatory = $true)]
@@ -282,6 +388,8 @@ function Assert-CyberButlerServices {
         [string]$DesktopAccount = '',
         [bool]$Isolation = $false,
         [int]$TimeoutSeconds = 60,
+        [string]$PersonalPluginsPath = '',
+        [int]$StartupTimeoutSeconds = 120,
         $Handlers = @{}
     )
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'services.assert') {
@@ -344,12 +452,22 @@ function Invoke-CyberButlerServices {
         [string]$Approval = '',
         [switch]$NonInteractive,
         [switch]$PlanOnly,
+        [string]$PersonalPluginsPath = '',
+        [int]$StartupTimeoutSeconds = 120,
         $Handlers = @{}
     )
 
     $test = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
     $base = [ordered]@{ module = 'services'; step = $JournalStep; root = $Root; test = $test; changed = $false }
     if ($test.satisfied) {
+        $pluginSmoke = Test-CyberButlerPluginLoadSmoke -Root $Root -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
+        if (-not $pluginSmoke.ok) {
+            $base.status = 'failed'
+            $base.message = ($pluginSmoke.message + "`n" + ((@($pluginSmoke.lines) + @($pluginSmoke.tail)) -join "`n"))
+            $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
+            return [pscustomobject]$base
+        }
+        $base.plugin_smoke = [pscustomobject]@{ status = 'ok'; reason = [string]$pluginSmoke.reason; personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' }) }
         $base.status = 'skipped'
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
@@ -400,9 +518,19 @@ function Invoke-CyberButlerServices {
                 })
             }
         }
-        $asserted = Assert-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
+        $asserted = Assert-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
         if (-not $asserted) { throw 'Service assertion failed.' }
-        if ($null -ne $Journal) { Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed | Out-Null }
+        $pluginSmoke = Test-CyberButlerPluginLoadSmoke -Root $Root -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
+        if (-not $pluginSmoke.ok) {
+            throw ($pluginSmoke.message + "`n" + ((@($pluginSmoke.lines) + @($pluginSmoke.tail)) -join "`n"))
+        }
+        $base.plugin_smoke = [pscustomobject]@{ status = 'ok'; reason = [string]$pluginSmoke.reason; personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' }) }
+        if ($null -ne $Journal) {
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{
+                plugin_smoke = $base.plugin_smoke
+                personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' })
+            }) | Out-Null
+        }
         $base.status = 'completed'
         $base.changed = $true
         $base.exit_code = Get-InstallerExitCode -Name Success

@@ -71,6 +71,10 @@ Preflight
 - Block 3 的真实服务账户、ACL、防火墙执行路径需要 VM 验证：账户登录、AstrBot 启动、6185/18090/8765 可达性。
 - TOTP/DPAPI/计划任务真实执行路径同样需要 VM 验证；当前自动化测试使用 handler 注入和 fake secret，不读取真实 DPAPI 密钥。
 - `-Repair` 当前为只读诊断模式，不自动执行安全修复。
+- CBS 开源包不含 `astrbot_plugin_private_companion`、`astrbot_plugin_livingmemory`、`astrbot_plugin_memorix` 三个个人定制插件；需要完整苏瑾言时，使用 `-PersonalPluginsPath` 指定这三个插件的源目录。
+- 从 v1.5.x 迁移到 v1.6.0 时，v1.6.0 安装到独立目录（默认 `C:\CyberButler`），不是原地升级。需要用 `-PersonalPluginsPath` 指定旧安装的个人插件源（通常是 `D:\qq苏瑾言大肥鱼\AstrBot\data\plugins`），安装器会复制三个插件的代码文件。旧安装的 `AstrBot/data/`（记忆、对话历史、数据库）不自动迁移，需要手动处理。
+- 从 v1.5.x 升级时，如果原来的插件已经在 v1.6.0 目标目录的 `AstrBot/data/plugins/` 里，可以不传 `-PersonalPluginsPath`，Core Deploy 会保留现有插件。
+- overlay 现在包含 `provider.py`、`context.py` 等核心文件的大幅修改，已接近 fork。v1.6.1 会评估 fork AstrBot 定期 merge upstream 的路线，避免每次 AstrBot 升级都出现版本不匹配。
 - 迁移实际耗时取决于数据目录大小、任务数量和 DPAPI 文件数量；文档中的 2–5 分钟只是预估值。
 
 ---

@@ -23,6 +23,7 @@ qbittorrent*.txt
 !webui/config.example.json
 !installer/profiles/*.json
 !installer/core-sources.json
+!overlay/overlay-manifest.json
 **/config.json
 **/cmd_config.json
 AstrBot/data/config/

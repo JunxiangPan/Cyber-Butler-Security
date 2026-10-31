@@ -31,6 +31,7 @@ Describe 'Installer services safety' {
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $true; supported = $true; can_manage = $true } }
                 'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @(); started_process_ids = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
+                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers
             $result.status | Should Be 'skipped'
@@ -50,6 +51,7 @@ Describe 'Installer services safety' {
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
                 'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @(4242) } }
                 'services.assert' = { param($c) $true }
+                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers

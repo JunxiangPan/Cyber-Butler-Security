@@ -1,4 +1,4 @@
-# Real core deployment: download, verify, extract, venv, overlay.
+﻿# Real core deployment: download, verify, extract, venv, overlay.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerCoreSourceConfig {
@@ -344,6 +344,10 @@ function Test-CyberButlerCoreDeploy {
     if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\run.py'))) { $missing.Add('webui/run.py') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\.venv\Scripts\python.exe'))) { $missing.Add('webui/.venv/Scripts/python.exe') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot\data'))) { $missing.Add('AstrBot/data') }
+    foreach ($cbsName in @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')) {
+        $cbsMain = Join-Path (Join-Path (Join-Path $astrbot 'data') 'plugins') ($cbsName + '\main.py')
+        if (-not (Test-Path -LiteralPath $cbsMain)) { $missing.Add('AstrBot/data/plugins/' + $cbsName) }
+    }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'workspace'))) { $missing.Add('workspace') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'data'))) { $missing.Add('data') }
     if (-not (Test-Path -LiteralPath $overlayProbe)) { $missing.Add('overlay probe') }
@@ -404,10 +408,13 @@ function Invoke-CyberButlerCoreDeploy {
         [string]$PythonSource = 'system',
         [string]$PythonVersion = '',
         [string]$WebUIAdminEmail = 'owner@example.com',
+        [string]$PersonalPluginsPath = '',
+        [switch]$Repair,
         [string]$OwnerQQ = '',
         [string]$ToolServiceAccount = '',
         [string]$ToolDesktopAccount = '',
         [string]$PipLogPath = '',
+        [switch]$SkipOverlayManifest,
         [string]$JournalStep = 'core',
         $Journal = $null,
         $Handlers = @{}
@@ -498,8 +505,18 @@ function Invoke-CyberButlerCoreDeploy {
 
         $overlay = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'overlay'
         if (Test-Path -LiteralPath $overlay) {
+            $astrbotVersion = [string]$config.astrbot.version
+            if ($astrbotVersion) {
+                Set-Content -LiteralPath (Join-Path $astrbotTarget 'VERSION') -Value $astrbotVersion -Encoding ASCII
+            }
+            if (-not $SkipOverlayManifest) {
+                Write-Host 'CORE validating overlay manifest...'
+                $overlayCheck = Test-CyberButlerOverlayManifest -AstrBotPath $astrbotTarget -OverlayPath $overlay
+                Write-Host ('CORE overlay manifest ok for AstrBot ' + $overlayCheck.version)
+            }
             Write-Host 'CORE applying overlay...'
-            Copy-CyberButlerCoreTree -Source $overlay -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep -Label 'overlay'
+            Copy-CyberButlerCoreTree -Source $overlay -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep `
+                -ExcludePatterns @('overlay-manifest.json') -Label 'overlay'
             Write-Host 'CORE overlay applied.'
         } else {
             throw "Overlay tree missing: $overlay"
@@ -514,6 +531,18 @@ function Invoke-CyberButlerCoreDeploy {
             -ExcludeTop @('__pycache__') -ExcludePatterns @('__pycache__\*','*.pyc','*.log','tmp-*','*.dpapi','broker_token.txt','totp_recovery.json') -Label 'tools'
         Copy-CyberButlerCoreTree -Source $webSource -Destination $webTarget -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
             -ExcludeTop @('.venv', 'data', 'tests', '__pycache__') -ExcludePatterns @('.venv\*','data\*','tests\*','__pycache__\*','tmp-*','*.pyc','config.json') -Label 'webui'
+
+        $releasePlugins = Join-Path $releaseRoot 'plugins'
+        Write-Host 'CORE installing CBS security plugins...'
+        $cbsResult = Copy-CyberButlerCbsPlugins -AstrBotPath $astrbotTarget -ReleasePluginsPath $releasePlugins -Journal $Journal -JournalStep $JournalStep
+        Write-Host ('CORE CBS plugins: ' + $cbsResult.status + ' (' + @($cbsResult.plugins).Count + ')')
+        try {
+            $personalResult = Copy-CyberButlerPersonalPlugins -AstrBotPath $astrbotTarget -PersonalPluginsPath $PersonalPluginsPath -Repair:$Repair -Journal $Journal -JournalStep $JournalStep
+            Write-Host ('CORE personal plugins: ' + $personalResult.status)
+        } catch {
+            $personalResult = [pscustomobject]@{ status = 'failed'; path = ''; plugins = @(); reason = $_.Exception.Message }
+            Write-Host ('CORE personal plugins: failed - ' + $_.Exception.Message)
+        }
 
         $toolReplacements = [ordered]@{
             'YOUR_PROJECT_PATH' = $root
@@ -604,11 +633,13 @@ function Invoke-CyberButlerCoreDeploy {
 
         Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
         if ($null -ne $Journal -and $stepStarted) {
-            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'core deployment completed'; existing_state = $ExistingState; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion }) | Out-Null
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'core deployment completed'; existing_state = $ExistingState; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion; cbs_plugins_status = [string]$cbsResult.status; cbs_plugins = @($cbsResult.plugins); personal_plugins_path = [string]$PersonalPluginsPath; personal_plugins_status = [string]$personalResult.status; personal_plugins_error = [string]$personalResult.reason; personal_plugins = @($personalResult.plugins) }) | Out-Null
         }
         return [pscustomobject]@{
             status = 'completed'; changed = $true; exit_code = 0; test = $asserted; existing_state = $ExistingState
             reason = 'core deployment completed'; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion
+            cbs_plugins_status = [string]$cbsResult.status; cbs_plugins = @($cbsResult.plugins)
+            personal_plugins_path = [string]$PersonalPluginsPath; personal_plugins_status = [string]$personalResult.status; personal_plugins_error = [string]$personalResult.reason; personal_plugins = @($personalResult.plugins)
             paths = [pscustomobject]@{
                 astrbot = $astrbotTarget
                 snowluma = $snowTarget

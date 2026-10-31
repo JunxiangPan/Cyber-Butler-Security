@@ -589,6 +589,51 @@ icacls "C:\CyberButler\tools\totp-vault" /grant "BUILTIN\Administrators:(OI)(CI)
 - 不要把 `totp_secret.dpapi` 复制到其他机器。
 - 安装报告和日志不包含 secret 值；如果手动读取，请使用受控本地终端。
 
+## Personal plugins (optional)
+
+CBS 开源包只包含安全层插件。以下三个插件是个人定制插件，不随开源包发布：
+
+```text
+astrbot_plugin_private_companion
+astrbot_plugin_livingmemory
+astrbot_plugin_memorix
+```
+
+需要完整苏瑾言时，用 `-PersonalPluginsPath` 指定这三个插件的源目录：
+
+```powershell
+.\installer\Install-CyberButler.ps1 `
+  -Tier Medium `
+  -PersonalPluginsPath D:\qq苏瑾言大肥鱼\AstrBot\data\plugins
+```
+
+规则：
+
+- 只接受上面三个目录；其它目录忽略并 WARN
+- 每个插件必须包含 `main.py` 和 `metadata.yaml`
+- 插件目录下的 `data/` 不复制
+- 目标 `_conf_schema.json` 已存在时保留，不覆盖
+- 未指定 `-PersonalPluginsPath` 时跳过，报告记录 `Personal plugins: skipped`
+- `-Repair` 只检查目录和 `main.py`，不覆盖任何文件
+- 插件文件按 SHA-256 幂等；相同文件跳过，不生成 `.bak`
+
+### 从 v1.5.x 迁移
+
+v1.5.x 通常安装在 `D:\qq苏瑾言大肥鱼`，v1.6.0 默认安装到 `C:\CyberButler`。这不是原地升级。
+
+```text
+旧安装：D:\qq苏瑾言大肥鱼\AstrBot\data\plugins
+新安装：C:\CyberButler\AstrBot\data\plugins
+```
+
+安装时指定旧插件源：
+
+```powershell
+-PersonalPluginsPath "D:\qq苏瑾言大肥鱼\AstrBot\data\plugins"
+```
+
+旧安装的 `AstrBot/data/`（记忆、对话历史、数据库）不会自动迁移，需要手动处理。v1.6.0 目标目录已有个人插件时，不传 `-PersonalPluginsPath` 会保留现有插件。
+
 ## Manifest integration
 
 `installer/` is included in the updater allowlist in `tools/update_core.py`.

@@ -56,6 +56,8 @@ param(
     [string]$CoreSourcesPath = '',
     [string]$PythonPackage = '',
     [string]$PythonSha256 = '',
+    [string]$PersonalPluginsPath = '',
+    [int]$StartupTimeoutSeconds = 120,
     [switch]$SkipDependencyInstall,
     [int]$DownloadTimeoutSeconds = 300,
     [int]$DownloadRetryCount = 3,
@@ -97,6 +99,8 @@ $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Report.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Python.ps1')
+. (Join-Path $installerRoot 'lib\Installer.PersonalPlugins.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Overlay.ps1')
 
 if (-not [string]::IsNullOrWhiteSpace($TestConfigPath)) {
     if (-not (Test-Path -LiteralPath $TestConfigPath)) { throw "TestConfigPath not found: $TestConfigPath" }
@@ -458,6 +462,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'core')) 
         -AstrBotSha256 $AstrBotSha256 -SnowLumaSha256 $SnowLumaSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `
         -DownloadTimeoutSeconds $DownloadTimeoutSeconds -DownloadRetryCount $DownloadRetryCount -ResumeDownload:$ResumeDownload -PythonPath $pythonPath -PythonSource $pythonSource -PythonVersion $pythonVersion -PipLogPath (Join-Path $ReportDirectory 'pip-install.log') `
+        -PersonalPluginsPath $PersonalPluginsPath -Repair:$Repair `
         -OwnerQQ $OwnerQQ -ToolServiceAccount $AstrBotAccount -ToolDesktopAccount $DesktopAccount `
         -Journal $journal -JournalStep 'core' -Handlers $Handlers
     Write-Output ('CORE ' + [string]$coreResult.status)
@@ -466,6 +471,16 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'core')) 
     } elseif (-not (Get-CyberButlerJournalStep -Journal $journal -Name 'core')) {
         $coreReason = if ($coreResult.reason) { [string]$coreResult.reason } elseif ([string]$coreResult.status -eq 'skipped') { 'core deployment already satisfied' } else { 'core deployment completed' }
         Add-MainJournalStep -Journal $journal -Name 'core' -Status $(if ([string]$coreResult.status -eq 'skipped') { 'skipped' } else { 'completed' }) -Reason $coreReason
+    }
+    if ($coreResult -and [string]$coreResult.personal_plugins_status -eq 'failed') {
+        Add-MainJournalStep -Journal $journal -Name 'personal_plugins' -Status 'failed' -Reason ([string]$coreResult.personal_plugins_error)
+        Write-Output ('PERSONAL plugins failed: ' + [string]$coreResult.personal_plugins_error)
+    }
+} else {
+    Write-Output 'CORE skipped: resumed, core already completed'
+    $coreStep = Get-CyberButlerJournalStep -Journal $journal -Name 'core'
+    if ($coreStep -and [string]$coreStep.details.personal_plugins_status -eq 'failed' -and -not (Get-CyberButlerJournalStep -Journal $journal -Name 'personal_plugins')) {
+        Add-MainJournalStep -Journal $journal -Name 'personal_plugins' -Status 'failed' -Reason ([string]$coreStep.details.personal_plugins_error)
     }
 }
 
@@ -602,7 +617,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'services
         $failure = [pscustomobject]@{ step = 'services'; message = 'APPROVE SERVICES required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'services' -Status 'in_progress'
-        $result = Invoke-CyberButlerServices -Root $InstallPath -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Isolation $resolution.Isolation -JournalStep 'services' -Journal $journal -Approval 'APPROVE SERVICES' -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerServices -Root $InstallPath -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Isolation $resolution.Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -JournalStep 'services' -Journal $journal -Approval 'APPROVE SERVICES' -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'services' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'services'; message = ('services: ' + [string]$result.status + ' ' + [string]$result.message) }
         }

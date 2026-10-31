@@ -79,6 +79,7 @@ $handlers = @{
     'services.apply' = { param($c) [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @(4242) } }
     'services.assert' = { param($c) $true }
     'services.undo' = { param($c) [pscustomobject]@{ action = 'removed' } }
+    'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
     'diagnostics.run' = {
         param($c)
         $items = @(

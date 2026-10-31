@@ -3,6 +3,7 @@ $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
+. (Join-Path $installerRoot 'lib\Installer.PersonalPlugins.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Services.ps1')
 
 function New-CoreFixture {
@@ -50,7 +51,7 @@ Describe 'Installer core deployment' {
             Set-Content -LiteralPath $pythonShim -Value $shimText -Encoding ASCII
             $result = Invoke-CyberButlerCoreDeploy -InstallPath (Join-Path $base 'install') -ExistingState 'None' -Tier Medium `
                 -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path `
-                -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 -PythonPath $pythonShim -PythonSource 'bundled' -PythonVersion 'Python 3.13.17' -Journal $journal
+                -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 -PythonPath $pythonShim -PythonSource 'bundled' -PythonVersion 'Python 3.13.17' -SkipOverlayManifest -Journal $journal
             $result.status | Should Be 'completed'
             $result.python_source | Should Be 'bundled'
             $result.python_path | Should Be $pythonShim
@@ -64,6 +65,11 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $base 'install\tools\broker.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\tools\email_approval.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot\data')) | Should Be $true
+            foreach ($cbs in @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')) {
+                $cbsPath = Join-Path (Join-Path (Join-Path $base 'install\AstrBot\data') 'plugins') ($cbs + '\main.py')
+                if (-not (Test-Path -LiteralPath $cbsPath)) { Write-Host ('MISSING_CBS ' + $cbsPath) }
+                (Test-Path -LiteralPath $cbsPath) | Should Be $true
+            }
             $specs = Get-CyberButlerServiceSpecs -Root (Join-Path $base 'install') -DesktopAccount 'DOMAIN\Desktop'
             foreach ($spec in $specs) {
                 (Test-Path -LiteralPath $spec.exe) | Should Be $true
@@ -85,7 +91,7 @@ Describe 'Installer core deployment' {
             $result = Invoke-CyberButlerCoreDeploy -InstallPath (Join-Path $base 'install') -ExistingState 'None' -Tier Medium `
                 -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path `
                 -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 `
-                -SkipDependencyInstall -Journal $journal
+                -SkipDependencyInstall -SkipOverlayManifest -Journal $journal
             $result.status | Should Be 'completed'
             (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot\main.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\SnowLuma\index.mjs')) | Should Be $true
@@ -112,7 +118,7 @@ Describe 'Installer core deployment' {
             $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $target -Tier Medium
             $result = Invoke-CyberButlerCoreDeploy -InstallPath $target -ExistingState 'Legacy' -Tier Medium `
                 -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path `
-                -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 -Journal $journal
+                -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 -SkipOverlayManifest -Journal $journal
             $result.status | Should Be 'completed'
             (Get-Content -LiteralPath (Join-Path $target 'AstrBot\data\keep.txt') -Raw).Trim() | Should Be 'keep'
             (Get-Content -LiteralPath (Join-Path $target 'AstrBot\old.txt') -Raw).Trim() | Should Be 'old'
@@ -179,11 +185,56 @@ Describe 'Installer core deployment' {
             $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath (Join-Path $base 'install') -Tier Medium
             $result = Invoke-CyberButlerCoreDeploy -InstallPath (Join-Path $base 'install') -ExistingState 'None' -Tier Medium `
                 -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path `
-                -AstrBotSha256 ('0' * 64) -SnowLumaSha256 $snow.sha256 -Journal $journal
+                -AstrBotSha256 ('0' * 64) -SnowLumaSha256 $snow.sha256 -SkipOverlayManifest -Journal $journal
             $result.status | Should Be 'failed'
             $result.message | Should Match 'SHA-256 mismatch'
             (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $base 'install\SnowLuma')) | Should Be $false
+        } finally {
+            Remove-Item -LiteralPath $base -Recurse -Force
+        }
+    }
+
+    It 'keeps Core completed when personal plugin copy fails' {
+        $base = Join-Path $env:TEMP ('cb-core-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $base -Force | Out-Null
+        try {
+            $astrbot = New-CoreFixture -Root $base -Name 'astrbot-personal' -MainFile 'main.py' -Files @{ 'requirements.txt' = ''; 'astrbot\core\probe.py' = 'probe' }
+            $snow = New-CoreFixture -Root $base -Name 'snow-personal' -MainFile 'index.mjs' -Files @{ 'package.json' = '{}' }
+            $personal = Join-Path $base 'personal'
+            foreach ($name in @('astrbot_plugin_private_companion','astrbot_plugin_livingmemory')) {
+                New-Item -ItemType Directory -Path (Join-Path $personal $name) -Force | Out-Null
+                Set-Content -LiteralPath (Join-Path $personal ($name + '\main.py')) -Value 'x' -Encoding UTF8
+                Set-Content -LiteralPath (Join-Path $personal ($name + '\metadata.yaml')) -Value 'x' -Encoding UTF8
+            }
+            $python = (Get-Command python.exe -ErrorAction Stop).Source
+            $result = Invoke-CyberButlerCoreDeploy -InstallPath (Join-Path $base 'install') -ExistingState 'None' -Tier Medium `
+                -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 `
+                -PythonPath $python -SkipDependencyInstall -SkipOverlayManifest -PersonalPluginsPath $personal
+            $result.status | Should Be 'completed'
+            $result.personal_plugins_status | Should Be 'failed'
+            (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot')) | Should Be $true
+        } finally { Remove-Item -LiteralPath $base -Recurse -Force }
+    }
+
+    It 'fails when the import smoke reports a missing symbol' {
+        $base = Join-Path $env:TEMP ('cb-core-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $base -Force | Out-Null
+        try {
+            $astrbot = New-CoreFixture -Root $base -Name 'astrbot-smoke' -MainFile 'main.py' -Files @{
+                'requirements.txt' = '# dependency'
+                'astrbot\core\probe.py' = 'probe'
+            }
+            $snow = New-CoreFixture -Root $base -Name 'snow-smoke' -MainFile 'index.mjs' -Files @{ 'package.json' = '{}' }
+            $python = (Get-Command python.exe -ErrorAction Stop).Source
+            $handlers = @{
+                'core.import' = { param($c) [pscustomobject]@{ ok = $false; exit_code = 1; output = @('ImportError: cannot import name Missing') } }
+            }
+            $result = Invoke-CyberButlerCoreDeploy -InstallPath (Join-Path $base 'install') -ExistingState 'None' -Tier Medium `
+                -AstrBotPackage $astrbot.path -SnowLumaPackage $snow.path `
+                -AstrBotSha256 $astrbot.sha256 -SnowLumaSha256 $snow.sha256 -PythonPath $python -SkipOverlayManifest -Handlers $handlers
+            $result.status | Should Be 'failed'
+            $result.message | Should Match 'import smoke failed'
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }

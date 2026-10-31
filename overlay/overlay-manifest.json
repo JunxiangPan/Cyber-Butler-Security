@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "based_on_astrbot_version": "4.29.3",
+  "files": [
+    {
+      "path": "astrbot/core/agent/runners/tool_loop_agent_runner.py",
+      "official_sha256": null,
+      "overlay_sha256": "91707580dfad690bd4602d19b620eb1905b3ab2cd2eb27066660866363a0b9dd",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/astr_agent_tool_exec.py",
+      "official_sha256": null,
+      "overlay_sha256": "44bfb74d8f2eb0adbe91ec5acf31024e87805042936a38b0cf358196c0b4c961",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/astr_main_agent.py",
+      "official_sha256": null,
+      "overlay_sha256": "36f3c832356c0add1ce90145dfc0fd8d3e523b1b8e2614775574a44fa5e53972",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/db/po.py",
+      "official_sha256": null,
+      "overlay_sha256": "de396483b7726ac1386b501f3c904225b5a001c48a74f363e8e2cf37995dfde2",
+      "reason": "UmoSender and ProviderStat.trace_id models required by sqlite",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/db/sqlite.py",
+      "official_sha256": null,
+      "overlay_sha256": "cf6733fa120db14fb85eb8f6f51292e60cea3cf25b58c2b1cfc7501cf0301287",
+      "reason": "custom provider-stats and UmoSender persistence",
+      "depends_on": [
+        "astrbot/core/db/po.py"
+      ]
+    },
+    {
+      "path": "astrbot/core/pipeline/process_stage/method/agent_sub_stages/internal.py",
+      "official_sha256": null,
+      "overlay_sha256": "b3683aec591fd07669d40d696916a9f2ddad58fce8a1693c89ba69dcb7914ad1",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/provider/decision.py",
+      "official_sha256": null,
+      "overlay_sha256": "37103c0fde7e959c63d40f5c39a984bfb29be3c6b74a4f1e9f7b2faa2d5d66f3",
+      "reason": "DecisionService used by star/context",
+      "depends_on": [
+        "astrbot/core/provider/provider.py"
+      ]
+    },
+    {
+      "path": "astrbot/core/provider/entities.py",
+      "official_sha256": null,
+      "overlay_sha256": "d3ae6c3221d1dfa59b15d8d7bf27a09691d43d873c1ec2df26fa4dee44d65191",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/provider/provider.py",
+      "official_sha256": null,
+      "overlay_sha256": "574be0309752a982178572d7aa99e0db1a543da9204d59d5c020da369a77f81d",
+      "reason": "DecisionProvider used by star/context",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/star/context.py",
+      "official_sha256": null,
+      "overlay_sha256": "e754a55207f00a5d340a69ddddc4ad0987df1b7905c1d3f63e79c391d3f0e71b",
+      "reason": "project plugin file",
+      "depends_on": [
+        "astrbot/core/provider/decision.py",
+        "astrbot/core/provider/provider.py"
+      ]
+    },
+    {
+      "path": "astrbot/core/tools/message_tools.py",
+      "official_sha256": null,
+      "overlay_sha256": "b8359da19eddf81cd7ca31841e118a9eca04fe7968a847155ea78d2c5e49f8d7",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/core/tools/web_search_tools.py",
+      "official_sha256": null,
+      "overlay_sha256": "67984c744e32b4c23dd2e86d7cb87e988be1220945413a557e9acba925b16cf3",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/dashboard/server.py",
+      "official_sha256": null,
+      "overlay_sha256": "765dea781ea0037ab32fcadd70c80d030bb468a43858f33b3d136b5b19cbbd07",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/dashboard/services/stat_service.py",
+      "official_sha256": null,
+      "overlay_sha256": "5a8e4917cd8fc244287e1e0c3aeb395044f3b6f796ab085aac44072e1baff89a",
+      "reason": "project plugin file",
+      "depends_on": []
+    },
+    {
+      "path": "astrbot/data/plugins/astrbot_plugin_cloud_fallback/main.py",
+      "official_sha256": null,
+      "overlay_sha256": "6a43c8221b3596dfb49cbed1f90b54087e14ed78db5c800f5c34321105043ac1",
+      "reason": "project plugin file",
+      "depends_on": []
+    }
+  ]
+}
