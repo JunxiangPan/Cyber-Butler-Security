@@ -16,7 +16,7 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 🖥️ Visual Installer
 
-**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels, an inline help panel, a progress bar with current-step text, completion/failure dialogs, and runs the installer as a hidden child process; preflight runs automatically on open, and TOTP enrollment is a WPF dialog with the QR image and recovery codes. The launcher is a WSH script so no administrator PowerShell console is shown.
+**WPF front-end**: `installer\CyberButler.Installer.GUI.ps1` collects the install path, tier, owner QQ, WebUI bind, optional personal-plugins path, and optional API-key file. The UI has Chinese and English labels, an inline help panel, a progress bar with current-step text, completion/failure dialogs, and runs the installer as a hidden child process; preflight runs automatically on open, and TOTP enrollment is a WPF dialog with the QR image and recovery codes. A post-install window offers WebUI, AstrBot, the install guide and the report. The launcher is a WSH script so no administrator PowerShell console is shown. The release root contains `START-INSTALLER.cmd` and `README-INSTALL.md`.
 
 **Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
 
@@ -80,7 +80,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 🖥️ 可视化安装器
 
-**WPF 前端**：`installer\CyberButler.Installer.GUI.ps1` 收集安装路径、Tier、Owner QQ、WebUI 绑定、可选个人插件路径和可选 API key 文件。界面支持中文/英文，打开后自动执行环境检查，安装器作为隐藏子进程运行；TOTP 注册使用带 QR 和恢复码的 WPF 对话框。启动器改为 WSH，不再显示管理员 PowerShell 控制台。
+**WPF 前端**：`installer\CyberButler.Installer.GUI.ps1` 收集安装路径、Tier、Owner QQ、WebUI 绑定、可选个人插件路径和可选 API key 文件。界面支持中文/英文，打开后自动执行环境检查，安装器作为隐藏子进程运行；TOTP 注册使用带 QR 和恢复码的 WPF 对话框。安装成功后弹出完成窗口，可浏览 WebUI、AstrBot、安装说明和报告。启动器改为 WSH，不再显示管理员 PowerShell 控制台。发布包根目录包含 `START-INSTALLER.cmd` 和 `README-INSTALL.md`。
 
 **界面内预检**：GUI 可以运行只读环境预检并显示 JSON 结果。
 
