@@ -69,7 +69,6 @@ function Set-CyberButlerLogonRight {
     $user = Get-LocalUser -Name $AccountName -ErrorAction Stop
     $sid = [string]$user.SID.Value
     $tmp = Join-Path $env:TEMP ('cb-secedit-' + [guid]::NewGuid().ToString('N') + '.inf')
-    $db = Join-Path $env:SystemRoot 'security\database\secedit.sdb'
     try {
         & secedit.exe /export /cfg $tmp /areas SECURITYPOLICY 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tmp)) { throw 'secedit export failed' }
@@ -93,7 +92,13 @@ function Set-CyberButlerLogonRight {
             $lines.Add($Right + ' = *' + $sid)
         }
         [IO.File]::WriteAllLines($tmp, $lines, (New-Object Text.UnicodeEncoding($false, $true)))
-        $configureOutput = & secedit.exe /configure /db $db /cfg $tmp /areas SECURITYPOLICY 2>&1
+        $securityDbDir = Join-Path $env:SystemRoot 'security\database'
+        Push-Location -LiteralPath $securityDbDir
+        try {
+            $configureOutput = & secedit.exe /configure /db 'secedit.sdb' /cfg $tmp /areas SECURITYPOLICY 2>&1
+        } finally {
+            Pop-Location
+        }
         if ($LASTEXITCODE -ne 0) { throw ('secedit configure failed: ' + (($configureOutput | ForEach-Object { [string]$_ }) -join ' ')) }
         $verified = Get-CyberButlerAccountLogonRights -AccountName $AccountName
         if ($Remove) {
