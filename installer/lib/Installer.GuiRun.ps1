@@ -333,9 +333,14 @@ function Start-CyberButlerGuiInstall {
                     if ($target -gt $script:cbGuiPercent) { $script:cbGuiPercent = $target }
                     $percent = $script:cbGuiPercent
                     $message = $last
-                    if ($last -match 'Using cached|Installing collected|Successfully installed|Requirement already satisfied') {
-                        $message = 'Core: pip install in progress (this can take several minutes)'
-                    }
+                    if ($script:cbGuiPercent -eq 15) { $message = 'Core: downloading / extracting' }
+                    elseif ($script:cbGuiPercent -eq 25) { $message = 'Core: preparing files' }
+                    elseif ($script:cbGuiPercent -eq 35) { $message = 'Core: pip install in progress (this can take several minutes)' }
+                    elseif ($script:cbGuiPercent -eq 45) { $message = 'Core completed; applying overlay' }
+                    elseif ($script:cbGuiPercent -eq 55) { $message = 'ACL / broker ACL' }
+                    elseif ($script:cbGuiPercent -eq 65) { $message = 'TOTP: material ready / waiting for enrollment' }
+                    elseif ($script:cbGuiPercent -eq 80) { $message = 'Services: registering tasks / waiting for ports' }
+                    elseif ($script:cbGuiPercent -eq 100) { $message = 'Installation complete' }
                     $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnProgress $percent $message })
                 }
             } catch { }
@@ -345,6 +350,7 @@ function Start-CyberButlerGuiInstall {
         if (-not (Test-Path -LiteralPath $readyPath)) { return }
         $script:cbGuiTotpSeen = $true
         $script:cbGuiTimer.Stop()
+        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { }
         $result = $null
         try {
             $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $script:cbGuiWindow `
@@ -365,7 +371,7 @@ function Start-CyberButlerGuiInstall {
             scanned = [bool]$result.scanned
             recovery_saved = [bool]$result.recovery_saved
         } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json') -Encoding UTF8
-        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { }
+        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpConfirmed']) } catch { }
         $script:cbGuiTimer.Start()
     })
     $script:cbGuiTimer.Start()
