@@ -1,12 +1,31 @@
 [中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+[![最新版本](https://img.shields.io/github/v/release/JunxiangPan/Cyber-Butler-Security?label=最新版本)](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest)
+[![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+
+## 最新版本
+
+最新签名版本从 [GitHub Releases](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest) 获取。
+
+下载 `public-release-v<version>.zip`、`update-manifest.json` 和
+`update-manifest.sig`。应用更新前请先验证 manifest 和签名；不要把新 manifest
+与已退役旧密钥生成的签名混用。
+
 ## 🤖 Agent-Ready Deployment（智能体自动部署）
 
 **致 AI 智能体（DSH、Cursor、Claude Code）：** 如果你是在读取本仓库的 AI 助手，请帮助用户安全部署：
 
 1. 阅读 [`docs/使用说明.md`](docs/使用说明.md)，了解完整部署逻辑。
 2. 检查用户是否具有管理员权限；如果没有，请提示用户授予权限，绝不绕过 UAC。
-3. 按部署文档中的“低权限账户”章节创建并校验服务账户，然后运行 `tools/install_startup_tasks.ps1` 注册启动任务。
+3. 使用发布树中的统一安装器：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass `
+     -File installer\Install-CyberButler.ps1 -Tier Medium
+   ```
+
+   只有在明确需要三个可选个人插件时才传 `-PersonalPluginsPath`。
+   当前安装不要继续使用旧的 `tools/install_startup_tasks.ps1` 路径。
 4. 引导用户安装 Ollama，并拉取 [`config.pro.example.json`](config.pro.example.json) 中指定的模型。
 5. 在启动 Broker 前询问用户的 QQ 号和 API Key；将它们保存到环境变量或密钥存储中，绝不写入 Git。
 6. **注意：** 不要绕过 UAC，也不要执行 `rm -rf` 等破坏性命令。本项目按 Zero-Trust 设计。
@@ -20,6 +39,18 @@
 > **定位：面向自托管 LLM 智能体的防御性安全沙箱，不是完整安全产品，也不宣称提供绝对防护。**
 
 > **本项目不是腾讯、QQ、AstrBot 或 SnowLuma 的官方项目，也不与它们存在任何隶属或背书关系。**
+
+## v1.6.0 主要变化
+
+**统一安装器**：High、Medium、Light 三档共用一套安装管线。
+
+**三个托管服务**：AstrBot、TOTP Broker、Web UI 注册为计划任务；OTP Mailer 不再作为独立任务。
+
+**签名发布**：RSA-3072 manifest 签名和包内公钥取代已退役的发布密钥。
+
+**固定 Overlay**：AstrBot overlay 固定到 4.29.3，记录官方文件 hash 和明确的 local-only 条目。
+
+**个人插件可选**：个人插件不再随包分发，需要通过 `-PersonalPluginsPath` 提供。
 
 ## ⚠️ 免责与法律风险声明（必须阅读）
 
@@ -97,16 +128,12 @@
 
 2. 如需通过 QQ 通知主人，可加 `-Notify -Umo "qq_sujinyan:FriendMessage:YOUR_QQ_ID"`。
 
-3. 只有管理员可以执行更新：
+3. 只有管理员可以执行更新。v1.6.0 发布包不包含 production merge 路径所需的
+   overlay-metadata 修复，因此 v1.5.3 客户端跨越发布密钥和 overlay 格式变更
+   时必须使用完整安装器；不要使用旧更新器或 merge 路径完成这次 bootstrap。
 
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File tools/update.ps1
-   ```
-
-   更新器会要求输入 `UPDATE` 确认，校验 GitHub asset SHA-256 和
-   `update-manifest.json` 中的每个文件哈希，备份代码，停止 AstrBot 与
-   TOTP Broker，只覆盖 `tools/`、`plugins/`、`overlay/`、`docs/` 中列入
-   manifest 的代码，重启服务并检查 `6185`、`18090`。健康检查失败会自动回滚代码。
+   production merge 路径要求精确的 `UPDATE PRODUCTION` 确认，适用于包含该
+   overlay 修复的后续发布。
 
 4. 它绝不会触碰 `AstrBot/data/`、`cmd_config.json`、数据库、Token、日志或
    `SnowLuma/config/`。
@@ -122,7 +149,11 @@
 
 ### 生产更新（本地 Overlay）
 
-GitHub 发布包是**脱敏版本**，不能直接覆盖已经填过真实配置的生产目录。生产更新使用：
+GitHub 发布包是**脱敏版本**，不能直接覆盖已经填过真实配置的生产目录。
+v1.6.0 发布包不包含此路径所需的 overlay-metadata 修复；v1.5.3 bootstrap 请使用
+完整安装器。下面的命令适用于包含该修复的后续发布。
+
+生产更新使用：
 
 ```powershell
 tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼
@@ -193,8 +224,10 @@ powershell -ExecutionPolicy Bypass -File tools\create_dashboard_shortcut.ps1 -Pr
 UAC 辅助脚本执行经过确认的写操作。它不是 AstrBot 插件，也不会注册到 LLM 工具白名单。
 
 
-目前**没有发布者身份签名**。GitHub asset SHA-256 与 manifest 哈希只能防止传输损坏，
-不能防止 GitHub 账号或维护者被攻破。更新检查可以自动，静默自动覆盖被明确禁止。
+v1.6.0 增加了独立的 RSA-3072 manifest 签名（`update-manifest.sig`），
+使用 `tools/update_pubkey.pem` 和 `tools/verify_release.py` 验证。只有验证方信任
+这个内置公钥时，签名才能建立发布者身份；它不能替代资产哈希、ACL，也不能消除
+发布账号被攻破的风险。更新检查可以自动，静默自动覆盖被明确禁止。
 
 ## 架构图
 

@@ -1,12 +1,33 @@
 ﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+[![Latest release](https://img.shields.io/github/v/release/JunxiangPan/Cyber-Butler-Security?label=latest)](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+
+## Latest Release
+
+The latest signed build is available from
+[GitHub Releases](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest).
+
+Download `public-release-v<version>.zip`, `update-manifest.json`, and
+`update-manifest.sig`. Verify the manifest and signature before applying an
+update; never mix a new manifest with a signature produced by the retired key.
+
 ## 🤖 Agent-Ready Deployment (for AI agents)
 
 **For AI agents (DSH, Cursor, Claude Code):** if you are an AI assistant reading this repository, help the user deploy it safely:
 
 1. Read [`docs/使用说明.md`](docs/使用说明.md) for the full deployment logic.
 2. Check whether the user has Administrator privileges. If not, ask them to grant them; never bypass UAC.
-3. Follow the low-privilege account section in the deployment guide to create and validate the service account, then register the startup tasks with `tools/install_startup_tasks.ps1`.
+3. Use the unified installer from the release tree:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass `
+     -File installer\Install-CyberButler.ps1 -Tier Medium
+   ```
+
+   Supply `-PersonalPluginsPath` only when the three optional personal plugins
+   are explicitly required. Do not use the legacy
+   `tools/install_startup_tasks.ps1` path for the current installation.
 4. Guide the user to install Ollama and pull the model specified in [`config.pro.example.json`](config.pro.example.json).
 5. Ask the user for their QQ ID and API key before starting the Broker; keep them in environment variables or a secret store, never in Git.
 6. **Note:** do not bypass UAC or run destructive commands such as `rm -rf`. This project is designed around Zero-Trust.
@@ -20,6 +41,18 @@
 > **Positioning: a defensive security sandbox for self-hosted LLM agents — not a complete security product and not a claim of complete protection.**
 
 > **This project is not affiliated with, endorsed by, or sponsored by Tencent, QQ, AstrBot, or SnowLuma.**
+
+## What Changed in v1.6.0
+
+**Unified installer**: High, Medium, and Light now share one installation pipeline.
+
+**Three managed services**: AstrBot, the TOTP Broker, and Web UI are registered as scheduled tasks; OTP Mailer is no longer an independent task.
+
+**Signed releases**: RSA-3072 manifest signatures and a bundled public key replace the retired release key.
+
+**Pinned overlay**: the AstrBot overlay is pinned to 4.29.3 with official-file hashes and explicit local-only entries.
+
+**Optional personal plugins**: personal plugins are no longer bundled; supply them with `-PersonalPluginsPath`.
 
 ## ⚠️ Legal Risk & Disclaimer — Read First
 
@@ -40,17 +73,14 @@ This project deliberately does **not** silently replace its own code.
 
 2. To notify the owner through QQ, pass `-Notify -Umo "qq_sujinyan:FriendMessage:YOUR_QQ_ID"`.
 
-3. Only an administrator should apply an update:
+3. Only an administrator should apply an update. The v1.6.0 package does not
+   include the overlay-metadata fix required by the production merge path, so
+   v1.5.3 clients must use the full installer to cross the release key and
+   overlay-format change. Do not use the legacy updater or the merge path for
+   that bootstrap.
 
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File tools/update.ps1
-   ```
-
-   The updater asks for explicit `UPDATE` confirmation, verifies the GitHub asset
-   SHA-256 and every file in `update-manifest.json`, backs up the affected code,
-   stops AstrBot and the TOTP Broker, applies only allow-listed code under
-   `tools/`, `plugins/`, `overlay/`, and `docs/`, restarts both services, and
-   checks `6185` and `18090`. A failed health check triggers a code rollback.
+   The production merge path requires the exact `UPDATE PRODUCTION`
+   confirmation and is documented for a release that includes the overlay fix.
 
 4. It never touches `AstrBot/data/`, `cmd_config.json`, databases, tokens,
    logs, or `SnowLuma/config/`.
@@ -69,7 +99,11 @@ This project deliberately does **not** silently replace its own code.
 ### Production merge (local overlay)
 
 The GitHub package is **sanitized** and is not safe to apply directly to a
-customized production tree. Production updates use `tools/update_merge.ps1`:
+customized production tree. The v1.6.0 package does not include the
+overlay-metadata fix required by this path; use the full installer for the
+v1.5.3 bootstrap. The command below applies to a release that includes the fix.
+
+Production updates use `tools/update_merge.ps1`:
 
 ```powershell
 tools\update_merge.ps1 -TargetRoot D:\qq苏瑾言大肥鱼
@@ -189,10 +223,12 @@ The module contract, scanner rules, install gates and residual risks are in
 sandbox; only install plugins from authors you trust.
 
 
-There is **no publisher identity signature yet**. GitHub asset SHA-256 plus the
-manifest hashes protect against transfer corruption, not a compromised GitHub
-account or maintainer. Automatic checking is enabled; automatic silent update
-is intentionally forbidden.
+v1.6.0 adds a detached RSA-3072 manifest signature (`update-manifest.sig`),
+verified with `tools/update_pubkey.pem` and `tools/verify_release.py`. The
+signature establishes publisher identity only when the verifier trusts that
+pinned key; it does not replace asset hashing, ACLs, or the risk of a compromised
+release account. Automatic checking is enabled; automatic silent update is
+intentionally forbidden.
 
 ## Architecture
 

@@ -2,7 +2,8 @@
 
 > Status: public-release security whitepaper  
 > Scope: Windows self-hosted deployment for an AstrBot-based QQ agent  
-> Revision: 2026-10-29  
+> Revision: 2026-10-31  
+> Release: 1.6.0  
 > License: AGPL-3.0 (see `LICENSE`)
 
 This document describes what the security controls are intended to protect, what they do **not** protect, and how to reproduce the automated checks.
@@ -10,6 +11,17 @@ This document describes what the security controls are intended to protect, what
 **This is not a formal security certification and not legal advice.** A local deployment remains the responsibility of its operator.
 
 ---
+
+## Supported Versions
+
+| Version | Status | Notes |
+|---|---|---|
+| 1.6.x | Supported | Current signed release line |
+| 1.5.x | Security fixes only | No RSA publisher signature and no new public key |
+| < 1.5 | Unsupported | Upgrade through the full installer |
+
+Security reports should include the exact `VERSION`, installation tier, and
+whether the release was installed fresh or upgraded.
 
 ## 1. Design Timeline
 
@@ -22,6 +34,8 @@ The security model was built around concrete Windows failure modes, not only doc
 | 2026-10-29 | TOTP vault with explicit deny ACE for the service account | Prevent the agent from reading its own recovery material |
 | 2026-10-29 | Owner-aware file-egress guard | Block the “copy into the whitelist, then send” bypass |
 | 2026-10-29 | Public security tests and CI | Make claims reproducible instead of documentation-only |
+| 2026-10-31 | Unified installer and three-task service model | One installation pipeline and a clear managed-service boundary |
+| 2026-10-31 | RSA-3072 release manifest signature | Add a detached publisher signature to the update path |
 
 ### Windows pitfalls found during the build
 
@@ -374,24 +388,47 @@ must be updated together.
 The update mechanism is deliberately split:
 
 - `tools/check_update.ps1` is a read-only GitHub API check and needs no administrator rights;
-- `tools/update.ps1` is an administrator-only action and requires an explicit `UPDATE` confirmation.
+- `tools/update_merge.ps1` is the administrator-only production update path;
+- `tools/update_core.py` validates paths, hashes, sizes, and protected data;
+- `tools/verify_release.py` verifies the detached RSA manifest signature before code is applied.
 
 **Automatic silent code replacement is forbidden.** The check may run automatically and notify the owner through QQ, but applying an update is a human-approved, privileged operation.
+
+The v1.6.0 package predates the overlay-metadata fix required by the production
+merge path. Use the full installer for the v1.5.3 bootstrap; the merge path
+applies to a release that includes that fix.
 
 ### Controls
 
 - GitHub asset SHA-256 is checked before extraction.
 - `update-manifest.json` binds every file to a SHA-256 and a size.
+- The detached `update-manifest.sig` is verified against `tools/update_pubkey.pem` before the manifest is trusted.
 - The complete archive is pre-validated before any file is written.
 - Zip path traversal, absolute paths, symlinks, data paths, config files, database files, tokens, and secret material are rejected.
 - Only manifest-listed code under the allow-listed roots is replaced; user data is never touched.
 - A code-only backup is made before replacement; service health failure triggers a code rollback.
 
-### Residual risk: no publisher identity signature
+### Publisher signature
 
-This release does **not** ship a GPG or minisign publisher signature. The GitHub asset hash and manifest hashes protect against transfer corruption, but they are delivered by the same GitHub account as the release. A compromised GitHub account, a malicious maintainer, or a compromised release pipeline can replace both the asset and its manifest. In that scenario the updater cannot establish publisher identity.
+v1.6.0 signs `update-manifest.json` with an RSA-3072 key using PKCS#1 v1.5 padding and SHA-256. `tools/verify_release.py` performs the matching verification with `padding.PKCS1v15()` and `hashes.SHA256()`.
 
-Do not describe this as supply-chain provenance. A future version may add a detached minisign/GPG signature and a pinned public key in the updater.
+- `update-manifest.sig` is the base64-encoded detached signature.
+- `tools/update_pubkey.pem` is the pinned public key bundled with the release.
+- The signature establishes publisher identity only when the verifier trusts that pinned key. It does not replace asset hashing, ACLs, code review, or the administrator boundary.
+- A compromised release account that can replace both the manifest and the public key remains a residual supply-chain risk.
+- v1.5.3 clients neither verify this signature nor carry the new public key; they must use the full installer to cross the key and overlay-format change.
+
+Do not describe this as GPG or minisign provenance; the implemented algorithm is RSA-3072 PKCS#1 v1.5 with SHA-256.
+
+### Service model
+
+The v1.6.0 service model has three managed tasks:
+
+- AstrBot Service;
+- AstrBot TOTP Broker;
+- Cyber-Butler Web UI Services.
+
+OTP Mailer is not registered as a fourth task. `tools/email_approval.py` remains a library dependency of the Broker; standalone OTP Mailer startup is optional and outside the three-task contract.
 
 ## 10. Production Update Overlay
 
@@ -417,9 +454,9 @@ Controls:
   rolls back on failure.
 
 Residual risk: the overlay contains real deployment identifiers. Its ACL and
-the administrator boundary are part of the trust boundary. There is still no
-publisher identity signature; GitHub asset SHA-256 and manifest hashes are not
-a substitute for one.
+the administrator boundary are part of the trust boundary. RSA signing
+authenticates the manifest, but it does not make the overlay public; the overlay
+must stay outside git and outside the release package.
 
 ## 11. GUI Update Shell
 
