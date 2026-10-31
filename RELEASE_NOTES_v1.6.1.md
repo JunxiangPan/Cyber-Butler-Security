@@ -20,7 +20,7 @@ v1.6.1 focuses on the clean-install path: the Web UI launcher now resolves the p
 
 **Preflight in the UI**: the GUI can run a read-only environment preflight and display its JSON result.
 
-**Explicit approval**: the GUI requires an explicit approval checkbox before it supplies the approval tokens. It never auto-approves silently.
+**Explicit approval**: the GUI requires an explicit approval checkbox before it supplies the approval tokens. It never auto-approves silently. While installation runs, every action except Exit is disabled; Exit asks for confirmation and stops the hidden installer. **Uninstall**: the GUI has a one-click Uninstall action that verifies Cyber-Butler markers, stops tasks/processes, removes its firewall rule, deletes the install root and ProgramData state, and never removes the source zip.
 
 🛡️ Update Integrity
 
@@ -84,7 +84,7 @@ v1.6.1 聚焦干净安装路径：Web UI 启动器现在能识别生产目录结
 
 **界面内预检**：GUI 可以运行只读环境预检并显示 JSON 结果。
 
-**显式批准**：GUI 只有在用户勾选批准后才提供 approval token，不会静默自动批准安全步骤。界面包含中文/英文说明、进度条、当前步骤、完成/失败提示。
+**显式批准**：GUI 只有在用户勾选批准后才提供 approval token，不会静默自动批准安全步骤。安装期间除“退出”外所有按钮和输入框禁用；退出会确认并停止隐藏安装器。**一键删除**：GUI 提供删除按钮，校验 Cyber-Butler 标记后停止任务/进程、删除防火墙规则、安装目录和 ProgramData 状态，不删除源 zip。
 
 🛡️ 更新完整性
 

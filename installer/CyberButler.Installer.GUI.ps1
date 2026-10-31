@@ -110,12 +110,13 @@ $xaml = @'
     </Border>
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14">
-      <Button x:Name="PreflightButton" Content="Run preflight" Width="150" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="StartButton" Content="Start installation" Width="170" Height="38" Margin="0,0,10,0"
+      <Button x:Name="PreflightButton" Content="Run preflight" Width="140" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="StartButton" Content="Start installation" Width="160" Height="38" Margin="0,0,10,0"
               Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9" FontWeight="SemiBold"/>
-      <Button x:Name="ReportButton" Content="Open report folder" Width="170" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="CloseButton" Content="Exit" Width="90" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="HelpButton" Content="Help" Width="90" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="ReportButton" Content="Open report folder" Width="140" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="RemoveButton" Content="Uninstall" Width="110" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="CloseButton" Content="Exit" Width="80" Height="38" Margin="0,0,10,0"/>
+      <Button x:Name="HelpButton" Content="Help" Width="80" Height="38" Margin="0,0,10,0"/>
       <CheckBox x:Name="ApprovalCheck" Content="I have read the notes above and approve these installer steps"
                 Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
     </StackPanel>
@@ -161,6 +162,7 @@ $apiKeyFileBox = $window.FindName('ApiKeyFileBox')
 $preflightButton = $window.FindName('PreflightButton')
 $startButton = $window.FindName('StartButton')
 $reportButton = $window.FindName('ReportButton')
+$removeButton = $window.FindName('RemoveButton')
 $closeButton = $window.FindName('CloseButton')
 $helpButton = $window.FindName('HelpButton')
 $quickHelp = $window.FindName('QuickHelp')
@@ -190,9 +192,9 @@ $script:UiText = @{
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
         PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
         ApiKeyNote='API Key 不会保存在此界面；可选文件由安装器读取，不会写入 GUI 日志。'
-        QuickHelp='主人 QQ：用于 TOTP 和审批路由的 QQ 号，不是密码。 安全档位：High 使用独立服务账户；Medium 使用当前桌面账户；Light 保护最少。 WebUI 绑定：Loopback 仅本机；Tailscale 私有网络；LAN 暴露到局域网。 个人插件：三个可选插件的目录，留空跳过。 API Key：DeepSeek 云端密钥（sk-...），可选文件；获取地址 https://platform.deepseek.com/api_keys ，留空则只用本地模型。 勾选批准：表示你已阅读说明并同意安装器执行这些步骤，GUI 不会静默批准。'
-        HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n用于 TOTP 账户名和审批/通知路由，不是 QQ 密码。`n`n安全档位`nHigh：独立低权限服务账户，AstrBot/WebUI 以服务身份运行，TOTP vault 对 Agent 账户有 Deny，隔离最强。`nMedium：AstrBot/WebUI 使用当前桌面账户，TOTP vault 无法对同一账户强制 Deny；适合单机测试。`nLight：最少保护，仅建议临时或低价值环境。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大，必须确认防火墙。`n`n个人插件`n可选目录，包含 private_companion、livingmemory、memorix 三个插件；留空不安装。`n`nAPI Key`nDeepSeek 云模型密钥，通常以 sk- 开头。获取地址：https://platform.deepseek.com/api_keys 。本界面填的是包含密钥的文件路径；留空则跳过云端密钥。`n`n批准勾选`n只有勾选后才会提交 approval token；不会静默自动批准安全步骤。"
-        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'
+        QuickHelp='主人 QQ：填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。它用于 TOTP 标签、审批/通知路由和 owner allowlist；机器人 QQ 在 AstrBot/QQ 适配器里单独配置。安全档位：High/Medium/Light 的区别见 Help；系统至少 Windows 10/11 x64、管理员权限、PowerShell 5.1、Python 3.10–3.13，档位不改变这些前提。本地模型显存建议：24GB+ 用 20–24B，16GB 用 7–14B，8GB 用 3–7B，无独显可用 API-only。WebUI 绑定：Loopback 仅本机；Tailscale 私有网络；LAN 暴露局域网（High 禁止 LAN）。个人插件：不随包发布，需要你已有的 AstrBot 插件目录，包含 private_companion（陪伴核心）、livingmemory（长期记忆）、memorix（图谱+向量记忆）；安装器只复制这三个插件，不下载。API Key：本字段只写 DeepSeek 的 sk-... 密钥；其他大模型/兼容 API 需要在 AstrBot 的 provider 配置中单独添加，不能在这里直接切换。获取 DeepSeek Key：https://platform.deepseek.com/api_keys 。批准勾选：表示你已阅读说明并授权安装器执行这些步骤。'
+        HelpBody="Cyber-Butler 安装选项说明`n`n主人 QQ`n填你自己的主 QQ（管理员/所有者账号），不是机器人 QQ。用于 TOTP 标签、审批/通知路由、YOUR_QQ_ID 和 owner allowlist。机器人 QQ 在 AstrBot/QQ 适配器中单独配置。`n`n安全档位`nHigh：Windows 10/11 x64 + 管理员 + 独立本地服务账户；AstrBot/WebUI 以服务身份运行；TOTP vault 对 Agent 账户有 Deny；LAN 被禁止；隔离最强。`nMedium：使用当前桌面账户，Interactive 计划任务；无法对同一账户强制 TOTP vault Deny；适合单机测试。`nLight：减少 ACL/审计/TOTP egress，仅建议低价值或临时环境。`n档位不改变硬件前提：Windows 10/11 x64、PowerShell 5.1、管理员权限、Python 3.10–3.13。本地模型显存参考：24GB+ 可跑 20–24B；16GB 可跑 7–14B；8GB 可跑 3–7B 量化；无独显或不小于 8GB 时可用 API-only；所有档位都支持 API-only。`n`nWebUI 绑定`nLoopback：只监听 127.0.0.1，最安全。`nTailscale：通过私有 tailnet 访问，需要 Tailscale。`nLAN：局域网可访问，暴露面最大；High 禁止 LAN。`n`n个人插件`n不随开源包发布。需要你已有的 AstrBot 插件目录，包含三个插件：private_companion（我会永远陪着你：角色状态、日程、关系、主动消息、陪伴核心）、livingmemory（长期记忆生命周期）、memorix（图谱+向量混合检索记忆）。安装器只复制这三个名字，不联网下载；获取渠道是你现有 AstrBot/data/plugins 或上游仓库。`n`nAPI Key`n本字段填写包含 DeepSeek API Key 的文件路径，通常 sk-...，只用于 DeepSeek provider。其他大模型或 OpenAI-compatible API 需要在 AstrBot 的 provider 配置/WebUI 中单独添加，不能靠本字段直接切换。DeepSeek Key 获取：https://platform.deepseek.com/api_keys 。`n`n批准勾选`n只有勾选后才会提交 approval token；GUI 不会静默批准安全步骤。"
+        Preflight='检查环境'; Start='开始安装'; Report='打开报告目录'; Exit='退出'; Help='说明'; Remove='删除程序'; RemoveConfirm='这会停止服务并永久删除此项目的安装目录和 ProgramData 状态。确定删除？'; RemoveDone='删除完成。'; RemoveFailed='删除失败：'
         Approval='我已阅读上方说明，确认执行这些安装步骤'; NeedApproval='请先勾选安装确认。'
         TotpTitle='TOTP 注册'; TotpHint='扫描二维码并离线保存恢复码，然后勾选两项确认。'; Scanned='我已扫描二维码'; Recovery='我已保存恢复码'; Confirm='确认并继续'; Cancel='取消'; TotpReady='TOTP 材料已就绪，请完成注册。'; Invalid='TOTP 确认无效。'
         Ready='就绪。'; RunningPreflight='正在检查环境...'; PreflightDone='检查完成，请确认后开始安装。'
@@ -206,9 +208,9 @@ $script:UiText = @{
         InstallPath='Install path'; Tier='Tier'; OwnerQQ='Owner QQ'; Bind='WebUI bind'
         PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional, sk-...)'
         ApiKeyNote='API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log.'
-        QuickHelp='Owner QQ: QQ number used for TOTP/approval routing, not a password. Tier: High = separate service account; Medium = current desktop account; Light = minimal protection. WebUI bind: Loopback = local only; Tailscale = private tailnet; LAN = network exposure. Personal plugins: optional folder for the three personal plugins; leave blank to skip. API key: DeepSeek cloud key (sk-...), optional file; get it at https://platform.deepseek.com/api_keys ; leave blank for local-only. Approval checkbox: you have read the notes and authorize these steps; GUI never auto-approves silently.'
-        HelpBody="Cyber-Butler installer options`n`nOwner QQ`nUsed for the TOTP account label and approval/notification routing. It is not your QQ password.`n`nSecurity tier`nHigh: separate low-privilege service account; AstrBot/WebUI run as service; TOTP vault denies the agent account; strongest isolation.`nMedium: AstrBot/WebUI use the current desktop account; a same-account TOTP vault deny is not enforceable; suitable for single-machine testing.`nLight: minimal protection; only for temporary or low-value environments.`n`nWebUI bind`nLoopback: 127.0.0.1 only, safest.`nTailscale: private tailnet access; requires Tailscale.`nLAN: reachable on the local network; largest exposure; verify firewall rules.`n`nPersonal plugins`nOptional folder containing private_companion, livingmemory, and memorix; leave blank to skip.`n`nAPI key`nDeepSeek cloud model key, usually starts with sk-. Get one at https://platform.deepseek.com/api_keys . This field expects a file path containing the key; leave blank to skip cloud credentials.`n`nApproval checkbox`nIt supplies approval tokens only after it is checked; the GUI never silently approves security steps."
-        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'
+        QuickHelp='Owner QQ: enter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, and owner allowlist; the bot QQ is configured separately in AstrBot/QQ. Tier: see Help for High/Medium/Light; all require Windows 10/11 x64, admin, PowerShell 5.1 and Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B, no dGPU for API-only. WebUI bind: Loopback local only; Tailscale private tailnet; LAN network exposure (High rejects LAN). Personal plugins: not bundled; provide an existing AstrBot plugin folder with private_companion (companion core), livingmemory (long-term memory), memorix (graph+vector memory); the installer copies only these, never downloads. API key: this field writes a DeepSeek sk-... key only; other models/OpenAI-compatible endpoints must be configured in AstrBot providers, not switched here. Get a DeepSeek key: https://platform.deepseek.com/api_keys . Approval checkbox: you have read the notes and authorize these steps.'
+        HelpBody="Cyber-Butler installer options`n`nOwner QQ`nEnter your own main QQ (the owner/admin account), not the bot QQ. It feeds the TOTP label, approval/notification routing, YOUR_QQ_ID and the owner allowlist. The bot QQ is configured separately in AstrBot/QQ.`n`nSecurity tier`nHigh: Windows 10/11 x64 + admin + a dedicated local service account; AstrBot/WebUI run as services; TOTP vault denies the agent account; LAN is rejected; strongest isolation.`nMedium: current desktop account with Interactive scheduled tasks; a same-account TOTP vault deny cannot be enforced; suitable for single-machine testing.`nLight: reduced ACL/audit/TOTP egress; only for temporary or low-value environments.`nTier does not change the hardware baseline: Windows 10/11 x64, PowerShell 5.1, admin rights, Python 3.10–3.13. Local model VRAM guidance: 24GB+ for 20–24B, 16GB for 7–14B, 8GB for 3–7B quantized, no dGPU for API-only; every tier supports API-only.`n`nWebUI bind`nLoopback: 127.0.0.1 only, safest.`nTailscale: private tailnet access; requires Tailscale.`nLAN: reachable on the local network; largest exposure; High rejects LAN.`n`nPersonal plugins`nNot bundled. Provide an existing AstrBot plugin folder containing private_companion (the companion core: character state, schedule, relationships, proactive messages), livingmemory (long-term memory lifecycle), and memorix (graph+vector hybrid memory). The installer copies only those three and never downloads them; obtain them from your existing AstrBot/data/plugins or their upstream repositories.`n`nAPI key`nThis field takes a file path containing a DeepSeek API key (usually sk-...) and writes only the DeepSeek provider secret. Other models or OpenAI-compatible endpoints must be configured in AstrBot providers/WebUI; this field does not switch providers. Get a DeepSeek key: https://platform.deepseek.com/api_keys .`n`nApproval checkbox`nIt supplies approval tokens only after it is checked; the GUI never silently approves security steps."
+        Preflight='Run preflight'; Start='Start installation'; Report='Open report folder'; Exit='Exit'; Help='Help'; Remove='Uninstall'; RemoveConfirm='This stops services and permanently deletes the project install directory and ProgramData state. Continue?'; RemoveDone='Uninstall completed.'; RemoveFailed='Uninstall failed: '
         Approval='I have read the notes above and approve these installer steps'; NeedApproval='Please check the approval box first.'
         TotpTitle='TOTP Enrollment'; TotpHint='Scan the QR code and store the recovery codes offline, then confirm both checks.'; Scanned='I scanned the QR code'; Recovery='I saved the recovery codes'; Confirm='Confirm and continue'; Cancel='Cancel'; TotpReady='TOTP material is ready; complete enrollment.'; Invalid='Invalid TOTP confirmation.'
         Ready='Ready.'; RunningPreflight='Running preflight...'; PreflightDone='Preflight finished. Review the output, then start installation.'
@@ -240,6 +242,7 @@ function Apply-GuiLanguage {
     $reportButton.Content = Get-UiText 'Report'
     $closeButton.Content = Get-UiText 'Exit'
     $helpButton.Content = Get-UiText 'Help'
+    $removeButton.Content = Get-UiText 'Remove'
     $approvalCheck.Content = Get-UiText 'Approval'
     $quickHelp.Text = Get-UiText 'QuickHelp'
     if ($stepText.Text -eq 'Ready.' -or $stepText.Text -eq '就绪。') { $stepText.Text = Get-UiText 'Ready' }
@@ -254,6 +257,66 @@ function Write-GuiLog([string]$message) {
     $line = '[{0:HH:mm:ss}] {1}' -f (Get-Date), $message
     $logBox.AppendText($line + "`r`n")
     $logBox.ScrollToEnd()
+}
+
+
+function Set-GuiBusy([bool]$Busy) {
+    foreach ($control in @(
+        $preflightButton, $startButton, $reportButton, $removeButton, $helpButton,
+        $languageBox, $installPathBox, $tierBox, $ownerQQBox, $bindBox,
+        $personalPluginsBox, $apiKeyFileBox, $approvalCheck
+    )) {
+        if ($null -ne $control) { $control.IsEnabled = -not $Busy }
+    }
+    $closeButton.IsEnabled = $true
+}
+
+function Remove-CyberButlerGuiInstall([string]$Root) {
+    $full = [IO.Path]::GetFullPath($Root).TrimEnd('')
+    $rootOfDrive = [IO.Path]::GetPathRoot($full).TrimEnd('')
+    if ([string]::IsNullOrWhiteSpace($full) -or $full -eq $rootOfDrive -or $full.Length -lt 4) {
+        throw ('Refusing to remove unsafe root: ' + $full)
+    }
+    if ($full -match '^[A-Za-z]:\Windows(\|$)' -or $full -match '^[A-Za-z]:\Program Files') {
+        throw ('Refusing to remove system directory: ' + $full)
+    }
+    foreach ($marker in @('VERSION', 'AstrBot', 'webui', 'tools')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $full $marker))) {
+            throw ('Refusing to remove non-Cyber-Butler directory: missing ' + $marker)
+        }
+    }
+    foreach ($taskName in @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services')) {
+        $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($task) {
+            Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+        }
+    }
+    Remove-NetFirewallRule -DisplayName 'Cyber-Butler Web UI 8765' -ErrorAction SilentlyContinue
+    foreach ($port in @(6185, 18090, 8765)) {
+        foreach ($conn in @(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)) {
+            $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+            if ($proc -and $proc.Path -and $proc.Path.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) {
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -and $_.CommandLine -like ('*' + $full + '*') } |
+        ForEach-Object {
+            $proc = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
+            if ($proc -and $proc.Path -and $proc.Path.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) {
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+        }
+    if (Test-Path -LiteralPath $full) {
+        Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
+    }
+    $programData = Join-Path $env:ProgramData 'CyberButler'
+    if (Test-Path -LiteralPath $programData) {
+        Remove-Item -LiteralPath $programData -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    return $full
 }
 
 function Get-SelectedComboText($combo) {
@@ -306,6 +369,7 @@ $startButton.Add_Click({
             Recovery = Get-UiText 'Recovery'; Confirm = Get-UiText 'Confirm'
             Cancel = Get-UiText 'Cancel'; TotpReady = Get-UiText 'TotpReady'
         }
+        Set-GuiBusy $true
         Write-GuiLog (Get-UiText 'Starting')
         $installProgress.Value = 2
         $stepText.Text = '2% · starting'
@@ -319,6 +383,7 @@ $startButton.Add_Click({
                 param($line)
                 $statusText.Text = $line
                 if ($line -match 'finished') {
+                    Set-GuiBusy $false
                     $installProgress.Value = 100
                     $stepText.Text = '100% · complete'
                     [System.Windows.MessageBox]::Show(
@@ -338,6 +403,7 @@ $startButton.Add_Click({
             } `
             -Text $text | Out-Null
     } catch {
+        Set-GuiBusy $false
         Write-GuiLog ('START ERROR: ' + $_.Exception.Message)
         $statusText.Text = Get-UiText 'StartFailed'
     }
@@ -356,7 +422,31 @@ $helpButton.Add_Click({
     [System.Windows.MessageBox]::Show((Get-UiText 'HelpBody'), (Get-UiText 'Help')) | Out-Null
 })
 
-$closeButton.Add_Click({ $window.Close() })
+$removeButton.Add_Click({
+    if ($script:cbGuiProcess -and -not $script:cbGuiProcess.HasExited) {
+        [System.Windows.MessageBox]::Show('Installation is running. Wait or use Exit to stop it first.', (Get-UiText 'Remove')) | Out-Null
+        return
+    }
+    $answer = [System.Windows.MessageBox]::Show((Get-UiText 'RemoveConfirm'), (Get-UiText 'Remove'), 'YesNo', 'Warning')
+    if ($answer -ne 'Yes') { return }
+    try {
+        $removed = Remove-CyberButlerGuiInstall ([string]$installPathBox.Text)
+        [System.Windows.MessageBox]::Show(((Get-UiText 'RemoveDone') + "`n`n" + $removed), (Get-UiText 'Remove')) | Out-Null
+    } catch {
+        [System.Windows.MessageBox]::Show(((Get-UiText 'RemoveFailed') + $_.Exception.Message), (Get-UiText 'Remove')) | Out-Null
+    }
+})
+
+$closeButton.Add_Click({
+    if ($script:cbGuiProcess -and -not $script:cbGuiProcess.HasExited) {
+        $answer = [System.Windows.MessageBox]::Show(
+            'Installation is running. Exit will stop the hidden installer and may leave a partial install. Continue?',
+            (Get-UiText 'Exit'), 'YesNo', 'Warning')
+        if ($answer -ne 'Yes') { return }
+        try { Stop-Process -Id $script:cbGuiProcess.Id -Force -ErrorAction SilentlyContinue } catch { }
+    }
+    $window.Close()
+})
 
 $window.Add_Loaded({
     Apply-GuiLanguage
