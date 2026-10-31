@@ -51,6 +51,11 @@ PROTECTED_EXACT = {
     "tools/broker_token.txt",
     "tools/totp_secret.dpapi",
     "tools/totp_recovery.json",
+    "tools/totp-vault/totp_secret.dpapi",
+    "tools/totp-vault/recovery_codes.txt",
+    "tools/totp-vault/recovery_hashes.json",
+    "webui/data/mailer_token",
+    "webui/data/server_secret",
     ".astrbot_token",
     ".astrbot_ws_token",
     ".snowluma_token",
@@ -81,7 +86,7 @@ def is_protected(path: object) -> bool:
         return True
     if value in PROTECTED_EXACT:
         return True
-    if value.startswith(("astrbot/data/", "snowluma/config/")):
+    if value.startswith(("astrbot/data/", "snowluma/config/", "webui/data/")):
         return True
     parts = value.split("/")
     if any(part in PROTECTED_PARTS for part in parts):
