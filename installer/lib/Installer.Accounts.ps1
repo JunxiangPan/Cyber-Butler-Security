@@ -182,7 +182,7 @@ function New-CyberButlerLocalAccount {
             catch { $rightErrors += ($right + ': ' + $_.Exception.Message) }
         }
         if ($rightErrors.Count -gt 0) { throw ('Logon right configuration failed: ' + ($rightErrors -join '; ')) }
-        return [pscustomobject]@{ created = $true; account_name = $AccountName; sid = [string]$user.SID.Value }
+        return [pscustomobject]@{ created = $true; account_name = $AccountName; sid = [string]$user.SID.Value; password = $passwordText }
     } catch {
         throw "New-LocalUser failed: $($_.Exception.Message)"
     }
@@ -283,6 +283,7 @@ function Invoke-CyberButlerAccountSetup {
         $creation = New-CyberButlerLocalAccount -AccountName $AccountName -Handlers $Handlers
         $created = [bool]$creation.created
         $base.changed = $created
+        if ($creation.password) { $base.password = [string]$creation.password }
         if ($created) {
             $action = [pscustomobject][ordered]@{
                 type = 'delete-created-account'

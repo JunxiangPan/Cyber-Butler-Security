@@ -1,4 +1,4 @@
-# Scheduled-task and service-health lifecycle for the installer.
+﻿# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -209,6 +209,7 @@ function New-CyberButlerScheduledTask {
         [string]$PrincipalMode,
         [string]$ServiceAccount = 'CyberButlerSvc',
         [string]$DesktopAccount = '',
+        [string]$ServiceAccountPassword = '',
         [string]$Trigger = 'AtLogOn'
     )
 
@@ -221,7 +222,19 @@ function New-CyberButlerScheduledTask {
     try {
         Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger -Principal $principal -Settings $settings -Force | Out-Null
     } catch {
-        throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', LogonType=' + $principalSpec.logon_type + '): ' + $_.Exception.Message)
+        $s4uError = $_.Exception.Message
+        if ($principalSpec.logon_type -eq 'S4U' -and $ServiceAccountPassword) {
+            try {
+                Write-Host ('SERVICE S4U registration denied for ' + $Name + '; retrying with password logon.')
+                Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger `
+                    -User $principalSpec.user_id -Password $ServiceAccountPassword -RunLevel $principalSpec.run_level `
+                    -Settings $settings -Force | Out-Null
+            } catch {
+                throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U and password fallback): ' + $s4uError + ' / ' + $_.Exception.Message)
+            }
+        } else {
+            throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', LogonType=' + $principalSpec.logon_type + '): ' + $s4uError)
+        }
     }
     try {
         Start-ScheduledTask -TaskName $Name
@@ -294,6 +307,7 @@ function Set-CyberButlerServiceTasks {
         [string]$Root,
         [string]$ServiceAccount = 'CyberButlerSvc',
         [string]$DesktopAccount = '',
+        [string]$ServiceAccountPassword = '',
         [bool]$Isolation = $false,
         [string]$JournalStep = 'services',
         $Journal = $null,
@@ -347,7 +361,7 @@ function Set-CyberButlerServiceTasks {
             }
         }
         New-CyberButlerScheduledTask -Name $spec.name -Exe $spec.exe -Arguments $spec.args -WorkingDirectory $spec.workdir `
-            -PrincipalMode $spec.principal -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Trigger $spec.trigger
+            -PrincipalMode $spec.principal -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -ServiceAccountPassword $ServiceAccountPassword -Trigger $spec.trigger
     }
     Start-Sleep -Seconds 2
     $afterPids = @(Get-CyberButlerPortOwnerIds -Ports $ports)
@@ -665,6 +679,7 @@ function Invoke-CyberButlerServices {
         [string]$Root,
         [string]$ServiceAccount = 'CyberButlerSvc',
         [string]$DesktopAccount = '',
+        [string]$ServiceAccountPassword = '',
         [bool]$Isolation = $false,
         [string]$JournalStep = 'services',
         $Journal = $null,
@@ -726,7 +741,7 @@ function Invoke-CyberButlerServices {
     $serviceAssertion = $null
     $diagnosticsPath = $null
     try {
-        $applied = Set-CyberButlerServiceTasks -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
+        $applied = Set-CyberButlerServiceTasks -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -ServiceAccountPassword $ServiceAccountPassword -Isolation $Isolation -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
         $createdTasks = @($applied.created)
         $startedPids = @($applied.started_process_ids | Where-Object { $_ })
         if ($applied.task_backups) { $taskBackups = $applied.task_backups }

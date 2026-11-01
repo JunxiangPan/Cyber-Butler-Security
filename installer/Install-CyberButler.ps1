@@ -679,13 +679,22 @@ if (-not $failure -and (Test-Path -LiteralPath $vaultPath)) {
     }
 }
 
+$serviceAccountPassword = ''
 if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'services')) {
+    # The Task Scheduler service must observe the newly created service account
+    # and its logon rights before an S4U or password task can be registered.
+    try {
+        Restart-Service -Name Schedule -Force -ErrorAction Stop
+        Write-InstallerLine 'Task Scheduler service restarted before service registration.' -Level INFO
+    } catch {
+        Write-InstallerLine ('Task Scheduler restart warning: ' + $_.Exception.Message) -Level WARN
+    }
     if (-not (Request-MainApproval -Token 'APPROVE SERVICES' -Step 'services' -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive)) {
         Add-MainJournalStep -Journal $journal -Name 'services' -Status 'failed' -Reason 'needs approval'
         $failure = [pscustomobject]@{ step = 'services'; message = 'APPROVE SERVICES required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'services' -Status 'in_progress'
-        $result = Invoke-CyberButlerServices -Root $InstallPath -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Isolation $resolution.Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -JournalStep 'services' -Journal $journal -Approval 'APPROVE SERVICES' -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerServices -Root $InstallPath -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -ServiceAccountPassword $serviceAccountPassword -Isolation $resolution.Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -JournalStep 'services' -Journal $journal -Approval 'APPROVE SERVICES' -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'services' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'services'; message = ('services: ' + [string]$result.status + ' ' + [string]$result.message) }
         }

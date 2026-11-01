@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "01371f5afd421b31e9d506a26557a20878175159b3b426dd3f9bce9059499555",
-      "size": 13133
+      "sha256": "8ec86ee473014834e477c791ad25741714822a296cf22f9ddc7c9573c45ccb2e",
+      "size": 13207
     },
     {
       "path": "docs/使用说明.md",
@@ -318,9 +318,14 @@
       "size": 768
     },
     {
+      "path": "installer/lib/CyberButlerLsaRights.cs",
+      "sha256": "0939e356fb61d263c01402905d7bb7da0a4a2e514b364045121db9429a928a28",
+      "size": 5694
+    },
+    {
       "path": "installer/lib/Installer.Accounts.ps1",
-      "sha256": "e000eb9ef643d59872cf94b569db1d0c3d590e71231e19c9de68cf4f7059970d",
-      "size": 16825
+      "sha256": "ec52f110446131b53e03090499b7fdf41531ceb935b784996a8004f24ed062c1",
+      "size": 13974
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
