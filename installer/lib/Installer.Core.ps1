@@ -46,7 +46,7 @@ function Get-CyberButlerCorePython {
     )
     if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf)) {
         $preferred = [IO.Path]::GetFullPath($PreferredPath)
-        if ($Isolation -and $ServiceRoot -and $preferred -match '^[A-Za-z]:\Users\') {
+        if ($Isolation -and $ServiceRoot -and $preferred -match '^[A-Za-z]:\\Users\\') {
             # A standard service account cannot read a per-user Python install.
             # Materialize the base runtime under the service-readable install
             # root, then create the venv from that copy.
