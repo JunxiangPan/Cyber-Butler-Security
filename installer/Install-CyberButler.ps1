@@ -556,7 +556,6 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
         }
         if (-not $failure -and $resolution.Isolation -and $coreResult -and $coreResult.paths) {
             $writableTargets = @(
-                (Join-Path ([string]$coreResult.paths.astrbot) 'data'),
                 [string]$coreResult.paths.data,
                 [string]$coreResult.paths.workspace
             ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
@@ -565,6 +564,15 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
                 if ([string]$result.status -notin @('completed', 'skipped')) {
                     $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL RW: ' + [string]$result.status + ' ' + [string]$result.message) }
                     break
+                }
+            }
+            if (-not $failure) {
+                $dataRoot = Join-Path ([string]$coreResult.paths.astrbot) 'data'
+                Add-MainJournalStep -Journal $journal -Name 'acl_data' -Status 'in_progress'
+                $dataAcl = Set-CyberButlerDataAcl -DataRoot $dataRoot -ServiceAccount $aclIdentity -DesktopAccount $DesktopAccount -Journal $journal -Handlers $Handlers
+                Add-MainJournalStep -Journal $journal -Name 'acl_data' -Status ([string]$dataAcl.status) -Reason ([string]$dataAcl.reason)
+                if ([string]$dataAcl.status -notin @('completed', 'skipped')) {
+                    $failure = [pscustomobject]@{ step = 'acl_data'; message = ('data ACL: ' + [string]$dataAcl.status + ' ' + [string]$dataAcl.message) }
                 }
             }
         }

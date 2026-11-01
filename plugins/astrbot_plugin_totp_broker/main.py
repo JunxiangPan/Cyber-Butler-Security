@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """TOTP-gated destructive file action broker bridge (HTTP)."""
 
 from __future__ import annotations
@@ -9,6 +9,8 @@ from pathlib import Path
 import requests
 from astrbot import logger
 from astrbot.api.event import AstrMessageEvent, filter
+import astrbot.core.message.components as Comp
+from astrbot.core.message.message_event_result import MessageChain
 from astrbot.api.star import Context, Star, register
 
 TRUSTED_QQ = "YOUR_QQ_ID"
@@ -87,6 +89,89 @@ class TotpBrokerPlugin(Star):
         logger.info("[totp_broker] request queued: %s %s", action, target)
         return f"已提交 {action} 请求（{request_id}），等待主人输入 6 位动态验证码后执行。"
 
+    @filter.llm_tool(name="request_file_write")
+    async def request_file_write(
+        self,
+        event: AstrMessageEvent,
+        target: str,
+        content: str,
+        reason: str = "",
+    ) -> str:
+        """请求写入一个文件；tmp/cache 直接执行，memory/config 必须经主人 TOTP。
+
+        Args:
+            target(string): 目标文件完整路径
+            content(string): 要写入的 UTF-8 文本
+            reason(string): 操作原因
+        """
+        if str(event.get_sender_id() or "") != TRUSTED_QQ:
+            return "只有主人可以发起文件写入。"
+        if not target:
+            return "target 不能为空。"
+        if len((content or "").encode("utf-8")) > 256 * 1024:
+            return "写入内容超过 256KB。"
+        try:
+            response = await asyncio.to_thread(
+                self._post,
+                "/request",
+                {"action": "write_file", "target": target, "content": content, "reason": reason[:300]},
+                15,
+            )
+            data = response.json()
+        except Exception as exc:
+            logger.warning("[totp_broker] write request failed: %s", exc)
+            return f"Broker 不可用：{exc}"
+        if not response.ok or not data.get("ok"):
+            return f"Broker 拒绝了请求：{data.get('error', response.status_code)}"
+        if data.get("auto_executed"):
+            return f"已按低风险路径直接写入：{data.get('result', 'ok')}"
+        return f"已提交写入请求（{data.get('id', '')}），等待主人输入动态验证码后执行。"
+
+    @filter.llm_tool(name="request_file_send")
+    async def request_file_send(
+        self,
+        event: AstrMessageEvent,
+        paths: str,
+        reason: str = "",
+    ) -> str:
+        """请求外发 1–5 个本地文件；必须经主人 TOTP。
+
+        Args:
+            paths(string): 每行一个完整文件路径，最多 5 个
+            reason(string): 操作原因
+        """
+        if str(event.get_sender_id() or "") != TRUSTED_QQ:
+            return "只有主人可以发起文件外发。"
+        items = [line.strip() for line in (paths or "").splitlines() if line.strip()]
+        if not items or len(items) > 5:
+            return "paths 必须是 1–5 个非空行。"
+        manifest = [{"kind": "file", "path": item} for item in items]
+        try:
+            response = await asyncio.to_thread(
+                self._post,
+                "/request",
+                {"action": "send_file", "target": items[0], "manifest": manifest, "reason": reason[:300]},
+                15,
+            )
+            data = response.json()
+        except Exception as exc:
+            logger.warning("[totp_broker] send request failed: %s", exc)
+            return f"Broker 不可用：{exc}"
+        if not response.ok or not data.get("ok"):
+            return f"Broker 拒绝了请求：{data.get('error', response.status_code)}"
+        if not data.get("approved"):
+            return f"已提交外发审批（{data.get('id', '')}），尚未批准。"
+        try:
+            chain = MessageChain(chain=[
+                Comp.File(name=Path(item).name, file=str(Path(item).resolve()))
+                for item in items
+            ])
+            await event.send(chain)
+        except Exception as exc:
+            logger.warning("[totp_broker] approved send failed: %s", exc)
+            return f"TOTP 已通过，但文件发送失败：{exc}"
+        return f"TOTP 已通过，已发送 {len(items)} 个文件。"
+
     @filter.on_llm_request(priority=90)
     async def inject_policy(self, event: AstrMessageEvent, req) -> None:
         umo = str(getattr(event, "unified_msg_origin", "") or "")
@@ -96,7 +181,7 @@ class TotpBrokerPlugin(Star):
         policy = (
             "\n[安全规则] 任何删除、覆盖、发送隐私文件、执行 shell/PowerShell 的危险操作，"
             "必须调用 request_destructive_file_action，不要直接调用 astrbot_execute_python 或 shell。"
-            "该工具会把请求交给 SYSTEM broker，只有主人用 TOTP 动态码确认后才会执行。"
+            "该工具会把请求交给 SYSTEM broker，只有主人用 TOTP 动态码确认后才会执行。write_file 只允许 tmp/cache 自动通过；memory/config/core 必须 TOTP。send_file 必须 TOTP。"
         )
         if "request_destructive_file_action" not in prompt:
             req.system_prompt = prompt + policy

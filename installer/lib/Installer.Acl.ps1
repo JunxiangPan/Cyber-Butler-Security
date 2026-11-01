@@ -149,6 +149,83 @@ function Set-CyberButlerAcl {
     return $true
 }
 
+
+function Set-CyberButlerDataAcl {
+    param(
+        [Parameter(Mandatory = $true)][string]$DataRoot,
+        [Parameter(Mandatory = $true)][string]$ServiceAccount,
+        [Parameter(Mandatory = $true)][string]$DesktopAccount,
+        $Journal = $null,
+        $Handlers = @{}
+    )
+
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'acl.data') {
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'acl.data' -Context ([pscustomobject]@{ DataRoot = $DataRoot; ServiceAccount = $ServiceAccount; DesktopAccount = $DesktopAccount }))
+    }
+    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'acl.test') {
+        return [pscustomobject]@{ status = 'skipped'; reason = 'test-handler'; message = '' }
+    }
+    if (-not (Test-Path -LiteralPath $DataRoot)) {
+        return [pscustomobject]@{ status = 'failed'; reason = 'data-root-missing'; message = $DataRoot }
+    }
+
+    $backup = $null
+    if ($null -ne $Journal) {
+        $backup = Backup-CyberButlerAcl -Journal $Journal -Step 'acl_data' -Path $DataRoot -NoTrack
+        if ($backup) {
+            Add-CyberButlerReverseAction -Journal $Journal -Step 'acl_data' -Action ([pscustomobject]@{
+                type = 'restore-acl'
+                target = [IO.Path]::GetFullPath($DataRoot)
+                backup = [IO.Path]::GetFullPath($backup)
+            })
+        }
+    }
+
+    $writeDirs = @('cache', 'tmp', 'logs', 'plugin_data')
+    $readDirs = @('memory', 'config')
+    foreach ($name in @($writeDirs + $readDirs)) {
+        $path = Join-Path $DataRoot $name
+        if (-not (Test-Path -LiteralPath $path)) { New-Item -ItemType Directory -Path $path -Force | Out-Null }
+    }
+
+    # Make the root explicit and read-only, then grant writes only to the
+    # disposable cache/temp/log/plugin-data subtrees.
+    & icacls.exe $DataRoot /inheritance:r `
+        /grant:r '*S-1-5-18:(OI)(CI)F' `
+        /grant:r '*S-1-5-32-544:(OI)(CI)F' `
+        /grant:r "${ServiceAccount}:(OI)(CI)RX" `
+        /grant:r "${DesktopAccount}:(OI)(CI)RX" 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'root-acl'; message = ('icacls root failed: ' + $LASTEXITCODE) } }
+
+    foreach ($sid in @('*S-1-5-11', '*S-1-5-32-545', '*S-1-1-0')) {
+        & icacls.exe $DataRoot /remove:g $sid /T 2>$null | Out-Null
+    }
+
+    foreach ($name in $writeDirs) {
+        $path = Join-Path $DataRoot $name
+        & icacls.exe $path /grant:r "${ServiceAccount}:(OI)(CI)M" 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'write-acl'; message = $path } }
+    }
+    foreach ($name in $readDirs) {
+        $path = Join-Path $DataRoot $name
+        & icacls.exe $path /grant:r "${ServiceAccount}:(OI)(CI)RX" 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'read-acl'; message = $path } }
+    }
+
+    $cmdConfig = Join-Path $DataRoot 'cmd_config.json'
+    if (Test-Path -LiteralPath $cmdConfig) {
+        & icacls.exe $cmdConfig /grant:r "${ServiceAccount}:(RX)" 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'config-acl'; message = $cmdConfig } }
+    }
+
+    return [pscustomobject]@{
+        status = 'completed'
+        reason = 'root-rx; cache/tmp/logs/plugin_data-modify; memory/config-rx'
+        message = ''
+        backup = $backup
+    }
+}
+
 function Undo-CyberButlerAcl {
     param(
         [Parameter(Mandatory = $true)]

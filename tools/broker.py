@@ -183,6 +183,65 @@ def inside_shared(path: Path) -> bool:
         return False
 
 
+TMP_ROOTS = (
+    ROOT / "workspace" / "tmp",
+    ROOT / "AstrBot" / "data" / "tmp",
+    ROOT / "AstrBot" / "data" / "cache",
+    ROOT / "AstrBot" / "data" / "logs",
+)
+MEMORY_ROOTS = (
+    ROOT / "AstrBot" / "data" / "memory",
+    ROOT / "AstrBot" / "data" / "config",
+    ROOT / "AstrBot" / "data" / "cmd_config.json",
+)
+TOTP_VAULT_ROOT = ROOT / "tools" / "totp-vault"
+
+
+def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
+    try:
+        resolved = path.resolve(strict=False)
+    except (OSError, ValueError):
+        return False
+    for root in roots:
+        try:
+            resolved.relative_to(root.resolve(strict=False))
+            return True
+        except (OSError, ValueError):
+            continue
+    return False
+
+
+def classify(action: str, target: str) -> str:
+    """Return allow | totp | deny for a broker request.
+
+    This is the server-side policy boundary. The LLM must never be allowed to
+    choose its own risk class.
+    """
+    action = str(action or "").strip().lower()
+    if action not in {"delete", "overwrite", "write_file", "send", "send_file"}:
+        return "deny"
+    if action in {"send", "send_file"}:
+        # Every egress manifest is owner-approved as one unit.
+        return "totp"
+    try:
+        path = Path(str(target or "")).resolve(strict=False)
+    except (OSError, ValueError):
+        return "deny"
+    if _inside_any(path, (TOTP_VAULT_ROOT,)):
+        return "deny"
+    if _inside_any(path, TMP_ROOTS):
+        return "allow"
+    if _inside_any(path, MEMORY_ROOTS):
+        return "totp"
+    if inside_shared(path):
+        return "totp"
+    return "deny"
+
+
+def _allowed_target(path: Path) -> bool:
+    return inside_shared(path) or _inside_any(path, TMP_ROOTS) or _inside_any(path, MEMORY_ROOTS)
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -326,8 +385,8 @@ def verify_code(code: str) -> str:
 def execute(request: dict) -> tuple[bool, str]:
     action = request.get("action")
     target = Path(request.get("target", ""))
-    if not target or not inside_shared(target):
-        return False, "目标不在大肥鱼专用文件夹内，拒绝执行。"
+    if not target or not _allowed_target(target):
+        return False, "目标不在允许的 Broker 路径内，拒绝执行。"
     if action == "delete":
         if not target.exists():
             return False, "目标文件不存在。"
@@ -339,14 +398,14 @@ def execute(request: dict) -> tuple[bool, str]:
         source = Path(request.get("source", ""))
         if not source.exists():
             return False, "覆盖源文件不存在。"
-        source_ok = inside_shared(source)
+        source_ok = inside_shared(source) or _inside_any(source, TMP_ROOTS)
         try:
             source.resolve().relative_to(STAGING.resolve())
             source_ok = True
         except ValueError:
             pass
         if not source_ok:
-            return False, "覆盖源文件必须在大肥鱼专用文件夹或 broker staging 内。"
+            return False, "覆盖源文件必须在大肥鱼专用文件夹、tmp 或 broker staging 内。"
         if target.exists():
             QUARANTINE.mkdir(parents=True, exist_ok=True)
             backup = QUARANTINE / f"{request['id']}_{target.name}.bak"
@@ -354,6 +413,17 @@ def execute(request: dict) -> tuple[bool, str]:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
         return True, f"已覆盖 {target.name}，旧版本备份在隔离区。"
+    if action == "write_file":
+        content = request.get("content")
+        if not isinstance(content, str):
+            return False, "write_file 需要字符串 content。"
+        if len(content.encode("utf-8")) > 256 * 1024:
+            return False, "write_file 内容超过 256KB。"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temp = target.with_name(target.name + ".broker.tmp")
+        temp.write_text(content, encoding="utf-8")
+        os.replace(temp, target)
+        return True, f"已写入 {target.name}（{len(content.encode('utf-8'))} bytes）。"
     return False, "不支持的操作类型。"
 
 
@@ -479,18 +549,38 @@ def _email_result(config: dict, request: dict, result: str) -> None:
         log(f"email result send failed: {exc}")
 
 
+def _audit_auto(request: dict, ok: bool, result: str) -> None:
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request.get("id", ""),
+                "action": request.get("action"),
+                "target": request.get("target"),
+                "ok": bool(ok),
+                "result": result,
+                "auto": True,
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"audit write failed: {exc}")
+
+
 def run_request(payload: dict) -> tuple[int, dict]:
     global _pending
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     action = str(payload.get("action", "")).strip().lower()
+    if action == "send_file":
+        action = "send"
     target_text = str(payload.get("target", "")).strip()
     target = Path(target_text)
     manifest: list[dict] | None = None
-    if action not in {"delete", "overwrite", "send"}:
-        return 400, {"ok": False, "error": "action must be delete, overwrite or send"}
-    if action in {"delete", "overwrite"} and not inside_shared(target):
-        return 403, {"ok": False, "error": "target outside shared folder"}
+    if action not in {"delete", "overwrite", "write_file", "send"}:
+        return 400, {"ok": False, "error": "action must be delete, overwrite, write_file or send"}
+    risk = classify(action, target_text)
+    if risk == "deny":
+        return 403, {"ok": False, "error": "target is not allowed by broker policy"}
     if action == "send":
         try:
             manifest = _canonical_manifest(payload.get("manifest"))
@@ -503,6 +593,26 @@ def run_request(payload: dict) -> tuple[int, dict]:
         target = Path(target_text)
         if not (target_text.startswith(("http://", "https://")) or target.exists()):
             return 400, {"ok": False, "error": "send target does not exist"}
+        for item in manifest:
+            if item.get("kind") == "file" and _inside_any(Path(item["path"]), (TOTP_VAULT_ROOT,)):
+                return 403, {"ok": False, "error": "TOTP vault files cannot be sent"}
+        risk = "totp"
+
+    if action in {"delete", "overwrite", "write_file"} and risk == "allow":
+        request_id = secrets.token_hex(6)
+        request = {
+            "id": request_id,
+            "action": action,
+            "target": target_text,
+            "source": str(payload.get("source", "")),
+            "content": payload.get("content"),
+            "reason": str(payload.get("reason", ""))[:300],
+        }
+        ok, result = execute(request)
+        _audit_auto(request, ok, result)
+        if not ok:
+            return 400, {"ok": False, "error": result, "auto_executed": False}
+        return 200, {"ok": True, "auto_executed": True, "id": request_id, "result": result}
 
     channel = _approval_channel()
     email_mode = channel == "email" and action in {"delete", "overwrite"}
@@ -523,6 +633,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "reason": str(payload.get("reason", ""))[:300],
             "deadline": time.monotonic() + TIMEOUT_SECONDS,
             "manifest": manifest,
+            "content": payload.get("content"),
             "target_summary": _path_summary(target_text),
             "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
             "channel": "email" if email_mode else "qq",
@@ -542,6 +653,15 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 f"目标：{_path_summary(target_text)}\n"
                 f"请求号：{request_id}"
             )
+        elif action == "write_file":
+            content = payload.get("content")
+            size = len(content.encode("utf-8")) if isinstance(content, str) else 0
+            prompt = chr(10).join([
+                "哥，瑾言想写入核心文件，请输入动态验证码。",
+                f"目标：{_path_summary(target_text)}",
+                f"写入大小：{size} bytes",
+                f"请求号：{request_id}",
+            ])
         else:
             prompt = _manifest_prompt(manifest or [])
         if action == "send":
@@ -662,7 +782,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 _fail_send_wait(request_id)
                 return 409, {"ok": False, "error": "file manifest changed before approval"}
         _pending = None
-        if request.get("action") in {"delete", "overwrite"}:
+        if request.get("action") in {"delete", "overwrite", "write_file"}:
             if _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
                 return 409, {"ok": False, "error": "target changed before approval"}
             if request.get("action") == "overwrite":
