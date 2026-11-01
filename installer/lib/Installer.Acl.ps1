@@ -181,7 +181,7 @@ function Set-CyberButlerDataAcl {
         }
     }
 
-    $writeDirs = @('cache', 'tmp', 'logs', 'plugin_data')
+    $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data')
     $readDirs = @('memory', 'config')
     foreach ($name in @($writeDirs + $readDirs)) {
         $path = Join-Path $DataRoot $name
@@ -220,7 +220,7 @@ function Set-CyberButlerDataAcl {
 
     return [pscustomobject]@{
         status = 'completed'
-        reason = 'root-rx; cache/tmp/logs/plugin_data-modify; memory/config-rx'
+        reason = 'root-rx; cache/tmp/temp/logs/plugin_data-modify; memory/config-rx'
         message = ''
         backup = $backup
     }

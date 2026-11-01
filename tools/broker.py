@@ -186,6 +186,7 @@ def inside_shared(path: Path) -> bool:
 TMP_ROOTS = (
     ROOT / "workspace" / "tmp",
     ROOT / "AstrBot" / "data" / "tmp",
+    ROOT / "AstrBot" / "data" / "temp",
     ROOT / "AstrBot" / "data" / "cache",
     ROOT / "AstrBot" / "data" / "logs",
 )
