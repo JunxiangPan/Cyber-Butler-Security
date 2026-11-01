@@ -864,8 +864,8 @@
     },
     {
       "path": "tests/test_broker_policy.py",
-      "sha256": "da474cea2728902ec7834de940cc8a2ab4fc39b95162a01d9c84d647309335e2",
-      "size": 17424
+      "sha256": "533e38ccf281aad6a8214c5472e70943e045998d2b128b442dd060f8f7ea2b43",
+      "size": 17555
     },
     {
       "path": "tests/test_broker_wrong_totp.py",
@@ -934,8 +934,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "cd6eb564c9fbdca12452fb2be628158f2376e858c69cbeeee775e09f9ef33bb2",
-      "size": 66240
+      "sha256": "d097220b99b1457944b453820307908274cfef4b8fbe7e690b043f66d1f388f6",
+      "size": 66730
     },
     {
       "path": "tools/build_update_manifest.py",

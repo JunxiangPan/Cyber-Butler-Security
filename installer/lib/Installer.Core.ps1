@@ -574,7 +574,7 @@ function Invoke-CyberButlerCoreDeploy {
             'YOUR_SERVICE_USER' = $ToolServiceAccount
         }
         foreach ($toolFile in @(Get-ChildItem -LiteralPath $toolsTarget -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.ps1', '.py', '.json', '.psm1', '.cmd', '.bat') })) {
-            $relativeTool = $toolFile.FullName.Substring($toolsTarget.Length).TrimStart('')
+            $relativeTool = $toolFile.FullName.Substring($toolsTarget.Length).TrimStart([char]92)
             # The dashboard and its official modules use YOUR_QQ_ID as an
             # overlay JSON property name, not as an installer placeholder.
             # Rewriting them changes the source text and breaks the official
