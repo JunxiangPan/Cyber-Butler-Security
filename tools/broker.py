@@ -223,6 +223,11 @@ APPROVAL_STATE_TTL_SECONDS = 600
 _approval_lock = threading.Lock()
 _approval_states: dict[str, dict] = {}
 
+SCOPED_TTL_SECONDS = 1800
+SCOPED_MAX_MINUTES = 30
+_scoped_lock = threading.Lock()
+_scoped_tokens: dict[str, dict] = {}
+
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 
 def _approval_channel() -> str:
@@ -247,6 +252,39 @@ def log(message: str) -> None:
             handle.write(line + "\n")
     except OSError:
         pass
+
+
+UIPI_BLOCKED_EVENT = "UIPI_BLOCKED_GUI_INTERACTION"
+
+
+def report_uipi_blocked(operation: str, detail: str = "") -> None:
+    """Record a GUI interaction that returned no result under UIPI/AppContainer.
+
+    UIPI can silently discard window messages; callers should invoke this when
+    a future GUI operation returns None/False instead of raising. The event is
+    intentionally separate from TOTP decisions so operators can alert on it.
+    """
+    record = {
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "event": UIPI_BLOCKED_EVENT,
+        "operation": str(operation or "unknown"),
+        "detail": str(detail or "")[:500],
+        "ok": False,
+    }
+    log(f"{UIPI_BLOCKED_EVENT}: {record['operation']}")
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"UIPI audit write failed: {exc}")
+
+
+def guard_gui_result(operation: str, result: object) -> object:
+    """Treat None/False from a future GUI call as a possible silent UIPI drop."""
+    if result is None or result is False:
+        report_uipi_blocked(operation, "GUI returned no result; possible UIPI drop")
+    return result
 
 
 def audit_failure(request_id: str, action: str, target: str, attempts: int) -> None:
@@ -799,6 +837,93 @@ def _audit_auto(request: dict, ok: bool, result: str) -> None:
         log(f"audit write failed: {exc}")
 
 
+def _scoped_root(target: str) -> Path | None:
+    """Return the canonical directory a 30-minute scoped token may cover.
+
+    A scoped token is intentionally limited to the shared scratch tree and
+    temporary trees. Memory/config and the TOTP vault never qualify.
+    """
+    try:
+        path = Path(str(target or "")).resolve(strict=False)
+    except (OSError, ValueError):
+        return None
+    if _inside_any(path, (TOTP_VAULT_ROOT,)):
+        return None
+    root = path.parent.resolve(strict=False)
+    if _inside_any(root, (TOTP_VAULT_ROOT,)):
+        return None
+    if _inside_any(root, (SHARED,)) or _inside_any(root, TMP_ROOTS):
+        return root
+    return None
+
+
+def _issue_scoped(action: str, target: str, minutes: int = SCOPED_MAX_MINUTES) -> dict | None:
+    if action not in {"delete", "overwrite", "write_file"}:
+        return None
+    root = _scoped_root(target)
+    if root is None:
+        return None
+    ttl = max(1, min(int(minutes), SCOPED_MAX_MINUTES)) * 60
+    token = secrets.token_urlsafe(32)
+    now = time.monotonic()
+    with _scoped_lock:
+        _scoped_tokens[token] = {
+            "root": str(root).casefold(),
+            "expires": now + ttl,
+            "uses": 0,
+            "actions": ("delete", "overwrite", "write_file"),
+        }
+        for key, record in list(_scoped_tokens.items()):
+            if float(record.get("expires", 0)) <= now:
+                _scoped_tokens.pop(key, None)
+    return {"token": token, "expires_in": ttl, "root": str(root)}
+
+
+def _consume_scoped(token: str, action: str, target: str) -> dict | None:
+    if not token or action not in {"delete", "overwrite", "write_file"}:
+        return None
+    try:
+        path = Path(str(target or "")).resolve(strict=False)
+    except (OSError, ValueError):
+        return None
+    if _inside_any(path, (TOTP_VAULT_ROOT,)):
+        return None
+    now = time.monotonic()
+    with _scoped_lock:
+        record = _scoped_tokens.get(token)
+        if not record or float(record.get("expires", 0)) <= now:
+            _scoped_tokens.pop(token, None)
+            return None
+        if action not in tuple(record.get("actions", ())):
+            return None
+        try:
+            path.relative_to(Path(str(record.get("root", ""))))
+        except (OSError, ValueError):
+            return None
+        record["uses"] = int(record.get("uses", 0)) + 1
+        return dict(record)
+
+
+def _audit_scoped(request: dict, result: str, root: str) -> None:
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request.get("id", ""),
+                "action": request.get("action"),
+                "target": request.get("target"),
+                "ok": True,
+                "result": result,
+                "scoped": True,
+                "scoped_token": "30m_directory",
+                "bypass_label": "Scoped via 30-minute Directory Token",
+                "scope": root,
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"audit write failed: {exc}")
+
+
 def _as_bool(value: object) -> bool:
     if isinstance(value, bool):
         return value
@@ -903,6 +1028,42 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 return 200, {"ok": True, "bypassed": True, "id": request_id, "result": result}
             return 400, {"ok": False, "error": result, "bypassed": True}
 
+    scoped_token = str(payload.get("scoped_token", "") or "")
+    if action in {"delete", "overwrite", "write_file"} and risk == "totp" and scoped_token:
+        scoped = _consume_scoped(scoped_token, action, target_text)
+        if scoped:
+            if approval_only:
+                return 200, {
+                    "ok": True,
+                    "status": "allowed",
+                    "approval_only": True,
+                    "scoped": True,
+                    "id": "",
+                    "challenge_id": "",
+                }
+            request_id = secrets.token_hex(6)
+            request = {
+                "id": request_id,
+                "action": action,
+                "target": target_text,
+                "source": str(payload.get("source", "")),
+                "content": payload.get("content"),
+                "mode": _target_mode(action, target_text),
+                "reason": str(payload.get("reason", ""))[:300],
+            }
+            ok, result = execute(request)
+            if ok:
+                _audit_scoped(request, result, str(scoped.get("root", "")))
+                log(f"scoped token executed: {request_id} {action} {target_text}")
+                return 200, {
+                    "ok": True,
+                    "scoped": True,
+                    "id": request_id,
+                    "result": result,
+                    "status": "allowed",
+                }
+            return 400, {"ok": False, "error": result, "scoped": True}
+
     if action == "send":
         try:
             manifest = _canonical_manifest(payload.get("manifest"))
@@ -980,6 +1141,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             prompt += f"完整路径与哈希：{_path_summary(target_text)}" + chr(10)
             prompt += "仅本次：<6 位动态码>" + chr(10)
             prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
+            prompt += "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30" + chr(10)
             prompt += f"请求号：{request_id}"
         elif action == "overwrite":
             source_text = str(payload.get("source", ""))
@@ -988,6 +1150,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             prompt += f"目标：{_path_summary(target_text)}" + chr(10)
             prompt += "仅本次：<6 位动态码>" + chr(10)
             prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
+            prompt += "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30" + chr(10)
             prompt += f"请求号：{request_id}"
         elif action == "write_file":
             content = payload.get("content")
@@ -998,6 +1161,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 f"写入大小：{size} bytes",
                 "仅本次：<6 位动态码>",
                 "同一目录同动作 30 秒：<6 位动态码> BYPASS 30",
+                "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30",
                 f"请求号：{request_id}",
             ])
         else:
@@ -1077,6 +1241,11 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     except (TypeError, ValueError):
         bypass_seconds = 0
     bypass_seconds = max(0, min(bypass_seconds, BYPASS_TTL_SECONDS))
+    try:
+        scoped_minutes = int(payload.get("scoped_minutes", 0) or 0)
+    except (TypeError, ValueError):
+        scoped_minutes = 0
+    scoped_minutes = max(0, min(scoped_minutes, SCOPED_MAX_MINUTES))
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     with _lock:
@@ -1150,6 +1319,13 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     return 409, {"ok": False, "error": "source changed before approval"}
         if request.get("approval_only"):
             _set_approval_state(request_id, "approved", approval_only=True)
+            scoped = None
+            if scoped_minutes > 0:
+                scoped = _issue_scoped(
+                    str(request.get("action", "")),
+                    str(request.get("target", "")),
+                    scoped_minutes,
+                )
             send_qq("已批准 DSH 请求；本次只放行，不执行文件操作。")
             with AUDIT.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps({
@@ -1163,7 +1339,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     "approval_only": True,
                 }, ensure_ascii=False) + "\n")
             log(f"approval-only approved: {request_id} {request.get('action')}")
-            return 200, {
+            response = {
                 "ok": True,
                 "approved": True,
                 "approval_only": True,
@@ -1171,6 +1347,11 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 "id": request_id,
                 "challenge_id": request_id,
             }
+            if scoped:
+                response["scoped_token"] = scoped["token"]
+                response["scoped_expires_in"] = scoped["expires_in"]
+                response["scoped_root"] = scoped["root"]
+            return 200, response
         if request.get("action") == "send":
             _send_results[request_id] = True
             event = _send_events.get(request_id)
@@ -1192,6 +1373,13 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     ok, result = execute(request)
     send_qq(result)
     bypass = None
+    scoped = None
+    if ok and scoped_minutes > 0 and request.get("action") in {"delete", "overwrite", "write_file"}:
+        scoped = _issue_scoped(
+            str(request.get("action", "")),
+            str(request.get("target", "")),
+            scoped_minutes,
+        )
     if ok and bypass_seconds > 0 and request.get("action") in {"delete", "overwrite", "write_file"}:
         bypass = _issue_bypass(
             str(request.get("action", "")),
@@ -1209,12 +1397,18 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             "code_type": code_type,
             "bypass_issued": bool(bypass),
             "bypass_ttl": bypass_seconds if bypass else 0,
+            "scoped_issued": bool(scoped),
+            "scoped_ttl": scoped["expires_in"] if scoped else 0,
         }, ensure_ascii=False) + "\n")
     log(f"executed: {request_id} ok={ok} {result}")
     response = {"ok": ok, "id": request_id, "result": result}
     if bypass:
         response["bypass_token"] = bypass["token"]
         response["bypass_expires_in"] = bypass["expires_in"]
+    if scoped:
+        response["scoped_token"] = scoped["token"]
+        response["scoped_expires_in"] = scoped["expires_in"]
+        response["scoped_root"] = scoped["root"]
     return (200 if ok else 500), response
 
 

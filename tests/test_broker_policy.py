@@ -16,6 +16,8 @@ def setup_function() -> None:
         broker._bypass_tokens.clear()
     with broker._approval_lock:
         broker._approval_states.clear()
+    with broker._scoped_lock:
+        broker._scoped_tokens.clear()
 
 
 def _roots(tmp_path: Path):
@@ -339,3 +341,111 @@ def test_approval_only_endpoint_adapter(monkeypatch, tmp_path) -> None:
     assert status == 200
     assert body["status"] == "allowed"
     assert not target.exists()
+
+
+def _scoped_roots(monkeypatch, tmp_path):
+    tmp, memory, vault, shared = _roots(tmp_path)
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "TMP_ROOTS", (tmp,))
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", (memory,))
+    monkeypatch.setattr(broker, "TOTP_VAULT_ROOT", vault)
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    return tmp, memory, vault, shared, audit
+
+
+def test_scoped_token_is_directory_bound(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
+    root = shared / "draft"
+    root.mkdir()
+    first = root / "a.txt"
+    sibling = shared / "other" / "b.txt"
+    sibling.parent.mkdir()
+
+    issued = broker._issue_scoped("delete", str(first), 30)
+    assert issued is not None
+    assert broker._consume_scoped(issued["token"], "delete", str(root / "c.txt")) is not None
+    assert broker._consume_scoped(issued["token"], "delete", str(sibling)) is None
+    assert broker._consume_scoped(issued["token"], "send", str(root / "c.txt")) is None
+
+
+def test_scoped_token_executes_same_directory(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
+    quarantine = tmp_path / "quarantine"
+    monkeypatch.setattr(broker, "QUARANTINE", quarantine)
+    root = shared / "draft"
+    root.mkdir()
+    target = root / "a.txt"
+    target.write_text("x", encoding="utf-8")
+    issued = broker._issue_scoped("delete", str(target), 30)
+    assert issued is not None
+
+    status, body = broker.run_request({
+        "action": "delete",
+        "target": str(target),
+        "scoped_token": issued["token"],
+    })
+
+    assert status == 200
+    assert body["scoped"] is True
+    assert not target.exists()
+    assert "30m_directory" in audit.read_text(encoding="utf-8")
+
+
+def test_approval_only_scoped_is_allowed_without_execute(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
+    root = shared / "draft"
+    root.mkdir()
+    target = root / "a.txt"
+    target.write_text("x", encoding="utf-8")
+    issued = broker._issue_scoped("write_file", str(target), 30)
+    assert issued is not None
+
+    status, body = broker.run_request({
+        "action": "write_file",
+        "target": str(target),
+        "content": "new",
+        "approval_only": True,
+        "scoped_token": issued["token"],
+    })
+
+    assert status == 200
+    assert body["status"] == "allowed"
+    assert body["scoped"] is True
+    assert target.read_text(encoding="utf-8") == "x"
+
+
+def test_verify_issues_scoped_token(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
+    root = shared / "draft"
+    root.mkdir()
+    target = root / "a.txt"
+    target.write_text("x", encoding="utf-8")
+    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "send_qq", lambda text: True)
+    broker._pending = {
+        "id": "scoped-1",
+        "action": "delete",
+        "target": str(target),
+        "target_summary": broker._path_summary(str(target)),
+        "source_summary": "",
+        "deadline": broker.time.monotonic() + 30,
+        "attempts": 0,
+        "channel": "qq",
+        "approval_only": True,
+    }
+
+    status, body = broker.run_verify({"code": "123456", "scoped_minutes": 30})
+
+    assert status == 200
+    assert body["scoped_token"]
+    assert body["scoped_expires_in"] == 1800
+    assert broker._consume_scoped(body["scoped_token"], "delete", str(root / "b.txt")) is not None
+
+
+def test_uipi_blocked_audit_event(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
+    broker.report_uipi_blocked("test-gui-call", "no result")
+    text = audit.read_text(encoding="utf-8")
+    assert "UIPI_BLOCKED_GUI_INTERACTION" in text
+    assert "test-gui-call" in text

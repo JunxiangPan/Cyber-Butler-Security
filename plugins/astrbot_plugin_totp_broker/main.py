@@ -31,6 +31,7 @@ class TotpBrokerPlugin(Star):
     def __init__(self, context: Context) -> None:
         super().__init__(context)
         self._bypass_token = ""
+        self._scoped_token = ""
 
     @staticmethod
     def _headers() -> dict:
@@ -39,8 +40,11 @@ class TotpBrokerPlugin(Star):
 
     def _post(self, path: str, payload: dict, timeout: float = 15) -> requests.Response:
         body = dict(payload)
-        if path == "/request" and self._bypass_token:
-            body["bypass_token"] = self._bypass_token
+        if path == "/request":
+            if self._bypass_token:
+                body["bypass_token"] = self._bypass_token
+            if self._scoped_token:
+                body["scoped_token"] = self._scoped_token
         return requests.post(
             BROKER_URL + path,
             headers=self._headers(),
@@ -186,7 +190,7 @@ class TotpBrokerPlugin(Star):
         policy = (
             "\n[安全规则] 任何删除、覆盖、发送隐私文件、执行 shell/PowerShell 的危险操作，"
             "必须调用 request_destructive_file_action，不要直接调用 astrbot_execute_python 或 shell。"
-            "该工具会把请求交给 SYSTEM broker，只有主人用 TOTP 动态码确认后才会执行。shared 新建文件、tmp/cache 自动通过；shared 覆盖、memory/config/core 必须 TOTP。send_file 必须 TOTP。主人可回复 6 位码加 BYPASS 30 授权同目录同动作 30 秒。"
+            "该工具会把请求交给 SYSTEM broker，只有主人用 TOTP 动态码确认后才会执行。shared 新建文件、tmp/cache 自动通过；shared 覆盖、memory/config/core 必须 TOTP。send_file 必须 TOTP。主人可回复 6 位码加 BYPASS 30 授权同目录同动作 30 秒，或加 SCOPED 30 授权当前草稿目录 30 分钟。"
         )
         if "request_destructive_file_action" not in prompt:
             req.system_prompt = prompt + policy
@@ -199,13 +203,19 @@ class TotpBrokerPlugin(Star):
         if umo != PRIVATE_UMO:
             return
         text = str(event.get_message_str() if hasattr(event, "get_message_str") else getattr(event, "message_str", "") or "").strip()
-        match = re.fullmatch(r"(\d{6}|[A-Za-z0-9]{8})(?:\s+BYPASS\s+30)?", text, re.IGNORECASE)
+        match = re.fullmatch(
+            r"(\d{6}|[A-Za-z0-9]{8})(?:\s+(BYPASS|SCOPED)\s+30)?",
+            text,
+            re.IGNORECASE,
+        )
         if not match:
             return
-        bypass = bool(re.search(r"\s+BYPASS\s+30$", text, re.IGNORECASE))
+        mode = (match.group(2) or "").upper()
         payload = {"code": match.group(1)}
-        if bypass:
+        if mode == "BYPASS":
             payload["bypass_seconds"] = 30
+        elif mode == "SCOPED":
+            payload["scoped_minutes"] = 30
         try:
             response = await asyncio.to_thread(
                 self._post, "/verify", payload, 20
@@ -218,7 +228,12 @@ class TotpBrokerPlugin(Star):
             # No pending request: allow normal chat to continue.
             return
         if response.ok and data.get("ok"):
-            if data.get("bypass_token"):
+            if data.get("scoped_token"):
+                self._scoped_token = str(data.get("scoped_token"))
+                await event.send(event.plain_result(
+                    "验证码通过。30 分钟目录授权已生效，仅限当前草稿目录及其子目录。"
+                ))
+            elif data.get("bypass_token"):
                 self._bypass_token = str(data.get("bypass_token"))
                 await event.send(event.plain_result(
                     "验证码通过，Broker 已执行。30 秒临时授权已生效，仅限当前目录和同一动作。"

@@ -581,3 +581,57 @@ descendants, not AstrBot's independently spawned children. To cover AstrBot, its
 launcher must create/adopt a Job Object too, or the broker must explicitly adopt
 the AstrBot PID after it starts. Do not claim full orphan coverage until that is
 implemented.
+
+
+## 15. Scoped Directory Token (30 minutes)
+
+After a successful TOTP check, the owner can reply:
+
+```text
+<6-digit TOTP> SCOPED 30
+```
+
+Broker then issues a random in-memory token bound to the canonical parent
+directory of the approved target. The token is valid for 30 minutes and is
+accepted only for `delete`, `overwrite`, and `write_file` requests whose
+canonical path is inside that directory or one of its subdirectories.
+
+Deliberately excluded:
+
+- `send` / `send_file`;
+- `totp-vault`;
+- memory/config paths (only the shared scratch tree and tmp roots can be
+  granted a scoped token);
+- any path outside the granted directory.
+
+The token is not persisted. Broker restart loses it. A scoped grant can cover
+many destructive actions for 30 minutes, so it should be used with a dedicated
+draft/scratch folder, not a broad home or project root. Audit records use
+`bypass_label: "Scoped via 30-minute Directory Token"` and never include the
+token value.
+
+`/api/request_approval/status` intentionally returns approval status only, not
+the scoped token; the QQ approval plugin stores the token returned by `/verify`.
+
+## 16. UIPI Silent GUI Failures
+
+UIPI can silently discard window messages when a lower-integrity process tries
+to interact with a higher-integrity GUI. The broker is a service and currently
+does not own a GUI path, and the AstrBot overlay inspected here has no
+`MessageBox` / `SendMessage` GUI bridge. A defensive helper is nevertheless
+installed in `tools/broker.py`:
+
+```python
+report_uipi_blocked(operation, detail)
+guard_gui_result(operation, result)
+```
+
+A future GUI call that returns `None`/`False` should pass its result through
+`guard_gui_result`; the broker writes an audit event:
+
+```json
+{"event":"UIPI_BLOCKED_GUI_INTERACTION","operation":"...","ok":false}
+```
+
+This is a logging hook, not proof that UIPI was the cause; the alert must be
+correlated with the process integrity level and desktop/session.
