@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "5b88f608c3d63c806ae288aa2036608c9221b26eec007d1f44ea18fb9bdd4df0",
-      "size": 14481
+      "sha256": "e8ec4510c0fea19cfeb96d5bd2117a50f52d70d1c92cca31ffd80834803d61a3",
+      "size": 14592
     },
     {
       "path": "docs/使用说明.md",
@@ -399,8 +399,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "f09662d5d5867f92a8dbb77a96a83df226b5186de7a9c061e20a4d6118446c1c",
-      "size": 41230
+      "sha256": "27cb2fd75e3581b826a1ea3e3f33a2359e2beeecf3b3b870e488c07c6054ecce",
+      "size": 41706
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -1309,8 +1309,8 @@
     },
     {
       "path": "tools/verify_broker_acl.ps1",
-      "sha256": "9bbcc626bbb01771d917b1c849c4858ede887ecc62ff99587378bb5da9c6b223",
-      "size": 3051
+      "sha256": "c3c6e6e2e98003410bd233995c4112d5d5ed13e70d5bd2ecd0708670ed7669ab",
+      "size": 3210
     },
     {
       "path": "tools/verify_release.py",

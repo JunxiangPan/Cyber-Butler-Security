@@ -89,10 +89,19 @@ function Get-CyberButlerServiceSpecs {
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     $hidden = Join-Path $rootFull 'tools\run-python-hidden.vbs'
     $wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
-    $astrbotArgs = '//B "' + $hidden + '" "' + $python + '" "main.py" "' + (Join-Path $rootFull 'AstrBot') + '"'
+    if ($Isolation) {
+        # A service-account task has no interactive window station; launching
+        # wscript.exe there can fail before Python starts. Use pythonw directly
+        # under High, exactly as the SYSTEM broker does.
+        $astrbotExe = $pythonw
+        $astrbotArgs = 'main.py'
+    } else {
+        $astrbotExe = $wscript
+        $astrbotArgs = '//B "' + $hidden + '" "' + $python + '" "main.py" "' + (Join-Path $rootFull 'AstrBot') + '"'
+    }
     $webArgs = '//B "' + $hidden + '" "' + $webPython + '" "run.py" "' + (Join-Path $rootFull 'webui') + '"'
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $wscript; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
+        [pscustomobject]@{ name = 'AstrBot Service'; exe = $astrbotExe; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
         [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $wscript; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
     )
