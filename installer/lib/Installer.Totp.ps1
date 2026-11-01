@@ -61,6 +61,18 @@ function Test-CyberButlerTotpVaultAcl {
             }
         }
         $result.vault_exists = $true
+        if ($RequireAstrBotDeny -and $result.astrbot_deny) {
+            foreach ($materialName in @('totp_secret.dpapi', 'recovery_hashes.json')) {
+                $materialPath = Join-Path $VaultPath $materialName
+                if (-not (Test-Path -LiteralPath $materialPath)) { continue }
+                $materialAcl = Get-Acl -LiteralPath $materialPath -ErrorAction Stop
+                $materialDenied = @($materialAcl.Access | Where-Object {
+                    $_.AccessControlType -eq 'Deny' -and
+                    (([string]$_.IdentityReference) -eq $AstrBotAccount -or ([string]$_.IdentityReference).Contains([string][char]92 + $AstrBotAccount))
+                }).Count -gt 0
+                if (-not $materialDenied) { $result.astrbot_deny = $false; break }
+            }
+        }
         $result.satisfied = $result.system_ok -and $result.administrators_ok -and $result.reader_ok -and ((-not $RequireAstrBotDeny) -or $result.astrbot_deny)
         if (-not $result.satisfied) { $result.reason = 'vault-acl-incomplete' }
     } catch {
@@ -295,6 +307,26 @@ function Set-CyberButlerTotpVaultAcl {
         $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($AstrBotAccount, 'FullControl', $inherit, $prop, $deny)))
     }
     Set-Acl -LiteralPath $VaultPath -AclObject $acl -ErrorAction Stop
+    if ($denyAstrBot) {
+        # Windows does not reliably propagate a newly added inherited Deny to
+        # already existing files. Broker ACL verification checks the material
+        # files themselves, so put the Deny on each sensitive file explicitly.
+        $materialFiles = @(
+            (Join-Path $VaultPath 'totp_secret.dpapi'),
+            (Join-Path $VaultPath 'recovery_hashes.json'),
+            (Join-Path $VaultPath 'recovery_codes.txt')
+        )
+        foreach ($materialFile in $materialFiles) {
+            if (-not (Test-Path -LiteralPath $materialFile)) { continue }
+            $fileAcl = Get-Acl -LiteralPath $materialFile -ErrorAction Stop
+            $fileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule(
+                $AstrBotAccount, 'FullControl',
+                [System.Security.AccessControl.InheritanceFlags]::None,
+                [System.Security.AccessControl.PropagationFlags]::None,
+                $deny)))
+            Set-Acl -LiteralPath $materialFile -AclObject $fileAcl -ErrorAction Stop
+        }
+    }
     $singleAccountMarker = Join-Path $VaultPath 'single-account.marker'
     if ($denyAstrBot) {
         Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue

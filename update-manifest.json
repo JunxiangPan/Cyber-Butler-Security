@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "2e454c9f248d141da165700a62dc8cba70e2ddbe90e80f9169060f93bc9f902e",
-      "size": 13860
+      "sha256": "5fc8c316f7d1f202b8d4fc1430b6440eac580af3e34af910f1119379dae3f8c2",
+      "size": 14302
     },
     {
       "path": "docs/使用说明.md",
@@ -289,8 +289,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "7543e2db4c55f441281663bdbfec74e89ee089d41a06a9fa9636dc832d5edf8e",
-      "size": 43496
+      "sha256": "d3ddfba9bdfbfa20acb2ddf40a46b80a441a2018da08a0b3742c6fe0f9e76cee",
+      "size": 44469
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -909,8 +909,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "2c120acfc908e86a8221e7c9726767f37a58a7c1639a7b3109a52ad0159e4f68",
-      "size": 34194
+      "sha256": "83d52fb6af7b7abefbd1e2c3885b9fe5c79311873d11028075147de8ac55bf60",
+      "size": 34352
     },
     {
       "path": "tools/build_update_manifest.py",
@@ -1104,8 +1104,8 @@
     },
     {
       "path": "tools/harden_broker_runtime.ps1",
-      "sha256": "a911c0cb3459f5b1404a3ae96c9be7519bd0a0cbe010f4ac9bad2d9873f03a8d",
-      "size": 1215
+      "sha256": "6dc544848e3fab180e22dbc77f63e1f2543707ec2b2c1b8de2e517447487edf8",
+      "size": 1393
     },
     {
       "path": "tools/install_boot_selfcheck.ps1",
