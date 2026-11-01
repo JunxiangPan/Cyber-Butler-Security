@@ -586,6 +586,23 @@ function Invoke-CyberButlerCoreDeploy {
             if ($changed) { [IO.File]::WriteAllText($toolFile.FullName, $toolText, (New-Object Text.UTF8Encoding($false))) }
         }
 
+        # The dashboard is a large PowerShell script. A stale or hand-edited
+        # copy can leave the shortcut opening a parser error instead of the UI.
+        $dashboardScript = Join-Path $toolsTarget 'cyber_butler_dashboard.ps1'
+        if (Test-Path -LiteralPath $dashboardScript) {
+            $parseTokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+                $dashboardScript,
+                [ref]$parseTokens,
+                [ref]$parseErrors
+            ) | Out-Null
+            if ($parseErrors -and $parseErrors.Count -gt 0) {
+                $first = $parseErrors[0]
+                throw ('dashboard syntax error at line ' + $first.Extent.StartLineNumber + ': ' + $first.Message)
+            }
+        }
+
         $webConfigPath = Join-Path $webTarget 'config.json'
         if (-not (Test-Path -LiteralPath $webConfigPath)) {
             $templatePath = Join-Path $webTarget 'example-config.json'

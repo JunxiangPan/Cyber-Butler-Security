@@ -79,7 +79,7 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "de95e9af045af2ccabd3dca2de5f834142c4e10543a45d2eb091927f7e34849e",
+      "sha256": "ab8f9b2e278bfddcd2b504248f92da870560ff26c885d29569466f584275c10c",
       "size": 8192
     },
     {
@@ -89,8 +89,8 @@
     },
     {
       "path": "build/CyberButlerLauncher.cs",
-      "sha256": "37fad3bd6bccc010d20b0bdd2d2732504659d42b86faf8ebb847b780165a3401",
-      "size": 4836
+      "sha256": "20cb2314f03a62ed4209c3cc44380c9c58609dfe4579382d87d03e09592af7af",
+      "size": 5091
     },
     {
       "path": "build/PYINSTALLER.md",
@@ -924,7 +924,7 @@
     },
     {
       "path": "tools/CyberButlerLauncher.exe",
-      "sha256": "de95e9af045af2ccabd3dca2de5f834142c4e10543a45d2eb091927f7e34849e",
+      "sha256": "ab8f9b2e278bfddcd2b504248f92da870560ff26c885d29569466f584275c10c",
       "size": 8192
     },
     {
