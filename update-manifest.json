@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "e8ec4510c0fea19cfeb96d5bd2117a50f52d70d1c92cca31ffd80834803d61a3",
-      "size": 14592
+      "sha256": "d46e4bc74d4e4e5fbec5e36c86a918a3169a3be07617d81e5e6c18a3c3bca145",
+      "size": 14699
     },
     {
       "path": "docs/使用说明.md",
@@ -399,8 +399,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "27cb2fd75e3581b826a1ea3e3f33a2359e2beeecf3b3b870e488c07c6054ecce",
-      "size": 41706
+      "sha256": "efed2bcbc17a6f29e8913b2eb56d3f660c77ed6f58f944ed9c041d2f5e897d77",
+      "size": 42073
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",

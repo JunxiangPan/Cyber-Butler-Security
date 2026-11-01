@@ -57,7 +57,7 @@ param(
     [string]$PythonPackage = '',
     [string]$PythonSha256 = '',
     [string]$PersonalPluginsPath = '',
-    [int]$StartupTimeoutSeconds = 120,
+    [int]$StartupTimeoutSeconds = 180,
     [switch]$SkipDependencyInstall,
     [int]$DownloadTimeoutSeconds = 300,
     [int]$DownloadRetryCount = 3,

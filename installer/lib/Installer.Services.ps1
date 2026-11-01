@@ -773,7 +773,7 @@ function Invoke-CyberButlerServices {
                 })
             }
         }
-        $asserted = Assert-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
+        $asserted = Assert-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -PersonalPluginsPath $PersonalPluginsPath -TimeoutSeconds $StartupTimeoutSeconds -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
         if (-not $asserted.satisfied) {
             $serviceAssertion = $asserted
             try {
