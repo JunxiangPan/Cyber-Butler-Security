@@ -3,7 +3,7 @@
 <#
 Install the LibreHardwareMonitor watchdog.
 
-Creates a SYSTEM scheduled task that runs tools\lhm-watchdog.vbs every five
+Creates a SYSTEM scheduled task that runs the native hidden launcher for tools\lhm-watchdog.ps1 every five
 minutes from boot, with no console window. The script copies the watchdog files
 into the install root when this installer is run from the release tree, then
 performs a stop/start recovery self-test.
@@ -26,7 +26,7 @@ if (-not $ProjectRoot) {
 }
 $root = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $tools = Join-Path $root 'tools'
-$vbs = Join-Path $tools 'lhm-watchdog.vbs'
+$launcher = Join-Path $tools 'CyberButlerLauncher.exe'
 $ps1 = Join-Path $tools 'lhm-watchdog.ps1'
 $logDir = Join-Path $env:ProgramData 'CyberButler'
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
@@ -65,7 +65,7 @@ try {
     # 1. Make sure the watchdog files live in the install root.
     $sourceTools = $PSScriptRoot
     $copiedFiles = New-Object System.Collections.ArrayList
-    foreach ($name in @('lhm-watchdog.ps1', 'lhm-watchdog.vbs', 'install_lhm_watchdog.ps1')) {
+    foreach ($name in @('lhm-watchdog.ps1', 'install_lhm_watchdog.ps1')) {
         $source = Join-Path $sourceTools $name
         $target = Join-Path $tools $name
         if (-not (Test-Path -LiteralPath $source)) { throw "installer source missing: $source" }
@@ -75,13 +75,13 @@ try {
         }
     }
     $result.copied = @($copiedFiles)
-    if (-not (Test-Path -LiteralPath $vbs)) { throw "watchdog launcher missing: $vbs" }
+    if (-not (Test-Path -LiteralPath $launcher)) { throw "native launcher missing: $launcher" }
     Write-InstallLog ('watchdog files ready in ' + $tools)
 
     # 2. Register the SYSTEM task: every five minutes forever, plus one run at boot.
     # schtasks is used for the minute schedule because Register-ScheduledTask
     # rejects TimeSpan.MaxValue as a repetition duration on Windows PowerShell 5.1.
-    $taskRun = 'wscript.exe //B "' + $vbs + '"'
+    $taskRun = '"' + $launcher + '" --exe "powershell.exe" --workdir "' + $tools + '" --args "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"' + $ps1 + '\"" --hidden --wait'
     & schtasks.exe /Create /TN $taskName /TR $taskRun /SC MINUTE /MO 5 /RU SYSTEM /RL HIGHEST /F | Out-Null
     if ($LASTEXITCODE -ne 0) { throw ('schtasks /Create failed: ' + $LASTEXITCODE) }
     $created = Get-ScheduledTask -TaskName $taskName

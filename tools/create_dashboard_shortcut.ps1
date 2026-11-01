@@ -2,8 +2,9 @@
 <#
 Create a desktop shortcut for the Cyber-Butler dashboard.
 
-The shortcut targets wscript.exe, which launches the VBS shim. No console
-window is shown. Administrator rights are not required to open the dashboard.
+The shortcut targets the signed native launcher, which starts the hidden
+PowerShell dashboard without wscript.exe or a console window. Administrator
+rights are not required to open the dashboard.
 #>
 param(
     [string]$ShortcutName = 'Cyber-Butler 主控台',
@@ -16,16 +17,18 @@ $ErrorActionPreference = 'Stop'
 # the updater then all live in the same directory.
 if (-not $ProjectRoot) { $ProjectRoot = Split-Path -Parent $PSScriptRoot }
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
-$vbs = Join-Path $ProjectRoot 'tools\cyber_butler_dashboard.vbs'
-if (-not (Test-Path -LiteralPath $vbs)) { throw "Dashboard launcher missing: $vbs" }
+$launcher = Join-Path $ProjectRoot 'tools\CyberButlerLauncher.exe'
+$dashboard = Join-Path $ProjectRoot 'tools\start-dashboard.ps1'
+if (-not (Test-Path -LiteralPath $launcher)) { throw "Native launcher missing: $launcher" }
+if (-not (Test-Path -LiteralPath $dashboard)) { throw "Dashboard script missing: $dashboard" }
 $desktop = [Environment]::GetFolderPath('Desktop')
 $legacy = Join-Path $desktop '检查苏瑾言更新.lnk'
 if (Test-Path -LiteralPath $legacy) { Remove-Item -LiteralPath $legacy -Force }
 $shortcutPath = Join-Path $desktop ($ShortcutName + '.lnk')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
-$shortcut.Arguments = '"' + $vbs + '" "' + $ProjectRoot + '"'
+$shortcut.TargetPath = $launcher
+$shortcut.Arguments = '--exe "powershell.exe" --workdir "' + (Split-Path -Parent $dashboard) + '" --args "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File \"' + $dashboard + '\" -ProjectRoot \"' + $ProjectRoot + '\"" --hidden'
 $shortcut.WorkingDirectory = Join-Path $ProjectRoot 'tools'
 $shortcut.IconLocation = (Join-Path $env:SystemRoot 'System32\shell32.dll') + ',21'
 $shortcut.Description = 'Cyber-Butler 本地主控台（只读）'

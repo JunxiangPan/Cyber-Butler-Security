@@ -1,4 +1,4 @@
-"""Safe, dependency-free primitives for Cyber-Butler release updates.
+﻿"""Safe, dependency-free primitives for Cyber-Butler release updates.
 
 The updater itself is deliberately small: this module validates the update
 manifest, rejects every path that could touch user data, and applies only
@@ -27,10 +27,10 @@ MAX_TOTAL_BYTES = 256 * 1024 * 1024
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VERSION_RE = re.compile(r"^[0-9]+(?:\.[0-9]+){1,3}(?:[-+][0-9A-Za-z.-]+)?$")
 
-ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", "webui/", "installer/", ".github/")
+ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", "webui/", "installer/", "build/", ".github/")
 ALLOWED_ROOT_FILES = {
     "VERSION",
-    "START-INSTALLER.cmd",
+    "START-INSTALLER.exe",
     "README.md",
     "README-INSTALL.md",
     "README_en.md",

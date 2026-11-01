@@ -1,0 +1,32 @@
+# PyInstaller version metadata template.
+# Use this only if a Python entry point is actually packaged as an EXE.
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 6, 1, 0),
+    prodvers=(1, 6, 1, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable(
+        u'040904B0',
+        [
+          StringStruct(u'CompanyName', u'Cyber-Butler'),
+          StringStruct(u'FileDescription', u'Cyber-Butler Security Agent'),
+          StringStruct(u'FileVersion', u'1.6.1.0'),
+          StringStruct(u'InternalName', u'CyberButlerAgent'),
+          StringStruct(u'LegalCopyright', u'Copyright (c) Cyber-Butler contributors'),
+          StringStruct(u'OriginalFilename', u'CyberButlerAgent.exe'),
+          StringStruct(u'ProductName', u'Cyber-Butler Security'),
+          StringStruct(u'ProductVersion', u'1.6.1.0')
+        ]
+      )
+    ]),
+    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+  ]
+)

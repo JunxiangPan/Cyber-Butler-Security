@@ -1,4 +1,4 @@
-"""Production overlay and rendering helpers for update_merge.ps1.
+﻿"""Production overlay and rendering helpers for update_merge.ps1.
 
 The public release contains placeholders such as YOUR_PROJECT_PATH. This module
 keeps deployment values in a local overlay, renders only runtime files, and
@@ -61,7 +61,7 @@ PROTECTED_EXACT = {
     ".snowluma_token",
     "local-overlay.json",
 }
-TEXT_SUFFIXES = {".py", ".ps1", ".psm1", ".vbs", ".bat", ".cmd"}
+TEXT_SUFFIXES = {".py", ".ps1", ".psm1", ".bat", ".cmd"}
 OVERLAY_TARGETS = (
     ("overlay/astrbot/core/", "AstrBot/astrbot/core/"),
     ("overlay/astrbot/dashboard/", "AstrBot/astrbot/dashboard/"),

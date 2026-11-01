@@ -283,8 +283,8 @@ function Show-CyberButlerRemoveDialog {
 function Remove-CyberButlerPackage {
     param([Parameter(Mandatory = $true)][string]$InstallerRoot)
     $packageRoot = Split-Path -Parent ([IO.Path]::GetFullPath($InstallerRoot)).TrimEnd([char]92)
-    if (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'START-INSTALLER.cmd'))) {
-        throw ('Refusing to remove package without START-INSTALLER.cmd: ' + $packageRoot)
+    if (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'START-INSTALLER.exe'))) {
+        throw ('Refusing to remove package without START-INSTALLER.exe: ' + $packageRoot)
     }
     if (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'installer\CyberButler.Installer.GUI.ps1'))) {
         throw ('Refusing to remove package without installer GUI: ' + $packageRoot)

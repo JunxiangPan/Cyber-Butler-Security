@@ -87,25 +87,17 @@ function Get-CyberButlerServiceSpecs {
     $webPython = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
     $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
-    $hidden = Join-Path $rootFull 'tools\run-python-hidden.vbs'
-    $wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
-    if ($Isolation) {
-        # A service-account task has no interactive window station. Run the
-        # console Python under cmd.exe and redirect its output so a startup
-        # failure is visible in the installer diagnostics.
-        $cmdExe = Join-Path $env:SystemRoot 'System32\cmd.exe'
-        $astrbotExe = $cmdExe
-        $astrbotLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.log'
-        $astrbotArgs = '/d /c ""' + $python + '" "main.py" > "' + $astrbotLog + '" 2>&1"'
-    } else {
-        $astrbotExe = $wscript
-        $astrbotArgs = '//B "' + $hidden + '" "' + $python + '" "main.py" "' + (Join-Path $rootFull 'AstrBot') + '"'
-    }
-    $webArgs = '//B "' + $hidden + '" "' + $webPython + '" "run.py" "' + (Join-Path $rootFull 'webui') + '"'
+    $launcher = Join-Path $rootFull 'tools\CyberButlerLauncher.exe'
+    $astrbotLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.log'
+    $webLog = Join-Path $rootFull 'webui\data\webui-service.log'
+
+    $astrbotArgs = '--exe "' + $python + '" --workdir "' + (Join-Path $rootFull 'AstrBot') + '" --args "main.py" --hidden --wait --log "' + $astrbotLog + '"'
+    $webArgs = '--exe "' + $webPython + '" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "run.py" --hidden --wait --log "' + $webLog + '"'
+
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $astrbotExe; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
+        [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $wscript; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
+        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
     )
 }
 

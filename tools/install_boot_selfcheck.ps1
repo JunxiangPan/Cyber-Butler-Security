@@ -1,10 +1,11 @@
 ﻿# Install the 2-minute boot self-check as SYSTEM with startup + logon triggers.
 $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot 'boot-selfcheck.ps1'
+$launcher = Join-Path $PSScriptRoot 'CyberButlerLauncher.exe'
 if (-not (Test-Path -LiteralPath $script)) { throw "missing $script" }
 
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-    -Argument "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$script`""
+$action = New-ScheduledTaskAction -Execute $launcher `
+    -Argument ('--exe "powershell.exe" --workdir "' + $PSScriptRoot + '" --args "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"' + $script + '\"" --hidden --wait')
 $startup = New-ScheduledTaskTrigger -AtStartup
 $startup.Delay = 'PT2M'
 $logon = New-ScheduledTaskTrigger -AtLogOn

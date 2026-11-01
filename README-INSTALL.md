@@ -11,7 +11,7 @@ This file is at the release root. Read it before launching the installer.
 根目录双击：
 
 ```text
-START-INSTALLER.cmd
+START-INSTALLER.exe
 ```
 
 它会启动 WPF 安装界面。不会打开管理员 PowerShell 控制台；UAC 提示是正常的。
@@ -22,7 +22,7 @@ START-INSTALLER.cmd
 installer\Start-CyberButler-Installer.vbs
 ```
 
-Double-click `START-INSTALLER.cmd` at the release root. It opens the WPF installer. No administrator PowerShell console is shown; the UAC prompt is expected.
+Double-click `START-INSTALLER.exe` at the release root. It opens the WPF installer. No administrator PowerShell console is shown; the UAC prompt is expected.
 
 ## 2. 安装前准备 / Before installing
 
@@ -38,7 +38,7 @@ Double-click `START-INSTALLER.cmd` at the release root. It opens the WPF install
 
 ## 3. 安装步骤 / Installation steps
 
-1. 双击根目录 `START-INSTALLER.cmd`。
+1. 双击根目录 `START-INSTALLER.exe`。
 2. 确认 UAC。
 3. 在 GUI 中选择安装路径、Tier、主人 QQ、WebUI 绑定。
 4. 阅读界面说明，勾选批准。
@@ -144,7 +144,7 @@ C:\CyberButler\webui\data\
 ## 8. 发布包里有什么 / What is in the package
 
 ```text
-START-INSTALLER.cmd                 根目录快捷启动
+START-INSTALLER.exe                 根目录快捷启动
 README-INSTALL.md                   本说明
 installer\                          安装器、GUI、TOTP、服务脚本
 installer\Start-CyberButler-Installer.vbs
