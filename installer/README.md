@@ -57,7 +57,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -InstallPath C:\CyberButler `
   -OwnerQQ <owner-qq> `
   -JournalRoot C:\ProgramData\CyberButler\installer\state `
-  -ReportDirectory C:\CyberButler\installer-report
+  -ReportDirectory C:\ProgramData\CyberButler\installer-report
 ```
 
 Flow:

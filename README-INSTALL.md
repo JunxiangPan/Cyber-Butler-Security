@@ -59,13 +59,13 @@ Double-click `START-INSTALLER.cmd` at the release root. It opens the WPF install
 
 - GUI 进度条或当前步骤在变化
 - GUI 日志还在增加
-- `C:\CyberButler\installer-report` 里的日志文件时间还在更新
+- `C:\ProgramData\CyberButler\installer-report` 里的日志文件时间还在更新
 - 安装器 PowerShell 进程仍存在，CPU 或内存有变化
 
 ### 已经失败
 
 - GUI 弹出“安装失败”
-- `C:\CyberButler\installer-report\install-report.json` 中 `status` 为 `failed`
+- `C:\ProgramData\CyberButler\installer-report\install-report.json` 中 `status` 为 `failed`
 - 安装器进程已经退出，但没有成功窗口
 - 日志超过约 10 分钟完全没有变化
 
@@ -78,10 +78,10 @@ Core 的 pip 安装可能持续数分钟，界面没有新行并不等于失败�
 按顺序检查：
 
 ```text
-C:\CyberButler\installer-report\install-report.json
-C:\CyberButler\installer-report\install-report.md
-C:\CyberButler\installer-report\pip-install.log
-C:\CyberButler\installer-report\webui-pip-install.log
+C:\ProgramData\CyberButler\installer-report\install-report.json
+C:\ProgramData\CyberButler\installer-report\install-report.md
+C:\ProgramData\CyberButler\installer-report\pip-install.log
+C:\ProgramData\CyberButler\installer-report\webui-pip-install.log
 %TEMP%\CyberButler-Installer-GUI-error.log
 C:\ProgramData\CyberButler\installer\state\
 C:\ProgramData\CyberButler\installer\diagnostics\
@@ -90,7 +90,7 @@ C:\ProgramData\CyberButler\installer\diagnostics\
 常用检查命令：
 
 ```powershell
-Get-Content "C:\CyberButler\installer-report\install-report.json" -Raw
+Get-Content "C:\ProgramData\CyberButler\installer-report\install-report.json" -Raw
 Get-Content "$env:TEMP\CyberButler-Installer-GUI-error.log" -Tail 100 -ErrorAction SilentlyContinue
 Get-ChildItem "C:\ProgramData\CyberButler\installer\diagnostics" -ErrorAction SilentlyContinue
 ```
@@ -98,7 +98,7 @@ Get-ChildItem "C:\ProgramData\CyberButler\installer\diagnostics" -ErrorAction Si
 `install-report.json` 很大时，PowerShell 5.1 的 `ConvertFrom-Json` 可能失败；用 Python 校验：
 
 ```powershell
-& "C:\Users\PAN\AppData\Local\Programs\Python\Python313\python.exe" -c "import json; p=r'C:\CyberButler\installer-report\install-report.json'; d=json.load(open(p,encoding='utf-8')); print(d.get('status'))"
+& "C:\Users\PAN\AppData\Local\Programs\Python\Python313\python.exe" -c "import json; p=r'C:\ProgramData\CyberButler\installer-report\install-report.json'; d=json.load(open(p,encoding='utf-8')); print(d.get('status'))"
 ```
 
 ## 6. 如何检查服务 / Check services
@@ -158,7 +158,7 @@ AstrBot\ / webui\ / tools\           安装载荷
 
 ```text
 C:\CyberButler\
-C:\CyberButler\installer-report\    安装报告
+C:\ProgramData\CyberButler\installer-report\    安装报告
 C:\ProgramData\CyberButler\         安装状态和诊断
 ```
 

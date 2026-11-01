@@ -795,8 +795,20 @@ function Format-GuiDuration([int]$Seconds) {
     return ('{0}h {1}m' -f [int]($m / 60), ($m % 60))
 }
 
+
+function Get-GuiReportPath {
+    $candidates = @(
+        (Join-Path $env:ProgramData 'CyberButler\installer-report\install-report.json'),
+        'C:\CyberButler\installer-report\install-report.json'
+    )
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate) { return $candidate }
+    }
+    return $candidates[0]
+}
+
 function Get-GuiInstallStatusText {
-    $reportPath = 'C:\CyberButler\installer-report\install-report.json'
+    $reportPath = Get-GuiReportPath
     $reportStatus = ''
     $reportFailure = ''
     if (Test-Path -LiteralPath $reportPath) {
@@ -944,7 +956,7 @@ function Show-GuiInstallStatus {
 
 function Show-GuiCompletionIfReady {
     if ($script:GuiCompletionShown) { return }
-    $reportPath = 'C:\CyberButler\installer-report\install-report.json'
+    $reportPath = Get-GuiReportPath
     $status = ''
     $failure = ''
     if (Test-Path -LiteralPath $reportPath) {
@@ -987,6 +999,17 @@ function Show-GuiCompletionIfReady {
         $message = "Installation failed.`n`nReport: $reportPath"
         if ($failure) { $message += "`n`nFailure: $failure" }
         [System.Windows.MessageBox]::Show($message, (Get-UiText 'Title')) | Out-Null
+    } elseif ($script:GuiInstallProcess -and $script:GuiInstallProcess.HasExited) {
+        if (-not $script:GuiExitNoticeAt) { $script:GuiExitNoticeAt = Get-Date }
+        if (((Get-Date) - $script:GuiExitNoticeAt).TotalSeconds -ge 5) {
+            $script:GuiCompletionShown = $true
+            if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
+            Set-GuiBusy $false
+            $stateRoot = Join-Path $env:ProgramData 'CyberButler\installer\state'
+            [System.Windows.MessageBox]::Show(
+                ("Installer exited without a completion report.`n`nReport: " + $reportPath + "`nState: " + $stateRoot + "`n`nOpen the status window for the latest log tail."),
+                (Get-UiText 'Title')) | Out-Null
+        }
     }
 }
 
@@ -1100,6 +1123,7 @@ $startButton.Add_Click({
         Set-GuiBusy $true
         $script:GuiInstallPath = $installPath
         $script:GuiCompletionShown = $false
+        $script:GuiExitNoticeAt = $null
         $script:GuiStageStartedAt = Get-Date
         $script:GuiStagePercent = 0
         Write-GuiLog (Get-UiText 'Starting')
@@ -1140,7 +1164,7 @@ $startButton.Add_Click({
 })
 
 $reportButton.Add_Click({
-    $reportDir = 'C:\CyberButler\installer-report'
+    $reportDir = Split-Path -Parent (Get-GuiReportPath)
     if (Test-Path -LiteralPath $reportDir) {
         Start-Process -FilePath 'explorer.exe' -ArgumentList $reportDir | Out-Null
     } else {

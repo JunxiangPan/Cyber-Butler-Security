@@ -313,7 +313,7 @@ function Show-CyberButlerPostInstallWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,
         [Parameter(Mandatory = $true)][string]$InstallPath,
-        [string]$ReportPath = 'C:\CyberButler\installer-report\install-report.json',
+        [string]$ReportPath = (Join-Path $env:ProgramData 'CyberButler\installer-report\install-report.json'),
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
         [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
@@ -423,7 +423,7 @@ function Start-CyberButlerGuiInstall {
         '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir,
         '-TestConfigPath', $configPath,
         '-JournalRoot', 'C:\ProgramData\CyberButler\installer\state',
-        '-ReportDirectory', 'C:\CyberButler\installer-report'
+        '-ReportDirectory', (Join-Path $env:ProgramData 'CyberButler\installer-report')
     )
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
