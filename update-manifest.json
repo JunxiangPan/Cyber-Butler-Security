@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "7bb7678602094f16bc1faf1328c538e0436c0c6cee893dc5b9ea486ef0a81c6a",
-      "size": 2178
+      "sha256": "88a81a1e36a30974845cbbd8e5361a62442dbdf02ec8ce81e8de25965523252c",
+      "size": 2212
     },
     {
       "path": "DEPLOYMENT.md",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "d17000ba5319c37f7bbc491db6d7cb012154993021da3a5cc1e0554d43738a9f",
+      "sha256": "08629e8796eb3feafa9be0d79b75d166b42c0089087eafe0ec0117e51ea5a03d",
       "size": 7727
     },
     {
@@ -78,14 +78,39 @@
       "size": 28604
     },
     {
-      "path": "START-INSTALLER.cmd",
-      "sha256": "5534640f55bf976764c737132964a1c1147418904d361a3b0386ee3d3c365b3f",
-      "size": 267
+      "path": "START-INSTALLER.exe",
+      "sha256": "948c1c4d995d930135e2b0088a550d3e8fffede6fd26ade535ad4860c973ea8f",
+      "size": 8192
     },
     {
       "path": "VERSION",
       "sha256": "6430a242e9486093ef6f71d9086d48f61ba102f0d2fb0f5b95334c6007a46db3",
       "size": 6
+    },
+    {
+      "path": "build/CyberButlerLauncher.cs",
+      "sha256": "37fad3bd6bccc010d20b0bdd2d2732504659d42b86faf8ebb847b780165a3401",
+      "size": 4836
+    },
+    {
+      "path": "build/PYINSTALLER.md",
+      "sha256": "5c925b0847944c01605c66a4c28483876e04209571781b819e7b6b4e84a84f1c",
+      "size": 724
+    },
+    {
+      "path": "build/app.manifest",
+      "sha256": "4cc14a81132cb912d2058bc230ccc8cf7a0c1e4e476f07ee381c60cbf3dfcd39",
+      "size": 614
+    },
+    {
+      "path": "build/build-launcher.ps1",
+      "sha256": "f27feeeee25d63b981bf8d0d2ce08a58228274a68d6df917d955e03ef865c6a0",
+      "size": 1251
+    },
+    {
+      "path": "build/version_info.txt",
+      "sha256": "c2e9b795fb02e3e44f9c8ece2101f69624808937b39296340ed395e0826593bb",
+      "size": 1000
     },
     {
       "path": "config.lite.example.json",
@@ -284,8 +309,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "a142450e1f9c80a78cbd065da9c764fc488b71b7a7b1f635acd7e287cc27c5f5",
-      "size": 102159
+      "sha256": "789deeaea7d9f23eaddcd1e32c653a0e1efeb82095afe73a75f2aba66f8ae8ff",
+      "size": 104619
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -303,19 +328,14 @@
       "size": 24010
     },
     {
-      "path": "installer/Start-CyberButler-Installer.cmd",
-      "sha256": "d99b27edcd85950a142c1702187595beba899e96d2958023b259d2e734226284",
-      "size": 65
-    },
-    {
-      "path": "installer/Start-CyberButler-Installer.vbs",
-      "sha256": "c9272b7d89bbf17d7d4bd7347d5c3e8c03176ac35c867efaaf0232ce30493bca",
-      "size": 647
-    },
-    {
       "path": "installer/core-sources.json",
       "sha256": "52db0943d4675530d10fdef34124e9e73e0bcde9660758c7f4906ca2c1f23c7d",
       "size": 768
+    },
+    {
+      "path": "installer/lib/Add-DefenderExclusion.ps1",
+      "sha256": "cb2f821a1de1d4f7de0d870b0bcb868d23a871046900609bc310ffe4c06c6a72",
+      "size": 951
     },
     {
       "path": "installer/lib/CyberButlerLsaRights.cs",
@@ -359,7 +379,7 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "414c277cc562e61822bb70ab16192d37975babd5c306404c16e25846b554fced",
+      "sha256": "f2d08b3cfc718767c828fd3f411922fef0cdc9c60053b6f595dcc37c7904a3a9",
       "size": 29333
     },
     {
@@ -399,8 +419,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "259210741100ed8287b6a76ce9e665d419617785fef2d49d6f9b26d5d37b61e4",
-      "size": 42311
+      "sha256": "e11e4323f645315e92bb8cda47eac1bdd0696736c77a753fddba09fe6fda7c15",
+      "size": 41921
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -903,14 +923,14 @@
       "size": 4207
     },
     {
+      "path": "tools/CyberButlerLauncher.exe",
+      "sha256": "948c1c4d995d930135e2b0088a550d3e8fffede6fd26ade535ad4860c973ea8f",
+      "size": 8192
+    },
+    {
       "path": "tools/boot-selfcheck.ps1",
       "sha256": "d8f7f3c046ff0599b0006a9592fa1e1cf9fdf2dc9cec3fab67e1bdc1a5dda52c",
       "size": 4492
-    },
-    {
-      "path": "tools/boot-selfcheck.vbs",
-      "sha256": "e9172edcdb939ccd7c165c0b4e4b46a2aef0c7749ac992d93e9df85143d66471",
-      "size": 549
     },
     {
       "path": "tools/broker.py",
@@ -934,8 +954,8 @@
     },
     {
       "path": "tools/create_dashboard_shortcut.ps1",
-      "sha256": "1e47e32a5d2cbaa4220f393041904462ac1e72b9ab80fada7ab2978f66e3576f",
-      "size": 1643
+      "sha256": "061f0fde5bd3f722c04b25b3fb9b07db6f9da23b7a656bf5af1064f152462c33",
+      "size": 2001
     },
     {
       "path": "tools/create_update_shortcut.ps1",
@@ -946,11 +966,6 @@
       "path": "tools/cyber_butler_dashboard.ps1",
       "sha256": "07454818aa9b60bf140ec87aca7c745e0f28195e5d49f3f6e58eba55eeec6959",
       "size": 85294
-    },
-    {
-      "path": "tools/cyber_butler_dashboard.vbs",
-      "sha256": "e5c24b62ba8fee66e1f91c214ee0a45c4f412f4f2d40bfec19d5c7b8400cc1f6",
-      "size": 468
     },
     {
       "path": "tools/daily_audit.py",
@@ -1093,11 +1108,6 @@
       "size": 2364
     },
     {
-      "path": "tools/game-mode-watchdog.vbs",
-      "sha256": "381dfacfa703641127769796f3a30f5fa66792bbc4944db48bfe17c0076b88db",
-      "size": 605
-    },
-    {
       "path": "tools/game-mode.ps1",
       "sha256": "76e18aa0fa9d89986309b00b69a622668df21b53b8d32d159758c7dcfe765ab3",
       "size": 45530
@@ -1114,8 +1124,8 @@
     },
     {
       "path": "tools/install_boot_selfcheck.ps1",
-      "sha256": "1571e4b0e7834cbf5ac2363d29df4dc5c7cb4434863b045dc1e43eba9ef0a613",
-      "size": 1052
+      "sha256": "e135cc8b5e71fb4ee73b1f946f79a11493cf2cb453c30102fc2faf98d2768d23",
+      "size": 1200
     },
     {
       "path": "tools/install_broker_task.ps1",
@@ -1129,8 +1139,8 @@
     },
     {
       "path": "tools/install_game_watchdog.ps1",
-      "sha256": "00255fa035ca8094635a181f212ee4165b1fd0d75aa2cb8a29f6969ed7cb9e17",
-      "size": 1364
+      "sha256": "738a7a09adce17c968d417933f5a66920088fad51f812767730c942268e91fc5",
+      "size": 1436
     },
     {
       "path": "tools/install_lhm_task.ps1",
@@ -1139,8 +1149,8 @@
     },
     {
       "path": "tools/install_lhm_watchdog.ps1",
-      "sha256": "eebcf92a0fdf51c4ffbc61580abb33817ae3415fcdf7b6759843542762cfcfc3",
-      "size": 5743
+      "sha256": "caf0843db2aa852ff2b37ce027f7280c90bd2469539c9b4fecae87b84ee2a65c",
+      "size": 6071
     },
     {
       "path": "tools/install_snow_task2.ps1",
@@ -1149,8 +1159,8 @@
     },
     {
       "path": "tools/install_startup_tasks.ps1",
-      "sha256": "d844b41dc2eda44ea20988ad5b1019dea7834e01de50b071116c05baf129cea2",
-      "size": 2662
+      "sha256": "b01faeb2c9a20051b561e854c85e95b9493fdf55d2cc845fad40d93a41031389",
+      "size": 2983
     },
     {
       "path": "tools/install_weekly_task.ps1",
@@ -1161,11 +1171,6 @@
       "path": "tools/lhm-watchdog.ps1",
       "sha256": "aa8d8e8f016e56919915fd2824341d0466bf28d46c893d40000ed011aefa4550",
       "size": 3855
-    },
-    {
-      "path": "tools/lhm-watchdog.vbs",
-      "sha256": "9f2d548dd01f12a8929e6632529705ff173f7158a14ecff0f194cba596d8d625",
-      "size": 302
     },
     {
       "path": "tools/package_release.py",
@@ -1216,11 +1221,6 @@
       "path": "tools/run-python-hidden.ps1",
       "sha256": "e32cda1d94559e9e5cf0f1637ac6387d78c61519c6f9947aa611f7ba5321738e",
       "size": 1122
-    },
-    {
-      "path": "tools/run-python-hidden.vbs",
-      "sha256": "a093ab034a64bdc0b4a33380b7613c7eec24c32bf8092e14d8a664b85a7663a6",
-      "size": 589
     },
     {
       "path": "tools/sanitize_for_release.py",
@@ -1284,18 +1284,13 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "7244a1b5ede13f98611d591d0e9796220b1469b39253909edcb629ed05c8d57f",
-      "size": 11675
+      "sha256": "45a335d725b90baa42568a2679cee6bdd0a5ae3ed2cb3d61eea0833afa0abfb7",
+      "size": 11688
     },
     {
       "path": "tools/update_gui.ps1",
       "sha256": "5d02e680c8b4811d73e3d21b7a652b55743bd65870507d9ed4afc42f0e65cdb1",
       "size": 7705
-    },
-    {
-      "path": "tools/update_gui.vbs",
-      "sha256": "adaf3728c285f1328aa22174d4338f8967a30b6958538cd45b9f56423bbe280c",
-      "size": 395
     },
     {
       "path": "tools/update_merge.ps1",
@@ -1304,8 +1299,8 @@
     },
     {
       "path": "tools/update_merge_core.py",
-      "sha256": "84ac60ac6c64cb9365b1fa27fc382e4713b4186805ed7f9c351d3662b3ec8ea0",
-      "size": 19655
+      "sha256": "3ac111e09d768973e5e00d384bfe5fc365b511b697f76f8d04df6efa0cc7558c",
+      "size": 19650
     },
     {
       "path": "tools/update_pubkey.pem",

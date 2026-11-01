@@ -1,4 +1,4 @@
-#requires -RunAsAdministrator
+﻿#requires -RunAsAdministrator
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -7,6 +7,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+if (-not (Test-Path -LiteralPath $InstallRoot)) {
+    New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
+}
 $root = (Resolve-Path -LiteralPath $InstallRoot -ErrorAction Stop).Path.TrimEnd('\')
 if ($root -notmatch '^[A-Za-z]:\\CyberButler$') {
     throw "Refusing to add a Defender exclusion outside C:\\CyberButler: $root"
