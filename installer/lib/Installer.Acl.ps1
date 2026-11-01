@@ -181,15 +181,16 @@ function Set-CyberButlerDataAcl {
         }
     }
 
-    $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data')
-    $readDirs = @('memory', 'config', 'knowledge_base', 'site-packages', 'plugins')
+    $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data', 'memory', 'config', 'knowledge_base')
+    $readDirs = @('site-packages', 'plugins')
     foreach ($name in @($writeDirs + $readDirs)) {
         $path = Join-Path $DataRoot $name
         if (-not (Test-Path -LiteralPath $path)) { New-Item -ItemType Directory -Path $path -Force | Out-Null }
     }
 
-    # Make the root explicit and read-only, then grant writes only to the
-    # disposable cache/temp/log/plugin-data subtrees.
+    # Keep broad principals out. The runtime account needs Modify on data so
+    # AstrBot can create data_v4.db/WAL and save its config; agent tool writes
+    # remain policy-controlled by the Broker.
     & icacls.exe $DataRoot /inheritance:r `
         /grant:r '*S-1-5-18:(OI)(CI)F' `
         /grant:r '*S-1-5-32-544:(OI)(CI)F' `
@@ -220,17 +221,13 @@ function Set-CyberButlerDataAcl {
 
     $cmdConfig = Join-Path $DataRoot 'cmd_config.json'
     if (Test-Path -LiteralPath $cmdConfig) {
-        & icacls.exe $cmdConfig /inheritance:r `
-            /grant:r '*S-1-5-18:F' `
-            /grant:r '*S-1-5-32-544:F' `
-            /grant:r "${ServiceAccount}:(RX)" `
-            /grant:r "${DesktopAccount}:(RX)" 2>&1 | Out-Null
+        & icacls.exe $cmdConfig /grant:r "${ServiceAccount}:(M)" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'config-acl'; message = $cmdConfig } }
     }
 
     return [pscustomobject]@{
         status = 'completed'
-        reason = 'root-modify; cache/tmp/temp/logs/plugin_data-modify; memory/config/knowledge_base/site-packages/plugins-rx'
+        reason = 'root-modify; cache/tmp/temp/logs/plugin_data/memory/config/knowledge_base-modify; site-packages/plugins-rx'
         message = ''
         backup = $backup
     }
