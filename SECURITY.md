@@ -558,3 +558,26 @@ lost on Broker restart; a lost status is reported as `unknown`, never as
 `approved`. The challenge itself still times out after the normal 300-second
 TOTP window. `send` is not available in approval-only mode, and email approval
 is not supported for this mode.
+
+
+## 14. Job Objects and Orphan Processes
+
+`tools/broker.py` creates a Windows Job Object with
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` before it runs the ACL check or spawns any
+child. The broker assigns itself to the job, so every child and grandchild that
+does not explicitly break away is terminated when the last job handle closes,
+including a broker crash or forced termination.
+
+Verified on Windows:
+
+```text
+initialize_job_object() -> True
+child Python sleep(60)  -> CHILD_GONE after parent exits
+```
+
+Important scope limit: AstrBot is started by a separate Task Scheduler task and
+is **not** a child of the broker. The job above covers the broker and its
+descendants, not AstrBot's independently spawned children. To cover AstrBot, its
+launcher must create/adopt a Job Object too, or the broker must explicitly adopt
+the AstrBot PID after it starts. Do not claim full orphan coverage until that is
+implemented.

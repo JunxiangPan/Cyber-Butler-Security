@@ -7,6 +7,8 @@ used for cross-account TOTP state, which avoids Windows ACL problems.
 
 from __future__ import annotations
 
+import ctypes
+import ctypes.wintypes as wintypes
 import hashlib
 import ipaddress
 import json
@@ -48,6 +50,155 @@ HOST = "127.0.0.1"
 PORT = 18090
 TIMEOUT_SECONDS = 300
 REQUEST_RATE_LIMIT_SECONDS = 1.0
+
+# ---------------------------------------------------------------------------
+# Windows Job Object: KILL_ON_JOB_CLOSE
+# ---------------------------------------------------------------------------
+# The broker is started by Task Scheduler as SYSTEM. The job object is created
+# before any child process is spawned, and the broker assigns itself to it.
+# Every child (and grandchild) that does not explicitly break away inherits the
+# job; when the last job handle closes (including a broker crash), Windows
+# terminates the whole tree.
+#
+# This protects processes spawned by the broker. AstrBot is started by a
+# separate scheduled task, so it is NOT automatically in this job; see the
+# caveat in SECURITY.md before claiming that AstrBot's children are covered.
+JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
+JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
+_job_handle = None
+
+
+class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
+    _fields_ = [
+        ("PerProcessUserTimeLimit", ctypes.c_longlong),
+        ("PerJobUserTimeLimit", ctypes.c_longlong),
+        ("LimitFlags", wintypes.DWORD),
+        ("MinimumWorkingSetSize", ctypes.c_size_t),
+        ("MaximumWorkingSetSize", ctypes.c_size_t),
+        ("ActiveProcessLimit", wintypes.DWORD),
+        ("Affinity", ctypes.c_size_t),
+        ("PriorityClass", wintypes.DWORD),
+        ("SchedulingClass", wintypes.DWORD),
+    ]
+
+
+class _IO_COUNTERS(ctypes.Structure):
+    _fields_ = [
+        ("ReadOperationCount", ctypes.c_ulonglong),
+        ("WriteOperationCount", ctypes.c_ulonglong),
+        ("OtherOperationCount", ctypes.c_ulonglong),
+        ("ReadTransferCount", ctypes.c_ulonglong),
+        ("WriteTransferCount", ctypes.c_ulonglong),
+        ("OtherTransferCount", ctypes.c_ulonglong),
+    ]
+
+
+class _JOBOBJECT_EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
+    _fields_ = [
+        ("BasicLimitInformation", _JOBOBJECT_BASIC_LIMIT_INFORMATION),
+        ("IoInfo", _IO_COUNTERS),
+        ("ProcessMemoryLimit", ctypes.c_size_t),
+        ("JobMemoryLimit", ctypes.c_size_t),
+        ("PeakProcessMemoryUsed", ctypes.c_size_t),
+        ("PeakJobMemoryUsed", ctypes.c_size_t),
+    ]
+
+
+def initialize_job_object() -> bool:
+    """Put this process and its future children in a kill-on-close job.
+
+    Must be called before the broker spawns PowerShell, icacls, Python, or any
+    other child. Returns True on Windows, False on non-Windows platforms.
+    Raises SystemExit on Windows if the job cannot be installed (fail closed).
+    """
+    global _job_handle
+    if os.name != "nt":
+        return False
+    if _job_handle is not None:
+        return True
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.SetInformationJobObject.argtypes = [
+        wintypes.HANDLE,
+        ctypes.c_int,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+    ]
+    kernel32.SetInformationJobObject.restype = wintypes.BOOL
+    kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
+    kernel32.IsProcessInJob.argtypes = [
+        wintypes.HANDLE,
+        wintypes.HANDLE,
+        ctypes.POINTER(wintypes.BOOL),
+    ]
+    kernel32.IsProcessInJob.restype = wintypes.BOOL
+    kernel32.GetCurrentProcess.argtypes = []
+    kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel32.CloseHandle.restype = wintypes.BOOL
+
+    job = kernel32.CreateJobObjectW(None, None)
+    if not job:
+        raise SystemExit(
+            "Broker refuses to start: CreateJobObjectW failed: "
+            + str(ctypes.WinError(ctypes.get_last_error()))
+        )
+
+    info = _JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
+    info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    if not kernel32.SetInformationJobObject(
+        job,
+        JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
+        ctypes.byref(info),
+        ctypes.sizeof(info),
+    ):
+        error = ctypes.WinError(ctypes.get_last_error())
+        kernel32.CloseHandle(job)
+        raise SystemExit(
+            "Broker refuses to start: SetInformationJobObject failed: " + str(error)
+        )
+
+    process = kernel32.GetCurrentProcess()
+    already = wintypes.BOOL()
+    kernel32.IsProcessInJob(process, None, ctypes.byref(already))
+
+    if not kernel32.AssignProcessToJobObject(job, process):
+        error_code = ctypes.get_last_error()
+        error = ctypes.WinError(error_code)
+        kernel32.CloseHandle(job)
+        if already.value:
+            raise SystemExit(
+                "Broker refuses to start: process is already in a job and "
+                "cannot be assigned to the kill-on-close job: " + str(error)
+            )
+        raise SystemExit(
+            "Broker refuses to start: AssignProcessToJobObject failed: " + str(error)
+        )
+
+    _job_handle = job
+    log(
+        "job object active: KILL_ON_JOB_CLOSE is set for broker and its "
+        "future descendants"
+    )
+    return True
+
+
+def close_job_object() -> None:
+    """Close the job handle explicitly; KILL_ON_JOB_CLOSE then kills children."""
+    global _job_handle
+    if os.name != "nt" or _job_handle is None:
+        return
+    try:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        kernel32.CloseHandle(_job_handle)
+    finally:
+        _job_handle = None
+
 
 _lock = threading.Lock()
 _replay_lock = threading.Lock()
@@ -1246,6 +1397,8 @@ def verify_runtime_acl() -> None:
 
 
 def main() -> None:
+    log("broker starting; installing job object")
+    initialize_job_object()
     log("broker starting; verifying runtime ACL")
     try:
         verify_runtime_acl()
@@ -1257,7 +1410,10 @@ def main() -> None:
     STAGING.mkdir(parents=True, exist_ok=True)
     log(f"broker HTTP listening on {HOST}:{PORT}")
     server = ThreadingHTTPServer((HOST, PORT), Handler)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    finally:
+        close_job_object()
 
 
 if __name__ == "__main__":

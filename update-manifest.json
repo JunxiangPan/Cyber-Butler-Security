@@ -359,8 +359,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "284f386e187b59a641e876ce78298b0030cca3130833193a1820f8bab201f096",
-      "size": 37669
+      "sha256": "2305a4586998910fca99a1f818e3858fd8c663f5b45a4211052574f4511f8ffb",
+      "size": 38188
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
