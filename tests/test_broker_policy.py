@@ -412,7 +412,9 @@ def test_approval_only_scoped_is_allowed_without_execute(monkeypatch, tmp_path) 
     assert status == 200
     assert body["status"] == "allowed"
     assert body["scoped"] is True
+    assert body["auto_executed"] is False
     assert target.read_text(encoding="utf-8") == "x"
+    assert "Scoped via 30-minute Directory Token" in audit.read_text(encoding="utf-8")
 
 
 def test_verify_issues_scoped_token(monkeypatch, tmp_path) -> None:

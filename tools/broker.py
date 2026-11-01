@@ -1043,10 +1043,22 @@ def run_request(payload: dict) -> tuple[int, dict]:
         scoped = _consume_scoped(scoped_token, action, target_text)
         if scoped:
             if approval_only:
+                audit_request = {
+                    "id": "",
+                    "action": action,
+                    "target": target_text,
+                }
+                _audit_scoped(
+                    audit_request,
+                    "approval-only scoped; DSH may execute",
+                    str(scoped.get("root", "")),
+                )
+                log(f"scoped approval-only allowed: {action} {target_text}")
                 return 200, {
                     "ok": True,
                     "status": "allowed",
                     "approval_only": True,
+                    "auto_executed": False,
                     "scoped": True,
                     "id": "",
                     "challenge_id": "",
