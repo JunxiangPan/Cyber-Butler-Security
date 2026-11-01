@@ -24,8 +24,8 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "87f575605a21edf1d830078ca7e69b3de0c53da32a9814cfb6190215b2754e75",
-      "size": 7619
+      "sha256": "d17000ba5319c37f7bbc491db6d7cb012154993021da3a5cc1e0554d43738a9f",
+      "size": 7727
     },
     {
       "path": "README.md",
@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "246558df05a1a6e62e596f81a68eddd5106bf8050b74690afe1b41d12d246e94",
-      "size": 13549
+      "sha256": "e5d08bdb5356d8ed408e1677c2f69f35567ca1b6fe3125b5ed4e08bbe5d5cf19",
+      "size": 13615
     },
     {
       "path": "docs/使用说明.md",
@@ -284,13 +284,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "a7dcb19ebb74cb94a17e901d4f74cffbe9dd4c52e4e52affbf5c237390d0b0d1",
-      "size": 101046
+      "sha256": "a142450e1f9c80a78cbd065da9c764fc488b71b7a7b1f635acd7e287cc27c5f5",
+      "size": 102159
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "baa607a7249581f86bb76cc46eab30b9b0b35dd1650a9f359110234bba87495d",
-      "size": 43818
+      "sha256": "7543e2db4c55f441281663bdbfec74e89ee089d41a06a9fa9636dc832d5edf8e",
+      "size": 43496
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -299,8 +299,8 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "53839a32459e7a39cfac8d91b1222c6cab3137ae3063e769513f98c75ac427c2",
-      "size": 23998
+      "sha256": "f820071fe4a0709a8087d8348125b7476cea1e6500d1e84f9a938cb2c86dc1ef",
+      "size": 24010
     },
     {
       "path": "installer/Start-CyberButler-Installer.cmd",
@@ -359,8 +359,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "be6be4327dfe154751b5b29d66e76217f43c659ad1a6a74302b36855ff660c72",
-      "size": 29281
+      "sha256": "414c277cc562e61822bb70ab16192d37975babd5c306404c16e25846b554fced",
+      "size": 29333
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
