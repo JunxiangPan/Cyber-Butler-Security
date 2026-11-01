@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "5fc8c316f7d1f202b8d4fc1430b6440eac580af3e34af910f1119379dae3f8c2",
-      "size": 14302
+      "sha256": "5b88f608c3d63c806ae288aa2036608c9221b26eec007d1f44ea18fb9bdd4df0",
+      "size": 14481
     },
     {
       "path": "docs/使用说明.md",
@@ -409,8 +409,8 @@
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "80ce8a224d206396432c00480699e5953c80b23b91720f5a26553f3c99a1e0d2",
-      "size": 23591
+      "sha256": "8c32cb94fbfac58444b1551aa82401191a618d71fcdc5c64f59e877744c0b154",
+      "size": 25509
     },
     {
       "path": "installer/lib/totp_material.py",

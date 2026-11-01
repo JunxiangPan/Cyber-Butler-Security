@@ -336,6 +336,16 @@ function Set-CyberButlerServiceTasks {
         } catch { }
     }
     $ports = @($specs | ForEach-Object { [int]$_.port })
+    if (@($specs | Where-Object { $_.principal -eq 'service' }).Count -gt 0) {
+        # S4U registration can fail until Task Scheduler has observed the new
+        # account and its LSA rights. Refresh it once before registration.
+        try {
+            Restart-Service -Name Schedule -Force -ErrorAction Stop
+            Start-Sleep -Seconds 2
+        } catch {
+            Write-Host ('Task Scheduler refresh warning: ' + $_.Exception.Message)
+        }
+    }
     $beforePids = @(Get-CyberButlerPortOwnerIds -Ports $ports)
     $created = New-Object System.Collections.Generic.List[object]
     $taskBackups = @{}

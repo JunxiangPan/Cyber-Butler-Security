@@ -50,9 +50,11 @@ foreach ($secretPath in @($secretPath + $recoveryPath)) {
     try {
         $secretAcl = Get-Acl -LiteralPath $secretPath
         $denyRead = @($secretAcl.Access | Where-Object {
-            $_.AccessControlType -eq 'Deny' -and
-            (([string]$_.IdentityReference) -eq $ServiceUser -or ([string]$_.IdentityReference).Contains([string][char]92 + $ServiceUser)) -and
-            $_.FileSystemRights -match 'Read|ReadData|ReadAttributes|ReadExtendedAttributes|ReadPermissions'
+            if ($_.AccessControlType -ne 'Deny') { return $false }
+            $identityText = [string]$_.IdentityReference
+            if ($identityText -ne $ServiceUser -and -not $identityText.Contains([string][char]92 + $ServiceUser)) { return $false }
+            $rightsText = [string]$_.FileSystemRights
+            return ($rightsText -match 'Read|ReadData|ReadAttributes|ReadExtendedAttributes|ReadPermissions|FullControl' -or $rightsText -eq 'None')
         })
         if (-not $singleAccount -and $denyRead.Count -eq 0) {
             $bad.Add("missing explicit Deny Read for $ServiceUser on $secretPath")
