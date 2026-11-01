@@ -39,8 +39,30 @@ function Resolve-CyberButlerCoreSource {
 }
 
 function Get-CyberButlerCorePython {
-    param([string]$PreferredPath = '')
-    if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf)) { return [IO.Path]::GetFullPath($PreferredPath) }
+    param(
+        [string]$PreferredPath = '',
+        [string]$ServiceRoot = '',
+        [bool]$Isolation = $false
+    )
+    if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf)) {
+        $preferred = [IO.Path]::GetFullPath($PreferredPath)
+        if ($Isolation -and $ServiceRoot -and $preferred -match '^[A-Za-z]:\Users\') {
+            # A standard service account cannot read a per-user Python install.
+            # Materialize the base runtime under the service-readable install
+            # root, then create the venv from that copy.
+            $sourceRoot = Split-Path -Parent $preferred
+            $servicePythonRoot = Join-Path $ServiceRoot '.python'
+            $servicePython = Join-Path $servicePythonRoot 'python.exe'
+            if (-not (Test-Path -LiteralPath $servicePython)) {
+                if (Test-Path -LiteralPath $servicePythonRoot) {
+                    Remove-Item -LiteralPath $servicePythonRoot -Recurse -Force -ErrorAction SilentlyContinue
+                }
+                Copy-Item -LiteralPath $sourceRoot -Destination $servicePythonRoot -Recurse -Force
+            }
+            if (Test-Path -LiteralPath $servicePython) { return [IO.Path]::GetFullPath($servicePython) }
+        }
+        return $preferred
+    }
     $command = Get-Command python.exe -ErrorAction SilentlyContinue
     if (-not $command) { $command = Get-Command py.exe -ErrorAction SilentlyContinue }
     if (-not $command) { throw 'Python was not found.' }
@@ -577,7 +599,7 @@ function Invoke-CyberButlerCoreDeploy {
         }
 
         if (-not $SkipDependencyInstall) {
-            $python = Get-CyberButlerCorePython -PreferredPath $PythonPath
+            $python = Get-CyberButlerCorePython -PreferredPath $PythonPath -ServiceRoot $root -Isolation:($Tier -eq 'High')
             Write-Host ('CORE creating virtual environment with ' + $python + '...')
             $venvDir = Join-Path $astrbotTarget '.venv'
             & $python -m venv $venvDir

@@ -9,8 +9,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "178809d4eab879077e79e58c3a22d58170d522bfeacc58ba6736ae18f48fecfd",
-      "size": 2164
+      "sha256": "7bb7678602094f16bc1faf1328c538e0436c0c6cee893dc5b9ea486ef0a81c6a",
+      "size": 2178
     },
     {
       "path": "DEPLOYMENT.md",
@@ -274,8 +274,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "9440c31c7b1a8df141f1d2a1b7507eccb8305240a729494d2efe3c4ccbd3cfca",
-      "size": 14969
+      "sha256": "bd375c1edb459b9317ec796348f98a071ccd19ff6fdea36b443276be4f68f6e0",
+      "size": 15529
     },
     {
       "path": "docs/使用说明.md",
@@ -289,8 +289,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "6b2078f0e7f06e1bf4f309f4aef20a67eff17058c694ad6f51cbffe9c66614b2",
-      "size": 44469
+      "sha256": "62606106147cdae6fb0cb5dfd614460d92c8a7116150cfb27b263d1530b43da4",
+      "size": 45187
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -329,8 +329,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "a3b6774ea0e1b05bedc0c502778486a5221e952191ecdf17b9bf64f041fcf2c2",
-      "size": 10933
+      "sha256": "59ad55105f39962765ab7078a1e917416a211b3705499df7f0ddde6e88ba1800",
+      "size": 14435
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
@@ -764,8 +764,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/main.py",
-      "sha256": "4f2b531ad71f788be1822a1fd7a6d0e851bcc4f67682ba08cdba1c11b60842b4",
-      "size": 5378
+      "sha256": "963cba37631021b741ada99a691d295dff84d3ad7aa424f94819345f697419a9",
+      "size": 9243
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/metadata.yaml",
@@ -843,6 +843,11 @@
       "size": 4035
     },
     {
+      "path": "tests/test_broker_policy.py",
+      "sha256": "fde078f8642aab592eb3925c59324496de27a5849f97c99ee008a460d5967b7f",
+      "size": 3699
+    },
+    {
       "path": "tests/test_broker_wrong_totp.py",
       "sha256": "448c444c04970c0137b75170cacaf3d090815d4e14148a7aec5f00845417c7ad",
       "size": 1195
@@ -909,8 +914,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "83d52fb6af7b7abefbd1e2c3885b9fe5c79311873d11028075147de8ac55bf60",
-      "size": 34352
+      "sha256": "b07e04209ac0a12cee16da1f81f985cff42634a7c93e7bfc080f63a200ac85e2",
+      "size": 39018
     },
     {
       "path": "tools/build_update_manifest.py",
