@@ -182,7 +182,7 @@ function Set-CyberButlerDataAcl {
     }
 
     $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data')
-    $readDirs = @('memory', 'config', 'knowledge_base', 'site-packages')
+    $readDirs = @('memory', 'config', 'knowledge_base', 'site-packages', 'plugins')
     foreach ($name in @($writeDirs + $readDirs)) {
         $path = Join-Path $DataRoot $name
         if (-not (Test-Path -LiteralPath $path)) { New-Item -ItemType Directory -Path $path -Force | Out-Null }
@@ -193,7 +193,7 @@ function Set-CyberButlerDataAcl {
     & icacls.exe $DataRoot /inheritance:r `
         /grant:r '*S-1-5-18:(OI)(CI)F' `
         /grant:r '*S-1-5-32-544:(OI)(CI)F' `
-        /grant:r "${ServiceAccount}:(OI)(CI)RX" `
+        /grant:r "${ServiceAccount}:(OI)(CI)M" `
         /grant:r "${DesktopAccount}:(OI)(CI)RX" 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'root-acl'; message = ('icacls root failed: ' + $LASTEXITCODE) } }
 
@@ -208,19 +208,29 @@ function Set-CyberButlerDataAcl {
     }
     foreach ($name in $readDirs) {
         $path = Join-Path $DataRoot $name
-        & icacls.exe $path /grant:r "${ServiceAccount}:(OI)(CI)RX" 2>&1 | Out-Null
+        # Protect the child from the root's Modify inheritance: explicit RX
+        # alone would still combine with the inherited root Modify grant.
+        & icacls.exe $path /inheritance:r `
+            /grant:r '*S-1-5-18:(OI)(CI)F' `
+            /grant:r '*S-1-5-32-544:(OI)(CI)F' `
+            /grant:r "${ServiceAccount}:(OI)(CI)RX" `
+            /grant:r "${DesktopAccount}:(OI)(CI)RX" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'read-acl'; message = $path } }
     }
 
     $cmdConfig = Join-Path $DataRoot 'cmd_config.json'
     if (Test-Path -LiteralPath $cmdConfig) {
-        & icacls.exe $cmdConfig /grant:r "${ServiceAccount}:(RX)" 2>&1 | Out-Null
+        & icacls.exe $cmdConfig /inheritance:r `
+            /grant:r '*S-1-5-18:F' `
+            /grant:r '*S-1-5-32-544:F' `
+            /grant:r "${ServiceAccount}:(RX)" `
+            /grant:r "${DesktopAccount}:(RX)" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'config-acl'; message = $cmdConfig } }
     }
 
     return [pscustomobject]@{
         status = 'completed'
-        reason = 'root-rx; cache/tmp/temp/logs/plugin_data-modify; memory/config/knowledge_base/site-packages-rx'
+        reason = 'root-modify; cache/tmp/temp/logs/plugin_data-modify; memory/config/knowledge_base/site-packages/plugins-rx'
         message = ''
         backup = $backup
     }
