@@ -95,7 +95,7 @@ function Get-CyberButlerServiceSpecs {
         # failure is visible in the installer diagnostics.
         $cmdExe = Join-Path $env:SystemRoot 'System32\cmd.exe'
         $astrbotExe = $cmdExe
-        $astrbotLog = Join-Path $rootFull 'AstrBot\data\service-astrbot.log'
+        $astrbotLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.log'
         $astrbotArgs = '/d /c ""' + $python + '" "main.py" > "' + $astrbotLog + '" 2>&1"'
     } else {
         $astrbotExe = $wscript
