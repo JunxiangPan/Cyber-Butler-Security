@@ -125,3 +125,5 @@ test-*.txt
 webui/.venv/
 webui/data/
 webui/config.json
+
+.pytest-tmp/

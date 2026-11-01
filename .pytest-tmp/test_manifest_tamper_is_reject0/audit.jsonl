@@ -1,1 +1,0 @@
-{"at": "2026-11-01T21:20:28", "id": "manifest-tamper", "action": "send", "target": "D:\\qq苏瑾言大肥鱼\\public-release\\.pytest-tmp\\test_manifest_tamper_is_reject0\\shared\\note.txt", "ok": false, "result": "manifest invalid at approval: manifest SHA-256 mismatch"}

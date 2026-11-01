@@ -1,5 +1,0 @@
-{"at": "2026-11-01T21:20:31", "id": "req-lock", "action": "delete", "target": "YOUR_USER_PATH/Desktop/shared/note.txt", "ok": false, "result": "invalid TOTP or recovery code", "attempts": 1}
-{"at": "2026-11-01T21:20:31", "id": "req-lock", "action": "delete", "target": "YOUR_USER_PATH/Desktop/shared/note.txt", "ok": false, "result": "invalid TOTP or recovery code", "attempts": 2}
-{"at": "2026-11-01T21:20:31", "id": "req-lock", "action": "delete", "target": "YOUR_USER_PATH/Desktop/shared/note.txt", "ok": false, "result": "invalid TOTP or recovery code", "attempts": 3}
-{"at": "2026-11-01T21:20:31", "id": "req-lock", "action": "delete", "target": "YOUR_USER_PATH/Desktop/shared/note.txt", "ok": false, "result": "invalid TOTP or recovery code", "attempts": 4}
-{"at": "2026-11-01T21:20:31", "id": "req-lock", "action": "delete", "target": "YOUR_USER_PATH/Desktop/shared/note.txt", "ok": false, "result": "invalid TOTP or recovery code", "attempts": 5}
