@@ -830,7 +830,12 @@ def verify_runtime_acl() -> None:
 
 
 def main() -> None:
-    verify_runtime_acl()
+    log("broker starting; verifying runtime ACL")
+    try:
+        verify_runtime_acl()
+    except SystemExit as exc:
+        log(f"broker startup refused: {exc}")
+        raise
     ensure_token()
     QUARANTINE.mkdir(parents=True, exist_ok=True)
     STAGING.mkdir(parents=True, exist_ok=True)

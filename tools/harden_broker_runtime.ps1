@@ -26,6 +26,9 @@ foreach ($path in $paths) {
         /grant:r "*S-1-5-32-544:(OI)(CI)F" `
         /grant:r "${ServiceUser}:(OI)(CI)RX" `
         /grant:r "${DesktopUser}:(OI)(CI)RX" | Out-Null
+    foreach ($broadSid in @('*S-1-5-32-545', '*S-1-5-11', '*S-1-1-0')) {
+        icacls.exe $path /remove:g $broadSid 2>$null | Out-Null
+    }
 }
 
 Write-Host 'Done. Re-run tools/verify_broker_acl.ps1 and restart the Broker.'

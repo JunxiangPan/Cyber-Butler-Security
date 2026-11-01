@@ -554,6 +554,20 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
                 $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL: ' + [string]$result.status + ' ' + [string]$result.message) }
             }
         }
+        if (-not $failure -and $resolution.Isolation -and $coreResult -and $coreResult.paths) {
+            $writableTargets = @(
+                (Join-Path ([string]$coreResult.paths.astrbot) 'data'),
+                [string]$coreResult.paths.data,
+                [string]$coreResult.paths.workspace
+            ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+            foreach ($writeTarget in $writableTargets) {
+                $result = Invoke-CyberButlerAcl -Path $writeTarget -Identity $aclIdentity -Mode 'RW' -JournalStep 'acl' -Journal $journal -Approval 'APPROVE ACL' -NonInteractive:$NonInteractive -Handlers $Handlers
+                if ([string]$result.status -notin @('completed', 'skipped')) {
+                    $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL RW: ' + [string]$result.status + ' ' + [string]$result.message) }
+                    break
+                }
+            }
+        }
     }
 }
 
