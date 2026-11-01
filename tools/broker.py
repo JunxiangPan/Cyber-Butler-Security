@@ -930,8 +930,14 @@ def _as_bool(value: object) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _set_approval_state(challenge_id: str, status: str, approval_only: bool = True) -> None:
+def _set_approval_state(
+    challenge_id: str,
+    status: str,
+    approval_only: bool = True,
+    scoped: dict | None = None,
+) -> None:
     now = time.monotonic()
+    scoped_ttl = int(scoped.get("expires_in", 0)) if scoped else 0
     with _approval_lock:
         current = _approval_states.get(challenge_id, {})
         _approval_states[challenge_id] = {
@@ -940,7 +946,10 @@ def _set_approval_state(challenge_id: str, status: str, approval_only: bool = Tr
             "approval_only": bool(approval_only),
             "created": float(current.get("created", now)),
             "updated": now,
-            "expires": now + APPROVAL_STATE_TTL_SECONDS,
+            "expires": now + max(APPROVAL_STATE_TTL_SECONDS, scoped_ttl),
+            "scoped_token": str(scoped["token"]) if scoped else "",
+            "scoped_expires_in": scoped_ttl,
+            "scoped_root": str(scoped.get("root", "")) if scoped else "",
         }
         for key, record in list(_approval_states.items()):
             if float(record.get("expires", 0)) <= now:
@@ -1029,6 +1038,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             return 400, {"ok": False, "error": result, "bypassed": True}
 
     scoped_token = str(payload.get("scoped_token", "") or "")
+    scoped_invalid = False
     if action in {"delete", "overwrite", "write_file"} and risk == "totp" and scoped_token:
         scoped = _consume_scoped(scoped_token, action, target_text)
         if scoped:
@@ -1063,6 +1073,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
                     "status": "allowed",
                 }
             return 400, {"ok": False, "error": result, "scoped": True}
+        scoped_invalid = True
 
     if action == "send":
         try:
@@ -1208,7 +1219,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         log(f"challenge sent: {request_id} {action} {target_text}")
 
     if approval_only:
-        return 200, {
+        response = {
             "ok": True,
             "status": "requires_totp",
             "approval_only": True,
@@ -1216,6 +1227,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "challenge_id": request_id,
             "action": action,
         }
+        if scoped_invalid:
+            response["scoped_invalid"] = True
+            response["scoped_error"] = "CBS_SCOPED_INVALID"
+        return 200, response
 
     if action == "send":
         approved = event.wait(TIMEOUT_SECONDS) if event else False
@@ -1229,7 +1244,11 @@ def run_request(payload: dict) -> tuple[int, dict]:
         send_qq("哥，验证码超时了，这次发送没有执行。")
         return 408, {"ok": False, "approved": False, "error": "verification timed out"}
 
-    return 200, {"ok": True, "id": request_id, "action": action, "target": target_text}
+    response = {"ok": True, "id": request_id, "action": action, "target": target_text}
+    if scoped_invalid:
+        response["scoped_invalid"] = True
+        response["scoped_error"] = "CBS_SCOPED_INVALID"
+    return 200, response
 
 
 def run_verify(payload: dict) -> tuple[int, dict]:
@@ -1318,7 +1337,6 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
                     return 409, {"ok": False, "error": "source changed before approval"}
         if request.get("approval_only"):
-            _set_approval_state(request_id, "approved", approval_only=True)
             scoped = None
             if scoped_minutes > 0:
                 scoped = _issue_scoped(
@@ -1326,6 +1344,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     str(request.get("target", "")),
                     scoped_minutes,
                 )
+            _set_approval_state(request_id, "approved", approval_only=True, scoped=scoped)
             send_qq("已批准 DSH 请求；本次只放行，不执行文件操作。")
             with AUDIT.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps({
@@ -1442,12 +1461,17 @@ def get_approval_status(challenge_id: str) -> tuple[int, dict]:
     state = _get_approval_state(challenge_id)
     if not state:
         return 404, {"ok": False, "status": "unknown", "error": "challenge not found"}
-    return 200, {
+    body = {
         "ok": True,
         "status": state.get("status", "pending"),
         "challenge_id": challenge_id,
         "approval_only": bool(state.get("approval_only", True)),
     }
+    if body["status"] == "approved" and state.get("scoped_token"):
+        body["scoped_token"] = str(state["scoped_token"])
+        body["scoped_expires_in"] = int(state.get("scoped_expires_in", 0) or 0)
+        body["scoped_root"] = str(state.get("scoped_root", ""))
+    return 200, body
 
 
 class Handler(BaseHTTPRequestHandler):

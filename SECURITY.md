@@ -610,8 +610,12 @@ draft/scratch folder, not a broad home or project root. Audit records use
 `bypass_label: "Scoped via 30-minute Directory Token"` and never include the
 token value.
 
-`/api/request_approval/status` intentionally returns approval status only, not
-the scoped token; the QQ approval plugin stores the token returned by `/verify`.
+`/api/request_approval/status` returns the scoped token when the state is
+`approved`. The endpoint is protected by `X-Broker-Token`; the DSH plugin caches
+the token and sends it as `scoped_token` on subsequent approval requests. A token
+is never returned for `pending`, `denied`, or `expired` states, and an invalid
+token in a request produces `scoped_invalid: true` so the caller can clear its
+cache.
 
 ## 16. UIPI Silent GUI Failures
 

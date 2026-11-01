@@ -440,6 +440,10 @@ def test_verify_issues_scoped_token(monkeypatch, tmp_path) -> None:
     assert status == 200
     assert body["scoped_token"]
     assert body["scoped_expires_in"] == 1800
+    status, state = broker.get_approval_status("scoped-1")
+    assert status == 200
+    assert state["scoped_token"] == body["scoped_token"]
+    assert state["scoped_expires_in"] == 1800
     assert broker._consume_scoped(body["scoped_token"], "delete", str(root / "b.txt")) is not None
 
 
