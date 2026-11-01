@@ -14,6 +14,8 @@ def setup_function() -> None:
     broker._last_request_at = 0.0
     with broker._bypass_lock:
         broker._bypass_tokens.clear()
+    with broker._approval_lock:
+        broker._approval_states.clear()
 
 
 def _roots(tmp_path: Path):
@@ -239,3 +241,101 @@ def test_verify_issues_scoped_bypass_token(monkeypatch, tmp_path) -> None:
     assert broker._consume_bypass(token, "delete", str(shared / "b.txt")) is not None
     assert broker._consume_bypass(token, "delete", str(shared / "sub" / "c.txt")) is None
     assert "bypass_issued" in audit.read_text(encoding="utf-8")
+
+
+def _approval_roots(monkeypatch, tmp_path):
+    tmp, memory, vault, shared = _roots(tmp_path)
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "TMP_ROOTS", (tmp,))
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", (memory,))
+    monkeypatch.setattr(broker, "TOTP_VAULT_ROOT", vault)
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    monkeypatch.setattr(broker, "send_qq", lambda text: True)
+    return tmp, memory, vault, shared, audit
+
+
+def test_approval_only_auto_allowed_does_not_execute(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _approval_roots(monkeypatch, tmp_path)
+    target = shared / "new.txt"
+
+    status, body = broker.run_request({
+        "action": "write_file",
+        "target": str(target),
+        "content": "dsh will write this",
+        "approval_only": True,
+    })
+
+    assert status == 200
+    assert body["status"] == "allowed"
+    assert body["approval_only"] is True
+    assert not target.exists()
+
+
+def test_approval_only_totp_creates_pending_state(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _approval_roots(monkeypatch, tmp_path)
+    target = memory / "facts.db"
+
+    status, body = broker.run_request({
+        "action": "write_file",
+        "target": str(target),
+        "content": "dsh will write this",
+        "approval_only": True,
+    })
+
+    assert status == 200
+    assert body["status"] == "requires_totp"
+    assert body["challenge_id"] == body["id"]
+    state = broker.get_approval_status(body["challenge_id"])
+    assert state[0] == 200
+    assert state[1]["status"] == "pending"
+    assert not target.exists()
+
+
+def test_approval_only_verify_approves_without_execute(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _approval_roots(monkeypatch, tmp_path)
+    target = memory / "facts.db"
+    target.write_text("old", encoding="utf-8")
+    executed = {"called": False}
+
+    def fake_execute(request):
+        executed["called"] = True
+        return True, "must not run"
+
+    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "execute", fake_execute)
+    broker._pending = {
+        "id": "approval-1",
+        "action": "write_file",
+        "target": str(target),
+        "target_summary": broker._path_summary(str(target)),
+        "source_summary": "",
+        "deadline": broker.time.monotonic() + 30,
+        "attempts": 0,
+        "channel": "qq",
+        "approval_only": True,
+    }
+
+    status, body = broker.run_verify({"code": "123456"})
+
+    assert status == 200
+    assert body["status"] == "approved"
+    assert body["approval_only"] is True
+    assert executed["called"] is False
+    assert broker.get_approval_status("approval-1")[1]["status"] == "approved"
+    assert target.read_text(encoding="utf-8") == "old"
+
+
+def test_approval_only_endpoint_adapter(monkeypatch, tmp_path) -> None:
+    tmp, memory, vault, shared, audit = _approval_roots(monkeypatch, tmp_path)
+    target = shared / "new.txt"
+
+    status, body = broker.run_approval_request({
+        "action": "write_file",
+        "target": str(target),
+        "content": "via adapter",
+    })
+
+    assert status == 200
+    assert body["status"] == "allowed"
+    assert not target.exists()

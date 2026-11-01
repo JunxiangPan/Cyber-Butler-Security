@@ -19,6 +19,7 @@ import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import pyotp
 import requests
@@ -66,6 +67,10 @@ _pending: dict | None = None
 BYPASS_TTL_SECONDS = 30
 _bypass_lock = threading.Lock()
 _bypass_tokens: dict[str, dict] = {}
+
+APPROVAL_STATE_TTL_SECONDS = 600
+_approval_lock = threading.Lock()
+_approval_states: dict[str, dict] = {}
 
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 
@@ -504,11 +509,15 @@ def timeout_watch(request_id: str) -> None:
     global _pending
     time.sleep(TIMEOUT_SECONDS)
     expired = False
+    approval_only = False
     with _lock:
         if _pending and _pending.get("id") == request_id:
+            approval_only = bool(_pending.get("approval_only"))
             _pending = None
             expired = True
     if expired:
+        if approval_only:
+            _set_approval_state(request_id, "expired", approval_only=True)
         send_qq("哥，验证码超时了，这次操作没有执行。")
         log(f"timeout: {request_id}")
 
@@ -639,6 +648,41 @@ def _audit_auto(request: dict, ok: bool, result: str) -> None:
         log(f"audit write failed: {exc}")
 
 
+def _as_bool(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _set_approval_state(challenge_id: str, status: str, approval_only: bool = True) -> None:
+    now = time.monotonic()
+    with _approval_lock:
+        current = _approval_states.get(challenge_id, {})
+        _approval_states[challenge_id] = {
+            "id": challenge_id,
+            "status": status,
+            "approval_only": bool(approval_only),
+            "created": float(current.get("created", now)),
+            "updated": now,
+            "expires": now + APPROVAL_STATE_TTL_SECONDS,
+        }
+        for key, record in list(_approval_states.items()):
+            if float(record.get("expires", 0)) <= now:
+                _approval_states.pop(key, None)
+
+
+def _get_approval_state(challenge_id: str) -> dict | None:
+    now = time.monotonic()
+    with _approval_lock:
+        record = _approval_states.get(challenge_id)
+        if not record:
+            return None
+        if float(record.get("expires", 0)) <= now:
+            record["status"] = "expired"
+            record["updated"] = now
+        return dict(record)
+
+
 def _audit_bypass(request: dict, result: str, scope: str) -> None:
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -666,6 +710,9 @@ def run_request(payload: dict) -> tuple[int, dict]:
     action = str(payload.get("action", "")).strip().lower()
     if action == "send_file":
         action = "send"
+    approval_only = _as_bool(payload.get("approval_only"))
+    if approval_only and action == "send":
+        return 400, {"ok": False, "error": "approval_only is not supported for send"}
     target_text = str(payload.get("target", "")).strip()
     target = Path(target_text)
     manifest: list[dict] | None = None
@@ -679,6 +726,15 @@ def run_request(payload: dict) -> tuple[int, dict]:
     if action in {"delete", "overwrite", "write_file"} and risk == "totp" and bypass_token:
         bypass = _consume_bypass(bypass_token, action, target_text)
         if bypass:
+            if approval_only:
+                return 200, {
+                    "ok": True,
+                    "status": "allowed",
+                    "approval_only": True,
+                    "bypassed": True,
+                    "id": "",
+                    "challenge_id": "",
+                }
             request_id = secrets.token_hex(6)
             request = {
                 "id": request_id,
@@ -714,6 +770,15 @@ def run_request(payload: dict) -> tuple[int, dict]:
         risk = "totp"
 
     if action in {"delete", "overwrite", "write_file"} and risk == "allow":
+        if approval_only:
+            return 200, {
+                "ok": True,
+                "status": "allowed",
+                "approval_only": True,
+                "auto_executed": False,
+                "id": "",
+                "challenge_id": "",
+            }
         request_id = secrets.token_hex(6)
         request = {
             "id": request_id,
@@ -731,6 +796,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
         return 200, {"ok": True, "auto_executed": True, "id": request_id, "result": result}
 
     channel = _approval_channel()
+    if approval_only and channel == "email":
+        return 400, {"ok": False, "error": "approval_only requires approval_channel=qq"}
     email_mode = channel == "email" and action in {"delete", "overwrite"}
     if channel == "email" and action == "send":
         return 400, {"ok": False, "error": "send is not available in email mode; switch approval_channel to qq"}
@@ -755,6 +822,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
             "channel": "email" if email_mode else "qq",
             "challenge": challenge,
+            "approval_only": approval_only,
         }
         if action == "delete":
             prompt = "哥，瑾言想删除以下对象，请输入动态验证码。" + chr(10)
@@ -819,8 +887,20 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
     with _lock:
         if action != "send":
+            if approval_only:
+                _set_approval_state(request_id, "pending", approval_only=True)
             threading.Thread(target=timeout_watch, args=(request_id,), daemon=True).start()
         log(f"challenge sent: {request_id} {action} {target_text}")
+
+    if approval_only:
+        return 200, {
+            "ok": True,
+            "status": "requires_totp",
+            "approval_only": True,
+            "id": request_id,
+            "challenge_id": request_id,
+            "action": action,
+        }
 
     if action == "send":
         approved = event.wait(TIMEOUT_SECONDS) if event else False
@@ -858,6 +938,9 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         if _pending.get("channel") == "email":
             return 403, {"ok": False, "error": "email approval required"}
         if time.monotonic() > float(_pending.get("deadline", 0)):
+            expired_id = str(_pending.get("id", ""))
+            if _pending.get("approval_only"):
+                _set_approval_state(expired_id, "expired", approval_only=True)
             _pending = None
             return 410, {"ok": False, "error": "verification code expired"}
         code_type = verify_code(code)
@@ -872,6 +955,8 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 attempts,
             )
             if attempts >= TOTP_MAX_ATTEMPTS:
+                if _pending.get("approval_only"):
+                    _set_approval_state(str(_pending.get("id", "")), "denied", approval_only=True)
                 _pending = None
                 _verify_locked_until = time.monotonic() + VERIFY_LOCK_SECONDS
                 log(
@@ -912,6 +997,29 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             if request.get("action") == "overwrite":
                 if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
                     return 409, {"ok": False, "error": "source changed before approval"}
+        if request.get("approval_only"):
+            _set_approval_state(request_id, "approved", approval_only=True)
+            send_qq("已批准 DSH 请求；本次只放行，不执行文件操作。")
+            with AUDIT.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps({
+                    "at": datetime.now().isoformat(timespec="seconds"),
+                    "id": request_id,
+                    "action": request.get("action"),
+                    "target": request.get("target"),
+                    "ok": True,
+                    "result": "approval-only approved; DSH may execute",
+                    "code_type": code_type,
+                    "approval_only": True,
+                }, ensure_ascii=False) + "\n")
+            log(f"approval-only approved: {request_id} {request.get('action')}")
+            return 200, {
+                "ok": True,
+                "approved": True,
+                "approval_only": True,
+                "status": "approved",
+                "id": request_id,
+                "challenge_id": request_id,
+            }
         if request.get("action") == "send":
             _send_results[request_id] = True
             event = _send_events.get(request_id)
@@ -959,6 +1067,44 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     return (200 if ok else 500), response
 
 
+def run_approval_request(payload: dict) -> tuple[int, dict]:
+    """Approval-only adapter for external agents; never executes a file action."""
+    body = dict(payload)
+    body["approval_only"] = True
+    status, response = run_request(body)
+    if status == 200:
+        if response.get("status") in {"allowed", "requires_totp"}:
+            return 200, response
+        # Defensive: approval-only must never report an auto execution.
+        return 500, {"ok": False, "status": "denied", "error": "invalid approval-only result"}
+    if status == 403:
+        return 403, {
+            "ok": False,
+            "status": "denied",
+            "error": str(response.get("error", "denied by broker policy")),
+        }
+    return status, {
+        "ok": False,
+        "status": "denied",
+        "error": str(response.get("error", "approval request failed")),
+    }
+
+
+def get_approval_status(challenge_id: str) -> tuple[int, dict]:
+    challenge_id = str(challenge_id or "").strip()
+    if not challenge_id:
+        return 400, {"ok": False, "error": "id is required"}
+    state = _get_approval_state(challenge_id)
+    if not state:
+        return 404, {"ok": False, "status": "unknown", "error": "challenge not found"}
+    return 200, {
+        "ok": True,
+        "status": state.get("status", "pending"),
+        "challenge_id": challenge_id,
+        "approval_only": bool(state.get("approval_only", True)),
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "AstrBotTOTPBroker/1.0"
 
@@ -994,9 +1140,18 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if not self._local_only():
             return
-        if self.path == "/health":
+        parsed = urlparse(self.path)
+        if parsed.path == "/health":
             self._json(200, {"ok": True, "service": "totp-broker"})
-        elif self.path == "/pending":
+        elif parsed.path == "/api/request_approval/status":
+            if not self._auth():
+                self._json(401, {"ok": False, "error": "unauthorized"})
+                return
+            query = parse_qs(parsed.query)
+            challenge_id = str((query.get("id") or [""])[0])
+            status, body = get_approval_status(challenge_id)
+            self._json(status, body)
+        elif parsed.path == "/pending":
             # Read-only hint for the local dashboard. Never expose the TOTP,
             # email challenge, full path, manifest or reason.
             with _lock:
@@ -1033,7 +1188,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json(400, {"ok": False, "error": "invalid JSON"})
             return
         try:
-            if self.path == "/request":
+            parsed = urlparse(self.path)
+            if parsed.path in {"/request", "/api/request_approval"}:
                 with _request_rate_lock:
                     global _last_request_at
                     now = time.monotonic()
@@ -1041,8 +1197,11 @@ class Handler(BaseHTTPRequestHandler):
                         self._json(429, {"ok": False, "error": "request rate limited"})
                         return
                     _last_request_at = now
-                status, body = run_request(payload)
-            elif self.path == "/verify":
+                if parsed.path == "/api/request_approval":
+                    status, body = run_approval_request(payload)
+                else:
+                    status, body = run_request(payload)
+            elif parsed.path == "/verify":
                 status, body = run_verify(payload)
             else:
                 status, body = 404, {"ok": False, "error": "not found"}

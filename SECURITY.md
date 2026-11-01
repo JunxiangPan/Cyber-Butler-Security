@@ -521,3 +521,40 @@ Risks and scope:
   the feature there by not advertising the `BYPASS 30` option and by keeping
   the TOTP challenge as the only approval.
 - Restarting the broker clears all tokens; there is no persistence or recovery.
+
+
+## 13. Approval-only API for DSH
+
+The broker exposes an approval-only path for external agents that must run the
+tool themselves:
+
+```text
+POST /api/request_approval       (X-Broker-Token required)
+GET  /api/request_approval/status?id=<challenge_id>
+```
+
+The POST body uses the same `action` / `target` / `content` fields as `/request`,
+plus `approval_only: true` is forced by the adapter. Possible responses:
+
+```text
+{"status":"allowed"}
+{"status":"requires_totp","challenge_id":"..."}
+{"status":"denied","error":"..."}
+```
+
+The status endpoint returns exactly one of:
+
+```text
+pending | approved | denied | expired
+```
+
+In approval-only mode the TOTP approval changes only the state record; it never
+calls `execute()`. The external agent is responsible for executing its original
+tool after it observes `approved`. This prevents the broker and the agent from
+performing the same write/delete twice.
+
+State lives in a process-local dictionary with a 600-second retention. It is
+lost on Broker restart; a lost status is reported as `unknown`, never as
+`approved`. The challenge itself still times out after the normal 300-second
+TOTP window. `send` is not available in approval-only mode, and email approval
+is not supported for this mode.
