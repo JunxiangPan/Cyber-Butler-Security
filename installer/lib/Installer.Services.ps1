@@ -90,11 +90,13 @@ function Get-CyberButlerServiceSpecs {
     $hidden = Join-Path $rootFull 'tools\run-python-hidden.vbs'
     $wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
     if ($Isolation) {
-        # A service-account task has no interactive window station; launching
-        # wscript.exe there can fail before Python starts. Use pythonw directly
-        # under High, exactly as the SYSTEM broker does.
-        $astrbotExe = $pythonw
-        $astrbotArgs = 'main.py'
+        # A service-account task has no interactive window station. Run the
+        # console Python under cmd.exe and redirect its output so a startup
+        # failure is visible in the installer diagnostics.
+        $cmdExe = Join-Path $env:SystemRoot 'System32\cmd.exe'
+        $astrbotExe = $cmdExe
+        $astrbotLog = Join-Path $rootFull 'AstrBot\data\service-astrbot.log'
+        $astrbotArgs = '/d /c ""' + $python + '" "main.py" > "' + $astrbotLog + '" 2>&1"'
     } else {
         $astrbotExe = $wscript
         $astrbotArgs = '//B "' + $hidden + '" "' + $python + '" "main.py" "' + (Join-Path $rootFull 'AstrBot') + '"'
