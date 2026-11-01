@@ -16,6 +16,13 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        // Double-clicking START-INSTALLER.exe has no arguments. Treat that as
+        // the installer entry point rather than exiting silently.
+        if (args.Length == 0)
+        {
+            args = new string[] { "--installer" };
+        }
+
         string exe = "";
         string workdir = "";
         string childArgs = "";

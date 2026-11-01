@@ -74,8 +74,8 @@
     },
     {
       "path": "SECURITY.md",
-      "sha256": "7c075334d0aae7d32b6b3a1ef267c782be981b1f5432e245e9472e83da22efd3",
-      "size": 28604
+      "sha256": "241ead4e98ffbc4dea2baefca14267df834e3f51eb0a889cf73ee72dba374d91",
+      "size": 30079
     },
     {
       "path": "START-INSTALLER.exe",
@@ -784,8 +784,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/main.py",
-      "sha256": "963cba37631021b741ada99a691d295dff84d3ad7aa424f94819345f697419a9",
-      "size": 9243
+      "sha256": "252bb3480197520edf014e0e84e079be01b0fe1e9e5c501427b794c13a99dcf2",
+      "size": 10049
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/metadata.yaml",
@@ -864,8 +864,8 @@
     },
     {
       "path": "tests/test_broker_policy.py",
-      "sha256": "fde078f8642aab592eb3925c59324496de27a5849f97c99ee008a460d5967b7f",
-      "size": 3699
+      "sha256": "d7d55dd5dd3d9541c6a24b3b52cd54e3eb6c8476f3c77c4a4f99fd5bbef68784",
+      "size": 9624
     },
     {
       "path": "tests/test_broker_wrong_totp.py",
@@ -934,8 +934,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "2b677b741714286afc4af5f6cf75f66ae8450a67a4609006553bf5f251363ad0",
-      "size": 39059
+      "sha256": "9226a011b6a9d5c2a75aa5623216f9f4aec8e92e5396f8413838ed323758a856",
+      "size": 44954
     },
     {
       "path": "tools/build_update_manifest.py",
