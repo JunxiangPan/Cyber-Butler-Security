@@ -74,8 +74,8 @@
     },
     {
       "path": "SECURITY.md",
-      "sha256": "241ead4e98ffbc4dea2baefca14267df834e3f51eb0a889cf73ee72dba374d91",
-      "size": 30079
+      "sha256": "68576357b0ce15ec698826d8bc0b25d6cbf8c1297afc3552f9868f7dfe855223",
+      "size": 31359
     },
     {
       "path": "START-INSTALLER.exe",
@@ -864,8 +864,8 @@
     },
     {
       "path": "tests/test_broker_policy.py",
-      "sha256": "d7d55dd5dd3d9541c6a24b3b52cd54e3eb6c8476f3c77c4a4f99fd5bbef68784",
-      "size": 9624
+      "sha256": "021948adc622110c0396b7b0b3bee4d255a2eb2fbee3c8353b362ee628d2b84e",
+      "size": 13105
     },
     {
       "path": "tests/test_broker_wrong_totp.py",
@@ -934,8 +934,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "9226a011b6a9d5c2a75aa5623216f9f4aec8e92e5396f8413838ed323758a856",
-      "size": 44954
+      "sha256": "b428645cd9dd647c95f35a219799769a4e1982d6400b78f4b069e5c659611732",
+      "size": 51469
     },
     {
       "path": "tools/build_update_manifest.py",
