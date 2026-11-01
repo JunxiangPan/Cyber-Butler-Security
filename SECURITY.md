@@ -472,8 +472,8 @@ The dashboard GUI:
 - requires the exact phrase `UPDATE PRODUCTION` before requesting UAC;
 - passes `-ConfirmationText` to `update_merge.ps1`, which validates it again;
 - treats release notes as plain text, not HTML;
-- is launched by `wscript.exe` + `cyber_butler_dashboard.vbs`; the standalone
-  `update_gui` shortcut is deprecated and removed by the shortcut scripts.
+- is launched by the native `tools/CyberButlerLauncher.exe`; the old VBS and
+  standalone `update_gui` launch paths have been removed.
 
 `skip_version.json` is a user preference, not a security boundary. It can be
 edited or deleted by the desktop user. It cannot disable hash verification.
@@ -485,3 +485,39 @@ you MUST update `astrbot_plugin_security_gate` in the same change. Its
 `PRIVATE_UMO` / known-marker checks and fail-closed behavior are tied to the
 prefix. A one-sided change makes the gate treat legitimate messages as an
 unknown transport and block everything.
+
+
+## 12. Temporary Bypass (30 seconds)
+
+The TOTP broker supports an explicit owner opt-in:
+
+```text
+<6-digit TOTP> BYPASS 30
+```
+
+The approval is valid only when the owner is already approving a queued
+high-risk request. It returns a random in-memory token with a hard 30-second
+TTL. The token is bound to:
+
+- one action (`delete`, `overwrite`, or `write_file`);
+- one mode (`create` vs `replace` for `write_file`);
+- one canonical parent directory.
+
+It is **not** valid across directories, across actions, for `send` manifests,
+for `totp-vault`, or after broker restart. Tokens are never written to disk and
+are not written to the audit log; audit entries say
+`bypassed: true` / `bypass: 30s_session` and record the scope.
+
+Risks and scope:
+
+- A compromised owner QQ session or TOTP device could issue a bypass; the 30s
+  window only limits time, not intent.
+- During the window, several destructive actions in the same directory can run
+  without a new prompt. This is intended for batch work and is exactly why the
+  scope is directory-bound.
+- The bypass does not protect against a compromised AstrBot process; it is an
+  approval-ergonomics feature, not a sandbox boundary.
+- It is unsuitable for a shared owner account or an unattended kiosk. Disable
+  the feature there by not advertising the `BYPASS 30` option and by keeping
+  the TOTP challenge as the only approval.
+- Restarting the broker clears all tokens; there is no persistence or recovery.

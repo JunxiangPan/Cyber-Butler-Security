@@ -63,6 +63,10 @@ _global_failures = 0
 _global_lock_until = 0.0
 _pending: dict | None = None
 
+BYPASS_TTL_SECONDS = 30
+_bypass_lock = threading.Lock()
+_bypass_tokens: dict[str, dict] = {}
+
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 
 def _approval_channel() -> str:
@@ -235,12 +239,73 @@ def classify(action: str, target: str) -> str:
     if _inside_any(path, MEMORY_ROOTS):
         return "totp"
     if inside_shared(path):
+        # Creating a brand-new file in the shared workspace is a routine
+        # operation. Replacing an existing file remains destructive.
+        if action == "write_file" and not path.exists():
+            return "allow"
         return "totp"
     return "deny"
 
 
 def _allowed_target(path: Path) -> bool:
     return inside_shared(path) or _inside_any(path, TMP_ROOTS) or _inside_any(path, MEMORY_ROOTS)
+
+
+def _target_mode(action: str, target: str) -> str:
+    if action == "write_file":
+        try:
+            return "create" if not Path(target).resolve(strict=False).exists() else "replace"
+        except (OSError, ValueError):
+            return "replace"
+    if action == "overwrite":
+        return "replace"
+    return action
+
+
+def _bypass_scope(action: str, target: str) -> str:
+    path = Path(target).resolve(strict=False)
+    return f"{action}:{_target_mode(action, target)}:{str(path.parent.resolve(strict=False)).casefold()}"
+
+
+def _purge_bypass(now: float | None = None) -> None:
+    moment = time.monotonic() if now is None else now
+    for token, record in list(_bypass_tokens.items()):
+        if float(record.get("expires", 0)) <= moment:
+            _bypass_tokens.pop(token, None)
+
+
+def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECONDS) -> dict | None:
+    if action not in {"delete", "overwrite", "write_file"}:
+        return None
+    ttl = max(1, min(int(ttl_seconds), BYPASS_TTL_SECONDS))
+    scope = _bypass_scope(action, target)
+    token = secrets.token_urlsafe(32)
+    now = time.monotonic()
+    with _bypass_lock:
+        _purge_bypass(now)
+        _bypass_tokens[token] = {
+            "scope": scope,
+            "action": action,
+            "expires": now + ttl,
+            "uses": 0,
+        }
+    return {"token": token, "expires_in": ttl, "scope": scope}
+
+
+def _consume_bypass(token: str, action: str, target: str) -> dict | None:
+    if not token:
+        return None
+    scope = _bypass_scope(action, target)
+    now = time.monotonic()
+    with _bypass_lock:
+        _purge_bypass(now)
+        record = _bypass_tokens.get(token)
+        if not record:
+            return None
+        if record.get("scope") != scope or record.get("action") != action:
+            return None
+        record["uses"] = int(record.get("uses", 0)) + 1
+        return dict(record)
 
 
 def _sha256_file(path: Path) -> str:
@@ -421,6 +486,13 @@ def execute(request: dict) -> tuple[bool, str]:
         if len(content.encode("utf-8")) > 256 * 1024:
             return False, "write_file 内容超过 256KB。"
         target.parent.mkdir(parents=True, exist_ok=True)
+        if request.get("mode") == "create":
+            try:
+                with target.open("x", encoding="utf-8") as handle:
+                    handle.write(content)
+            except FileExistsError:
+                return False, "创建模式发现目标已存在；拒绝覆盖。"
+            return True, f"已创建 {target.name}（{len(content.encode('utf-8'))} bytes）。"
         temp = target.with_name(target.name + ".broker.tmp")
         temp.write_text(content, encoding="utf-8")
         os.replace(temp, target)
@@ -567,6 +639,26 @@ def _audit_auto(request: dict, ok: bool, result: str) -> None:
         log(f"audit write failed: {exc}")
 
 
+def _audit_bypass(request: dict, result: str, scope: str) -> None:
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request.get("id", ""),
+                "action": request.get("action"),
+                "target": request.get("target"),
+                "ok": True,
+                "result": result,
+                "bypassed": True,
+                "bypass": "30s_session",
+                "bypass_label": "Bypassed via 30s Session Token",
+                "scope": scope,
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"audit write failed: {exc}")
+
+
 def run_request(payload: dict) -> tuple[int, dict]:
     global _pending
     if _is_verification_locked():
@@ -582,6 +674,28 @@ def run_request(payload: dict) -> tuple[int, dict]:
     risk = classify(action, target_text)
     if risk == "deny":
         return 403, {"ok": False, "error": "target is not allowed by broker policy"}
+
+    bypass_token = str(payload.get("bypass_token", "") or "")
+    if action in {"delete", "overwrite", "write_file"} and risk == "totp" and bypass_token:
+        bypass = _consume_bypass(bypass_token, action, target_text)
+        if bypass:
+            request_id = secrets.token_hex(6)
+            request = {
+                "id": request_id,
+                "action": action,
+                "target": target_text,
+                "source": str(payload.get("source", "")),
+                "content": payload.get("content"),
+                "mode": _target_mode(action, target_text),
+                "reason": str(payload.get("reason", ""))[:300],
+            }
+            ok, result = execute(request)
+            if ok:
+                _audit_bypass(request, result, str(bypass.get("scope", "")))
+                log(f"bypass executed: {request_id} {action} {target_text}")
+                return 200, {"ok": True, "bypassed": True, "id": request_id, "result": result}
+            return 400, {"ok": False, "error": result, "bypassed": True}
+
     if action == "send":
         try:
             manifest = _canonical_manifest(payload.get("manifest"))
@@ -607,6 +721,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "target": target_text,
             "source": str(payload.get("source", "")),
             "content": payload.get("content"),
+            "mode": _target_mode(action, target_text),
             "reason": str(payload.get("reason", ""))[:300],
         }
         ok, result = execute(request)
@@ -635,25 +750,26 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "deadline": time.monotonic() + TIMEOUT_SECONDS,
             "manifest": manifest,
             "content": payload.get("content"),
+            "mode": _target_mode(action, target_text),
             "target_summary": _path_summary(target_text),
             "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
             "channel": "email" if email_mode else "qq",
             "challenge": challenge,
         }
         if action == "delete":
-            prompt = (
-                "哥，瑾言想删除以下对象，请输入动态验证码。\n"
-                f"完整路径与哈希：{_path_summary(target_text)}\n"
-                f"请求号：{request_id}"
-            )
+            prompt = "哥，瑾言想删除以下对象，请输入动态验证码。" + chr(10)
+            prompt += f"完整路径与哈希：{_path_summary(target_text)}" + chr(10)
+            prompt += "仅本次：<6 位动态码>" + chr(10)
+            prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
+            prompt += f"请求号：{request_id}"
         elif action == "overwrite":
             source_text = str(payload.get("source", ""))
-            prompt = (
-                "哥，瑾言想用源文件覆盖目标文件，请输入动态验证码。\n"
-                f"源：{_path_summary(source_text)}\n"
-                f"目标：{_path_summary(target_text)}\n"
-                f"请求号：{request_id}"
-            )
+            prompt = "哥，瑾言想用源文件覆盖目标文件，请输入动态验证码。" + chr(10)
+            prompt += f"源：{_path_summary(source_text)}" + chr(10)
+            prompt += f"目标：{_path_summary(target_text)}" + chr(10)
+            prompt += "仅本次：<6 位动态码>" + chr(10)
+            prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
+            prompt += f"请求号：{request_id}"
         elif action == "write_file":
             content = payload.get("content")
             size = len(content.encode("utf-8")) if isinstance(content, str) else 0
@@ -661,6 +777,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "哥，瑾言想写入核心文件，请输入动态验证码。",
                 f"目标：{_path_summary(target_text)}",
                 f"写入大小：{size} bytes",
+                "仅本次：<6 位动态码>",
+                "同一目录同动作 30 秒：<6 位动态码> BYPASS 30",
                 f"请求号：{request_id}",
             ])
         else:
@@ -723,6 +841,11 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     global _pending, _verify_locked_until, _global_failures, _global_lock_until
     request_id = str(payload.get("id", "")).strip()
     code = str(payload.get("code", "")).strip()
+    try:
+        bypass_seconds = int(payload.get("bypass_seconds", 0) or 0)
+    except (TypeError, ValueError):
+        bypass_seconds = 0
+    bypass_seconds = max(0, min(bypass_seconds, BYPASS_TTL_SECONDS))
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     with _lock:
@@ -809,6 +932,13 @@ def run_verify(payload: dict) -> tuple[int, dict]:
 
     ok, result = execute(request)
     send_qq(result)
+    bypass = None
+    if ok and bypass_seconds > 0 and request.get("action") in {"delete", "overwrite", "write_file"}:
+        bypass = _issue_bypass(
+            str(request.get("action", "")),
+            str(request.get("target", "")),
+            bypass_seconds,
+        )
     with AUDIT.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps({
             "at": datetime.now().isoformat(timespec="seconds"),
@@ -818,9 +948,15 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             "ok": ok,
             "result": result,
             "code_type": code_type,
+            "bypass_issued": bool(bypass),
+            "bypass_ttl": bypass_seconds if bypass else 0,
         }, ensure_ascii=False) + "\n")
     log(f"executed: {request_id} ok={ok} {result}")
-    return (200 if ok else 500), {"ok": ok, "id": request_id, "result": result}
+    response = {"ok": ok, "id": request_id, "result": result}
+    if bypass:
+        response["bypass_token"] = bypass["token"]
+        response["bypass_expires_in"] = bypass["expires_in"]
+    return (200 if ok else 500), response
 
 
 class Handler(BaseHTTPRequestHandler):
