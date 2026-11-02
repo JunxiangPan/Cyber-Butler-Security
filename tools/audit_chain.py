@@ -7,10 +7,39 @@ import json
 import os
 import threading
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
 _LOCK = threading.Lock()
+
+
+@contextmanager
+def _process_lock(path: Path):
+    lock_path = path.with_name(path.name + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    if os.name == "nt":
+        import msvcrt
+
+        handle = lock_path.open("a+b")
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+            yield
+        finally:
+            try:
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            finally:
+                handle.close()
+    else:
+        import fcntl
+
+        handle = lock_path.open("a+b")
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            handle.close()
 ZERO_HASH = "0" * 64
 
 
@@ -56,7 +85,7 @@ def append_event(path: Path, event: dict) -> dict:
     """Append one event; the previous head is chained into the new hash."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with _LOCK:
+    with _LOCK, _process_lock(path):
         seq, previous = _tail(path)
         seq += 1
         record = {

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,6 +22,23 @@ QUARANTINE_ROOT = ROOT / "tools" / "broker" / "quarantine"
 
 def _manifest_path(entry: Path) -> Path:
     return entry / "manifest.json"
+
+
+def _lock_quarantine_acl(entry: Path) -> None:
+    if os.name != "nt" or os.environ.get("CBS_DISABLE_ACL") == "1":
+        return
+    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    result = subprocess.run(
+        [
+            "icacls", str(entry), "/inheritance:r", "/grant:r",
+            "*S-1-5-18:(F)", "*S-1-5-32-544:(F)",
+        ],
+        capture_output=True,
+        text=True,
+        creationflags=flags,
+    )
+    if result.returncode != 0:
+        raise OSError("cannot lock quarantine ACL: " + (result.stderr or "").strip())
 
 
 def quarantine_file(
@@ -39,6 +57,12 @@ def quarantine_file(
     if entry.exists():
         raise FileExistsError(f"quarantine entry already exists: {entry}")
     entry.mkdir(parents=False, exist_ok=False)
+    try:
+        _lock_quarantine_acl(entry)
+    except Exception:
+        entry.rmdir()
+        snapshot.close()
+        raise
     destination = entry / snapshot.path.name
     try:
         snapshot.copy_to(destination)
@@ -49,6 +73,7 @@ def quarantine_file(
             destination.unlink(missing_ok=True)
             entry.rmdir()
         finally:
+            snapshot.close()
             raise
     snapshot.close()
     manifest = {

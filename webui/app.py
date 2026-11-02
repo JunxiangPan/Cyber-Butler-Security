@@ -69,7 +69,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     def _read_json(path: Path) -> dict:
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
             return data if isinstance(data, dict) else {}
         except (OSError, ValueError):
             return {}
@@ -373,10 +373,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/security/network-policy")
     async def get_network_policy(session=Depends(require_session)):
-        return {"ok": True, "policy": _read_json(network_policy_path)}
+        return {
+            "ok": True,
+            "policy": _read_json(network_policy_path),
+            "guard": _read_json(network_policy_path.with_name("wfp-guard-status.json")),
+        }
 
     @app.post("/api/security/network-policy")
-    async def set_network_policy(body: NetworkPolicyUpdate, session=Depends(require_session)):
+    async def set_network_policy(body: NetworkPolicyUpdate, request: Request, session=Depends(require_session)):
+        if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
+            raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
         mode = str(body.mode or "").strip().lower()
         if mode not in {"audit", "enforce"}:
             raise HTTPException(status_code=400, detail={"code": "network.mode", "message": "mode must be audit or enforce"})
@@ -397,8 +403,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
                      + [{"kind": "domain", "name": name, "port": 443} for name in domains],
             "block_unknown": bool(body.block_unknown),
         }
-        network_policy_path.parent.mkdir(parents=True, exist_ok=True)
-        network_policy_path.write_text(json.dumps(policy, ensure_ascii=False, indent=2), encoding="utf-8")
+        try:
+            network_policy_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = network_policy_path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(policy, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(network_policy_path)
+        except OSError as exc:
+            logger.error("save network policy failed: %s", exc)
+            return JSONResponse({"ok": False, "code": "network.save_failed", "message": "cannot write network-policy.json"}, status_code=500)
         return {"ok": True, "policy": policy}
 
     @app.post("/api/config/admin-email")

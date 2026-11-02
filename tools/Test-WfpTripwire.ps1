@@ -30,10 +30,10 @@ Push-Location (Join-Path $Root 'tools')
 import json
 from pathlib import Path
 from wfp_tripwire import read_new, append_events
-log = Path(r'$source')
-cursor = Path(r'$tempCursor')
+log = Path(r'''$source''')
+cursor = Path(r'''$tempCursor''')
 events = read_new(log, cursor)
-append_events(Path(r'$audit'), events)
+append_events(Path(r'''$audit'''), events)
 print(json.dumps(events, ensure_ascii=False, indent=2))
 print('events=' + str(len(events)))
 "@ | & $python -

@@ -125,11 +125,13 @@ def _rule_command(sid: str, networks: list[str]) -> str:
 def remove_policy() -> None:
     if os.name != "nt":
         return
-    _run([
+    result = _run([
         "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
         "Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue",
     ])
+    if result.returncode != 0:
+        raise WfpError((result.stderr or result.stdout or "Remove-NetFirewallRule failed").strip())
 
 
 def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
@@ -167,12 +169,23 @@ def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False)
         try:
             mtime = policy_path.stat().st_mtime_ns
             if last_mtime != mtime:
-                apply_policy(
-                    json.loads(policy_path.read_text(encoding="utf-8")),
+                result = apply_policy(
+                    json.loads(policy_path.read_text(encoding="utf-8-sig")),
                     allow_enforce=allow_enforce,
+                )
+                status = {"ok": True, "updated_at": __import__("time").time(), **result}
+                policy_path.with_name("wfp-guard-status.json").write_text(
+                    json.dumps(status, sort_keys=True), encoding="utf-8"
                 )
                 last_mtime = mtime
         except Exception as exc:
+            try:
+                policy_path.with_name("wfp-guard-status.json").write_text(
+                    json.dumps({"ok": False, "error": str(exc), "updated_at": __import__("time").time()}),
+                    encoding="utf-8",
+                )
+            except OSError:
+                pass
             print(f"WFP policy apply failed: {exc}", flush=True)
         time.sleep(max(2, int(interval)))
 
@@ -188,7 +201,7 @@ if __name__ == "__main__":
     parser.add_argument("--interval", type=int, default=15)
     parser.add_argument("--allow-enforce", action="store_true")
     args = parser.parse_args()
-    data = json.loads(Path(args.policy).read_text(encoding="utf-8"))
+    data = json.loads(Path(args.policy).read_text(encoding="utf-8-sig"))
     if args.plan:
         print(json.dumps(build_block_plan(data).__dict__, indent=2))
     elif args.watch:
