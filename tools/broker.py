@@ -530,6 +530,15 @@ MEMORY_ROOTS = (
     ROOT / "AstrBot" / "data" / "cmd_config.json",
 )
 TOTP_VAULT_ROOT = ROOT / "tools" / "totp-vault"
+CRITICAL_INTEGRITY_NAMES = {
+    "conftest.py", "pytest.ini", "makefile", "package.json", "pyproject.toml",
+    ".claude/settings.json",
+}
+PROTECTED_RULE_NAMES = {
+    "network-policy.json", "broker_config.json", "physical-separation.json",
+    "wfp-guard-status.json", "totp_broker_audit.jsonl", "totp_broker_audit.chain.jsonl",
+    "totp_secret.dpapi", "recovery_hashes.json",
+}
 
 
 def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
@@ -575,6 +584,54 @@ def classify(action: str, target: str) -> str:
             return "allow"
         return "totp"
     return "deny"
+
+
+def _critical_integrity_hit(target: str) -> bool:
+    try:
+        path = Path(str(target or "")).resolve(strict=False)
+    except (OSError, ValueError):
+        return False
+    lowered_parts = [part.casefold() for part in path.parts]
+    name = path.name.casefold()
+    if name in CRITICAL_INTEGRITY_NAMES:
+        return True
+    if ".github" in lowered_parts:
+        index = lowered_parts.index(".github")
+        if index + 1 < len(lowered_parts) and lowered_parts[index + 1] == "workflows":
+            return True
+    return False
+
+
+def _rule_tampering_hit(target: str) -> bool:
+    try:
+        path = Path(str(target or "")).resolve(strict=False)
+        root = ROOT.resolve(strict=False)
+        path.relative_to(root)
+    except (OSError, ValueError):
+        return False
+    name = path.name.casefold()
+    parts = [part.casefold() for part in path.relative_to(ROOT).parts]
+    if name in PROTECTED_RULE_NAMES or name.endswith(".chain.jsonl"):
+        return True
+    if parts and parts[0] in {"tools", "webui", ".github", "installer", "tests"}:
+        return True
+    return "quarantine" in parts
+
+
+def _audit_protection(event: str, action: str, target: str, reason: str) -> None:
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "event": event,
+                "action": action,
+                "target": target,
+                "reason": str(reason or "")[:300],
+                "ok": False,
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log(f"{event} audit write failed: {exc}")
 
 
 def _allowed_target(path: Path) -> bool:
@@ -1233,6 +1290,13 @@ def run_request(payload: dict) -> tuple[int, dict]:
         return 400, {"ok": False, "error": "approval_only is not supported for send"}
     target_text = str(payload.get("target", "")).strip()
     target = Path(target_text)
+    if action in {"delete", "overwrite", "write_file"}:
+        if _critical_integrity_hit(target_text):
+            _audit_protection("TEST_TAMPERING_ATTEMPT", action, target_text, str(payload.get("reason", "")))
+            return 403, {"ok": False, "error": "critical integrity file is hard-denied"}
+        if _rule_tampering_hit(target_text):
+            _audit_protection("RULE_TAMPERING_ATTEMPT", action, target_text, str(payload.get("reason", "")))
+            return 403, {"ok": False, "error": "CBS rule/config file is hard-denied"}
     manifest: list[dict] | None = None
     if action not in {"delete", "overwrite", "write_file", "send"}:
         return 400, {"ok": False, "error": "action must be delete, overwrite, write_file or send"}
@@ -1397,6 +1461,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             target_text,
             content=payload.get("content"),
             source=str(payload.get("source", "")),
+            reason=str(payload.get("reason", "")),
         )
     except (OSError, ValueError) as exc:
         _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})

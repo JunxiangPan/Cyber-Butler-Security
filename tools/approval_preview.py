@@ -22,6 +22,9 @@ _SECRET_RE = re.compile(
 MAX_PREVIEW_BYTES = 256 * 1024
 MAX_DIFF_LINES = 80
 MAX_DIFF_CHARS = 8 * 1024
+INTENT_READ_RE = re.compile(r"(?i)(读取|查看|查询|检查|查|读|读一下|看一下|read|check|inspect|view|改\s*ui|修改\s*ui|改界面|修改界面|ui|test|css|format)")
+SENSITIVE_TARGET_RE = re.compile(r"(?i)(config|env|auth|secret|id_rsa|system32|pytest\.ini|conftest\.py)")
+SENSITIVE_NAMES = {".env", "pytest.ini", "conftest.py", "auth", "config"}
 MAGIC_TYPES = ((b"#!", "Shebang"), (b"MZ", "PE"), (b"ELF", "ELF"))
 
 
@@ -38,6 +41,22 @@ def _magic_head(path: Path) -> bytes:
             return handle.read(8)
     except OSError:
         return b""
+
+
+def _intent_mismatch(reason: str, target: Path) -> bool:
+    if not INTENT_READ_RE.search(reason or ""):
+        return False
+    name = target.name.casefold()
+    parts = [part.casefold() for part in target.parts]
+    return (
+        bool(SENSITIVE_TARGET_RE.search(str(target)))
+        or name in SENSITIVE_NAMES
+        or name.startswith(".env")
+        or name.startswith("config.")
+        or name.startswith("auth.")
+        or "config" in parts
+        or "auth" in parts
+    )
 
 
 def _redact(text: str) -> str:
@@ -108,6 +127,7 @@ def build_preview(
     *,
     content: str | None = None,
     source: str = "",
+    reason: str = "",
 ) -> dict[str, Any]:
     """Build a bounded, deterministic preview from real file bytes."""
     target_path = Path(str(target))
@@ -120,6 +140,8 @@ def build_preview(
         "script_warning": target_path.suffix.lower() in SCRIPT_SUFFIXES,
         "magic_warning": False,
         "magic_types": [],
+        "intent_mismatch": _intent_mismatch(reason, target_path),
+        "intent_reason": str(reason or "")[:300],
     }
     if action == "delete":
         return preview
@@ -172,6 +194,8 @@ def format_preview(preview: dict[str, Any], request_id: str = "") -> str:
     if preview.get("magic_warning"):
         types = ", ".join(preview.get("magic_types") or [])
         lines.append(f"目标内容包含可执行代码特征（{types}）")
+    if preview.get("intent_mismatch"):
+        lines.insert(0, "⚠️ INTENT MISMATCH: Agent claims [" + str(preview.get("intent_reason", ""))[:300] + "], but targets [" + str(preview.get("target", ""))[:300] + "]")
     if preview.get("external_read_warning"):
         lines.append(str(preview["external_read_warning"]))
     lines.append(f"动作：{preview.get('action')}")

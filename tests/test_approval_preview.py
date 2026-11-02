@@ -77,3 +77,24 @@ def test_external_read_warning_is_objective_not_a_verdict(tmp_path: Path):
     assert "最近读取了外部网页/文件" in text
     assert "恶意" not in text
     assert "安全" not in text
+
+
+def test_intent_mismatch_flags_read_reason_on_env(tmp_path: Path):
+    target = tmp_path / ".env"
+    preview = approval_preview.build_preview("write_file", str(target), content="X=1", reason="查一下配置")
+    assert preview["intent_mismatch"] is True
+    text = approval_preview.format_preview(preview)
+    assert "INTENT MISMATCH" in text
+    assert "恶意" not in text
+
+
+def test_intent_mismatch_flags_conftest_and_ui_reason(tmp_path: Path):
+    target = tmp_path / "tests" / "conftest.py"
+    preview = approval_preview.build_preview("write_file", str(target), content="x=1", reason="改UI样式")
+    assert preview["intent_mismatch"] is True
+
+
+def test_read_reason_on_plain_text_is_not_mismatch(tmp_path: Path):
+    target = tmp_path / "notes.md"
+    preview = approval_preview.build_preview("write_file", str(target), content="hello", reason="查一下资料")
+    assert preview["intent_mismatch"] is False

@@ -598,6 +598,12 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
                 $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL: ' + [string]$result.status + ' ' + [string]$result.message) }
             }
         }
+        if (-not $failure -and $resolution.Isolation) {
+            $testProtection = Protect-CyberButlerTestFiles -InstallPath $aclRoot -Identity $aclIdentity
+            if ([string]$testProtection.status -ne 'completed' -and [string]$testProtection.status -ne 'skipped') {
+                $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL test-file protection: ' + [string]$testProtection.reason) }
+            }
+        }
         if (-not $failure -and $resolution.Isolation -and $coreResult -and $coreResult.paths) {
             $writableTargets = @(
                 [string]$coreResult.paths.data,

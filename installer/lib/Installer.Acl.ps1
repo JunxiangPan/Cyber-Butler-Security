@@ -363,3 +363,40 @@ function Invoke-CyberButlerAcl {
         return [pscustomobject]$base
     }
 }
+
+
+function Get-CyberButlerTestProtectionTargets {
+    param([Parameter(Mandatory = $true)][string]$InstallPath)
+    $root = [IO.Path]::GetFullPath($InstallPath)
+    $candidates = @(
+        (Join-Path $root 'pytest.ini'),
+        (Join-Path $root 'tests\conftest.py'),
+        (Join-Path $root 'tools\Test-WfpTripwire.ps1'),
+        (Join-Path $root 'installer\tests')
+    )
+    return @($candidates | Where-Object { Test-Path -LiteralPath $_ })
+}
+
+function Protect-CyberButlerTestFiles {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallPath,
+        [Parameter(Mandatory = $true)][string]$Identity
+    )
+    $targets = @(Get-CyberButlerTestProtectionTargets -InstallPath $InstallPath)
+    if ($targets.Count -eq 0) {
+        return [pscustomobject]@{ status = 'skipped'; reason = 'no-test-files'; protected = @() }
+    }
+    $protected = New-Object System.Collections.Generic.List[string]
+    foreach ($target in $targets) {
+        $out = & icacls.exe $target /deny ($Identity + ':(W,D)') 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            return [pscustomobject]@{
+                status = 'failed'
+                reason = (($out | ForEach-Object { [string]$_ }) -join ' ')
+                protected = @($protected)
+            }
+        }
+        $protected.Add($target)
+    }
+    return [pscustomobject]@{ status = 'completed'; reason = ''; protected = @($protected) }
+}
