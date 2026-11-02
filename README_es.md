@@ -70,7 +70,7 @@ Resultado esperado: `VALID`. Si aparece `INVALID`, falta la firma o la versión
 no coincide, **no instale**. Una firma válida solo demuestra posesión de la clave
 privada fijada, no ausencia de malware.
 
-📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [THREAT_MODEL](THREAT_MODEL.md) · [TEST_MATRIX](docs/TEST_MATRIX.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (para agentes de IA)
 

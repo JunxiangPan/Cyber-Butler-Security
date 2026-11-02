@@ -51,7 +51,7 @@ VALID
 
 如果发布资产中没有 `update-manifest.sig`，该构建就是未签名版，不要按已签名版本安装。如果输出 `INVALID`、签名缺失，或 manifest 版本与 zip 不一致，**不要安装**。签名只证明持有固定私钥，不证明没有恶意代码。
 
-📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [THREAT_MODEL](THREAT_MODEL.md) · [TEST_MATRIX](docs/TEST_MATRIX.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment（智能体自动部署）
 

@@ -4,6 +4,11 @@
 > penetration test, or certification. It is a defense-in-depth research project,
 > not a complete security product. A local administrator can bypass the controls.
 >
+> **AppContainer is not implemented in v1.6.x.** Current controls are
+> account isolation, ACL, WFP-backed firewall rules, Job Objects, and Broker
+> approval; they are not a restricted-token or syscall sandbox. See
+> [THREAT_MODEL.md](THREAT_MODEL.md) and [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
+>
 > v1.6.1 status: completed work, incomplete work, and explicit non-guarantees: [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
 
 

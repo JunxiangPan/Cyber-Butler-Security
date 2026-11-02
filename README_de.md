@@ -70,7 +70,7 @@ Erwartet: `VALID`. Bei `INVALID`, fehlender Signatur oder Versionsabweichung
 **nicht installieren**. Eine gültige Signatur beweist nur den Besitz des
 festgelegten privaten Schlüssels, nicht die Abwesenheit von Malware.
 
-📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [THREAT_MODEL](THREAT_MODEL.md) · [TEST_MATRIX](docs/TEST_MATRIX.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (für KI-Agenten)
 

@@ -4,6 +4,8 @@
 
 安装/重启后的常见故障与手工修复步骤见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)。
 
+测试覆盖与安全承诺对照见 [TEST_MATRIX.md](TEST_MATRIX.md)。
+
 
 > This document is the single source of truth for what v1.6.1 actually ships,
 > what is still incomplete, and what CBS does **not** guarantee.
