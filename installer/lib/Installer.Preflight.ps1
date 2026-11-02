@@ -192,6 +192,37 @@ function Get-CyberButlerPythonSnapshot {
         $launcher = Get-Command py.exe -ErrorAction SilentlyContinue
         if ($launcher) { $paths.Add([string]$launcher.Source) }
         $paths.Add((Join-Path $InstallPath 'AstrBot\.venv\Scripts\python.exe'))
+        # Python's official installer normally installs per-user into this
+        # directory. It may not be on PATH, so probe it explicitly before
+        # deciding that a bundled interpreter is required.
+        if ($env:LOCALAPPDATA) {
+            foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
+                $paths.Add((Join-Path $env:LOCALAPPDATA ('Programs\Python' + $version + '\python.exe')))
+            }
+        }
+        foreach ($root in @('C:\Python313', 'C:\Python312', 'C:\Python311', 'C:\Python310',
+                           'C:\Program Files\Python313', 'C:\Program Files\Python312',
+                           'C:\Program Files\Python311', 'C:\Program Files\Python310')) {
+            $paths.Add((Join-Path $root 'python.exe'))
+        }
+        # The installer may run as a different account (for example SYSTEM)
+        # while the per-user Python belongs to the interactive owner. Probe
+        # every profile and the official registry InstallPath as well.
+        try {
+            foreach ($profile in @(Get-ChildItem -LiteralPath 'C:\Users' -Directory -ErrorAction SilentlyContinue)) {
+                foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
+                    $paths.Add((Join-Path $profile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
+                }
+            }
+        } catch { }
+        foreach ($tree in @('HKCU:\Software\Python\PythonCore\3.13\InstallPath',
+                            'HKLM:\Software\Python\PythonCore\3.13\InstallPath',
+                            'HKLM:\Software\WOW6432Node\Python\PythonCore\3.13\InstallPath')) {
+            try {
+                $value = (Get-ItemProperty -LiteralPath $tree -ErrorAction Stop).'(default)'
+                if ($value) { $paths.Add((Join-Path ([string]$value) 'python.exe')) }
+            } catch { }
+        }
     }
 
     foreach ($path in $paths) {

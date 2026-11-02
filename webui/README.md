@@ -1,5 +1,8 @@
 # Cyber-Butler Web UI
 
+> v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
+
+
 > **WARNING:** The Web UI binds to `0.0.0.0`. Its security relies entirely on
 > Windows Firewall. If the firewall rule is disabled, modified, or the network
 > is misclassified as Private, the UI may be exposed to an untrusted network.

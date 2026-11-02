@@ -1,5 +1,8 @@
 # Dashboard background engine
 
+> v1.6.1 status, incomplete work, and non-guarantees: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+
+
 The dashboard window is built from three layers:
 
 ```text

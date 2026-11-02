@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh" data-theme="dark">
 <head>
   <meta charset="utf-8">
@@ -43,6 +43,22 @@
         <strong data-i18n="dash.security.pendingTitle"></strong>
         <p id="securityDetail"></p>
         <p class="security-note" data-i18n="dash.security.pendingNote"></p>
+      </div>
+    </section>
+
+    <section id="emailBanner" class="security-banner" hidden>
+      <div class="security-icon">!</div>
+      <div>
+        <strong>⚠️ 管理员邮箱未配置 / Admin email is not configured</strong>
+        <p>邮件 TOTP 审批和告警无法工作。请填写管理员邮箱；SMTP 授权码在安装器中配置。</p>
+        <p>Email TOTP approvals and alerts will not work. Set the administrator email below; configure the SMTP auth code in the installer.</p>
+        <button id="emailSetupToggle" class="ghost-button" type="button">设置管理员邮箱 / Set admin email</button>
+        <div id="emailSetupPanel" hidden style="margin-top:10px">
+          <input id="adminEmailInput" type="email" autocomplete="email" placeholder="admin@example.com"
+                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:min(100%,320px)">
+          <button id="adminEmailSave" class="primary" type="button">保存 / Save</button>
+          <span id="emailSaveStatus" role="status"></span>
+        </div>
       </div>
     </section>
 

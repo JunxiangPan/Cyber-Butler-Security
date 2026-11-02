@@ -1,3 +1,6 @@
+
+> v1.6.1 status, incomplete work, and non-guarantees: [../../docs/STATUS_v1.6.1.md](../../docs/STATUS_v1.6.1.md).
+
 <h1 align="center">智能艾特门禁与消息防抖 (at_gate)</h1>
 
 <p align="center">前置碎句智能合并，后置多次@与生成期催促静默收敛，全生命周期守护对话节奏。</p>

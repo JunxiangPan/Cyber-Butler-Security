@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import json
@@ -30,6 +30,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler(LOG_PATH, encoding="utf-8"), logging.StreamHandler()],
 )
 logger = logging.getLogger("cyberbutler.otp_mailer")
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def load_email_config(bridge: Path) -> dict:
@@ -38,6 +39,7 @@ def load_email_config(bridge: Path) -> dict:
         capture_output=True,
         text=True,
         timeout=20,
+        creationflags=_NO_WINDOW,
     )
     if completed.returncode != 0:
         raise RuntimeError(f"DPAPI bridge failed: {completed.stderr[:200]}")

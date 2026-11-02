@@ -20,8 +20,10 @@ param(
 $ErrorActionPreference = 'Continue'
 $root = if ($ProjectRoot) { (Resolve-Path -LiteralPath $ProjectRoot).Path } else { Split-Path -Parent $PSScriptRoot }
 $tools = Join-Path $root 'tools'
-$autoFile = Join-Path $root 'AstrBot\data\game-list.auto.txt'
-$scanLog = Join-Path $root 'logs\dashboard_game.log'
+$bigFishDir = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+New-Item -ItemType Directory -Path $bigFishDir -Force -ErrorAction SilentlyContinue | Out-Null
+$autoFile = Join-Path $bigFishDir 'game-list.auto.txt'
+$scanLog = Join-Path $bigFishDir 'dashboard_game.log'
 $ignore = @(
     'unins', 'uninstall', 'setup', 'installer', 'launcher', 'crash', 'error',
     'helper', 'browser', 'update', 'repair', 'agent', 'steam', 'steamwebhelper',

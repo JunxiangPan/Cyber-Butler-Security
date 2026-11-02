@@ -1,5 +1,8 @@
 # 硬件故障排查：NVIDIA `VIDEO_TDR_ERROR`（0x116）
 
+> v1.6.1 status, incomplete work, and non-guarantees: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+
+
 > 适用症状：关闭显示器后电脑突然重启、黑屏后自动开机、事件日志出现 `nvlddmkm` 错误和 `BugCheck 0x116`。  
 > **这不是 Windows 睡眠。** 这是显卡驱动/硬件在显示电源切换时发生 TDR（Timeout Detection and Recovery）崩溃。
 

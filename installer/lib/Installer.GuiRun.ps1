@@ -233,7 +233,7 @@ function Show-CyberButlerRemoveDialog {
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Remove Cyber-Butler" Width="600" Height="430"
+        Title="Remove Cyber-Butler" Width="640" Height="500"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="#0F172A">
   <Grid Margin="24">
@@ -248,6 +248,12 @@ function Show-CyberButlerRemoveDialog {
       <RadioButton x:Name="RemovePackage" GroupName="RemoveChoice" Foreground="#F8FAFC" Margin="0,0,0,12"/>
       <RadioButton x:Name="RemoveProject" GroupName="RemoveChoice" Foreground="#F8FAFC" Margin="0,0,0,12"/>
       <RadioButton x:Name="RemoveBoth" GroupName="RemoveChoice" Foreground="#F8FAFC"/>
+      <CheckBox x:Name="RemoveServiceAccount" Foreground="#FBBF24" Margin="0,16,0,0"
+                Content="同时删除 CyberButlerSvc 服务账户（不会删除 CBS 用户）/ Also remove the CyberButlerSvc service account (never the CBS user)"/>
+      <CheckBox x:Name="RemoveBigFish" Foreground="#FBBF24" Margin="0,12,0,0"
+                Content="同时删除桌面大肥鱼专用文件夹（用户文件，默认保留）/ Also delete the Big Fish folder (user files; kept by default)"/>
+      <CheckBox x:Name="RemoveDashboardShortcut" Foreground="#FBBF24" Margin="0,12,0,0" IsChecked="True"
+                Content="同时删除桌面 Cyber-Butler 主控台快捷方式 / Also remove the desktop Dashboard shortcut"/>
     </StackPanel>
     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
       <Button x:Name="RemoveCancel" Width="100" Height="36" Margin="0,0,10,0"/>
@@ -268,11 +274,17 @@ function Show-CyberButlerRemoveDialog {
     $dialog.FindName('RemoveCancel').Content = $(if ($Text['Cancel']) { $Text['Cancel'] } else { 'Cancel' })
     $dialog.FindName('RemoveContinue').Content = $(if ($Text['Continue']) { $Text['Continue'] } else { 'Continue' })
     $script:cbRemoveChoice = $null
+    $script:cbRemoveCleanup = $false
+    $script:cbRemoveBigFish = $false
+    $script:cbRemoveDashboardShortcut = $true
     $dialog.FindName('RemoveContinue').Add_Click({
         if ($dialog.FindName('RemovePackage').IsChecked) { $script:cbRemoveChoice = 'package' }
         elseif ($dialog.FindName('RemoveProject').IsChecked) { $script:cbRemoveChoice = 'project' }
         elseif ($dialog.FindName('RemoveBoth').IsChecked) { $script:cbRemoveChoice = 'both' }
         else { return }
+        $script:cbRemoveCleanup = [bool]$dialog.FindName('RemoveServiceAccount').IsChecked
+        $script:cbRemoveBigFish = [bool]$dialog.FindName('RemoveBigFish').IsChecked
+        $script:cbRemoveDashboardShortcut = [bool]$dialog.FindName('RemoveDashboardShortcut').IsChecked
         $dialog.Close()
     })
     $dialog.FindName('RemoveCancel').Add_Click({ $script:cbRemoveChoice = $null; $dialog.Close() })
@@ -302,11 +314,56 @@ function Remove-CyberButlerPackage {
     $commands = @()
     foreach ($target in $targets) {
         $escaped = $target.Replace("'", "''")
-        $commands += ("Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction SilentlyContinue")
+        # START-INSTALLER.exe is still running until the GUI/launcher exits.
+        # Retry after a delay instead of making one attempt that must fail.
+        $commands += ("for (`$i=0; `$i -lt 30; `$i++) { try { Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction Stop; if (-not (Test-Path -LiteralPath '" + $escaped + "')) { break } } catch { }; Start-Sleep -Seconds 2 }")
     }
-    $command = 'Start-Sleep -Seconds 2; ' + ($commands -join '; ')
+    $command = 'Start-Sleep -Seconds 8; ' + ($commands -join '; ')
     Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $command) | Out-Null
     return ($targets -join '; ')
+}
+
+function Get-CyberButlerAstrBotInitialCredentials {
+    param([Parameter(Mandatory = $true)][string]$InstallPath)
+    $log = Join-Path $InstallPath 'AstrBot\data\logs\astrbot.log'
+    $passwordFile = Join-Path $InstallPath 'AstrBot\data\logs\initial-admin-password.txt'
+    $passwordMarker = Join-Path $InstallPath 'AstrBot\data\.cbs-dashboard-password-configured'
+    $result = [pscustomobject]@{ username = 'astrbot'; password = ''; log = $log; password_file = $passwordFile }
+    $configPath = Join-Path $InstallPath 'AstrBot\data\cmd_config.json'
+    try {
+        if (Test-Path -LiteralPath $configPath) {
+            $cfg = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($cfg.dashboard.username) { $result.username = [string]$cfg.dashboard.username }
+        }
+    } catch { }
+    if ((Test-Path -LiteralPath $passwordFile) -and (Test-Path -LiteralPath $passwordMarker)) {
+        try { $result.password = (Get-Content -LiteralPath $passwordFile -Raw -Encoding UTF8).Trim() } catch { }
+    }
+    if (-not (Test-Path -LiteralPath $log)) { return $result }
+    try {
+        $lines = @(Get-Content -LiteralPath $log -Tail 400 -ErrorAction Stop)
+        foreach ($line in $lines) {
+            if ($line -match 'Initial username:\s*(\S+)') { $result.username = [string]$Matches[1] }
+            if (-not $result.password -and $line -match 'Initial password:\s*(\S+)') { $result.password = [string]$Matches[1] }
+        }
+    } catch { }
+    return $result
+}
+
+function Get-CyberButlerSnowLumaInitialCredentials {
+    param([Parameter(Mandatory = $true)][string]$InstallPath)
+    $log = Join-Path $InstallPath 'SnowLuma\logs\startup-snowluma.out.log'
+    $result = [pscustomobject]@{ username = 'admin'; password = ''; log = $log }
+    if (-not (Test-Path -LiteralPath $log)) { return $result }
+    try {
+        foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -ErrorAction Stop)) {
+            if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
+                $result.username = [string]$Matches['user']
+                $result.password = [string]$Matches['pass']
+            }
+        }
+    } catch { }
+    return $result
 }
 
 function Show-CyberButlerPostInstallWindow {
@@ -317,6 +374,7 @@ function Show-CyberButlerPostInstallWindow {
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
         [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
+        [string]$SnowLumaUrl = 'http://127.0.0.1:5099/',
         [string]$LaunchGuideText = '',
         [hashtable]$Text = @{},
         [switch]$SelfTest
@@ -343,12 +401,13 @@ function Show-CyberButlerPostInstallWindow {
              Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B"
              Padding="12" TextWrapping="Wrap" Margin="0,14,0,0"/>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,14,0,0">
-      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="130" Height="36" Margin="0,0,8,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
-      <Button x:Name="OpenAstrBotButton" Content="Open AstrBot" Width="130" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="OpenGuideButton" Content="Install guide" Width="120" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="OpenLaunchButton" Content="Startup guide" Width="130" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="OpenReportButton" Content="Open report" Width="110" Height="36" Margin="0,0,8,0"/>
-      <Button x:Name="ClosePostButton" Content="Close" Width="90" Height="36"/>
+      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="105" Height="36" Margin="0,0,6,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
+      <Button x:Name="OpenAstrBotButton" Content="Open AstrBot" Width="105" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenSnowLumaButton" Content="Open SnowLuma" Width="115" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenGuideButton" Content="Install guide" Width="100" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenLaunchButton" Content="Startup guide" Width="100" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenReportButton" Content="Open report" Width="95" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="ClosePostButton" Content="Close" Width="70" Height="36"/>
     </StackPanel>
     <TextBlock Grid.Row="4" Text="" Foreground="#64748B" FontSize="11" Margin="0,16,0,0" TextWrapping="Wrap"/>
   </Grid>
@@ -361,22 +420,71 @@ function Show-CyberButlerPostInstallWindow {
     $dialog.FindName('PostTitle').Text = $title
     $dialog.FindName('PostSubtitle').Text = $(if ($Text['PostSubtitle']) { $Text['PostSubtitle'] } else { 'The three services are installed. Open the WebUI and configure the bot account and model provider next.' })
     $body = @()
+    $body += '--- Installation / 安装信息 ---'
     $body += 'Install path: ' + $InstallPath
     $body += 'WebUI: ' + $WebUIUrl
     $body += 'AstrBot: ' + $AstrBotUrl
+    $body += 'SnowLuma: ' + $SnowLumaUrl
+    try {
+        $null = Invoke-WebRequest -Uri 'http://127.0.0.1:8766/health' -UseBasicParsing -TimeoutSec 3
+        $body += 'OTP Mailer (8766): ready'
+    } catch {
+        $body += 'OTP Mailer (8766): NOT ready; run Cyber-Butler OTP Mailer or check webui\data\otp_mailer.err.log'
+    }
+    try {
+        $webCfgPath = Join-Path $InstallPath 'webui\config.json'
+        if (Test-Path -LiteralPath $webCfgPath) {
+            $webCfg = Get-Content -LiteralPath $webCfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($webCfg.file_root) { $body += 'File folder: ' + [string]$webCfg.file_root }
+        }
+    } catch { }
     $body += 'Report: ' + $ReportPath
     if ($GuidePath) { $body += 'Guide: ' + $GuidePath }
     $body += ''
+    $body += '--- Credentials / 凭据 ---'
+    $astrbotCreds = Get-CyberButlerAstrBotInitialCredentials -InstallPath $InstallPath
+    if ($astrbotCreds.password) {
+        $body += 'AstrBot initial username: ' + $(if ($astrbotCreds.username) { $astrbotCreds.username } else { 'astrbot' })
+        $body += 'AstrBot initial password: ' + $astrbotCreds.password
+        $body += 'Change the AstrBot password after the first login.'
+    } else {
+        $body += 'AstrBot initial password was not captured; see ' + $astrbotCreds.log + ' or reset it with:'
+        $body += '  C:\CyberButler\AstrBot\.venv\Scripts\python.exe -m astrbot.cli password'
+    }
+    $snowCreds = Get-CyberButlerSnowLumaInitialCredentials -InstallPath $InstallPath
+    $body += 'SnowLuma WebUI username: ' + $snowCreds.username
+    if ($snowCreds.password) {
+        $body += 'SnowLuma WebUI initial password: ' + $snowCreds.password
+        $body += 'Change the SnowLuma WebUI password after the first login.'
+    } else {
+        $body += 'SnowLuma WebUI initial password: see ' + $snowCreds.log
+    }
+    $oneBotTokenFile = Join-Path $InstallPath 'data\onebot-reverse-token.txt'
+    if (Test-Path -LiteralPath $oneBotTokenFile) {
+        $oneBotToken = (Get-Content -LiteralPath $oneBotTokenFile -Raw -Encoding UTF8).Trim()
+        $body += ''
+        $body += 'Reverse WebSocket Token (same value in AstrBot and SnowLuma):'
+        $body += $oneBotToken
+        $body += 'Token file: ' + $oneBotTokenFile
+    }
+    $body += ''
+    $body += '--- Next steps / 下一步 ---'
     $body += $(if ($Text['PostNext']) { $Text['PostNext'] } else { 'Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> keep TOTP recovery codes offline.' })
+    if ($Text['PostNextDetailed']) {
+        $body += ''
+        $body += @($Text['PostNextDetailed'])
+    }
     $dialog.FindName('PostBody').Text = ($body -join "`r`n")
     $dialog.FindName('OpenWebUIButton').Content = $(if ($Text['OpenWebUI']) { $Text['OpenWebUI'] } else { 'Open WebUI' })
     $dialog.FindName('OpenAstrBotButton').Content = $(if ($Text['OpenAstrBot']) { $Text['OpenAstrBot'] } else { 'Open AstrBot' })
+    $dialog.FindName('OpenSnowLumaButton').Content = $(if ($Text['OpenSnowLuma']) { $Text['OpenSnowLuma'] } else { 'Open SnowLuma' })
     $dialog.FindName('OpenGuideButton').Content = $(if ($Text['OpenGuide']) { $Text['OpenGuide'] } else { 'Install guide' })
     $dialog.FindName('OpenLaunchButton').Content = $(if ($Text['OpenLaunchGuide']) { $Text['OpenLaunchGuide'] } else { 'Startup guide' })
     $dialog.FindName('OpenReportButton').Content = $(if ($Text['OpenReport']) { $Text['OpenReport'] } else { 'Open report' })
     $dialog.FindName('ClosePostButton').Content = $(if ($Text['Close']) { $Text['Close'] } else { 'Close' })
     $dialog.FindName('OpenWebUIButton').Add_Click({ try { Start-Process $WebUIUrl } catch { } })
     $dialog.FindName('OpenAstrBotButton').Add_Click({ try { Start-Process $AstrBotUrl } catch { } })
+    $dialog.FindName('OpenSnowLumaButton').Add_Click({ try { Start-Process $SnowLumaUrl } catch { } })
     $dialog.FindName('OpenGuideButton').Add_Click({ if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) { Start-Process $GuidePath } })
     $dialog.FindName('OpenLaunchButton').Add_Click({ if ($LaunchGuideText) { Show-CyberButlerInfoWindow -Owner $dialog -Title $(if ($Text['LaunchGuideTitle']) { $Text['LaunchGuideTitle'] } else { 'Startup guide' }) -Text $LaunchGuideText -Copy $(if ($Text['Copy']) { $Text['Copy'] } else { 'Copy' }) -Close $(if ($Text['Close']) { $Text['Close'] } else { 'Close' }) } })
     $dialog.FindName('OpenReportButton').Add_Click({ if (Test-Path -LiteralPath $ReportPath) { Start-Process $ReportPath } elseif (Test-Path -LiteralPath (Split-Path -Parent $ReportPath)) { Start-Process (Split-Path -Parent $ReportPath) } })
@@ -394,6 +502,10 @@ function Start-CyberButlerGuiInstall {
         [string]$WebUIBind = 'Loopback',
         [string]$PersonalPluginsPath = '',
         [string]$ApiKeyFile = '',
+        [string]$WebUIAdminEmail = '',
+        [string]$SmtpAuth = '',
+        [string]$SmtpHost = 'smtp.163.com',
+        [string]$SmtpPort = '465',
         [Parameter(Mandatory = $true)][scriptblock]$OnLog,
         [Parameter(Mandatory = $true)][scriptblock]$OnStatus,
         [scriptblock]$OnProgress = $null,
@@ -427,6 +539,9 @@ function Start-CyberButlerGuiInstall {
     )
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
+    if (-not [string]::IsNullOrWhiteSpace($WebUIAdminEmail)) { $args += @('-WebUIAdminEmail', $WebUIAdminEmail) }
+    if (-not [string]::IsNullOrWhiteSpace($SmtpHost)) { $args += @('-SmtpHost', $SmtpHost) }
+    if (-not [string]::IsNullOrWhiteSpace($SmtpPort)) { $args += @('-SmtpPort', $SmtpPort) }
     if ($Tier -eq 'High') { $args += @('-EnableIsolation', 'true') }
     if ($Tier -eq 'Light') { $args += @('-AcceptLowerSecurity') }
     if (-not [string]::IsNullOrWhiteSpace($ApiKeyFile)) {
@@ -443,13 +558,20 @@ function Start-CyberButlerGuiInstall {
     $script:cbGuiText = $Text
     $stdoutPath = Join-Path $signalDir 'installer.out.log'
     $stderrPath = Join-Path $signalDir 'installer.err.log'
-    $process = Start-Process -FilePath 'powershell.exe' `
+    $oldSmtpAuth = $env:CB_SMTP_AUTH_CODE
+    if (-not [string]::IsNullOrWhiteSpace($SmtpAuth)) { $env:CB_SMTP_AUTH_CODE = $SmtpAuth }
+    try {
+        $process = Start-Process -FilePath 'powershell.exe' `
         -ArgumentList $argumentLine `
         -WorkingDirectory (Split-Path -Parent $InstallerPath) `
         -WindowStyle Hidden `
         -RedirectStandardOutput $stdoutPath `
         -RedirectStandardError $stderrPath `
         -PassThru
+    } finally {
+        if ($null -eq $oldSmtpAuth) { Remove-Item Env:CB_SMTP_AUTH_CODE -ErrorAction SilentlyContinue }
+        else { $env:CB_SMTP_AUTH_CODE = $oldSmtpAuth }
+    }
     $script:cbGuiLogPath = $stdoutPath
     $script:cbGuiErrPath = $stderrPath
     & $script:cbGuiOnStatus ($script:cbGuiText['Started'])

@@ -1,15 +1,15 @@
-# Start the Cyber-Butler Web UI and OTP mailer idempotently.
+﻿# Start the Cyber-Butler Web UI and OTP mailer idempotently.
 # Run as the interactive user at logon: the OTP mailer needs the user's
 # DPAPI-protected SMTP secret, which is not available to a SYSTEM task.
 $ErrorActionPreference = 'Stop'
 $webRoot = $PSScriptRoot
 $parent = Split-Path $webRoot -Parent
-if (Test-Path -LiteralPath (Join-Path $parent 'webui-config.json')) {
-    $root = $parent
-} else {
-    $root = Split-Path $parent -Parent
-}
+# webui is always an immediate child of the project root. The old
+# heuristic went one level too high and looked for C:\webui-config.json.
+$root = $parent
 $python = Join-Path $webRoot '.venv\Scripts\python.exe'
+$pythonw = Join-Path $webRoot '.venv\Scripts\pythonw.exe'
+if (-not (Test-Path -LiteralPath $pythonw)) { $pythonw = $python }
 $config = Join-Path $root 'webui-config.json'
 # settings.py also accepts webui\config.json; keep the older layout working.
 if (-not (Test-Path -LiteralPath $config) -and (Test-Path -LiteralPath (Join-Path $webRoot 'config.json'))) {
@@ -76,7 +76,7 @@ if (Test-Http200 'http://127.0.0.1:8766/health') {
 } else {
     try {
         Write-StartupLog 'starting OTP mailer on 127.0.0.1:8766'
-        Start-Process -FilePath $python -ArgumentList 'otp_mailer.py' `
+        Start-Process -FilePath $pythonw -ArgumentList 'otp_mailer.py' `
             -WorkingDirectory $webRoot -WindowStyle Hidden `
             -RedirectStandardOutput $mailOut -RedirectStandardError $mailErr | Out-Null
         if (-not (Wait-Http200 'http://127.0.0.1:8766/health' 30)) {
@@ -95,7 +95,7 @@ if (Test-Http200 'http://127.0.0.1:8765/') {
 } else {
     Write-StartupLog 'starting Web UI on 0.0.0.0:8765'
     $env:WEBUI_CONFIG = $config
-    Start-Process -FilePath $python -ArgumentList 'run.py' `
+    Start-Process -FilePath $pythonw -ArgumentList 'run.py' `
         -WorkingDirectory $webRoot -WindowStyle Hidden `
         -RedirectStandardOutput $webOut -RedirectStandardError $webErr | Out-Null
     if (-not (Wait-Http200 'http://127.0.0.1:8765/' 30)) {

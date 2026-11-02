@@ -266,7 +266,7 @@ function Invoke-CyberButlerPipInstall {
     $argumentLine = '/d /s /c "' + $command + '"'
     $process = Start-Process -FilePath $env:ComSpec -ArgumentList $argumentLine `
         -RedirectStandardOutput $LogPath -RedirectStandardError $stderrPath `
-        -NoNewWindow -PassThru
+        -WindowStyle Hidden -PassThru
     if ($null -eq $process) { throw 'failed to start pip' }
 
     $lines = New-Object System.Collections.Generic.List[string]
@@ -573,6 +573,21 @@ function Invoke-CyberButlerCoreDeploy {
             'YOUR_QQ_ID' = $OwnerQQ
             'YOUR_SERVICE_USER' = $ToolServiceAccount
         }
+        # Plugins are copied by Copy-CyberButlerCbsPlugins before this point.
+        # They are not under tools/, so they need the same placeholder pass.
+        $pluginRoot = Join-Path $astrbotTarget 'data\plugins'
+        foreach ($pluginFile in @(Get-ChildItem -LiteralPath $pluginRoot -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.py', '.yaml', '.yml', '.json') })) {
+            $pluginText = [IO.File]::ReadAllText($pluginFile.FullName)
+            $pluginChanged = $false
+            foreach ($key in $toolReplacements.Keys) {
+                $value = [string]$toolReplacements[$key]
+                if ($value -and $pluginText.Contains($key)) {
+                    $pluginText = $pluginText.Replace($key, $value)
+                    $pluginChanged = $true
+                }
+            }
+            if ($pluginChanged) { [IO.File]::WriteAllText($pluginFile.FullName, $pluginText, (New-Object Text.UTF8Encoding($false))) }
+        }
         foreach ($toolFile in @(Get-ChildItem -LiteralPath $toolsTarget -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.ps1', '.py', '.json', '.psm1', '.cmd', '.bat') })) {
             $relativeTool = $toolFile.FullName.Substring($toolsTarget.Length).TrimStart([char]92)
             # The dashboard and its official modules use YOUR_QQ_ID as an
@@ -612,14 +627,40 @@ function Invoke-CyberButlerCoreDeploy {
         }
 
         $webConfigPath = Join-Path $webTarget 'config.json'
+        $desktopRoot = [Environment]::GetFolderPath('Desktop')
+        if ([string]::IsNullOrWhiteSpace($desktopRoot)) {
+            $desktopRoot = Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Desktop'
+        }
+        $bigFishRoot = Join-Path $desktopRoot '大肥鱼专用文件夹'
+        New-Item -ItemType Directory -Path $bigFishRoot -Force | Out-Null
         if (-not (Test-Path -LiteralPath $webConfigPath)) {
             $templatePath = Join-Path $webTarget 'example-config.json'
             if (Test-Path -LiteralPath $templatePath) {
                 $webConfig = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $webConfig.admin_email = $WebUIAdminEmail
                 $webConfig.project_root = $root
-                $webConfig.file_root = ''
+                $webConfig.file_root = $bigFishRoot
                 Write-InstallerJson -Path $webConfigPath -Value $webConfig
+            }
+        } else {
+            try {
+                $webConfig = Get-Content -LiteralPath $webConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ([string]::IsNullOrWhiteSpace([string]$webConfig.file_root)) {
+                    $webConfig.file_root = $bigFishRoot
+                    Write-InstallerJson -Path $webConfigPath -Value $webConfig
+                }
+            } catch { }
+        }
+
+        $brokerConfigPath = Join-Path $toolsTarget 'broker_config.json'
+        if (Test-Path -LiteralPath $brokerConfigPath) {
+            try {
+                $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $brokerConfig.admin_email = $WebUIAdminEmail
+                if ($WebUIAdminEmail) { $brokerConfig.approval_channel = 'email' }
+                $brokerConfig | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $brokerConfigPath -Encoding UTF8
+            } catch {
+                Write-Host ('CORE broker_config admin_email warning: ' + $_.Exception.Message)
             }
         }
 

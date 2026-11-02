@@ -1,15 +1,57 @@
-[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+
+## ✅ 测试覆盖声明 / Test Coverage
+
+✅ **High 档**：已完成完整的实机端到端测试（安装、服务拉起、TOTP、SCOPED、卸载）。
+
+⚠️ **Medium 档**：已完成多次局部测试，大概率可用，但未做全流程完整验收。
+
+❌ **Light（最小）档**：尚未进行完整的实机测试，请用户自行评估风险。
+
+本声明适用于 v1.6.1 发布包，不构成安全认证。
+
 
 [![最新版本](https://img.shields.io/github/v/release/JunxiangPan/Cyber-Butler-Security?label=最新版本)](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest)
 [![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
 ## 最新版本
 
-最新签名版本从 [GitHub Releases](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest) 获取。
+最新版本从 [GitHub Releases](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest) 获取。
+当前 v1.6.1 构建包含 RSA-3072 detached manifest 签名；安装前请校验签名与 SHA-256。
 
 下载 `public-release-v<version>.zip`、`update-manifest.json` 和
 `update-manifest.sig`。应用更新前请先验证 manifest 和签名；不要把新 manifest
 与已退役旧密钥生成的签名混用。
+
+## 🔐 验证发布签名
+
+从发布页下载三个文件：
+
+```text
+public-release-v<版本>.zip
+update-manifest.json
+update-manifest.sig
+tools/update_pubkey.pem（在 zip 内或仓库中）
+```
+
+在解压后的发布目录运行：
+
+```powershell
+python tools/verify_release.py `
+  --manifest update-manifest.json `
+  --signature update-manifest.sig `
+  --pubkey tools/update_pubkey.pem
+```
+
+期望输出：
+
+```text
+VALID
+```
+
+如果发布资产中没有 `update-manifest.sig`，该构建就是未签名版，不要按已签名版本安装。如果输出 `INVALID`、签名缺失，或 manifest 版本与 zip 不一致，**不要安装**。签名只证明持有固定私钥，不证明没有恶意代码。
+
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment（智能体自动部署）
 
@@ -32,7 +74,7 @@
 
 ---
 
-# 赛博管家 — 面向自托管 LLM 智能体的防御性安全沙箱
+# Cyber-Butler Security (CBS) — 面向自托管 LLM 智能体的防御性安全控制面
 
 > 一个面向 Windows 本地部署的 QQ 智能体管家示例：双账户隔离、GPU 显存调度、高危操作 Broker、TOTP 二次验证、文件外发风控与每日审计。
 
@@ -40,11 +82,120 @@
 
 > **本项目不是腾讯、QQ、AstrBot 或 SnowLuma 的官方项目，也不与它们存在任何隶属或背书关系。**
 
-## v1.6.0 主要变化
+## 为什么 Super-agent 时代需要这一层
+
+DeepSeek Super-agent 这类常驻自主智能体，正在从单轮聊天变成会读文件、调用工具、跨会话持续工作的操作者。业界对这类系统的安全共识很明确：让它运行在独立 OS 账户下，只给最小权限，隔离数据，并在破坏性操作前保留人工审批边界。
+
+在 Windows 上手工完成这些很痛苦：本地账户、ACL、计划任务、服务身份、TOTP 注册、仅回环端点、审计链路，以及可回滚的安装器。CBS 把这些步骤打包成一次安装。它不替代操作系统边界，而是让边界可部署、可审计，并补上官方聊天/模型/Agent 厂商通常不会覆盖的跨生态权限控制层。
+
+## v1.6.1 主要变化
+
+**Scoped Token（30 分钟目录授权）**：用户在 TOTP 审批时回复 `SCOPED 30`，Broker 会签发一个内存 token，绑定目标文件的规范化父目录，有效期 30 分钟，仅允许该目录及子目录下的 `delete`、`overwrite`、`write_file`。它绝不能用于 memory/config、TOTP 保险箱、文件外发或兄弟目录。批量操作不再反复弹 TOTP，但不会变成全局后门。详见 [SECURITY.md](SECURITY.md) 第 15 节。
+
+**Job Object 进程树隔离**：Broker 在启动时创建 Windows Job Object，设置 `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`，并在启动任何子进程之前把自己加入 Job。PowerShell、icacls、Python 等后代自动继承；Broker 崩溃或被强杀时，Windows 会连带结束整棵进程树。AstrBot 是独立计划任务，不在这个 Job 内，边界见“诚实缺口”。
+
+**DSH / Cordis 插件支持**：独立的 `dsh-cbs-gate` TypeScript bundle 挂接 DSH 的 `tools/pre-execute`，把高危调用转发到 `POST /api/request_approval`，通过 `/api/request_approval/status` 等待 TOTP，并缓存返回的 scoped token 供同目录下一次调用使用。它是 approval-only：Broker 只授权，DSH 执行原工具。只读工具直接放行；`edit` 和 shell 工具被明确拒绝。
+
+**安装器与启动器清理**：`START-INSTALLER.exe` 是可直接签名的原生 C# 启动器；旧的 `.vbs`、`wscript.exe`、`.cmd` 启动链已移除。安装器会在安装完成前校验 dashboard 脚本语法，并保护官方 dashboard 模块哈希。
+
+## v1.6.1 完整功能清单
+
+### 1. 安装器与部署体验
+
+- **WPF 可视化安装器**：High / Medium / Light 三档共用一套界面，支持安装路径、
+  主人 QQ、WebUI 绑定、可选 API Key 文件和可选个人插件目录。
+- **8 种语言界面**：主窗口、弹窗、状态栏、卸载提示和帮助内容覆盖
+  zh/en/de/es/fr/ja/ko/ru。新增的 Defender 文案提供中英双语，其他六种语言
+  回退英文。
+- **无控制台、无脚本启动器**：`START-INSTALLER.exe` 是原生 C# 入口；
+  旧的 `wscript.exe`、`.vbs`、`.cmd` 链已移除。服务使用 `pythonw.exe` 或
+  原生启动器，不再依赖隐藏的 WSH 宿主。
+- **进度与诊断**：单调递增进度条、当前步骤/已用时间/总预计剩余、PID/CPU/
+  工作集详情，以及安装期间可复制的状态窗口。
+- **失败报告持久化**：安装失败时先把报告写入
+  `C:\ProgramData\CyberButler\installer-report\install-report.json`，
+  再执行回滚，报告不会被回滚删除。
+- **Defender 白名单引导**：默认不勾选；脚本只允许把 `C:\CyberButler`
+  加入排除项，调用 `Add-MpPreference -ExclusionPath`；绝不关闭实时防护、
+  SmartScreen，也不排除整块磁盘。
+- **分范围卸载**：发布包/主项目/两者三种范围；自动停止进程、清理防火墙规则
+  和计划任务，并保留失败报告。
+- **High 档权限与启动修复**：S4U 并非所有环境都可用；被拒绝时回退到密码登录。
+  用户权限通过 Windows LSA API 写入，不再依赖 `secedit`；运行时 Python/venv
+  放到服务账户可读的位置。
+
+### 2. 底层安全与运行时防护
+
+- **Job Object 进程树防逃逸**：在启动任何子进程前设置
+  `KILL_ON_JOB_CLOSE`，Broker 把自己加入 Job；PowerShell/icacls/Python 后代
+  自动继承；Broker 崩溃或被杀时，Windows 连带终止剩余进程树。AstrBot 是独立
+  任务，不会自动进入该 Job。
+- **Approval-only 模式**：`/api/request_approval` 接受 `approval_only: true`；
+  TOTP 只改变审批状态，Broker 不执行文件动作。DSH 在 `approved` 后执行原工具，
+  避免 Broker/DSH 双重执行。
+- **Scoped Token（30 分钟目录免密）**：用户回复 `<验证码> SCOPED 30` 后，
+  Broker 签发绑定目标目录的内存 token，30 分钟内仅允许该目录/子目录下的
+  `delete`、`overwrite`、`write_file`。绝不适用于 memory/config、
+  `totp-vault`、`send` 或兄弟目录。
+- **30 秒 Bypass**：`<验证码> BYPASS 30` 允许同一动作/目录的短时批量放行，
+  不是全局免密。
+- **UIPI 静默失败日志**：预留 `UIPI_BLOCKED_GUI_INTERACTION` 和
+  `guard_gui_result()`，供未来 AppContainer/受限令牌的 GUI 路径使用。
+  当前没有真实 GUI 桥，因此这是埋点，不等于已覆盖。
+- **审计**：JSONL 记录动作、结果、scoped 标记、
+  `Scoped via 30-minute Directory Token` 和 `auto_executed: false`；
+  不写真实 token 或 TOTP 动态码。
+
+### 3. 生态接入与插件联动
+
+- **DSH / Cordis `dsh-cbs-gate`**：挂接 `tools/pre-execute`；只读工具放行；
+  `write` 映射 `write_file`，`delete_file` 映射 `delete`；
+  `edit`、`execute_shell`、`ops_bash`、`pwsh` 一律**拒绝/封杀**。
+- **SafeToolExecutor**：带 `X-Broker-Token`、approval-only 请求、每秒 status
+  轮询、fail-closed、scoped token 缓存，并在 `scoped_invalid` 时清空缓存。
+- **AstrBot 原生插件**：支持 `SCOPED 30` 和 `BYPASS 30` 后缀，token 只存进程
+  内存。
+- **WebUI 安全加固**：默认 Loopback；非 Loopback 绑定会按档位检查防火墙和
+  网络 Profile，必要时拒绝或警告。
+
+### 4. 发布工程与网络边界
+
+- **RSA-3072 签名能力**：固定 `tools/update_pubkey.pem`、
+  `tools/sign_release.py`、`tools/verify_release.py`；私钥在仓库外、受
+  SYSTEM/管理员 ACL 保护。
+- **AstrBot 覆盖层固定**：锁定 AstrBot 4.29.3，带官方文件哈希和明确的
+  local-only 条目；Fork 漂移会被拒绝。
+- **个人插件解耦**：不再默认捆绑；只有传 `-PersonalPluginsPath` 才复制三个
+  可选插件。
+
+### 5. 测试
+
+- **Pester：144 passed / 0 failed**，覆盖 ACL、服务注册、环境配置。
+- **Pytest：95 passed**，覆盖 TOTP/防重放、scoped token 目录绑定与过期、
+  approval-only HTTP 流程、审计、Job Object 钩子和 UIPI 日志。
+
+## v1.6.0 → v1.6.1 变化对比
+
+| 领域 | v1.6.0 | v1.6.1 |
+|---|---|---|
+| 安装器 | 统一 PowerShell CLI；无 WPF 前端；无 `README-INSTALL.md` | WPF GUI，路径/API Key/主人 QQ，ETA/状态，持久化报告 |
+| 启动器 | `tools/` 下 5 个 `.vbs`，WSH/wscript 链 | 原生 `START-INSTALLER.exe` / `CyberButlerLauncher.exe`；0 VBS、0 CMD |
+| Broker | 33,596 字节，仅审批后执行 | 66,233 字节，Job Object、approval-only、`/api/request_approval`、status、scoped、bypass、UIPI |
+| DSH | 无桥接 | 独立 `dsh-cbs-gate`，pre-execute、轮询、缓存 |
+| Dashboard | 无安装前语法门禁/模块哈希保护 | 安装器校验语法，保护官方模块哈希 |
+| ACL | High/Medium/Light 拆分 | 增加 knowledge_base/site-packages，plugins 只读，精确运行时路径 |
+| 发布包 | previous release | 以发布资产中最终的文件/条目计数为准 |
+| 测试 | 较低基线 | 144 Pester + 95 pytest |
+| 文档 | 以英中为主，无 v1.6.1 状态页 | 8 语言 + `docs/STATUS_v1.6.1.md` + 完整发布清单 |
+
+完整“已完成/未完成/明确不保证”以
+[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md) 为准。
+
+### v1.6.0 基线
 
 **统一安装器**：High、Medium、Light 三档共用一套安装管线。
 
-**三个托管服务**：AstrBot、TOTP Broker、Web UI 注册为计划任务；OTP Mailer 不再作为独立任务。
+**四个启动任务**：AstrBot、TOTP Broker、Web UI、SnowLuma Startup 注册为计划任务；OTP Mailer 不再作为独立任务。SnowLuma 与 QQ 仍是外部依赖，但启动任务现在会等待 QQ 并开启自动注入。
 
 **签名发布**：RSA-3072 manifest 签名和包内公钥取代已退役的发布密钥。
 
@@ -74,6 +225,7 @@
 ├── README_de.md               # Deutsch
 ├── README_ru.md               # Русский
 ├── SECURITY.md                # 威胁模型、ACL 边界、TOTP 防重放、协议解耦
+├── docs/STATUS_v1.6.1.md      # 已完成/未完成/不保证内容的权威清单
 ├── LICENSE                    # AGPL-3.0
 ├── .gitignore
 ├── config.pro.example.json    # 有本地模型/显卡的部署 profile
@@ -96,6 +248,7 @@
 │       ├── core/tools/message_tools.py
 │       ├── core/tools/web_search_tools.py
 │       └── dashboard/server.py
+├── dsh-cbs-gate/              # 独立的 Cordis/TypeScript DSH 审批桥（不在 CBS zip 内）
 ├── plugins/                   # 自定义 AstrBot 插件
 │   ├── astrbot_plugin_security_gate/
 │   ├── astrbot_plugin_totp_broker/
@@ -274,8 +427,18 @@ flowchart LR
 - AstrBot 原生工具不直接执行危险文件操作；
 - 请求通过本机 HTTP（仅回环）交给 Broker；
 - Broker 通过 QQ 发送一次性 TOTP 挑战；
+- 审批时可签发 30 分钟 Scoped Token，仅限共享草稿目录和 tmp 目录；
 - 删除进入隔离区，覆盖保留旧版本备份；
-- 所有操作写入审计 JSONL。
+- 所有操作写入审计 JSONL；scoped 放行标记为
+  `Scoped via 30-minute Directory Token`。
+
+### 3.1 进程树约束
+
+Broker 运行在带 `KILL_ON_JOB_CLOSE` 的 Job Object 中，子进程和孙进程继承该 Job。它是进程树约束，不是 AppContainer 或系统调用沙箱；AstrBot 独立启动的子进程仍不在其中。
+
+### 3.2 DSH 审批桥
+
+`dsh-cbs-gate` 是独立的 Cordis/TypeScript bundle。它拦截 `tools/pre-execute`，使用 approval-only 请求，轮询 Broker 状态接口，并按执行器实例缓存 scoped token。它不会让 Broker 和 DSH 重复执行同一个操作。
 
 ### 4. 文件外发分级风控
 
@@ -410,16 +573,33 @@ python tools/sanitize_for_release.py . --strict
 尚未覆盖：
 
 - 图片、语音、视频外发的同等 TOTP；
-- Shell 执行的同等 TOTP；
 - Windows 物理确认框；
 - 第三方插件自身的全部副作用。
 
-## 诚实边界：Python 与 Shell 会绕过 TOTP
+## 诚实缺口
 
-**如果 `astrbot_execute_python` 和 shell 工具仍可用，它们可以绕过 TOTP。** 本版本在 `on_llm_request` 阶段从 QQ 私聊 `func_tool` 中移除 `astrbot_execute_python`、`astrbot_execute_ipython`、`astrbot_execute_shell`、`astrbot_shell_session`。如果其他插件重新加入、其他 agent 路径暴露它们，或走纯文本通道，TOTP 仍不是完整的工具执行中介层。
+**没有通用运行时沙箱。** CBS 现在有真实的进程树约束（Job Object）、ACL 隔离、TOTP Broker 和 DSH 工具闸门；但这不是 AppContainer、受限令牌、EDR 或系统调用沙箱。
 
-- 不要把本项目宣传成“可完全沙箱化任意工具执行”的方案；
-- 必须启用代码工具时，应使用操作系统级隔离，而不是只依赖 TOTP。
+- **AstrBot 的子进程不在 Broker Job 内。** AstrBot 是独立计划任务，它的 Python 插件和子进程不会自动进入 Broker 的 Job；仍需要在 AstrBot 启动器层创建/加入 Job。
+- **Shell 和 `edit` 是被 DSH 闸门拒绝，不是被沙箱化。** 当前没有安全映射，所以直接拒绝；如果别的 AstrBot 插件重新加入 shell/Python 工具，TOTP 仍不是完整中介层。
+- **Scoped Token 是便利性，不是边界。** 30 分钟内可以覆盖同一目录的多次破坏性操作；只应授予专用草稿目录，绝不能是 memory/config、保险箱或宽泛的用户主目录。
+- **没有第三方审计或形式化验证。** 发布清单已签名，但不提供 SmartScreen/Defender 信誉或独立安全评审。
+- **仍然依赖交互式桌面。** AstrBot 和 Web UI 仍是桌面会话下的计划任务，注销可能终止它们；无人值守需要自动登录或真正的服务模型。
+- **没有覆盖所有通道的完整 TOTP 中介。** 图片、语音、视频、第三方插件和任何新 Agent 路径都在当前闸门之外。
+
+不要把 CBS 宣传成“可完全沙箱化任意工具执行”的方案。
+
+### CBS 明确不保证什么
+
+CBS **不保证**不可被绕过，不保证覆盖所有工具、插件、Shell/Python、GUI 或
+外发路径，不保证自主 Agent 不会造成数据或账号损失，不保证已失陷的手机、
+QQ 账号、桌面会话、管理员账户或供应链会被控制，不保证 Defender/火绒/360/
+SmartScreen 不拦截，也不保证适用于任何特定用途。它是纵深防御，不是完整
+安全产品。
+
+完整的 v1.6.1 状态——已完成、未完成、明确不保证的内容——见
+[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md)。如果其他页面与它不一致，
+v1.6.1 以该状态页为准。
 
 ## 安全测试与可复现性
 
@@ -437,7 +617,7 @@ CI 在每次 push / pull request 时于 Ubuntu 和 Windows 运行同一套测试
 .github/workflows/security-tests.yml
 ```
 
-覆盖（共 30 项）：
+覆盖（共 72 项）：
 
 - 服务账户 ACL 显式拒绝（逻辑模型，不是 Windows 内核 ACL 测试）；
 - 错误 TOTP → 403，且不消耗待验证请求；
@@ -447,7 +627,70 @@ CI 在每次 push / pull request 时于 Ubuntu 和 Windows 运行同一套测试
 - 未知聊天平台默认拦截（fail-closed）。
 - 发送清单：无清单拒绝、目录外拒绝、篡改 409、完整路径提示；
 - 图片/语音/视频路径统一进入 TOTP 链，owner 获取失败 fail-closed；
-- 全局指数退避锁定。
+- 全局指数退避锁定；
+- scoped token 目录绑定、过期和跨目录拒绝；
+- approval-only 状态/token 流程和 scoped 审计；
+- Job Object 与 UIPI 日志埋点。
+
+## v1.6.1 故障排查
+
+- **`QQ challenge send failed` / 6199 未 `Established`**：先完成 QQ 登录；使用
+  `SnowLuma Startup` 任务（等待 QQ，并设置 `SNOWLUMA_HOOK_AUTOLOAD=true`），检查
+  `SnowLuma\logs\startup-snowluma.out.log` 是否有 `hook auto-load enabled`。
+- **CBS WebUI 要求邮箱但没有注册入口**：在安装器里填写 `WebUI 邮箱` 和
+  `SMTP 授权码`（默认 163 SMTP），或修改 `webui\config.json` 的 `admin_email`
+  并配置 SMTP secret 后重启 Web UI 任务。AstrBot 6185 仍使用用户名/密码。
+- **TOTP 一直 `pending`**：主人 QQ 必须不同于机器人 QQ；300 秒内回复
+  `<验证码> SCOPED 30`。
+- **`Bot not found ... qq_sujinyan`**：用 AstrBot 实际平台 ID（通常 `QQ`）组成
+  `<平台ID>:FriendMessage:<主人QQ>`。
+- **Security Gate 拦截主人**：`known_markers` 使用 `.casefold()`，必须写小写
+  `qq`；清 `__pycache__` 后重启 AstrBot。
+- **旧 `YOUR_QQ_ID` / 6185 冲突**：替换 `tools\broker.py` 与 AstrBot 插件中的
+  占位符；停止任务，结束全部 AstrBot `main.py`，只启动一次并确认 6185 一个监听。
+- **不要给 `tools` 写权限**：SnowLuma 日志在 `SnowLuma\logs`。
+
+完整命令：[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。
+
+## WebUI 邮箱与 SMTP 字段说明（首次配置）
+
+CBS WebUI（`http://127.0.0.1:8765`）使用**预配置管理员邮箱 + 邮件验证码**，没有注册页。
+AstrBot WebUI（`http://127.0.0.1:6185`）使用用户名/密码，不需要这个邮箱。
+
+| 字段 | 含义 | 示例/注意 |
+|---|---|---|
+| **WebUI 邮箱** | 管理员邮箱：登录 CBS WebUI、接收 TOTP 审批和告警邮件；不是机器人 QQ | `admin@example.com` |
+| **SMTP host** | 邮箱服务商的发信服务器 | 163：`smtp.163.com`；Gmail：`smtp.gmail.com` |
+| **SMTP port** | SSL 发信端口。当前邮件组件使用隐式 SSL，必须用 `465` | `465`；当前版本不支持 `587`/STARTTLS |
+| **SMTP 授权码** | 邮箱服务商生成的授权码/应用专用密码，**不是邮箱登录密码**；DPAPI 加密保存，不写日志 | 163“授权码”；Gmail App Password |
+| **SMTP 用户** | 通常与 WebUI 邮箱相同 | `admin@example.com` |
+
+缺失时会发生：
+
+```text
+WebUI 登录验证码发不出去
+TOTP 邮件审批发不出去
+Broker 邮件审批返回 HTTP 503
+Dashboard 顶部红色 Banner
+```
+
+保存位置：
+
+```text
+webui\config.json                          admin_email
+C:\ProgramData\CyberButler\email_secret.json  SMTP/IMAP 授权码，DPAPI 加密
+webui\data\approval-contact.json          WebUI 后续保存的邮箱
+```
+
+WebUI 不会写 `tools\broker_config.json`；High 档 `tools` 保持只读。
+Broker 会把 `approval-contact.json` 作为兜底；两种来源都没有邮箱时返回 503。
+
+> Gmail/Outlook 可能需要服务商特定的 SMTP/IMAP 设置。本版本开放 SMTP host/port；
+> 邮件审批回复使用的 IMAP 默认是 163。非 163 邮箱请先确认收发两端都可用，再依赖邮件审批。
+
+## Community Credits
+
+本项目由社区共同塑造。特别感谢 r/AI_Agents 的 u/Auten、u/Reid Marlow、u/QuanTradin、u/Practical-Craft4967、u/More-Ad7285、u/HeartMaleficent35 提供架构建议与安全审计。
 
 ## 许可证
 
@@ -456,3 +699,4 @@ CI 在每次 push / pull request 时于 Ubuntu 和 Windows 运行同一套测试
 
 AstrBot、SnowLuma、Ollama 等依赖项目仍归各自作者所有，使用前请阅读并遵守其许可证。
 
+**首次配置必填**：在安装器中填写 WebUI 管理员邮箱和 SMTP 授权码。CBS WebUI `8765` 使用邮箱验证码，AstrBot `6185` 使用用户名/密码；邮箱缺失时 dashboard 顶部会显示红色警告，而不是静默失败。

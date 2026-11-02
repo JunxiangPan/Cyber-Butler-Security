@@ -50,7 +50,7 @@
     "auth.error.network": "네트워크에 이상이 있습니다. 나중에 다시 시도해 주세요.",
     "auth.error.sendFailed": "인증 코드를 전송하지 못했습니다. 나중에 다시 시도해 주세요.",
     "auth.error.rate": "요청이 너무 잦습니다. 나중에 다시 시도해 주세요.",
-    "auth.error.mailer": "인증 코드를 전송하지 못했습니다. 나중에 다시 시도해 주세요.",
+    "auth.error.mailer": "확인 이메일을 보내지 못했습니다. SMTP 인증 코드와 OTP Mailer(8766 포트)를 확인하세요.",
     "auth.resendCountdown": "재전송({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "돌아온 것을 환영합니다.",
@@ -163,6 +163,8 @@
     "email.subject": "[사이버버틀러] 웹 로그인 인증코드",
     "email.body": "귀하의 Cyber-Butler 웹 로그인 인증 코드는 다음과 같습니다: {code}\n\n{minutes}분 동안 유효하며 한 번만 사용할 수 있습니다.\n귀하가 시작한 로그인이 아닌 경우 이 이메일을 무시하고 이메일 보안을 확인하십시오.",
     "dash.logout": "로그아웃",
-    "dash.tabs": "패널 전환"
+    "dash.tabs": "패널 전환",
+    "auth.email_unknown": "설치 중 구성한 관리자 메일이 아닙니다.",
+    "auth.error.rateWait": "요청이 너무 많습니다. {seconds}초 후에 다시 시도하세요."
   }
 }

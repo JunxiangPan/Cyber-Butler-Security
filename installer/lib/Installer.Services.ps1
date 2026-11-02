@@ -88,16 +88,41 @@ function Get-CyberButlerServiceSpecs {
     $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     $launcher = Join-Path $rootFull 'tools\CyberButlerLauncher.exe'
+    $astrbotStart = Join-Path $rootFull 'tools\start-astrbot.ps1'
     $astrbotLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.log'
     $webLog = Join-Path $rootFull 'webui\data\webui-service.log'
 
-    $astrbotArgs = '--exe "' + $python + '" --workdir "' + (Join-Path $rootFull 'AstrBot') + '" --args "main.py" --hidden --wait --log "' + $astrbotLog + '"'
-    $webArgs = '--exe "' + $webPython + '" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "run.py" --hidden --wait --log "' + $webLog + '"'
+    # The wrapper supplies a known one-time AstrBot dashboard password and
+    # lets us display it in the post-install window. It still starts main.py
+    # from the AstrBot directory with the same interpreter.
+    # Prefer the direct Python entry point. The previous PowerShell wrapper
+    # was an unverified failure path (AstrBot exit 0x2) and is not required for
+    # the known password now written into cmd_config.json by the installer.
+    # A visible console can appear when Task Scheduler starts python.exe.
+    # Start python.exe through the hidden launcher; stdout/stderr are redirected
+    # so AstrBot's startup logs and initial credentials are preserved.
+    $astrbotOutLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.out.log'
+    $astrbotErrLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.err.log'
+    $astrbotArgs = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"run-python-hidden.ps1\" -Python \"{1}\" -Script \"main.py\" -WorkDir \"{2}\" -StdOut \"{3}\" -StdErr \"{4}\"" --hidden --wait --log "{5}"' -f (Join-Path $rootFull 'tools'), $python, (Join-Path $rootFull 'AstrBot'), $astrbotOutLog, $astrbotErrLog, $astrbotLog)
+    # Launch the wrapper, not bare run.py: the wrapper starts both WebUI
+    # (8765) and OTP Mailer (8766). The previous task never started 8766,
+    # so WebUI login always failed with "verification mail failed".
+    $webArgs = '--exe "powershell.exe" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
 
     return @(
         [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 }
+        [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
+        [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $webPythonw; args = 'otp_mailer.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 },
+        [pscustomobject]@{
+            name = 'SnowLuma Startup'
+            exe = $launcher
+            args = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools\start-snowluma.ps1'))
+            workdir = (Join-Path $rootFull 'tools')
+            principal = 'desktop'
+            trigger = 'AtLogOn'
+            port = 0
+        }
     )
 }
 
@@ -182,7 +207,7 @@ function Test-CyberButlerServices {
         })
     }
     $result['tasks'] = $taskRows.ToArray()
-    $result['ports'] = Test-CyberButlerPortHealth -Ports @($specs | ForEach-Object { [int]$_.port })
+    $result['ports'] = Test-CyberButlerPortHealth -Ports @($specs | Where-Object { [int]$_.port -gt 0 } | ForEach-Object { [int]$_.port })
     $result['satisfied'] = (@($result['tasks'] | Where-Object { -not ($_.exists -and $_.principal_ok) }).Count -eq 0) -and
         (@($result['ports'] | Where-Object { -not $_.healthy }).Count -eq 0)
     if (-not $result['satisfied']) { $result['reason'] = 'service-task-or-port-not-ready' }
@@ -221,19 +246,40 @@ function New-CyberButlerScheduledTask {
     $principalSpec = Get-CyberButlerTaskPrincipalSpec -PrincipalMode $PrincipalMode -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount
     Write-Host ('SERVICE registering ' + $Name + ' as ' + $principalSpec.user_id + ' (' + $principalSpec.logon_type + ')')
     $principal = New-ScheduledTaskPrincipal -UserId $principalSpec.user_id -LogonType $principalSpec.logon_type -RunLevel $principalSpec.run_level
-    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+    $settings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
     try {
         Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger -Principal $principal -Settings $settings -Force | Out-Null
     } catch {
         $s4uError = $_.Exception.Message
-        if ($principalSpec.logon_type -eq 'S4U' -and $ServiceAccountPassword) {
-            try {
-                Write-Host ('SERVICE S4U registration denied for ' + $Name + '; retrying with password logon.')
-                Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger `
-                    -User $principalSpec.user_id -Password $ServiceAccountPassword -RunLevel $principalSpec.run_level `
-                    -Settings $settings -Force | Out-Null
-            } catch {
-                throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U and password fallback): ' + $s4uError + ' / ' + $_.Exception.Message)
+        if ($principalSpec.logon_type -eq 'S4U') {
+            $effectivePassword = $ServiceAccountPassword
+            if (-not $effectivePassword) {
+                # The account may already exist but its installer password is
+                # unknown (for example a resumed install). Rotate it once and
+                # register with an explicit password instead of leaving the
+                # task unregistered.
+                try {
+                    $localUser = Get-LocalUser -Name $ServiceAccount -ErrorAction Stop
+                    if ($localUser) {
+                        $effectivePassword = New-CyberButlerRandomPassword
+                        $securePassword = ConvertTo-SecureString -String $effectivePassword -AsPlainText -Force
+                        Set-LocalUser -Name $ServiceAccount -Password $securePassword -ErrorAction Stop
+                    }
+                } catch {
+                    Write-Host ('SERVICE password fallback could not rotate ' + $ServiceAccount + ': ' + $_.Exception.Message)
+                }
+            }
+            if ($effectivePassword) {
+                try {
+                    Write-Host ('SERVICE S4U registration denied for ' + $Name + '; retrying with password logon.')
+                    Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger `
+                        -User $principalSpec.user_id -Password $effectivePassword -RunLevel $principalSpec.run_level `
+                        -Settings $settings -Force | Out-Null
+                } catch {
+                    throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U and password fallback): ' + $s4uError + ' / ' + $_.Exception.Message)
+                }
+            } else {
+                throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U): ' + $s4uError)
             }
         } else {
             throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', LogonType=' + $principalSpec.logon_type + '): ' + $s4uError)
@@ -338,16 +384,115 @@ function Set-CyberButlerServiceTasks {
             }
         } catch { }
     }
-    $ports = @($specs | ForEach-Object { [int]$_.port })
-    if (@($specs | Where-Object { $_.principal -eq 'service' }).Count -gt 0) {
-        # S4U registration can fail until Task Scheduler has observed the new
-        # account and its LSA rights. Refresh it once before registration.
+    $ports = @($specs | Where-Object { [int]$_.port -gt 0 } | ForEach-Object { [int]$_.port })
+    $dataDir = Join-Path $Root 'data'
+    New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+    $oneBotTokenFile = Join-Path $dataDir 'onebot-reverse-token.txt'
+    $oneBotToken = ''
+    $astrbotConfigPath = Join-Path $Root 'AstrBot\data\cmd_config.json'
+    if (Test-Path -LiteralPath $astrbotConfigPath) {
         try {
-            Restart-Service -Name Schedule -Force -ErrorAction Stop
-            Start-Sleep -Seconds 2
+            $astrbotCfgObject = Get-Content -LiteralPath $astrbotConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $platform0 = @($astrbotCfgObject.platform)[0]
+            if ($platform0 -and $platform0.ws_reverse_token) { $oneBotToken = [string]$platform0.ws_reverse_token }
+        } catch { }
+    }
+    if (-not $oneBotToken -and (Test-Path -LiteralPath $oneBotTokenFile)) {
+        try { $oneBotToken = (Get-Content -LiteralPath $oneBotTokenFile -Raw -Encoding UTF8).Trim() } catch { }
+    }
+    if (-not $oneBotToken) {
+        $tokenBytes = New-Object byte[] 32
+        $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+        try { $rng.GetBytes($tokenBytes) } finally { $rng.Dispose() }
+        $oneBotToken = -join ($tokenBytes | ForEach-Object { $_.ToString('x2') })
+    }
+    Set-Content -LiteralPath $oneBotTokenFile -Value $oneBotToken -Encoding ASCII -NoNewline
+    if (Test-Path -LiteralPath $astrbotConfigPath) {
+        try {
+            $astrbotCfgObject = Get-Content -LiteralPath $astrbotConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $platform0 = @($astrbotCfgObject.platform)[0]
+            if ($platform0 -and -not $platform0.ws_reverse_token) {
+                $platform0 | Add-Member -NotePropertyName ws_reverse_token -NotePropertyValue $oneBotToken -Force
+                $astrbotCfgObject | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $astrbotConfigPath -Encoding UTF8
+            }
+        } catch { }
+    }
+    # Keep an existing SnowLuma OneBot config aligned when it is already present.
+    # If the user has never added the reverse-WS client, add it automatically;
+    # otherwise 6199 only listens and QQ messages never reach AstrBot.
+    foreach ($snowCfg in @(Get-ChildItem -LiteralPath (Join-Path $Root 'SnowLuma\config') -Filter 'onebot_*.json' -File -ErrorAction SilentlyContinue)) {
+        try {
+            $snow = Get-Content -LiteralPath $snowCfg.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+            $clients = @($snow.networks.wsClients)
+            $match = @($clients | Where-Object { $_ -and ([string]$_.url -match '127\.0\.0\.1:6199') })
+            if ($match.Count -eq 0) {
+                $newClient = [pscustomobject][ordered]@{
+                    name = 'astrbot-reverse'
+                    accessToken = $oneBotToken
+                    messageFormat = 'array'
+                    reportSelfMessage = $false
+                    url = 'ws://127.0.0.1:6199/ws'
+                    role = 'Universal'
+                    reconnectIntervalMs = 3000
+                }
+                if ($null -eq $snow.networks.PSObject.Properties['wsClients']) {
+                    $snow.networks | Add-Member -NotePropertyName wsClients -NotePropertyValue @($newClient) -Force
+                } else {
+                    $snow.networks.wsClients = @($clients) + $newClient
+                }
+                $snow | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $snowCfg.FullName -Encoding UTF8
+            } else {
+                foreach ($client in $match) { $client.accessToken = $oneBotToken }
+                $snow | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $snowCfg.FullName -Encoding UTF8
+            }
+        } catch { }
+    }
+    $astrbotPasswordDir = Join-Path $Root 'AstrBot\data\logs'
+    $astrbotPasswordFile = Join-Path $astrbotPasswordDir 'initial-admin-password.txt'
+    New-Item -ItemType Directory -Path $astrbotPasswordDir -Force | Out-Null
+    if (-not (Test-Path -LiteralPath $astrbotPasswordFile)) {
+        # Guarantee the AstrBot complexity classes (upper/lower/digit/symbol)
+        # instead of relying on a random draw that could theoretically miss one.
+        $initialPassword = 'Cbs-' + [guid]::NewGuid().ToString('N').Substring(0, 10) + '-Aa1!'
+        Set-Content -LiteralPath $astrbotPasswordFile -Value $initialPassword -Encoding UTF8 -NoNewline
+    } else {
+        $initialPassword = (Get-Content -LiteralPath $astrbotPasswordFile -Raw -Encoding UTF8).Trim()
+    }
+    $astrbotConfig = Join-Path $Root 'AstrBot\data\cmd_config.json'
+    $astrbotPasswordScript = Join-Path $Root 'tools\seed_astrbot_dashboard.py'
+    $astrbotPython = Join-Path $Root 'AstrBot\.venv\Scripts\python.exe'
+    if ((Test-Path -LiteralPath $astrbotConfig) -and (Test-Path -LiteralPath $astrbotPasswordScript) -and (Test-Path -LiteralPath $astrbotPython)) {
+        try {
+            & $astrbotPython $astrbotPasswordScript $Root $initialPassword
+            if ($LASTEXITCODE -ne 0) { Write-Host ('AstrBot password pre-seed exit ' + $LASTEXITCODE) }
         } catch {
-            Write-Host ('Task Scheduler refresh warning: ' + $_.Exception.Message)
+            Write-Host ('AstrBot password pre-seed warning: ' + $_.Exception.Message)
         }
+    }
+    if (@($specs | Where-Object { $_.principal -eq 'service' }).Count -gt 0) {
+        # Task Scheduler must be reachable before registering a service task.
+        # Restart-Service on a protected Schedule service produced a misleading
+        # warning and did not ensure it was running; use a controlled check.
+        $scheduleService = Get-Service -Name Schedule -ErrorAction SilentlyContinue
+        if (-not $scheduleService) {
+            throw 'Task Scheduler service (Schedule) was not found; services cannot be installed.'
+        }
+        if ($scheduleService.Status -ne 'Running') {
+            try {
+                Start-Service -Name Schedule -ErrorAction Stop
+                $scheduleService.WaitForStatus('Running', [TimeSpan]::FromSeconds(10))
+            } catch {
+                throw ('Task Scheduler service (Schedule) is not running and could not be started: ' + $_.Exception.Message)
+            }
+        }
+    }
+    # Stale listeners from an older install can keep 6185/18090 owned while
+    # Task Scheduler launches a second tree. Stop only processes whose command
+    # line points at this install root.
+    $stoppedBeforeApply = @(Stop-CyberButlerInstallProcesses -Root $Root -Ports $ports)
+    if ($stoppedBeforeApply.Count -gt 0) {
+        Write-Host ('SERVICE stopped stale listeners: ' + ($stoppedBeforeApply -join ', '))
+        Start-Sleep -Seconds 2
     }
     $beforePids = @(Get-CyberButlerPortOwnerIds -Ports $ports)
     $created = New-Object System.Collections.Generic.List[object]
@@ -578,7 +723,7 @@ function Format-CyberButlerServiceAssertion {
             $parts.Add('task missing')
         } elseif (-not $task.principal_ok) {
             $parts.Add('principal mismatch')
-        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00000000') {
+        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00000000' -and [string]$task.name -ne 'SnowLuma Startup') {
             $parts.Add('task exited immediately')
         } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00041301') {
             $parts.Add('task is running (LastTaskResult=0x00041301)')

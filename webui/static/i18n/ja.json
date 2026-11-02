@@ -50,7 +50,7 @@
     "auth.error.network": "ネットワークに異常があります。しばらくしてからもう一度お試しください。",
     "auth.error.sendFailed": "確認コードの送信に失敗しました。しばらくしてからもう一度お試しください。",
     "auth.error.rate": "リクエストの頻度が多すぎます。後でもう一度お試しください。",
-    "auth.error.mailer": "確認コードの送信に失敗しました。しばらくしてからもう一度お試しください。",
+    "auth.error.mailer": "確認メールを送信できません。SMTP 認証コードと OTP Mailer（8766 ポート）を確認してください。",
     "auth.resendCountdown": "再送信({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "おかえり。",
@@ -163,6 +163,8 @@
     "email.subject": "【サイバーバトラー】Webログイン認証コード",
     "email.body": "Cyber-Butler Web ログイン認証コードは次のとおりです: {code}\n\n{minutes} 分間有効で、1 回のみ使用できます。\nこれがあなた自身によるログインではない場合は、この電子メールを無視して、電子メールのセキュリティを確認してください。",
     "dash.logout": "ログアウト",
-    "dash.tabs": "パネル切替"
+    "dash.tabs": "パネル切替",
+    "auth.email_unknown": "インストール時に設定した管理者メールではありません。",
+    "auth.error.rateWait": "リクエストが多すぎます。{seconds} 秒後にもう一度お試しください。"
   }
 }

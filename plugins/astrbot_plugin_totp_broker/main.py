@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """TOTP-gated destructive file action broker bridge (HTTP)."""
 
 from __future__ import annotations
@@ -18,7 +18,17 @@ TRUSTED_QQ = "YOUR_QQ_ID"
 ROOT = Path(__file__).resolve().parents[4]
 TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
 BROKER_URL = "http://127.0.0.1:18090"
-PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
+PRIVATE_UMO = "QQ:FriendMessage:YOUR_QQ_ID"
+
+
+def _is_owner_umo(value: str) -> bool:
+    parts = str(value or "").split(":", 2)
+    return (
+        len(parts) == 3
+        and parts[1] == "FriendMessage"
+        and parts[2] == TRUSTED_QQ
+        and parts[0].casefold() in {"qq", "qq_sujinyan", "default"}
+    )
 
 
 @register(
@@ -184,7 +194,7 @@ class TotpBrokerPlugin(Star):
     @filter.on_llm_request(priority=90)
     async def inject_policy(self, event: AstrMessageEvent, req) -> None:
         umo = str(getattr(event, "unified_msg_origin", "") or "")
-        if umo != PRIVATE_UMO:
+        if not _is_owner_umo(umo):
             return
         prompt = getattr(req, "system_prompt", "") or ""
         policy = (
@@ -200,7 +210,7 @@ class TotpBrokerPlugin(Star):
         if str(event.get_sender_id() or "") != TRUSTED_QQ:
             return
         umo = str(getattr(event, "unified_msg_origin", "") or "")
-        if umo != PRIVATE_UMO:
+        if not _is_owner_umo(umo):
             return
         text = str(event.get_message_str() if hasattr(event, "get_message_str") else getattr(event, "message_str", "") or "").strip()
         match = re.fullmatch(

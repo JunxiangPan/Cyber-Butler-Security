@@ -30,6 +30,7 @@
 
   const CODE_KEYS = {
     "auth.rate_limited": "auth.error.rate",
+    "auth.email_unknown": "auth.email_unknown",
     "auth.mailer_failed": "auth.error.mailer",
     "auth.invalid_code": "auth.error.codeInvalid",
     "auth.otp_sent": "auth.status.sent",
@@ -117,7 +118,10 @@
         const mapped = codeKey(data);
         if (mapped) setStatus(mapped, null, "error");
         else if (data && data.message) setStatusFromResponse(data, "auth.error.sendFailed", "error");
-        else if (response.status === 429) setStatus("auth.error.rate", null, "error");
+        else if (response.status === 429) {
+          const wait = Number(data && data.retry_after) || 60;
+          setStatus("auth.error.rateWait", { seconds: i18n.number(wait) }, "error");
+        }
         else setStatus("auth.error.sendFailed", null, "error");
         return;
       }

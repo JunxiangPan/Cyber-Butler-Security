@@ -1,4 +1,4 @@
-# Bundled Python 3.13 bootstrap for the Cyber-Butler installer.
+﻿# Bundled Python 3.13 bootstrap for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerPythonTargetPath {
@@ -18,6 +18,55 @@ function Get-CyberButlerPythonSourceConfig {
     $config = Get-Content -LiteralPath $CoreSourcesPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($null -eq $config.python) { throw 'Python source entry missing from core-sources.json.' }
     return $config.python
+}
+
+function Get-CyberButlerExistingSystemPython {
+    $paths = New-Object System.Collections.Generic.List[string]
+    if ($env:LOCALAPPDATA) {
+        foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
+            $paths.Add((Join-Path $env:LOCALAPPDATA ('Programs\Python' + $version + '\python.exe')))
+        }
+    }
+    foreach ($root in @('C:\Python313', 'C:\Python312', 'C:\Python311', 'C:\Python310',
+                       'C:\Program Files\Python313', 'C:\Program Files\Python312',
+                       'C:\Program Files\Python311', 'C:\Program Files\Python310')) {
+        $paths.Add((Join-Path $root 'python.exe'))
+    }
+    try {
+        foreach ($profile in @(Get-ChildItem -LiteralPath 'C:\Users' -Directory -ErrorAction SilentlyContinue)) {
+            foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
+                $paths.Add((Join-Path $profile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
+            }
+        }
+    } catch { }
+    foreach ($tree in @('HKCU:\Software\Python\PythonCore\3.13\InstallPath',
+                        'HKLM:\Software\Python\PythonCore\3.13\InstallPath',
+                        'HKLM:\Software\WOW6432Node\Python\PythonCore\3.13\InstallPath')) {
+        try {
+            $value = (Get-ItemProperty -LiteralPath $tree -ErrorAction Stop).'(default)'
+            if ($value) { $paths.Add((Join-Path ([string]$value) 'python.exe')) }
+        } catch { }
+    }
+    foreach ($path in $paths) {
+        if ([string]::IsNullOrWhiteSpace([string]$path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+        try {
+            $version = (& $path --version 2>&1 | Out-String).Trim()
+            $probe = (& $path -c "import sys; print(sys.executable)" 2>$null | Out-String).Trim()
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($probe)) { continue }
+            $pip = $false
+            & $path -m pip --version 2>&1 | Out-Null
+            $pip = ($LASTEXITCODE -eq 0)
+            if ($version -match 'Python\s+3\.(1[0-3])\.' -and $pip) {
+                return [pscustomobject]@{
+                    found = $true
+                    path = [IO.Path]::GetFullPath($probe)
+                    version = $version
+                    python_source = 'system'
+                }
+            }
+        } catch { }
+    }
+    return [pscustomobject]@{ found = $false }
 }
 
 function Test-CyberButlerBundledPython {
@@ -103,6 +152,17 @@ function Invoke-CyberButlerPythonBootstrap {
         }
     }
 
+    # Reuse a valid per-user/system interpreter before touching the Python
+    # bootstrapper. This avoids the per-user vs per-machine MSI conflict.
+    $systemPython = if (-not $PythonPackage -and -not $PythonSha256) { Get-CyberButlerExistingSystemPython } else { [pscustomobject]@{ found = $false } }
+    if ($systemPython.found) {
+        return [pscustomobject]@{
+            status = 'skipped'; reason = 'valid system/per-user Python reused'
+            python_source = 'system'; python_path = $systemPython.path
+            python_version = $systemPython.version; created = $false
+        }
+    }
+
     $root = [IO.Path]::GetFullPath($InstallPath)
     New-Item -ItemType Directory -Path $root -Force | Out-Null
     $targetRoot = Join-Path $root '.python'
@@ -155,11 +215,28 @@ function Invoke-CyberButlerPythonBootstrap {
         }
 
         Write-Host 'PYTHON installing Python 3.13 into .python (this may take several minutes)...'
-        $arguments = '/quiet InstallAllUsers=0 TargetDir="' + $targetRoot + '" Include_pip=1 Include_launcher=0 Include_test=0 PrependPath=0 Shortcuts=0 AssociateFiles=0'
-        $process = Start-Process -FilePath $staging -ArgumentList $arguments -Wait -PassThru
-        if ($process.ExitCode -notin @(0, 3010)) { throw ('Python installer exit code ' + $process.ExitCode) }
+        $pythonLog = Join-Path $root 'python-install.log'
+        # InstallAllUsers=1 is required for a reliable custom TargetDir on a
+        # clean Windows image; InstallAllUsers=0 can silently install into the
+        # current user's profile. Keep the official installer log for support.
+        $arguments = '/quiet InstallAllUsers=0 TargetDir="' + $targetRoot + '" Include_pip=1 Include_launcher=0 Include_test=0 PrependPath=0 Shortcuts=0 AssociateFiles=0 /log "' + $pythonLog + '"'
+        $process = Start-Process -FilePath $staging -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+        if ($process.ExitCode -notin @(0, 3010)) {
+            throw ('Python installer exit code ' + $process.ExitCode + '; log: ' + $pythonLog)
+        }
+
+        # Some Windows installer bootstrappers return before the MSI payload is
+        # fully observable. Poll briefly instead of reporting a false missing.
+        $pythonExe = Get-CyberButlerPythonTargetPath -InstallPath $root
+        $deadline = (Get-Date).AddSeconds(90)
+        while (-not (Test-Path -LiteralPath $pythonExe -PathType Leaf) -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds 2
+        }
 
         $verified = Test-CyberButlerBundledPython -InstallPath $root
+        if (-not $verified.found) {
+            throw ('Bundled Python verification failed: missing at ' + $pythonExe + '; installer log: ' + $pythonLog)
+        }
         if (-not $verified.found -or -not $verified.version_ok -or -not $verified.pip_ok) {
             throw ('Bundled Python verification failed: ' + $verified.reason)
         }

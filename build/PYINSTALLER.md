@@ -1,5 +1,8 @@
 # PyInstaller policy
 
+> v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
+
+
 This repository does not currently ship a PyInstaller `.spec`. The native
 launcher in `build/CyberButlerLauncher.cs` is built by `build/build-launcher.ps1`
 with the in-box C# compiler; Python services run from their venv.

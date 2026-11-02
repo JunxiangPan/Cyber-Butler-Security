@@ -1,16 +1,61 @@
 ﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
+## ✅ Test Coverage / 测试覆盖声明
+
+✅ **High tier**: full real-machine end-to-end test completed — install, service startup, TOTP, SCOPED, and uninstall.
+
+⚠️ **Medium tier**: multiple partial tests completed; it is very likely usable, but the complete end-to-end flow has not been accepted on a real machine.
+
+❌ **Light (minimal) tier**: no complete real-machine test has been performed yet; assess the risk yourself before using it.
+
+This declaration applies to the v1.6.1 release. It is not a security certification.
+
+
 [![Latest release](https://img.shields.io/github/v/release/JunxiangPan/Cyber-Butler-Security?label=latest)](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
 ## Latest Release
 
-The latest signed build is available from
+The latest build is available from
 [GitHub Releases](https://github.com/JunxiangPan/Cyber-Butler-Security/releases/latest).
+This v1.6.1 build has a detached RSA-3072 manifest signature; verify the signature and SHA-256 before installing.
 
 Download `public-release-v<version>.zip`, `update-manifest.json`, and
 `update-manifest.sig`. Verify the manifest and signature before applying an
 update; never mix a new manifest with a signature produced by the retired key.
+
+## 🔐 Verify the release signature
+
+Download **three assets** from the release page:
+
+```text
+public-release-v<version>.zip
+update-manifest.json
+update-manifest.sig
+tools/update_pubkey.pem   (inside the zip, or from the repository)
+```
+
+Then, from the extracted release tree:
+
+```powershell
+python tools/verify_release.py `
+  --manifest update-manifest.json `
+  --signature update-manifest.sig `
+  --pubkey tools/update_pubkey.pem
+```
+
+Expected output:
+
+```text
+VALID
+```
+
+If `update-manifest.sig` is absent, the build is unsigned. If the result is
+`INVALID`, `signature missing`, or the manifest version does not match the zip,
+**do not install**. A valid signature proves possession of the
+pinned private key; it does not prove the absence of malware.
+
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (for AI agents)
 
@@ -34,7 +79,7 @@ update; never mix a new manifest with a signature produced by the retired key.
 
 ---
 
-# Cyber Steward — Defensive Security Sandbox for Self-Hosted LLM Agents
+# Cyber-Butler Security (CBS) — Defensive Security Control Plane for Self-Hosted LLM Agents
 
 > A Windows-first, self-hosted QQ agent architecture: dual-account isolation, GPU/VRAM scheduling, a high-risk action broker, TOTP verification, file-egress controls, and daily auditing.
 
@@ -42,11 +87,157 @@ update; never mix a new manifest with a signature produced by the retired key.
 
 > **This project is not affiliated with, endorsed by, or sponsored by Tencent, QQ, AstrBot, or SnowLuma.**
 
-## What Changed in v1.6.0
+## Why This Matters in the Super-agent Era
+
+Persistent autonomous agents such as DeepSeek Super-agent are moving from
+single-turn chat into always-on operators that can read files, call tools, and
+keep working across sessions. The mainstream security guidance for that model is
+straightforward: run the agent under a separate OS account with the least
+privilege it needs, isolate its data, and put a human approval boundary in front
+of destructive actions.
+
+Doing that by hand is painful on Windows: local accounts, ACLs, scheduled tasks,
+service identities, TOTP enrollment, loopback-only endpoints, audit trails, and
+an installer that can roll back. CBS packages those steps into one installer.
+It does not replace the OS boundary; it makes the boundary deployable and
+auditable, and it adds a cross-ecosystem control plane that official chat, model,
+or agent vendors do not own.
+
+## What Changed in v1.6.1
+
+**Scoped Tokens (30-minute Directory Authorization)**: after a TOTP approval the
+owner can reply `SCOPED 30`. The Broker issues an in-memory token bound to the
+approved target's canonical directory, valid for 30 minutes, and only for
+`delete`, `overwrite`, and `write_file` inside the shared scratch or tmp trees.
+It is never valid for memory/config, the TOTP vault, file egress, or a sibling
+directory. This removes repeated TOTP prompts during batch work without turning
+into a global bypass. See [SECURITY.md](SECURITY.md) §15.
+
+**Job Object Process Tree Isolation**: the Broker creates a Windows Job Object
+with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` and assigns itself before it spawns any
+child. PowerShell, icacls, and other descendants inherit the job; if the Broker
+crashes or is force-killed, Windows terminates the tree. AstrBot is a separate
+scheduled task and is not covered by this job (see Honest Gaps).
+
+**DSH / Cordis Plugin Support**: the separate `dsh-cbs-gate` TypeScript bundle
+hooks `tools/pre-execute` in DSH, forwards high-risk calls to
+`POST /api/request_approval`, waits for TOTP through
+`/api/request_approval/status`, and caches the returned scoped token for the next
+call in the same directory. It is approval-only: the Broker authorizes, DSH
+executes the original tool. Read-only tools pass through; `edit` and shell tools
+are deliberately refused.
+
+**Installer and launcher cleanup**: `START-INSTALLER.exe` is a signed-ready
+native C# launcher; the old `.vbs`, `wscript.exe`, and `.cmd` launch chain is
+gone. The installer now validates the dashboard script before finishing and
+preserves the official dashboard-module hashes.
+
+## Complete v1.6.1 Feature Inventory
+
+### 1. Installer and deployment experience
+
+- **WPF visual installer**: one GUI for High / Medium / Light, with install
+  path, owner QQ, WebUI bind, optional API-key file, and optional personal
+  plugin source.
+- **Eight-language interface**: the main window, dialogs, status panel,
+  uninstall prompts, and help content use the same eight README languages
+  (zh/en/de/es/fr/ja/ko/ru). New Defender guidance is translated for zh/en and
+  falls back to English for the other six locales.
+- **No console and no script launcher**: `START-INSTALLER.exe` is the native
+  C# entry point; the old `wscript.exe`, `.vbs`, and `.cmd` launch chain is gone.
+  Services use `pythonw.exe` or the native launcher, never a hidden VBS host.
+- **Progress and diagnostics**: monotonic progress, elapsed/current/total ETA,
+  current stage, PID/CPU/working-set details, and a copyable status window that
+  refreshes during installation.
+- **Persistent failure report**: a failed install writes
+  `C:\ProgramData\CyberButler\installer-report\install-report.json` (plus
+  a sanitized log) before rollback, so the report survives cleanup.
+- **Defender allowlist guidance**: optional, default-off checkbox; the helper
+  accepts only `C:\CyberButler` and calls `Add-MpPreference -ExclusionPath`.
+  It never disables real-time protection, SmartScreen, or broad drives.
+- **Scoped uninstall**: package-only, project-only, or both; stops processes,
+  removes firewall rules and scheduled tasks, and preserves failure reports.
+- **High-tier fixes**: S4U registration is still not universally available;
+  when it is denied the installer falls back to password logon. User rights are
+  written through the Windows LSA API rather than `secedit`, and the runtime
+  Python/venv is placed where the service account can read it.
+
+### 2. Broker and runtime protection
+
+- **Job Object process-tree containment**: `KILL_ON_JOB_CLOSE` is set before any
+  child starts; the Broker joins the job, descendants inherit it, and Windows
+  kills the remaining tree when the Broker dies. AstrBot is a separate task and
+  is not automatically included.
+- **Approval-only mode**: `/api/request_approval` accepts
+  `approval_only: true`. TOTP changes approval state only; the Broker does not
+  execute the file action. DSH executes its original tool after `approved`.
+- **Scoped Token (30 minutes)**: owner replies `<code> SCOPED 30`; the Broker
+  issues an in-memory token bound to the target directory for 30 minutes, only
+  for `delete`, `overwrite`, and `write_file` in SHARED or TMP_ROOTS. It never
+  applies to memory/config, `totp-vault`, `send`, or a sibling directory.
+- **30-second bypass**: `<code> BYPASS 30` allows repeated actions in the same
+  action/directory context without turning into a global bypass.
+- **UIPI defensive logging**: `UIPI_BLOCKED_GUI_INTERACTION` and
+  `guard_gui_result()` are available for future AppContainer/restricted-token
+  GUI paths. There is no real GUI bridge in the current build, so this is a
+  hook, not proof of coverage.
+- **Audit**: JSONL records the action, result, scoped flag,
+  `Scoped via 30-minute Directory Token`, and `auto_executed: false`. Raw tokens
+  and TOTP codes are never written.
+
+### 3. Ecosystem and plugin integration
+
+- **DSH / Cordis `dsh-cbs-gate`**: intercepts `tools/pre-execute`; read tools
+  pass through; `write` maps to `write_file`; `delete_file` maps to `delete`.
+  `edit`, `execute_shell`, `ops_bash`, and `pwsh` are **refused/blocked**.
+- **SafeToolExecutor**: broker-token header, approval-only request, one-second
+  status polling, fail-closed behavior, scoped-token cache, and cache clearing
+  on `scoped_invalid`.
+- **AstrBot native plugin**: accepts `SCOPED 30` and `BYPASS 30` suffixes and
+  stores the returned token in process memory.
+- **WebUI hardening**: default Loopback binding; non-loopback choices are
+  checked against firewall/network profile expectations and refused or warned
+  according to tier.
+
+### 4. Release engineering and network boundary
+
+- **RSA-3072 release signing**: pinned `tools/update_pubkey.pem`,
+  `tools/sign_release.py`, and `tools/verify_release.py`; the private key is
+  kept outside the repository under an administrator/SYSTEM ACL.
+- **Pinned AstrBot overlay**: AstrBot 4.29.3 with official-file hashes and
+  explicit local-only entries; fork drift is rejected by the overlay checks.
+- **Personal plugin decoupling**: no default bundling; only
+  `-PersonalPluginsPath` copies the three optional plugins.
+
+### 5. Tests
+
+- **Pester: 144 passed / 0 failed**, covering ACL, service registration, and
+  environment setup.
+- **Pytest: 95 passed**, covering TOTP/replay, scoped-token directory binding and
+  expiry, approval-only HTTP flow, audit, Job Object hooks, and UIPI logging.
+
+## v1.6.0 → v1.6.1 Delta
+
+| Area | v1.6.0 | v1.6.1 |
+|---|---|---|
+| Installer | unified PowerShell CLI; no WPF front-end; no `README-INSTALL.md` | WPF GUI, tier/path/API-key/owner fields, ETA/status, persistent report |
+| Launchers | five `.vbs` files under `tools/`; WSH/wscript path | native `START-INSTALLER.exe` / `CyberButlerLauncher.exe`; 0 VBS, 0 CMD |
+| Broker | 33,596-byte broker with execute-on-approval only | 66,233-byte broker with Job Object, approval-only, `/api/request_approval`, status, scoped tokens, bypass, UIPI hook |
+| DSH | no bridge | separate `dsh-cbs-gate` with pre-execute, polling, cache |
+| Dashboard | no pre-install syntax gate / module-hash protection | installer validates dashboard syntax; official module hashes preserved |
+| ACL | High/Medium/Light split | additional knowledge_base/site-packages handling, plugins read-only, exact runtime paths |
+| Release package | previous release | the final file/entry counts published with the release assets |
+| Tests | lower baseline | 144 Pester + 95 pytest |
+| Docs | English/Chinese-centric; no v1.6.1 status page | eight languages + `docs/STATUS_v1.6.1.md` + full release inventory |
+
+The full shipped/incomplete/non-guaranteed list remains
+[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
+
+### v1.6.0 baseline
 
 **Unified installer**: High, Medium, and Light now share one installation pipeline.
 
-**Three managed services**: AstrBot, the TOTP Broker, and Web UI are registered as scheduled tasks; OTP Mailer is no longer an independent task.
+**Four startup tasks**: AstrBot, the TOTP Broker, Web UI, and SnowLuma Startup are registered as scheduled tasks; OTP Mailer is no longer an independent task. SnowLuma and QQ remain external dependencies, but the startup task now waits for QQ and enables auto-injection.
 
 **Signed releases**: RSA-3072 manifest signatures and a bundled public key replace the retired release key.
 
@@ -185,7 +376,7 @@ powershell -ExecutionPolicy Bypass -File tools\create_dashboard_shortcut.ps1 -Pr
 ```
 
 The shortcut always targets
-`<ProjectRoot>\tools\cyber_butler_dashboard.vbs`, even when the helper runs from
+`<ProjectRoot>\tools\CyberButlerLauncher.exe`, even when the helper runs from
 the release tree. The running code, the `VERSION` file and the updater
 therefore stay in one install root.
 
@@ -193,7 +384,7 @@ A SYSTEM scheduled task (`LibreHardwareMonitor Watchdog`) probes
 `http://127.0.0.1:18085/data.json` every five minutes and restarts
 LibreHardwareMonitor when it is down. Install it with
 `tools\install_lhm_watchdog.ps1 -ProjectRoot <install root>` from an elevated
-shell; it runs silently through `wscript //B` and starts at boot.
+shell; it runs silently through the native `tools\CyberButlerLauncher.exe` and starts at boot.
 
 The dashboard reads ports, GPU, provider configuration, audit JSONL, persona
 prompt and game lists, and supports the first reviewed write actions through
@@ -268,6 +459,7 @@ flowchart LR
 ├── README_de.md               # German
 ├── README_ru.md               # Russian
 ├── SECURITY.md                # threat model, ACL boundary, TOTP replay, adapter guide
+├── docs/STATUS_v1.6.1.md      # authoritative shipped/incomplete/non-guaranteed list
 ├── LICENSE                    # AGPL-3.0
 ├── .gitignore
 ├── config.pro.example.json    # GPU / local-model profile
@@ -290,6 +482,7 @@ flowchart LR
 │       ├── core/tools/message_tools.py
 │       ├── core/tools/web_search_tools.py
 │       └── dashboard/server.py
+├── dsh-cbs-gate/              # separate Cordis/TypeScript DSH approval bridge (not in CBS zip)
 ├── plugins/                   # custom AstrBot plugins
 │   ├── astrbot_plugin_security_gate/
 │   ├── astrbot_plugin_totp_broker/
@@ -331,8 +524,25 @@ flowchart LR
 - Native AstrBot tools do not execute dangerous file actions directly.
 - Requests go to a loopback-only HTTP Broker with a local token.
 - The Broker sends a one-time TOTP challenge over QQ.
+- After approval the owner may grant a 30-minute Scoped Token for one directory;
+  it is restricted to shared scratch and tmp trees.
 - Deletions go to quarantine; overwrites keep a backup.
-- Every action is written to an audit JSONL.
+- Every action is written to an audit JSONL; scoped approvals carry
+  `Scoped via 30-minute Directory Token`.
+
+### 3.1 Process-tree containment
+
+The Broker runs inside a Job Object with `KILL_ON_JOB_CLOSE`; its children and
+grandchildren inherit the job. This is process-tree containment, not a syscall or
+AppContainer sandbox. AstrBot's independently spawned children are not covered
+until its own launcher creates or joins a Job Object.
+
+### 3.2 DSH approval bridge
+
+`dsh-cbs-gate` is a separate Cordis/TypeScript bundle. It intercepts
+`tools/pre-execute`, uses approval-only requests, polls the Broker status
+endpoint, and caches scoped tokens per executor instance. It never lets the
+Broker execute while DSH is expected to execute the original tool.
 
 ### 4. Tiered File-Egress Control
 
@@ -446,17 +656,50 @@ Covered:
 Not yet covered:
 
 - TOTP for images, voice, and video egress.
-- TOTP for Shell execution.
 - A Windows physical-confirmation dialog.
 - All side effects of third-party plugins.
 
-## Honest Coverage Gap: Python and Shell
+## Honest Gaps
 
-**`astrbot_execute_python` and shell execution can bypass TOTP if they are available.** This release removes `astrbot_execute_python`, `astrbot_execute_ipython`, `astrbot_execute_shell`, and `astrbot_shell_session` from the QQ private `func_tool` set in the `on_llm_request` hook. If another plugin re-adds them, a different agent path exposes them, or a plain-text channel is used, TOTP is not a complete mediation layer.
+**No general-purpose runtime sandbox.** CBS now has real process-tree
+containment (Job Object), ACL separation, a TOTP Broker, and a DSH tool gate.
+Those are meaningful runtime constraints, but they are not an AppContainer,
+restricted-token, EDR, or syscall sandbox.
 
-- Keep `astrbot_execute_python` / shell tools disabled unless the deployment truly needs them.
-- If they must be enabled, treat the agent as having code-execution authority and isolate it with OS-level controls, not with TOTP.
-- Do not describe this project as a complete sandbox for arbitrary tool execution.
+- **AstrBot's children are outside the Broker Job.** AstrBot is an independent
+  scheduled task. Its Python plugins and child processes are not automatically
+  in the Broker's job; a launcher-level Job Object is still required.
+- **Shell and `edit` are refused by the DSH gate, not sandboxed.** They remain
+  blocked because there is no safe mapping to the current Broker contract.
+  AstrBot's own shell/Python tools can bypass TOTP if another plugin re-adds
+  them; keep them disabled or use OS-level isolation.
+- **Scoped tokens are convenience, not a boundary.** A 30-minute token can cover
+  several destructive actions in one directory. Use it only for a dedicated
+  scratch folder, never memory/config, the vault, or a broad home directory.
+- **No third-party audit, formal verification, or signed release yet.** The
+  manifest is signed in this build; SmartScreen/Defender reputation and
+  an independent security review are not provided.
+- **Interactive desktop dependency.** AstrBot and Web UI are still scheduled
+  tasks tied to the desktop session. Logging off can stop them; unattended
+  operation needs auto-logon or a true service model.
+- **No complete TOTP mediation for every channel.** Images, voice, video,
+  third-party plugins, and any new agent path are outside the current gate.
+
+Do not describe CBS as a complete sandbox for arbitrary tool execution.
+
+### What CBS does not guarantee
+
+CBS does **not** guarantee that it cannot be bypassed, that every tool,
+plugin, shell/Python path, GUI action, or egress path is mediated, that an
+autonomous agent cannot cause data or account loss, that a compromised phone,
+QQ account, desktop session, administrator account, or supply chain is
+contained, that Defender/Huorong/360/SmartScreen will not flag the build, or
+that the software is fit for any particular purpose. It is defense-in-depth,
+not a complete security product.
+
+The complete v1.6.1 status — shipped, incomplete, and explicitly not guaranteed —
+is in [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md). If another page disagrees,
+that status page wins for v1.6.1.
 
 ## Security & Reproducible Tests
 
@@ -474,7 +717,7 @@ CI runs the same tests on Ubuntu and Windows for every push and pull request:
 .github/workflows/security-tests.yml
 ```
 
-Included tests (30 total):
+Included tests (72 total):
 
 - explicit ACL deny for the service account (logic model, not kernel ACL);
 - wrong TOTP → HTTP 403 without consuming the pending request;
@@ -484,7 +727,79 @@ Included tests (30 total):
 - unknown chat platforms fail closed.
 - send manifest: no-manifest rejection, outside-folder rejection, tamper 409, full-path prompt;
 - media component collection (Image/Record/Video) and owner fail-closed;
-- global exponential TOTP lockout.
+- global exponential TOTP lockout;
+- scoped token directory binding, expiry, and cross-directory rejection;
+- approval-only status/token flow and scoped audit events;
+- Job Object and UIPI audit hooks.
+
+## Troubleshooting v1.6.1
+
+- **`QQ challenge send failed` / 6199 not `Established`**: start QQ and finish
+  login first; run the packaged `SnowLuma Startup` task; it sets
+  `SNOWLUMA_HOOK_AUTOLOAD=true` and waits for QQ. Check
+  `SnowLuma\logs\startup-snowluma.out.log` for `hook auto-load enabled`.
+- **CBS WebUI asks for an email but there is no sign-up**: configure the
+  installer's `WebUI email` / `SMTP auth code` fields (163 SMTP defaults), or
+  set `webui\config.json` `admin_email` plus the SMTP secret and restart the
+  Web UI task. AstrBot's WebUI at 6185 uses username/password instead.
+- **TOTP remains `pending`**: the owner QQ must be different from the bot QQ;
+  reply exactly `<code> SCOPED 30` within 300 seconds.
+- **`Bot not found ... qq_sujinyan`**: use AstrBot's real platform id (commonly
+  `QQ`) in `<platform-id>:FriendMessage:<owner>`, not the old
+  `qq_sujinyan` prefix.
+- **Security Gate blocks the owner**: its `known_markers` run on
+  `umo.casefold()`, so use lowercase `qq`, delete `__pycache__`, and restart.
+- **Old `YOUR_QQ_ID`**: replace it in `tools\broker.py` and the AstrBot
+  plugins listed in the guide.
+- **6185 conflict / multiple `main.py`**: stop the task, stop all AstrBot
+  `main.py` processes, start once, and require one 6185 listener.
+- **Never grant write access to `tools`**: SnowLuma logs belong under
+  `SnowLuma\logs`.
+
+Full commands and diagnosis: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## WebUI email and SMTP fields (first-run)
+
+The CBS WebUI at `http://127.0.0.1:8765` uses a **preconfigured administrator
+email + email OTP**. It is not a registration page. The AstrBot WebUI at
+`http://127.0.0.1:6185` uses a username/password and does not need this email.
+
+| Field | What it means | Example / notes |
+|---|---|---|
+| **WebUI email** | Administrator mailbox used to log in to CBS WebUI and to receive TOTP approval / alert mail. It is not the bot QQ. | `admin@example.com` |
+| **SMTP host** | Outgoing mail server of the mailbox provider. | `smtp.163.com` (163), `smtp.gmail.com` (Gmail) |
+| **SMTP port** | SSL SMTP port. The current mailer uses implicit SSL, so use `465`. | `465`; port `587`/STARTTLS is not supported by this build |
+| **SMTP auth code** | Provider-issued authorization code / app password, **not** the mailbox login password. Stored with DPAPI, never shown in logs. | 163 “授权码”; Gmail App Password |
+| **SMTP user** | Usually the same address as WebUI email. | `admin@example.com` |
+
+What happens when they are missing:
+
+```text
+WebUI login OTP cannot be sent
+TOTP email approval cannot be sent
+Broker email approval returns HTTP 503
+Dashboard shows a red banner
+```
+
+Storage:
+
+```text
+webui\config.json                         admin_email
+C:\ProgramData\CyberButler\email_secret.json  SMTP/IMAP auth code, DPAPI
+webui\data\approval-contact.json          email saved later from the WebUI
+```
+
+The WebUI never writes `tools\broker_config.json`; High tier keeps `tools`
+read-only. The Broker reads the WebUI contact file as a fallback and returns
+503 if no administrator email exists.
+
+> Gmail/Outlook may need provider-specific SMTP/IMAP settings. This build
+> exposes SMTP host/port; the email-approval IMAP side defaults to 163. For a
+> non-163 mailbox, verify both sides before relying on email approval.
+
+## Community Credits
+
+This project is shaped by the community. Special thanks to u/Auten, u/Reid Marlow, u/QuanTradin, u/Practical-Craft4967, u/More-Ad7285, and u/HeartMaleficent35 from r/AI_Agents for their architectural feedback and security audits.
 
 ## License
 
@@ -493,3 +808,5 @@ This repository is released under the **GNU Affero General Public License v3.0 (
 `overlay/` contains modified files based on AstrBot (AGPL-3.0). Distribution of this repository or modified versions must comply with AGPL-3.0, including source-code availability.
 
 AstrBot, SnowLuma, Ollama, and other dependencies remain the property of their respective authors. Read and comply with their licenses before use.
+
+**Required first-run setup:** enter the WebUI administrator email and the SMTP authorization code in the installer. CBS WebUI `8765` uses email OTP; AstrBot `6185` uses username/password. If the email is missing, the dashboard shows a red banner instead of silently failing.

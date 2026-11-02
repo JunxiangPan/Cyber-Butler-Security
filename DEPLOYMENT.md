@@ -1,5 +1,10 @@
 # Cyber-Butler / 苏瑾言部署与排障交接
 
+## 故障排查入口
+
+如果重启后 6199 未连接、QQ 挑战发送失败、TOTP 一直 pending、AstrBot 6185 冲突或仍看到 `YOUR_QQ_ID`/`qq_sujinyan`，按 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) 处理。
+
+
 > **WARNING:** The Web UI binds to `0.0.0.0`. Its security relies entirely on
 > Windows Firewall. If the firewall rule is disabled, modified, or the network
 > is misclassified as Private, the UI may be exposed to an untrusted network.
@@ -8,6 +13,24 @@
 > **警告：** Web UI 绑定在 `0.0.0.0`，安全性完全依赖 Windows 防火墙。
 > 若防火墙规则被关闭、被修改，或网络被误判为 Private，面板可能暴露在
 > 不可信网络。请定期核查 8765 入站规则。
+
+> v1.6.1 已完成、未完成和明确不保证的内容以
+> [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md) 为准。安装成功不等于绝对安全。
+
+## v1.6.1 运行时边界（新增）
+
+- **Scoped Token**：TOTP 审批后可用 `SCOPED 30` 授权当前目标所在目录 30 分钟。
+  只允许 `delete` / `overwrite` / `write_file`，且目录必须位于 SHARED 或
+  TMP_ROOTS；memory/config、totp-vault、send 永远不允许。
+- **Job Object**：Broker 启动早期设置 `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`，
+  并把自身加入 Job；其 PowerShell/icacls/Python 后代随 Broker 退出被系统终止。
+  AstrBot 是独立任务，其子进程不受该 Job 保护。
+- **DSH/Cordis**：`dsh-cbs-gate` 是独立 bundle，使用 `tools/pre-execute` 和
+  approval-only API；它把 `write` 映射为 `write_file`，`delete_file` 映射为
+  `delete`，`edit` 与 shell 工具拒绝执行。
+- **审计**：scoped 放行写 `Scoped via 30-minute Directory Token`；UIPI 预留
+  `UIPI_BLOCKED_GUI_INTERACTION` 事件。
+- **Dashboard**：使用原生 `CyberButlerLauncher.exe`，不再使用 VBS/wscript。
 
 ## Router fail-closed 语义（v1.5.3）
 

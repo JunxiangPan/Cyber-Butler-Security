@@ -103,13 +103,17 @@ function Get-GameWhitelist {
     param([string]$ProjectRoot)
     $result = @()
     $seen = @{}
-    foreach ($spec in @(
+    $bigFishDir = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+    $specs = @(
         @{ File = 'AstrBot\data\game-list.auto.txt'; Source = 'AUTO' },
         @{ File = 'AstrBot\data\game-list.txt'; Source = 'MANUAL' },
         @{ File = 'tools\game-list.auto.txt'; Source = 'AUTO' },
-        @{ File = 'tools\game-list.txt'; Source = 'MANUAL' }
-    )) {
-        $path = Join-Path $ProjectRoot $spec.File
+        @{ File = 'tools\game-list.txt'; Source = 'MANUAL' },
+        @{ Path = (Join-Path $bigFishDir 'game-list.auto.txt'); Source = 'AUTO' },
+        @{ Path = (Join-Path $bigFishDir 'game-list.txt'); Source = 'MANUAL' }
+    )
+    foreach ($spec in $specs) {
+        $path = if ($spec.Path) { [string]$spec.Path } else { Join-Path $ProjectRoot $spec.File }
         if (-not (Test-Path -LiteralPath $path)) { continue }
         foreach ($line in @(Get-Content -LiteralPath $path -Encoding UTF8 -ErrorAction SilentlyContinue)) {
             $name = $line.Trim()
@@ -120,7 +124,7 @@ function Get-GameWhitelist {
             $result += [pscustomobject]@{
                 Name = $name
                 Source = $spec.Source
-                File = $spec.File
+                File = if ($spec.File) { $spec.File } else { $path }
             }
         }
     }

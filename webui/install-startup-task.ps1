@@ -1,4 +1,4 @@
-# Register the Cyber-Butler Web UI + OTP mailer logon task.
+﻿# Register the Cyber-Butler Web UI + OTP mailer logon task.
 # AtLogOn is intentional: the OTP mailer uses the interactive user's DPAPI
 # secret, so a SYSTEM AtStartup task is not suitable.
 $ErrorActionPreference = 'Stop'

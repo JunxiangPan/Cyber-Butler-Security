@@ -1,4 +1,73 @@
-[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+
+## ✅ 테스트 범위 / Test Coverage
+
+✅ **High 등급**: 실제 머신에서 전체 엔드투엔드 테스트 완료 — 설치, 서비스 시작, TOTP, SCOPED, 제거.
+
+⚠️ **Medium 등급**: 여러 차례 부분 테스트 완료. 사용 가능성이 높지만 실제 머신에서 전체 흐름 승인은 아직 없음.
+
+❌ **Light(최소) 등급**: 실제 머신 전체 테스트가 아직 없음. 위험을 직접 평가하십시오.
+
+이 선언은 v1.6.1에 적용되며 보안 인증이 아닙니다.
+
+
+
+## v1.6.1 — 보안 업데이트
+
+**범위 지정 토큰(30분)**: TOTP 승인 후 소유자는 `SCOPED 30` 이라고 답할 수
+있습니다. Broker는 대상 디렉터리에 묶인 메모리 토큰을 30분 동안 발급하며,
+공유 또는 tmp 트리 안의 `delete`, `overwrite`, `write_file`에만 적용합니다.
+memory/config, TOTP 보관소, 파일 전송에는 적용되지 않습니다.
+
+**Job Object 프로세스 격리**: Broker는 자식 프로세스를 만들기 전에
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`를 설정합니다. Broker가 종료되면 Windows가
+프로세스 트리를 종료합니다. AstrBot은 별도 작업이므로 자동으로 포함되지
+않습니다.
+
+**DSH/Cordis 플러그인**: 별도 `dsh-cbs-gate` 번들이 `tools/pre-execute`,
+approval-only 요청, 상태 폴링, 범위 지정 토큰 캐시를 제공합니다. 자세한 내용:
+[README.md](README.md), [SECURITY.md](SECURITY.md). Status and non-guarantees: [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
+
+### v1.6.1 핵심 기능
+
+- **WPF 설치 프로그램**: High/Medium/Light, 경로, API Key, 소유자 QQ, 진행률/ETA, 복사 가능한 상태 창.
+- **8개 언어 UI**: 메인 창, 대화상자, 상태, 제거, 도움말.
+- **네이티브 시작**: `START-INSTALLER.exe` / `CyberButlerLauncher.exe`; VBS/wscript/CMD 없음.
+- **Job Object**: `KILL_ON_JOB_CLOSE`로 Broker 종료 시 프로세스 트리 종료.
+- **Approval-only**: TOTP는 승인만; DSH가 원래 도구를 실행해 이중 실행 방지.
+- **SCOPED 30**: 현재 작업 디렉터리 30분 토큰; delete/overwrite/write_file만.
+- **DSH/Cordis**: `tools/pre-execute`, 상태 폴링, scoped token 캐시; `edit`/shell 거부.
+- **테스트**: 144 Pester + 95 pytest.
+
+### v1.6.1 상태 및 보장하지 않는 것
+
+**완료**: Scoped Token, Broker Job Object, approval-only API, DSH/Cordis
+브리지, 네이티브 설치 프로그램, 대시보드 해시 보호.
+
+**미완료**: AstrBot 자식 프로세스의 Job 포함, AppContainer/시스템 콜 샌드박스,
+shell/edit 승인 중재, 미디어 TOTP, 코드 서명, 제3자 감사, 깨끗한 VM 전체 검증.
+
+**보장하지 않음**: CBS는 절대적 보안, 우회 불가능성, 모든 도구/플러그인/
+shell/Python/GUI 경로의 차단, 백신 오탐 방지, 침해된 QQ/데스크톱/관리자
+계정으로부터의 보호를 보장하지 않습니다.
+
+## 🔐 릴리스 서명 확인
+
+`public-release-v<version>.zip`, `update-manifest.json`,
+`update-manifest.sig`를 내려받아 압축을 푼 릴리스 트리에서 실행합니다.
+
+```powershell
+python tools/verify_release.py `
+  --manifest update-manifest.json `
+  --signature update-manifest.sig `
+  --pubkey tools/update_pubkey.pem
+```
+
+기대 결과는 `VALID`입니다. `INVALID`, 서명 없음, 버전 불일치라면
+**설치하지 마십시오**. 유효한 서명은 고정된 개인 키의 보유만 증명하며,
+악성코드가 없다는 뜻은 아닙니다.
+
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (AI 에이전트용)
 
@@ -6,7 +75,7 @@
 
 1. [`docs/使用说明.md`](docs/使用说明.md)를 읽고 전체 배포 로직을 확인합니다.
 2. 사용자에게 관리자 권한이 있는지 확인합니다. 없다면 권한 부여를 안내하고, UAC를 우회하지 마세요.
-3. 배포 문서의 "저권한 계정" 절에 따라 서비스 계정을 만들고 검증한 뒤, `tools/install_startup_tasks.ps1`로 시작 작업을 등록합니다.
+3. 배포 문서의 "저권한 계정" 절에 따라 서비스 계정을 만들고 검증한 뒤, `START-INSTALLER.exe`로 시작 작업을 등록합니다.
 4. 사용자에게 Ollama 설치와 [`config.pro.example.json`](config.pro.example.json)에 지정된 모델 다운로드를 안내합니다.
 5. Broker를 시작하기 전에 사용자의 QQ ID와 API Key를 물어보고, 환경 변수나 비밀 저장소에 보관하며 Git에 커밋하지 않습니다.
 6. **주의:** UAC를 우회하거나 `rm -rf` 같은 파괴적 명령을 실행하지 마세요. 이 프로젝트는 Zero-Trust를 전제로 설계되었습니다.
@@ -188,3 +257,44 @@ flowchart LR
 `overlay/`에는 AstrBot(AGPL-3.0) 기반 수정 파일이 포함되어 있습니다. 이 저장소 또는 수정 버전을 배포할 때는 소스 코드 제공 의무를 포함한 AGPL-3.0을 준수해야 합니다.
 
 AstrBot, SnowLuma, Ollama 및 기타 종속 프로젝트는 각 저작자에게 귀속됩니다. 사용 전에 각 라이선스를 확인하십시오.
+
+## v1.6.1 문제 해결
+
+`QQ challenge send failed` 또는 6199가 `Established`가 아니면 먼저 QQ에 로그인하고
+`SnowLuma Startup`을 사용하세요(`SNOWLUMA_HOOK_AUTOLOAD=true`).
+`SnowLuma\logs\startup-snowluma.out.log`를 확인합니다. TOTP가 `pending`이면
+소유자 QQ를 bot QQ와 다르게 하고 300초 안에 `<코드> SCOPED 30`으로 답장합니다.
+`Bot not found ... qq_sujinyan`이면 AstrBot의 실제 platform id(보통 `QQ`)를
+사용하세요. Security Gate는 소문자 `qq`가 필요하므로 `__pycache__`를 삭제하고
+재시작합니다. `YOUR_QQ_ID`는 `tools\broker.py`와 AstrBot 플러그인에서 교체합니다.
+6185 충돌 시 모든 `main.py`를 종료하고 한 번만 시작하세요. `tools`에 쓰기 권한을
+주지 말고 로그는 `SnowLuma\logs`에 둡니다. 자세히:
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## Community Credits
+
+This project is shaped by the community. Special thanks to u/Auten, u/Reid Marlow, u/QuanTradin, u/Practical-Craft4967, u/More-Ad7285, and u/HeartMaleficent35 from r/AI_Agents for their architectural feedback and security audits.
+
+**최초 필수 설정:** 설치 프로그램에서 WebUI 관리자 이메일과 SMTP 인증 코드를 입력하세요. CBS WebUI `8765`는 이메일 OTP, AstrBot `6185`는 사용자 이름/비밀번호를 사용합니다. 이메일이 없으면 빨간 배너가 표시됩니다.
+
+## WebUI 이메일과 SMTP (최초 설정)
+
+CBS WebUI(`http://127.0.0.1:8765`)는 **이메일 OTP**, AstrBot
+(`http://127.0.0.1:6185`)는 사용자 이름/비밀번호를 사용합니다.
+
+| 항목 | 의미 |
+|---|---|
+| **WebUI email** | 로그인, TOTP 승인, 알림을 받는 관리자 메일함. 봇 QQ가 아닙니다. |
+| **SMTP host** | 발신 서버. 예: `smtp.163.com`, `smtp.gmail.com`. |
+| **SMTP port** | SSL 포트. 이 빌드는 암시적 SSL이라 `465`를 사용합니다. `587`/STARTTLS 미지원. |
+| **SMTP auth code** | 공급자가 발급한 앱 비밀번호/인증 코드. 로그인 비밀번호가 아니며 DPAPI로 암호화됩니다. |
+| **SMTP user** | 보통 WebUI email과 같은 주소. |
+
+설정이 없으면 로그인 OTP와 TOTP 메일이 발송되지 않고, Broker는 HTTP 503을
+반환하며 Dashboard에 빨간 배너가 표시됩니다. 저장 위치:
+`webui\config.json`(`admin_email`), `C:\ProgramData\CyberButler\email_secret.json`
+(DPAPI), `webui\data\approval-contact.json`(WebUI 대체). WebUI는
+`tools\broker_config.json`을 쓰지 않으며 High에서 `tools`는 읽기 전용입니다.
+
+> Gmail/Outlook은 별도 SMTP/IMAP 설정이 필요할 수 있습니다. 이 버전의 메일
+> 승인 IMAP 기본값은 163입니다.

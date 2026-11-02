@@ -22,7 +22,9 @@ param(
     [int]$ImapPort = 993,
     [string]$AllowedSender = 'owner@example.com',
     [string]$BrokerAccount = 'SYSTEM',
-    [string]$TargetDir = 'C:\ProgramData\CyberButler'
+    [string]$TargetDir = 'C:\ProgramData\CyberButler',
+    [Security.SecureString]$SmtpAuthCode = $null,
+    [switch]$SkipTest
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,8 +56,12 @@ try {
     Write-Host ('IMAP: {0}:{1}  user={2}' -f $ImapHost, $ImapPort, $SmtpUser)
     Write-Host ('Allowed sender: {0}' -f $AllowedSender)
     Write-Host ''
-    $secure = Read-Host -AsSecureString 'New SMTP/IMAP authorization code (input hidden)'
-    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+    if ($SmtpAuthCode) {
+        $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($SmtpAuthCode)
+    } else {
+        $secure = Read-Host -AsSecureString 'New SMTP/IMAP authorization code (input hidden)'
+        $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+    }
     try {
         $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
         if (-not $password) { throw 'empty authorization code' }
@@ -99,18 +105,22 @@ try {
         & icacls.exe $secretPath /inheritance:r /grant:r $grants | Out-Null
         if ($LASTEXITCODE -ne 0) { throw ('icacls failed: ' + $LASTEXITCODE) }
 
-        Write-Host ''
-        Write-Host 'Encrypted configuration written; sending test email...' -ForegroundColor Yellow
-        $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
-        $python = Join-Path $root 'AstrBot\.venv\Scripts\python.exe'
-        $helper = Join-Path $PSScriptRoot 'send_email_stdin.py'
-        if (-not (Test-Path -LiteralPath $python)) { throw ('python not found: ' + $python) }
-        if (-not (Test-Path -LiteralPath $helper)) { throw ('email test helper missing: ' + $helper) }
-        $payload | ConvertTo-Json -Depth 5 | & $python $helper
-        if ($LASTEXITCODE -ne 0) { throw ('test email failed with exit ' + $LASTEXITCODE) }
-
-        Write-Status $true 'encrypted config written; test email sent'
-        Write-Host 'SUCCESS: test email sent.' -ForegroundColor Green
+        if (-not $SkipTest) {
+            Write-Host ''
+            Write-Host 'Encrypted configuration written; sending test email...' -ForegroundColor Yellow
+            $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+            $python = Join-Path $root 'AstrBot\.venv\Scripts\python.exe'
+            $helper = Join-Path $PSScriptRoot 'send_email_stdin.py'
+            if (-not (Test-Path -LiteralPath $python)) { throw ('python not found: ' + $python) }
+            if (-not (Test-Path -LiteralPath $helper)) { throw ('email test helper missing: ' + $helper) }
+            $payload | ConvertTo-Json -Depth 5 | & $python $helper
+            if ($LASTEXITCODE -ne 0) { throw ('test email failed with exit ' + $LASTEXITCODE) }
+            Write-Status $true 'encrypted config written; test email sent'
+            Write-Host 'SUCCESS: test email sent.' -ForegroundColor Green
+        } else {
+            Write-Status $true 'encrypted config written; test email skipped by installer'
+            Write-Host 'SUCCESS: encrypted configuration written (test email skipped).' -ForegroundColor Green
+        }
     } finally {
         if ($bstr -ne [IntPtr]::Zero) {
             [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)

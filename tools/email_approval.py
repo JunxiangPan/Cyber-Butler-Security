@@ -20,7 +20,7 @@ from email.message import EmailMessage
 from email.utils import parseaddr
 from pathlib import Path
 
-BRIDGE = Path(r"D:\qq苏瑾言大肥鱼\public-release\tools\email_secret_bridge.ps1")
+BRIDGE = Path(__file__).resolve().parents[1] / "tools" / "email_secret_bridge.ps1"
 APPROVE_RE = re.compile(r"^APPROVE\s+#([0-9A-Fa-f]{4,8})\s+TOTP\s*[:=]?\s*\+?(\d{6})\s*$")
 
 

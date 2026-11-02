@@ -1,5 +1,8 @@
 # Plugin ecosystem (v1.2.0)
 
+> **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in [STATUS_v1.6.1.md](STATUS_v1.6.1.md). This document is about the plugin ecosystem, not a security guarantee.
+
+
 Three surfaces, one trust boundary: the dashboard can list and toggle AstrBot
 plugins, load local console modules, and install marketplace plugins **only
 after** a static security review and a compatibility check.
@@ -225,8 +228,54 @@ version with a key broker and a per-install consent prompt.
 ## Tests
 
 ```text
-pytest: 39 passed (30 existing + 9 scanner/version tests)
+Project test suite: 72 passed (including broker policy, scoped-token,
+approval-only, UIPI, scanner/version, and security-gate tests).
 scanner fixtures: tests/fixtures/plugins/high_risk, tests/fixtures/plugins/clean
 dashboard module smoke: -SmokeModules
 UI smoke screenshots: -SmokeUi
 ```
+
+
+## Module 4 — DSH / Cordis bridge (v1.6.1)
+
+`dsh-cbs-gate` is a separate TypeScript/Cordis bundle, not an AstrBot plugin and
+not bundled into the CBS installer. It is the bridge for DSH-style agents.
+
+### Contract
+
+- Registers a `tools/pre-execute` waterfall listener.
+- Read-only tools pass through unchanged.
+- `write` maps to Broker `write_file`; `delete_file` maps to `delete`.
+- `edit`, `execute_shell`, `ops_bash`, and `pwsh` are refused because the Broker
+  does not yet have a safe edit/shell contract.
+- Calls `POST /api/request_approval` with `approval_only: true` and
+  `X-Broker-Token`.
+- Handles `allowed`, `requires_totp`, and `denied`.
+- On `requires_totp`, polls `GET /api/request_approval/status?id=...` about once
+  per second and allows the original DSH tool only after `approved`.
+- Clears a cached scoped token on `scoped_invalid`; fails closed if the Broker is
+  unreachable, the status is unknown, or the poll times out.
+
+### Why approval-only
+
+The Broker must not execute a file action that DSH will also execute. In
+approval-only mode the Broker changes only its approval state; DSH runs the
+original tool after it observes `approved`. This prevents double writes and
+double deletes.
+
+### Scoped token handoff
+
+`/api/request_approval/status` returns the scoped token only when the state is
+`approved` and only to a broker-token-authenticated caller. The DSH executor
+caches it in memory and sends it as `scoped_token` on the next request. The
+token remains constrained by the Broker's directory/action/TTL rules; the plugin
+cannot widen that scope.
+
+### Operational status
+
+- Separate package: `dsh-cbs-gate`.
+- Requires the DSH profile to have read access to the Broker token file.
+- `ops_bash` / `pwsh` are intentionally blocked while the gate is enabled;
+  manage services from an external shell.
+- It is not code-signed in this build and is not covered by a third-party audit.
+- Full status: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).

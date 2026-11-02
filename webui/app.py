@@ -1,8 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
+import json
 import logging
+import os
+import re
 import secrets
+import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -12,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
-from auth import AuthService, InvalidCode, MailerFailed, RateLimited, RateLimiter, SESSION_COOKIE
+from auth import AuthService, InvalidCode, MailerFailed, RateLimited, UnknownEmail, RateLimiter, SESSION_COOKIE
 from settings import Settings
 from mailer import MailerClient
 from file_manager import FileAccessError, FileManager
@@ -22,6 +27,7 @@ from store import Store
 BASE_DIR = Path(__file__).resolve().parent
 SUPPORTED_LANGS = {"zh", "en", "ja", "ko", "es", "fr", "de", "ru"}
 logger = logging.getLogger("cyberbutler.webui")
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 class EmailRequest(BaseModel):
@@ -38,6 +44,10 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=500)
 
 
+class AdminEmailUpdate(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
 def create_app(settings: Settings | None = None, mailer=None, services=None) -> FastAPI:
     settings = settings or Settings.load()
     store = Store(settings.db_path, settings.server_secret)
@@ -45,6 +55,72 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     auth = AuthService(settings, store, mailer)
     services = services or WebServices(settings)
     files = FileManager(settings)
+    broker_config_path = Path(settings.project_root) / "tools" / "broker_config.json"
+    contact_path = Path(settings.data_dir) / "approval-contact.json"
+    email_secret_path = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "email_secret.json"
+
+    def _read_json(path: Path) -> dict:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _valid_email(value: str) -> bool:
+        return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", str(value or "").strip()))
+
+    def _admin_email() -> str:
+        for path in (broker_config_path, contact_path):
+            value = str(_read_json(path).get("admin_email", "") or "").strip()
+            if _valid_email(value) and value.lower() not in {"owner@example.com", "your_email@example.com"}:
+                return value
+        return ""
+
+    _email_bridge_cache = {"at": 0.0, "ok": False}
+
+    def _email_secret_readable() -> bool:
+        if not email_secret_path.exists():
+            return False
+        now = time.time()
+        if now - _email_bridge_cache["at"] < 15:
+            return bool(_email_bridge_cache["ok"])
+        bridge = Path(settings.project_root) / "tools" / "email_secret_bridge.ps1"
+        ok = False
+        if bridge.exists():
+            try:
+                completed = subprocess.run(
+                    ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                    creationflags=_NO_WINDOW,
+                )
+                if completed.returncode == 0:
+                    data = json.loads(completed.stdout)
+                    ok = bool(data.get("smtp_host") and data.get("smtp_user") and data.get("approval_to"))
+            except (OSError, ValueError, subprocess.SubprocessError):
+                ok = False
+        _email_bridge_cache["at"] = now
+        _email_bridge_cache["ok"] = ok
+        return ok
+
+    def _email_status() -> dict:
+        broker = _read_json(broker_config_path)
+        contact = _read_json(contact_path)
+        email = _admin_email()
+        channel = str(broker.get("approval_channel", "qq") or "qq").strip().lower()
+        secret_present = email_secret_path.exists()
+        secret_readable = _email_secret_readable()
+        return {
+            "ok": True,
+            "approval_channel": channel,
+            "admin_email": email,
+            "email_secret_present": secret_present,
+            "email_secret_readable": bool(secret_readable),
+            "smtp_configured": bool(secret_readable),
+            "email_ready": bool(email) and bool(secret_readable),
+            "source": "broker_config" if str(broker.get("admin_email", "") or "").strip() else ("approval-contact" if str(contact.get("admin_email", "") or "").strip() else ""),
+        }
 
     app = FastAPI(title="Cyber-Butler Web", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = settings
@@ -139,6 +215,11 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return JSONResponse(
                 {"ok": False, "code": "auth.rate_limited", "message": "请求过于频繁，请稍后再试。", "retry_after": exc.retry_after},
                 status_code=429,
+            )
+        except UnknownEmail:
+            return JSONResponse(
+                {"ok": False, "code": "auth.email_unknown", "message": "该邮箱不是安装时配置的管理员邮箱。"},
+                status_code=400,
             )
         except MailerFailed:
             return JSONResponse(
@@ -276,6 +357,44 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         if "path not found" in message:
             return "files.not_found"
         return "files.denied"
+
+    @app.get("/api/config/email-status")
+    async def email_status(session=Depends(require_session)):
+        return _email_status()
+
+    @app.post("/api/config/admin-email")
+    async def save_admin_email(body: AdminEmailUpdate, request: Request, session=Depends(require_session)):
+        provided = request.headers.get("X-CSRF-Token", "")
+        if not secrets.compare_digest(provided, session["csrf"]):
+            return JSONResponse({"ok": False, "code": "auth.csrf_invalid", "message": "invalid csrf token"}, status_code=403)
+        email = body.email.strip().lower()
+        if not _valid_email(email):
+            return JSONResponse({"ok": False, "code": "email.invalid", "message": "invalid email address"}, status_code=400)
+        payload = {
+            "admin_email": email,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "source": "webui",
+        }
+        try:
+            contact_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = contact_path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(contact_path)
+        except OSError as exc:
+            logger.error("save approval contact failed: %s", exc)
+            return JSONResponse({"ok": False, "code": "email.save_failed", "message": "cannot write approval-contact.json"}, status_code=500)
+        # Best effort: keep the WebUI login address aligned. If the config is
+        # read-only in the current tier, the contact file still drives the banner.
+        config_updated = False
+        if settings.config_path:
+            try:
+                cfg = json.loads(Path(settings.config_path).read_text(encoding="utf-8"))
+                cfg["admin_email"] = email
+                Path(settings.config_path).write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+                config_updated = True
+            except (OSError, ValueError) as exc:
+                logger.warning("save webui admin_email failed: %s", exc)
+        return {"ok": True, "admin_email": email, "config_updated": config_updated, "email_status": _email_status()}
 
     @app.get("/api/files/list")
     async def files_list(request: Request, path: str = "", session=Depends(require_session)):

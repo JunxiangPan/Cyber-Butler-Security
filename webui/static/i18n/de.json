@@ -50,7 +50,7 @@
     "auth.error.network": "Netzwerkanomalie, bitte versuchen Sie es später noch einmal.",
     "auth.error.sendFailed": "Der Bestätigungscode konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
     "auth.error.rate": "Die Anfrage kam zu häufig. Bitte versuchen Sie es später noch einmal.",
-    "auth.error.mailer": "Der Bestätigungscode konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
+    "auth.error.mailer": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Prüfen Sie den SMTP-Autorisierungscode und den OTP-Mailer (Port 8766).",
     "auth.resendCountdown": "Erneut senden ({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "Willkommen zurück.",
@@ -163,6 +163,8 @@
     "email.subject": "[Cyber-Butler] Web-Login-Bestätigungscode",
     "email.body": "Ihr Cyber-Butler Web-Login-Bestätigungscode lautet: {code}\n\nGültig für {minutes} Minuten und kann nur einmal verwendet werden.\nWenn es sich nicht um eine von Ihnen initiierte Anmeldung handelt, ignorieren Sie bitte diese E-Mail und überprüfen Sie die Sicherheit Ihrer E-Mail.",
     "dash.logout": "Abmelden",
-    "dash.tabs": "Bereiche"
+    "dash.tabs": "Bereiche",
+    "auth.email_unknown": "Diese Adresse ist nicht das bei der Installation konfigurierte Administratorkonto.",
+    "auth.error.rateWait": "Zu viele Anfragen. Versuchen Sie es in {seconds} Sekunden erneut."
   }
 }

@@ -113,6 +113,50 @@
     }
   };
 
+  const emailBanner = $("emailBanner");
+  const emailSetupPanel = $("emailSetupPanel");
+  const adminEmailInput = $("adminEmailInput");
+  const emailSaveStatus = $("emailSaveStatus");
+
+  const loadEmailStatus = async () => {
+    if (!csrf) return;
+    const data = await getJson("/api/config/email-status");
+    if (!data || !data.ok) return;
+    if (data.email_ready) {
+      if (emailBanner) emailBanner.hidden = true;
+      return;
+    }
+    if (emailBanner) emailBanner.hidden = false;
+    if (adminEmailInput && data.admin_email) adminEmailInput.value = data.admin_email;
+    if (emailSaveStatus) {
+      emailSaveStatus.textContent = data.email_secret_present
+        ? "邮箱已填写，但 SMTP/邮件配置需要重新验证。"
+        : "邮箱或 SMTP 配置缺失，请完成安装器配置。";
+    }
+  };
+
+  const saveAdminEmail = async () => {
+    if (!csrf || !adminEmailInput) return;
+    if (emailSaveStatus) emailSaveStatus.textContent = "保存中… / Saving…";
+    try {
+      const response = await fetch("/api/config/admin-email", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+        body: JSON.stringify({ email: adminEmailInput.value.trim() }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        if (emailSaveStatus) emailSaveStatus.textContent = data.message || "保存失败 / Save failed";
+        return;
+      }
+      if (emailSaveStatus) emailSaveStatus.textContent = "已保存，请重新验证邮件审批。 / Saved.";
+      await loadEmailStatus();
+    } catch (error) {
+      if (emailSaveStatus) emailSaveStatus.textContent = "保存失败 / Save failed";
+    }
+  };
+
   const renderSession = () => {
     setText("sessionExpiry", lastExpiry
       ? i18n.formatDate(new Date(lastExpiry * 1000), { dateStyle: "medium", timeStyle: "short" })
@@ -517,6 +561,14 @@
       if (event.target === $("fileModal")) closeFileModal();
     });
 
+    $("emailSetupToggle")?.addEventListener("click", () => {
+      if (emailSetupPanel) emailSetupPanel.hidden = !emailSetupPanel.hidden;
+    });
+    $("adminEmailSave")?.addEventListener("click", saveAdminEmail);
+    adminEmailInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
+    });
+
     fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" })
       .then((response) => {
         if (redirectIfUnauthorized(response)) return null;
@@ -530,6 +582,7 @@
         renderSession();
         chatCount.textContent = i18n.t("chat.count", { count: formatNumber(0) });
         refreshAll();
+        loadEmailStatus();
       })
       .catch(() => {});
 
@@ -552,6 +605,7 @@
     setInterval(loadUsage, 60000);
     setInterval(loadPlugins, 30000);
     setInterval(loadBackups, 60000);
+    setInterval(loadEmailStatus, 10000);
   };
 
   initialize();

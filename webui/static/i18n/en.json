@@ -50,7 +50,7 @@
     "auth.error.network": "Network error. Please try again.",
     "auth.error.sendFailed": "Could not send the code. Please try again.",
     "auth.error.rate": "Too many requests. Please try again later.",
-    "auth.error.mailer": "Could not send the code. Please try again.",
+    "auth.error.mailer": "Verification email failed. Check the SMTP authorization code and the OTP Mailer (port 8766), then try again.",
     "auth.resendCountdown": "Resend ({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "Welcome back.",
@@ -163,6 +163,8 @@
     "email.subject": "[Cyber-Butler] Web login verification code",
     "email.body": "Your Cyber-Butler Web login code is: {code}\n\nIt is valid for {minutes} minutes and can be used once.\nIf you did not request this login, ignore this email and check your mailbox security.",
     "dash.logout": "Sign out",
-    "dash.tabs": "Tabs"
+    "dash.tabs": "Tabs",
+    "auth.email_unknown": "This is not the administrator mailbox configured during installation.",
+    "auth.error.rateWait": "Too many requests. Try again in {seconds} seconds."
   }
 }

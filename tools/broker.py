@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """SYSTEM TOTP broker exposed only on 127.0.0.1:18090.
 
 YOUR_SERVICE_USER talks to this HTTP service with a local broker token. No files are
@@ -45,7 +45,8 @@ TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
 LOG = ROOT / "tools" / "totp_broker.log"
 AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
 SHARED = Path(r"YOUR_USER_PATH\Desktop\大肥鱼专用文件夹")
-UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
+UMO = "QQ:FriendMessage:YOUR_QQ_ID"
+PLATFORM_IDS = ("QQ", "qq", "qq_sujinyan", "default")
 HOST = "127.0.0.1"
 PORT = 18090
 TIMEOUT_SECONDS = 300
@@ -229,6 +230,19 @@ _scoped_lock = threading.Lock()
 _scoped_tokens: dict[str, dict] = {}
 
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
+WEBUI_CONTACT = ROOT / "webui" / "data" / "approval-contact.json"
+
+def _admin_email() -> str:
+    for path in (BROKER_CONFIG, WEBUI_CONTACT):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        value = str(data.get("admin_email", "") or "").strip()
+        if value and value.lower() not in {"owner@example.com", "your_email@example.com"} and "YOUR_" not in value:
+            return value
+    return ""
+
 
 def _approval_channel() -> str:
     """Return qq or email; fail safe to qq when the config is missing/invalid."""
@@ -361,13 +375,21 @@ def secret() -> str:
 def send_qq(text: str) -> bool:
     try:
         token = (ROOT / ".astrbot_token").read_text(encoding="utf-8").strip()
-        response = requests.post(
-            "http://127.0.0.1:6185/api/v1/im/messages",
-            headers={"Authorization": f"Bearer {token}"},
-            json={"umo": UMO, "message": text},
-            timeout=60,
-        )
-        return response.ok
+        owner = UMO.rsplit(":", 1)[-1]
+        # AstrBot installations differ in the platform id (QQ, qq, or the
+        # legacy qq_sujinyan). Try the configured spelling first, then fall
+        # back without changing the owner or the message.
+        for platform_id in PLATFORM_IDS:
+            umo = f"{platform_id}:FriendMessage:{owner}"
+            response = requests.post(
+                "http://127.0.0.1:6185/api/v1/im/messages",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"umo": umo, "message": text},
+                timeout=60,
+            )
+            if response.ok:
+                return True
+        return False
     except Exception as exc:
         log(f"QQ send failed: {exc}")
         return False
@@ -1195,8 +1217,15 @@ def run_request(payload: dict) -> tuple[int, dict]:
             _send_results[request_id] = False
 
     if email_mode:
+        admin_email = _admin_email()
+        if not admin_email:
+            with _lock:
+                if _pending and _pending.get("id") == request_id:
+                    _pending = None
+            return 503, {"ok": False, "error": "email approval requires admin_email; configure it in the installer or WebUI"}
         try:
             email_config = email_approval.load_config()
+            email_config["approval_to"] = admin_email
             subject = f"[Cyber-Butler] 待审批请求 #{challenge}"
             body = (
                 f"{prompt}\n\n"
@@ -1627,6 +1656,11 @@ def verify_runtime_acl() -> None:
 
 
 def main() -> None:
+    unrendered = [value for value in (str(ROOT), str(SHARED), UMO) if "YOUR_" in value]
+    if unrendered:
+        log("broker startup refused: unrendered YOUR_* placeholder; run the installer or render the template first")
+        raise SystemExit("Broker refuses to start: unrendered YOUR_* placeholder")
+
     log("broker starting; installing job object")
     initialize_job_object()
     log("broker starting; verifying runtime ACL")

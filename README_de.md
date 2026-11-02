@@ -1,4 +1,76 @@
-[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+
+## ✅ Testabdeckung / Test Coverage
+
+✅ **High-Stufe**: vollständiger End-to-End-Test auf realer Hardware abgeschlossen — Installation, Dienststart, TOTP, SCOPED und Deinstallation.
+
+⚠️ **Medium-Stufe**: mehrfach teilweise getestet; sehr wahrscheinlich nutzbar, aber der vollständige End-to-End-Ablauf wurde nicht real abgenommen.
+
+❌ **Light (Minimal)**: noch kein vollständiger Realmaschinen-Test; Risiko selbst bewerten.
+
+Diese Erklärung gilt für v1.6.1 und ist keine Sicherheitszertifizierung.
+
+
+
+## v1.6.1 — Sicherheitsupdate
+
+**Scoped-Token (30 Minuten)**: Nach einer TOTP-Bestätigung kann der Eigentümer
+`SCOPED 30` senden. Der Broker bindet ein Token für 30 Minuten an das
+Zielverzeichnis; nur `delete`, `overwrite` und `write_file` im freigegebenen
+Shared-/Tmp-Baum sind erlaubt. Memory/Config, der TOTP-Tresor und Egress sind
+ausgeschlossen.
+
+**Job-Object-Prozessschutz**: Der Broker setzt
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, bevor er Kindprozesse startet. Endet der
+Broker, beendet Windows die Prozesskette. AstrBot ist ein separater Task und
+nicht automatisch enthalten.
+
+**DSH/Cordis-Plugin**: Das separate `dsh-cbs-gate`-Bundle nutzt
+`tools/pre-execute`, approval-only Requests, Status-Polling und einen
+Scoped-Token-Cache. Details: [README.md](README.md) und
+[SECURITY.md](SECURITY.md). Status and non-guarantees: [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
+
+### v1.6.1 Kernfunktionen
+
+- **WPF-Installer**: High/Medium/Light, Pfad, API-Key, Owner-QQ, Fortschritt/ETA und kopierbares Statusfenster.
+- **8-Sprachen-UI**: Hauptfenster, Dialoge, Status, Deinstallation und Hilfe.
+- **Nativer Start**: `START-INSTALLER.exe` / `CyberButlerLauncher.exe`; kein VBS, wscript oder CMD.
+- **Job Object**: `KILL_ON_JOB_CLOSE` beendet die Broker-Prozesskette beim Broker-Ende.
+- **Approval-only**: TOTP autorisiert nur; DSH führt das Originalwerkzeug aus, keine Doppelausführung.
+- **SCOPED 30**: 30-Minuten-Token für das aktuelle Scratch-Verzeichnis; nur delete/overwrite/write_file.
+- **DSH/Cordis**: `tools/pre-execute`, Status-Polling und Scoped-Token-Cache; `edit`/Shell werden verweigert.
+- **Tests**: 144 Pester + 95 pytest.
+
+### Status und Nicht-Garantien (v1.6.1)
+
+**Fertig**: Scoped-Token, Job Object für den Broker, approval-only Status-API,
+DSH/Cordis-Bridge, nativer Installer, Dashboard-Hashschutz.
+
+**Noch offen**: AstrBot-Kindprozesse im Job, AppContainer/Syscall-Sandbox,
+Shell-/Edit-Mediation, Medien-TOTP, Code-Signierung, unabhängiges Audit,
+vollständiger Clean-VM-Test.
+
+**Nicht garantiert**: CBS garantiert keine absolute Sicherheit, keine
+Unumgehbarkeit, keinen Schutz vor allen Tools/Plugins/Shell/Python/GUI-Pfaden,
+keine AV-Freigabe und keinen Schutz bei kompromittiertem QQ-/Desktop-/Admin-Konto.
+
+## 🔐 Release-Signatur prüfen
+
+Laden Sie `public-release-v<version>.zip`, `update-manifest.json` und
+`update-manifest.sig` herunter. Im entpackten Release-Baum:
+
+```powershell
+python tools/verify_release.py `
+  --manifest update-manifest.json `
+  --signature update-manifest.sig `
+  --pubkey tools/update_pubkey.pem
+```
+
+Erwartet: `VALID`. Bei `INVALID`, fehlender Signatur oder Versionsabweichung
+**nicht installieren**. Eine gültige Signatur beweist nur den Besitz des
+festgelegten privaten Schlüssels, nicht die Abwesenheit von Malware.
+
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (für KI-Agenten)
 
@@ -6,14 +78,14 @@
 
 1. Lies [`docs/使用说明.md`](docs/使用说明.md) für die vollständige Deployment-Logik.
 2. Prüfe, ob die nutzende Person Administratorrechte hat. Falls nicht, bitte darum; umgehe niemals die UAC.
-3. Folge dem Abschnitt „Konto mit geringen Rechten“ in der Anleitung, um das Dienstkonto zu erstellen und zu prüfen; registriere danach die Startaufgaben mit `tools/install_startup_tasks.ps1`.
+3. Folge dem Abschnitt „Konto mit geringen Rechten“ in der Anleitung, um das Dienstkonto zu erstellen und zu prüfen; registriere danach die Startaufgaben mit `START-INSTALLER.exe`.
 4. Führe die nutzende Person durch die Installation von Ollama und den Download des in [`config.pro.example.json`](config.pro.example.json) angegebenen Modells.
 5. Frage vor dem Start des Brokers nach QQ-ID und API-Schlüssel; speichere beides in Umgebungsvariablen oder einem Secret Store, niemals in Git.
 6. **Hinweis:** Umgehe die UAC nicht und führe keine destruktiven Befehle wie `rm -rf` aus. Dieses Projekt ist nach dem Zero-Trust-Prinzip konzipiert.
 
 ---
 
-# Su Jinyan / Cyber Steward — Open-Source-Selbsthosting-Architektur
+# Su Jinyan / Cyber-Butler Security (CBS) — Open-Source-Selbsthosting-Architektur
 
 > Eine selbst gehostete Architektur für einen QQ-Agenten unter Windows: Trennung zweier Konten, GPU-/VRAM-Planung, Broker für risikoreiche Aktionen, TOTP-Verifikation, Datei-Egress-Kontrolle und tägliche Audits.
 
@@ -188,3 +260,44 @@ Dieses Repository wird unter der **GNU Affero General Public License v3.0 (AGPL-
 `overlay/` enthält modifizierte Dateien auf Basis von AstrBot (AGPL-3.0). Die Verteilung dieses Repositories oder modifizierter Versionen muss die AGPL-3.0 einschließlich der Quellcodeverfügbarkeit einhalten.
 
 AstrBot, SnowLuma, Ollama und andere Abhängigkeiten verbleiben bei ihren jeweiligen Autoren. Lesen und beachten Sie deren Lizenzen vor der Nutzung.
+
+## Fehlerbehebung v1.6.1
+
+Bei `QQ challenge send failed` oder 6199 ohne `Established`: QQ zuerst anmelden,
+`SnowLuma Startup` verwenden (setzt `SNOWLUMA_HOOK_AUTOLOAD=true`), Log unter
+`SnowLuma\logs\startup-snowluma.out.log` prüfen. Bei `pending`: Owner-QQ muss
+sich vom Bot-QQ unterscheiden, Antwort `<Code> SCOPED 30` innerhalb 300 s. Bei
+`Bot not found ... qq_sujinyan`: echte AstrBot-Plattform-ID (meist `QQ`) nutzen.
+Security Gate: `known_markers` braucht kleingeschriebenes `qq`; `__pycache__`
+löschen und neu starten. Alte `YOUR_QQ_ID` in Broker/AstrBot-Plugins ersetzen.
+Bei 6185-Konflikt alle AstrBot-`main.py` beenden und einmal starten. `tools`
+niemals beschreibbar machen; Logs nach `SnowLuma\logs`.
+Details: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## Community Credits
+
+This project is shaped by the community. Special thanks to u/Auten, u/Reid Marlow, u/QuanTradin, u/Practical-Craft4967, u/More-Ad7285, and u/HeartMaleficent35 from r/AI_Agents for their architectural feedback and security audits.
+
+**Erstkonfiguration (Pflicht):** WebUI-Admin-E-Mail und SMTP-Autorisierungscode im Installer eintragen. CBS WebUI `8765` nutzt E-Mail-OTP, AstrBot `6185` Benutzername/Passwort. Fehlt die E-Mail, zeigt das Dashboard ein rotes Banner.
+
+## WebUI-E-Mail und SMTP (Erstkonfiguration)
+
+CBS WebUI (`http://127.0.0.1:8765`) nutzt **E-Mail-OTP**; AstrBot
+(`http://127.0.0.1:6185`) nutzt Benutzername/Passwort.
+
+| Feld | Bedeutung |
+|---|---|
+| **WebUI email** | Admin-Postfach für Login, TOTP-Freigaben und Warnungen; **nicht** die Bot-QQ. |
+| **SMTP host** | Postausgangsserver, z. B. `smtp.163.com` oder `smtp.gmail.com`. |
+| **SMTP port** | SSL-Port; dieser Build nutzt implizites SSL, also `465`. `587`/STARTTLS wird nicht unterstützt. |
+| **SMTP auth code** | Vom Anbieter erzeugtes App-Passwort/Autorisierungscode, **nicht** das Login-Passwort; DPAPI-verschlüsselt. |
+| **SMTP user** | Normalerweise dieselbe Adresse wie WebUI email. |
+
+Fehlt die Konfiguration: keine Login-OTP, keine TOTP-Mail, Broker liefert
+HTTP 503 und das Dashboard zeigt ein rotes Banner. Gespeichert wird:
+`webui\config.json` (`admin_email`), `C:\ProgramData\CyberButler\email_secret.json`
+(DPAPI) und `webui\data\approval-contact.json` (WebUI-Fallback). Die WebUI
+schreibt nie `tools\broker_config.json`; High hält `tools` schreibgeschützt.
+
+> Gmail/Outlook können eigene SMTP/IMAP-Einstellungen brauchen. IMAP für
+> E-Mail-Freigaben ist in diesem Build standardmäßig 163.

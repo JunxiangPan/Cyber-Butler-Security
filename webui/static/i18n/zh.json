@@ -50,7 +50,7 @@
     "auth.error.network": "网络异常，请稍后重试。",
     "auth.error.sendFailed": "验证码发送失败，请稍后重试。",
     "auth.error.rate": "请求过于频繁，请稍后再试。",
-    "auth.error.mailer": "验证码发送失败，请稍后重试。",
+    "auth.error.mailer": "验证码邮件发送失败。请检查 SMTP 授权码和 OTP Mailer（8766 端口），然后重试。",
     "auth.resendCountdown": "重新发送（{seconds}s）",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "欢迎回来。",
@@ -163,6 +163,8 @@
     "email.subject": "[Cyber-Butler] Web 登录验证码",
     "email.body": "你的 Cyber-Butler Web 登录验证码是：{code}\n\n有效期 {minutes} 分钟，仅可使用一次。\n如果这不是你发起的登录，请忽略本邮件并检查邮箱安全。",
     "dash.logout": "退出",
-    "dash.tabs": "面板切换"
+    "dash.tabs": "面板切换",
+    "auth.email_unknown": "该邮箱不是安装时配置的管理员邮箱，请检查安装器里的 WebUI 邮箱。",
+    "auth.error.rateWait": "请求过于频繁，请 {seconds} 秒后再试。"
   }
 }

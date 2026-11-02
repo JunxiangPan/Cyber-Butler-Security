@@ -50,7 +50,7 @@
     "auth.error.network": "Anomalía en la red, inténtelo de nuevo más tarde.",
     "auth.error.sendFailed": "No se pudo enviar el código de verificación. Vuelva a intentarlo más tarde.",
     "auth.error.rate": "La solicitud fue demasiado frecuente. Vuelva a intentarlo más tarde.",
-    "auth.error.mailer": "No se pudo enviar el código de verificación. Vuelva a intentarlo más tarde.",
+    "auth.error.mailer": "No se pudo enviar el correo de verificación. Revise el código SMTP y el OTP Mailer (puerto 8766).",
     "auth.resendCountdown": "Reenviar({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "Bienvenido de nuevo.",
@@ -163,6 +163,8 @@
     "email.subject": "[Cyber-Butler] Código de verificación de inicio de sesión web",
     "email.body": "Su código de verificación de inicio de sesión en Cyber-Butler Web es: {code}\n\nVálido por {minutes} minutos y solo se puede usar una vez.\nSi este no es un inicio de sesión iniciado por usted, ignore este correo electrónico y verifique la seguridad de su correo electrónico.",
     "dash.logout": "Cerrar sesión",
-    "dash.tabs": "Paneles"
+    "dash.tabs": "Paneles",
+    "auth.email_unknown": "Esta no es la cuenta de administrador configurada durante la instalación.",
+    "auth.error.rateWait": "Demasiadas solicitudes. Inténtelo de nuevo en {seconds} segundos."
   }
 }

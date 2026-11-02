@@ -13,9 +13,14 @@
       "size": 2212
     },
     {
+      "path": "CONTRIBUTING.md",
+      "sha256": "c4309bc66af81773829e18995927550e99f34f74ba1286f6c741970b9762136c",
+      "size": 4080
+    },
+    {
       "path": "DEPLOYMENT.md",
-      "sha256": "ed8eab02c24ccc5d77e777959134631f66fcedda9485184383076d7e746bb9d9",
-      "size": 13864
+      "sha256": "8f2fde37494ed7351cffb1472efffcfb479610a9c33676de2c2906a06f5e365b",
+      "size": 15248
     },
     {
       "path": "LICENSE",
@@ -24,58 +29,63 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "08629e8796eb3feafa9be0d79b75d166b42c0089087eafe0ec0117e51ea5a03d",
-      "size": 7727
+      "sha256": "d4dbbe86f08ddcebd5abd6793c7081d3c387d5917c25f19506bd3b112be1f133",
+      "size": 14756
     },
     {
       "path": "README.md",
-      "sha256": "6eb7a95ef979a1a8d32f0c5feeee70a5263f490941dad3aad3456bd77e45e2eb",
-      "size": 24289
+      "sha256": "f07a8e33717fa361f98f23048420e3905341526aeba19446a4c1cb790dbdbfdb",
+      "size": 41568
     },
     {
       "path": "README_de.md",
-      "sha256": "dca02df50a26355ed5c801ba317a5852641f84efbfd4003cba22aac483760a35",
-      "size": 11011
+      "sha256": "add19c887ee74620d749a2f0352aaf845b48bf2193b794a79152cf3504ac014f",
+      "size": 17244
     },
     {
       "path": "README_en.md",
-      "sha256": "7443adbb7e6e0b03b17f2e2110ad2bdc91430dab5e33f1a9563280eed2282adb",
-      "size": 20680
+      "sha256": "f1b418459de62b93ccf2b13b2d36ceb1c3d165f9db6d46b39af9b3a6b3baa064",
+      "size": 40780
     },
     {
       "path": "README_es.md",
-      "sha256": "d84308043fc1f4b07da53851b2ce796693c87052363c965a03fd97e6335bad9f",
-      "size": 10886
+      "sha256": "6c69d1edb6d973c3e519e42c96cb17f105f676605848c48f7987986eedf6a897",
+      "size": 17274
     },
     {
       "path": "README_fr.md",
-      "sha256": "391cee23d771942a1addbdfbb2ba5df366d3ff36d759e1fcb649a3d3c2b15b0e",
-      "size": 11276
+      "sha256": "6dd948638fe83f127a2b15cc89b998e01bdf3ec4f0b4daa8ab5a578f5a6fed69",
+      "size": 18044
     },
     {
       "path": "README_ja.md",
-      "sha256": "406e9fdfec47f6ff51106ea2bb0643f87b2bdd100d447cfd3f6d4ab2749a32af",
-      "size": 13304
+      "sha256": "afdf42b9bd0aa9d5e5c343db79cbe12371d3e377f0600cc451cd6f34078df40e",
+      "size": 20343
     },
     {
       "path": "README_ko.md",
-      "sha256": "63aa0f395dad18f935097110845357d9f018aaa00e465b9b5657a9f94a90de9c",
-      "size": 11182
+      "sha256": "b387280f7749bbec39b6c34d7165c0933a60f7fa948604c93aec2b6d62039dcb",
+      "size": 17787
     },
     {
       "path": "README_ru.md",
-      "sha256": "fe787a0c0a2403e846d0f724ca02c449bc719a51ddbecbf816f33b1f1342b276",
-      "size": 16709
+      "sha256": "acd9ef1f2159137633502f6d2b47edf5517de7211c514766b3085b25da78e134",
+      "size": 25468
     },
     {
       "path": "README_zh.md",
-      "sha256": "4b4c7bca649ab13fa543b73a4400ef2e5fd981338cbbde0d350937052d0acb50",
-      "size": 21752
+      "sha256": "b63463c77e054f573b256c664cd00e43697b25208533fe549d1e32d345f5b0fa",
+      "size": 37391
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "97c35ff48b543eae0dc2a64b776675bfcbd4bcedc26151b670404bdae801585a",
+      "size": 4925
     },
     {
       "path": "SECURITY.md",
-      "sha256": "d03fc44d36c249da405d56f1fe6d2c2da8ed186a0688ba76392059ac54c08f74",
-      "size": 34536
+      "sha256": "fad5347b63a3ec9307cc5c8f2188c7933ffc6378c375a312fec6fc5b9f28d9b5",
+      "size": 43578
     },
     {
       "path": "START-INSTALLER.exe",
@@ -94,8 +104,8 @@
     },
     {
       "path": "build/PYINSTALLER.md",
-      "sha256": "5c925b0847944c01605c66a4c28483876e04209571781b819e7b6b4e84a84f1c",
-      "size": 724
+      "sha256": "013881cb035827c63ffa54b6c51e52bd7f441567820a62087b1ee3f9207b20fc",
+      "size": 867
     },
     {
       "path": "build/app.manifest",
@@ -124,38 +134,48 @@
     },
     {
       "path": "docs/DASHBOARD_BACKGROUND.md",
-      "sha256": "4593df0fb7cc30f375b9b1c283ca042920d79dbde38dd7fe825aa52993605155",
-      "size": 4540
+      "sha256": "191f54c37594696aa3aeea71613b613f3db2a148e9b57c1b8fac132433ed4c88",
+      "size": 4741
     },
     {
       "path": "docs/DST_GUARD.md",
-      "sha256": "fd5c6b2962b68bddae55a040566d3093ca9288ffd092599fde7b686f76ddfa11",
-      "size": 8533
+      "sha256": "a8a416318a5819235e323d26025fe33328f2829af3a6ef7e8a7c498e131dd8f7",
+      "size": 8630
     },
     {
       "path": "docs/HARDWARE_TROUBLESHOOTING.md",
-      "sha256": "bef69fe589458baac44e714d18d699813de0ff054da012474c12fcadfd6799a6",
-      "size": 4069
+      "sha256": "5ce2bb7f63924dbef2458053342c1e10898c3849eaa1e162a8b4fcd2d56b9981",
+      "size": 4166
     },
     {
       "path": "docs/PLUGIN_ECOSYSTEM.md",
-      "sha256": "57e51a9e4b646f92e82adcf22148fcea9549a00b8bde54e50404e1221847c172",
-      "size": 9550
+      "sha256": "8ced3457eb9cd1f47377d2051342e53b262ea65734c948f84b2dfd110f86dd5f",
+      "size": 12055
     },
     {
       "path": "docs/RAG-知识库指南.md",
-      "sha256": "1777db1cda2162c2acb5cfd25c40430a1706dcbfb224af19198ab9997edc1e7e",
-      "size": 3007
+      "sha256": "d995596274d210eb05fa1d5dcb27ef9f0c1d27e46044777e4512ce7986d172e8",
+      "size": 3104
+    },
+    {
+      "path": "docs/STATUS_v1.6.1.md",
+      "sha256": "9f32bdce8f925ad3caadb0adaedd54111f52a20fcf9acf215493ac3929c72add",
+      "size": 7623
     },
     {
       "path": "docs/TAILSCALE_WEBUI.md",
-      "sha256": "e53aaddf17838450e87f07be7033a460a786a68a68e34e3e68d80abc79fa003e",
-      "size": 6784
+      "sha256": "c453485d08bc3701ae84431372b7ba1714d319652e170a99c70fd95d74b5b8a5",
+      "size": 7132
+    },
+    {
+      "path": "docs/TROUBLESHOOTING.md",
+      "sha256": "d5fc7defa60ebdacc1f582192041eff42788c2380d64b46e49f4f2ad7cbbc64e",
+      "size": 22592
     },
     {
       "path": "docs/releases/README.md",
-      "sha256": "931f8b8c05f819ceb0260020f85c02ad45623747be8b4379f84fcc232d92c427",
-      "size": 274
+      "sha256": "41f3e08bad62063ccc9b7cca2e217d088277de003cdbf97b502b94866e24c1cb",
+      "size": 463
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.0.md",
@@ -299,23 +319,23 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "0a2b34a0c67c6494815d5eab2c7eb1967ef4300c64b4457b971e542dbb767746",
-      "size": 16370
+      "sha256": "eb17a1307529b7d5d4b614d1defe99988f0171b139e409627c6e55a7ba190895",
+      "size": 28150
     },
     {
       "path": "docs/使用说明.md",
-      "sha256": "2de427c31ecb9b15f41d04f66fb253b6afd3f1b765b966e3bb66a5c2399b850c",
-      "size": 78010
+      "sha256": "05105d32808c143795cedb1383c1967c0ebf2539bcb23d1fb30618e7c86df597",
+      "size": 86882
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "789deeaea7d9f23eaddcd1e32c653a0e1efeb82095afe73a75f2aba66f8ae8ff",
-      "size": 104619
+      "sha256": "726978a9c866272248f6edea7b350c6bc226aeb01ebaa3ac0dd7d7d644d08782",
+      "size": 136562
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "62606106147cdae6fb0cb5dfd614460d92c8a7116150cfb27b263d1530b43da4",
-      "size": 45187
+      "sha256": "2a47350d9dd944fea0c4c7818ecaf3ca255f3a81b38b66d5f7e23e95d9eb7674",
+      "size": 48379
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -324,8 +344,8 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "f820071fe4a0709a8087d8348125b7476cea1e6500d1e84f9a938cb2c86dc1ef",
-      "size": 24010
+      "sha256": "4051bad760b2a926199126f40f03504f448cac8082b41d0462d95da84cbead20",
+      "size": 24120
     },
     {
       "path": "installer/core-sources.json",
@@ -359,8 +379,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "2305a4586998910fca99a1f818e3858fd8c663f5b45a4211052574f4511f8ffb",
-      "size": 38188
+      "sha256": "f1d280e921e2f6d048f96b1059f997f2c69888aa8d70be9ca5a9e7fdb9e23ada",
+      "size": 40667
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -379,8 +399,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "f2d08b3cfc718767c828fd3f411922fef0cdc9c60053b6f595dcc37c7904a3a9",
-      "size": 29333
+      "sha256": "cae6de69b0b5945744513fd1e2e709b6c5c7583cb8f0da60a84065204347e859",
+      "size": 36653
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
@@ -399,13 +419,13 @@
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
-      "sha256": "6a192febb86ca64bc7523ff94dedcdc500f9a4086a50959692ebbc304652fd7c",
-      "size": 16194
+      "sha256": "c8b93a2442681612987025d70a424a1371b00702f47c49a08e8ad12b7359582f",
+      "size": 18133
     },
     {
       "path": "installer/lib/Installer.Python.ps1",
-      "sha256": "7008400ba3f90a2df4e4d163d78f1a58f7fe7a8d02851a8bd430c5800324aa9d",
-      "size": 10177
+      "sha256": "b62b41bb87fc60aa6e5a288bc57e62afa07a16d4d173d654ea163aceea797d87",
+      "size": 14268
     },
     {
       "path": "installer/lib/Installer.Report.ps1",
@@ -419,8 +439,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "e11e4323f645315e92bb8cda47eac1bdd0696736c77a753fddba09fe6fda7c15",
-      "size": 41921
+      "sha256": "63e605123718b90f5f8a33943e26d2d184ecb733bac9149256b28aeca6716242",
+      "size": 51498
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -431,6 +451,16 @@
       "path": "installer/lib/Installer.Totp.ps1",
       "sha256": "8c32cb94fbfac58444b1551aa82401191a618d71fcdc5c64f59e877744c0b154",
       "size": 25509
+    },
+    {
+      "path": "installer/lib/launch-guide.json",
+      "sha256": "77a35244f212582dc77c8dc044b78686cd36d9af4b22e1e7f8e729df3abb0d7b",
+      "size": 36971
+    },
+    {
+      "path": "installer/lib/post-next-details.json",
+      "sha256": "b9dac8b443cd7b9ecd8ce7d11e00d77d58bfe61c1c62a7f862407411862aee5f",
+      "size": 11951
     },
     {
       "path": "installer/lib/totp_material.py",
@@ -634,8 +664,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_at_gate/README.md",
-      "sha256": "cba80db00fe57b42b39d7283c739ed14e6bb52eaaa350b116c05a7d761b66839",
-      "size": 9594
+      "sha256": "77f3ba5e06d1ba72e4e70ec8efd1e318fbe54fe3d8770352de67487e8cd73aed",
+      "size": 9895
     },
     {
       "path": "plugins/astrbot_plugin_at_gate/__init__.py",
@@ -669,8 +699,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_cloud_fallback/main.py",
-      "sha256": "84071d48e7586b36f497b2b49307017a47caa56b2675f187292a25613c48ef40",
-      "size": 5181
+      "sha256": "c5ebe6df6d2292d1fe02c411cb05b9f2350c3158703bcbe227e753302ba50c34",
+      "size": 5172
     },
     {
       "path": "plugins/astrbot_plugin_cloud_fallback/metadata.yaml",
@@ -774,8 +804,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_security_gate/main.py",
-      "sha256": "20fbda9fb01150e6c4890962b42861331f309f438c762e1d228f596a4eb554de",
-      "size": 8311
+      "sha256": "c7c650398916cb13ef796565215bb73449de079524c3fd42adce92747077e86e",
+      "size": 8336
     },
     {
       "path": "plugins/astrbot_plugin_security_gate/metadata.yaml",
@@ -784,8 +814,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/main.py",
-      "sha256": "95c3a497f5d0a9d265bcc6d438befab4e5f97e62d0542f957952b1225d97e0f3",
-      "size": 10669
+      "sha256": "82f344a21ab0b35a68b516b9fd8c46a8e269e0e1875a4133087f30f3af350649",
+      "size": 10945
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/metadata.yaml",
@@ -934,8 +964,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "d097220b99b1457944b453820307908274cfef4b8fbe7e690b043f66d1f388f6",
-      "size": 66730
+      "sha256": "1ecfbdcdbece928476bfe15171afafc0c26424fe2c8ee75f0acc8cab852f1e26",
+      "size": 68401
     },
     {
       "path": "tools/build_update_manifest.py",
@@ -964,8 +994,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "07454818aa9b60bf140ec87aca7c745e0f28195e5d49f3f6e58eba55eeec6959",
-      "size": 85294
+      "sha256": "dd3afa7e36f8a1c4c071755aaf647821c9f9dda6ffb3a813321c01e084f7f690",
+      "size": 85482
     },
     {
       "path": "tools/daily_audit.py",
@@ -989,8 +1019,8 @@
     },
     {
       "path": "tools/dashboard_core.ps1",
-      "sha256": "4a6bab327d0a2d00a311a86ad0d0f05c3eade60df025bf4bb7fc2216d064676a",
-      "size": 6164
+      "sha256": "f20762b84ab41b0e780d64ba79acde564f71a9f507d5b9c473c63764fa9f3b7f",
+      "size": 6531
     },
     {
       "path": "tools/dashboard_errors.ps1",
@@ -999,8 +1029,8 @@
     },
     {
       "path": "tools/dashboard_game.ps1",
-      "sha256": "84962ff9d25d1a0eda134c8a40d5478796d984b03f64a5932b3d3919eb4fd904",
-      "size": 10873
+      "sha256": "29000717864518d596a64a5b8aa0329000d334fda2ca5aca4356e02303c5a069",
+      "size": 11057
     },
     {
       "path": "tools/dashboard_i18n.json",
@@ -1094,8 +1124,8 @@
     },
     {
       "path": "tools/email_approval.py",
-      "sha256": "9da19876691dba923fffb164cb8146713f210fff2403e1cb6248cdbc8bccaf43",
-      "size": 5883
+      "sha256": "035b42f9c97e75244ff513e7b8c2916ebd09154d759fcd363889025aff22d150",
+      "size": 5879
     },
     {
       "path": "tools/email_secret_bridge.ps1",
@@ -1233,14 +1263,19 @@
       "size": 2668
     },
     {
+      "path": "tools/seed_astrbot_dashboard.py",
+      "sha256": "9f24d4f368faee8fc4b6f1eacc43778b3f398025a735874e16076a5c8ac4e836",
+      "size": 1485
+    },
+    {
       "path": "tools/send_email_stdin.py",
       "sha256": "ac13efc2d25f0948bbce8d1aee04069e7f6f3dc7d9ececca852b1764a71d1caf",
       "size": 1341
     },
     {
       "path": "tools/setup_email_secret.ps1",
-      "sha256": "5dbd24ef61cf2b905e6e1e1feb6fd0348e8d8fba8ee6a78ab6959c6252840449",
-      "size": 5625
+      "sha256": "436fbd69580e02aa7a254aec99833bca009333c8d24501095e7fa45b18ee91d5",
+      "size": 6270
     },
     {
       "path": "tools/setup_totp.py",
@@ -1256,6 +1291,11 @@
       "path": "tools/snowluma_guard.py",
       "sha256": "af4b47b53320afd3f2b0a577e9c296c718fc96aa24c7b5fee74578d7198d6f95",
       "size": 27706
+    },
+    {
+      "path": "tools/start-astrbot.ps1",
+      "sha256": "db02783a4ffff829f320323f82ee61da730ebb93786525c2c45f984e3fc029c5",
+      "size": 2377
     },
     {
       "path": "tools/start-dashboard.ps1",
@@ -1274,8 +1314,8 @@
     },
     {
       "path": "tools/start-snowluma.ps1",
-      "sha256": "e53860a70b3c254b93cac406940402915d196d53d181aa79a7f4becd0a696d0a",
-      "size": 2016
+      "sha256": "cd95f5ee7fa16d44bef47991f8122fe7818e7034b1f468ebc5c377d45a0c943c",
+      "size": 3181
     },
     {
       "path": "tools/update.ps1",
@@ -1284,8 +1324,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "45a335d725b90baa42568a2679cee6bdd0a5ae3ed2cb3d61eea0833afa0abfb7",
-      "size": 11688
+      "sha256": "8a1bc67d37a7326dd09260a11df872647d746d4ae93dbe03f2d8af43cd477b80",
+      "size": 11758
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1304,7 +1344,7 @@
     },
     {
       "path": "tools/update_pubkey.pem",
-      "sha256": "283a5117b951506cdc4eceba4b0063c71b5a745634caa7d6e7be77ade0f2b7d3",
+      "sha256": "2309d4ac5ba9dadc2300a3f5d038fbbcee8f81507479e9cc246b6ed77b033398",
       "size": 625
     },
     {
@@ -1329,18 +1369,18 @@
     },
     {
       "path": "webui/README.md",
-      "sha256": "7ef9e1790fe3cae7f459c4628c7a8f37b69096f271b78fc3ec1af227879b896b",
-      "size": 3069
+      "sha256": "a59b2d1057b3ef59be1dfcc674cfb6b5edd88144bb74c9aa49cab2eee438b343",
+      "size": 3274
     },
     {
       "path": "webui/app.py",
-      "sha256": "bec31eee2e3c81d29e0c0def0d10659c6e1c61acee0e13bdd828f767aea8b4ca",
-      "size": 15799
+      "sha256": "838879ecbf2afc89069d8d42174bf4d851639a47908f25eb8015cb9dc9ef05b6",
+      "size": 21581
     },
     {
       "path": "webui/auth.py",
-      "sha256": "6526f5d6bb0e0e56fa118bca8137fd322ea5bee3ffa699b7196d480a11866a35",
-      "size": 3920
+      "sha256": "81190b062984194f4a29fb75a24e06940d770dd6fd1326ba030ad44285b6568e",
+      "size": 4574
     },
     {
       "path": "webui/example-config.json",
@@ -1354,8 +1394,8 @@
     },
     {
       "path": "webui/install-startup-task.ps1",
-      "sha256": "e83bee27b0ae73e1a23d21990b4bde64d16e37350386053fb8e25af0fa272b76",
-      "size": 1463
+      "sha256": "89932b2cb780650968c0dffa02cc12f78c2492f71556d25bd531d5030e55195b",
+      "size": 1498
     },
     {
       "path": "webui/mailer.py",
@@ -1364,8 +1404,8 @@
     },
     {
       "path": "webui/otp_mailer.py",
-      "sha256": "9dc72beab9120a003871dc87b81c3ef5af539831541ccbf64414c6461051af74",
-      "size": 5953
+      "sha256": "43f0512fd063418ff86f153140f0d1311b5843a58c852187963421111d78e316",
+      "size": 6213
     },
     {
       "path": "webui/requirements.txt",
@@ -1379,8 +1419,8 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "0f1e5118ba7daf83ba09d8b37af4521f849147b182ca2cf23e42b35b7d04e9e1",
-      "size": 11996
+      "sha256": "e054c15d236ad1d47a8eb345043089d368ad7a17df0ca8611ea437907cdbc1dd",
+      "size": 12409
     },
     {
       "path": "webui/settings.py",
@@ -1389,13 +1429,13 @@
     },
     {
       "path": "webui/start-services.ps1",
-      "sha256": "8b1278e2a7c877b0b89bb752cd80ba67daa3b02f1ff7b22813ce8ea5254112bc",
-      "size": 4514
+      "sha256": "dd804fc5cce64c33f250f45315632fa7202c0877e06c8e466eac633521a66a57",
+      "size": 4659
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "3e3cdf37e791b09f7147921b9910890ee651ff01ff5bf37bfb3eded1eacc4ae4",
-      "size": 20489
+      "sha256": "1f6eb2cc17de212c52d665fc54218011ea1c0708fee026d851c67ae921f632cb",
+      "size": 23305
     },
     {
       "path": "webui/static/error.js",
@@ -1409,48 +1449,48 @@
     },
     {
       "path": "webui/static/i18n/de.json",
-      "sha256": "fca8e9bbf532ed2ecb6953e68be5de2b4e7082981eadfcd54d85184c219839ec",
-      "size": 10610
+      "sha256": "1fe39ca69416c386f08a74ee7c67fa65802e9d6ec5a91e087e65bb8c8da7c867",
+      "size": 10856
     },
     {
       "path": "webui/static/i18n/en.json",
-      "sha256": "1087a7ec953ae0b388b6623a3bb00a4a0b2414c36eda001625ed07af9679fe3f",
-      "size": 8624
+      "sha256": "ea4d66a973553571db03f99f2b664cb4f025b5329eb227fb2424fd03c2da610d",
+      "size": 8872
     },
     {
       "path": "webui/static/i18n/es.json",
-      "sha256": "7bfaf803a8a42ad9e415105fcad90716a208a486a64c997affb471caed7a3445",
-      "size": 10490
+      "sha256": "af7a3b202cba05ef713e4b467a8d8e9f4630e3dd03ee2811b418d7e0c8103d49",
+      "size": 10714
     },
     {
       "path": "webui/static/i18n/fr.json",
-      "sha256": "f7025cf42975f437f42ee3f104644ecadc1180f9263d58c4d9538800322861a0",
-      "size": 10692
+      "sha256": "01762213d7f9fbd8e47b17b534f871e19361d7c9e25a97bf5f8ddea838d6af29",
+      "size": 10925
     },
     {
       "path": "webui/static/i18n/ja.json",
-      "sha256": "bcc27de67fd8bf7bf864330cedca40ca5b17dd7902a6a8dc66e910672a39fb05",
-      "size": 11725
+      "sha256": "87aa93b0bb5c6d15a194dc4ea80b8173107f10deedd612866d1ca107d1ad8595",
+      "size": 11975
     },
     {
       "path": "webui/static/i18n/ko.json",
-      "sha256": "ca0703db5b1f0806e823b2ff71d1514c3a6ba0d95540e70cbdef32016c431e7f",
-      "size": 10609
+      "sha256": "324b4b44127f6a3dbddc31ed18429cb5ceadaca7593da7337033239c43d52487",
+      "size": 10828
     },
     {
       "path": "webui/static/i18n/ru.json",
-      "sha256": "1f6212a328f48af8c5ebe1b993187192298991effd50c8658c7509e05b6f3150",
-      "size": 14533
+      "sha256": "ecb0351df65b1365402f569285fead65a0272da3b759f93bc909587405341d64",
+      "size": 14838
     },
     {
       "path": "webui/static/i18n/zh.json",
-      "sha256": "07393722cf70e898699a04cc41c391301b0cc2b77f1bb31790cd704aef0061b1",
-      "size": 8578
+      "sha256": "b614b0fe41117e1cebb53574862d781a695184f4a10b575fda8fc8da8448e761",
+      "size": 8843
     },
     {
       "path": "webui/static/login.js",
-      "sha256": "72ae3075b435dd2bb579d6db86b2a5f63698df50485e274f6b79f0f1fb1779b4",
-      "size": 6455
+      "sha256": "e6c57d31ca8db9a5e2eb06925d47dceb54a38a2dab7a186abdfaa40e2d15b2f2",
+      "size": 6822
     },
     {
       "path": "webui/static/theme-phase2-extra.css",
@@ -1474,8 +1514,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "41edc232e250d4f5168dbccf42aa8b9c4f4a2c36f9410a6c19dd46ccd0559ec1",
-      "size": 9705
+      "sha256": "fca08bf875172af4fd0449c76fb95c19669020ac0c7c7f1613cf1f3d01fc7113",
+      "size": 11023
     },
     {
       "path": "webui/templates/error.html",

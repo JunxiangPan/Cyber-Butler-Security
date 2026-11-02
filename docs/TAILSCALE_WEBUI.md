@@ -1,5 +1,8 @@
 # Tailscale 外网安全接入 Web 面板
 
+> v1.6.1 status, incomplete work, and non-guarantees: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+
+
 目标：手机在公司/外面用蜂窝网络访问家里的 Cyber-Butler Web 面板和“大肥鱼文件”，
 **不开放路由器端口、不做公网端口映射**。
 

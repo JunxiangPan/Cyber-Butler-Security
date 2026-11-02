@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[4]
 LOG_PATH = ROOT / "AstrBot" / "data" / "security-gate.log"
 LOCK_STATE = ROOT / "AstrBot" / "data" / "security-gate-api-lock.json"
 TOKEN_FILE = ROOT / ".astrbot_token"
-PRIVATE_UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
+PRIVATE_UMO = "QQ:FriendMessage:YOUR_QQ_ID"
 LOCAL_PROVIDER = "local_qwen36"
 API_PROVIDER = "deepseek"
 DANGEROUS_TOOLS = (
@@ -69,7 +69,7 @@ class SecurityGatePlugin(Star):
     @filter.event_message_type(filter.EventMessageType.ALL, priority=1000)
     async def inspect_incoming(self, event: AstrMessageEvent) -> None:
         umo = str(getattr(event, "unified_msg_origin", "") or "")
-        known_markers = ("qq_sujinyan", "aiocqhttp")
+        known_markers = ("qq", "aiocqhttp", "qq_sujinyan", "default")
         if not any(marker in umo.casefold() for marker in known_markers):
             # Fail closed: an unknown transport must not bypass the gate.
             line = f"[安全告警] 未知平台/umo，默认拦截 | umo={umo[:120]}"
@@ -110,7 +110,7 @@ class SecurityGatePlugin(Star):
             req: The provider request whose tool set can be mutated.
         """
         umo = str(getattr(event, "unified_msg_origin", "") or "")
-        if not any(marker in umo.casefold() for marker in ("qq_sujinyan", "aiocqhttp")):
+        if not any(marker in umo.casefold() for marker in ("qq", "aiocqhttp", "qq_sujinyan", "default")):
             return
         tools = getattr(req, "func_tool", None)
         if tools is None:

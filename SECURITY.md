@@ -1,12 +1,57 @@
-# SECURITY.md — Security Architecture & Threat Model
+﻿# SECURITY.md — Security Architecture & Threat Model
+
+> **Early Beta.** This project has not received a third-party security audit,
+> penetration test, or certification. It is a defense-in-depth research project,
+> not a complete security product. A local administrator can bypass the controls.
+>
+> v1.6.1 status: completed work, incomplete work, and explicit non-guarantees: [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
+
 
 > Status: public-release security whitepaper  
 > Scope: Windows self-hosted deployment for an AstrBot-based QQ agent  
-> Revision: 2026-10-31  
-> Release: 1.6.0  
+> Revision: 2026-11-02  
+> Release: 1.6.1  
 > License: AGPL-3.0 (see `LICENSE`)
 
 This document describes what the security controls are intended to protect, what they do **not** protect, and how to reproduce the automated checks.
+
+## 0. v1.6.1 Security Control Inventory
+
+This is the security view of the v1.6.1 feature set. The authoritative
+shipped/incomplete/non-guaranteed list is
+[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md); this table describes controls,
+not a certification.
+
+| Area | v1.6.1 control | Security effect | Boundary / residual risk |
+|---|---|---|---|
+| Installer | WPF GUI for High/Medium/Light, eight-language UI, path/owner QQ/API-key fields | Reduces unsafe hand-editing and tier mix-ups | A local administrator can still alter files before launch |
+| Launch | Native `START-INSTALLER.exe` / `CyberButlerLauncher.exe`; no VBS/wscript/cmd | Removes the VBS heuristic and hidden WSH launch chain | The native binaries are unsigned in this build |
+| Diagnostics | ETA/status window and persistent report under ProgramData | Failure evidence survives rollback | The report is local; it is not a tamper-proof remote log |
+| Defender | Opt-in exclusion helper, exact `C:\CyberButler`, never disable RTP | Avoids the “turn off AV” anti-pattern | AV may still flag; reputation is not guaranteed |
+| Uninstall | Multiple scopes; stops processes, removes tasks/firewall rules | Reduces leftover services after removal | A user can interrupt cleanup |
+| High account | S4U fallback to password; LSA API rights; readable Python copy | Makes the service identity usable when S4U is denied | Password fallback stores a task credential under Windows task protection |
+| Job Object | `KILL_ON_JOB_CLOSE` before child creation | Broker descendants cannot survive a Broker crash | AstrBot is a separate task and is not automatically covered |
+| Broker | Loopback-only, `X-Broker-Token`, one pending request, TOTP/replay/backoff | Only an authenticated local caller can request approval | A local administrator can bypass OS controls |
+| Approval-only | `/api/request_approval` changes state; does not execute | Removes Broker/DSH double-execution | The external agent must implement its own correct allow path |
+| Scoped Token | 30-minute directory-bound token, memory-only | Removes repeated TOTP prompts in a draft directory | A stolen live token can act in that directory until it expires |
+| Bypass | 30-second action/directory bypass | Short batch ergonomics without a global bypass | Same live-token theft risk is bounded to 30 seconds |
+| UIPI | `UIPI_BLOCKED_GUI_INTERACTION` + `guard_gui_result()` | Makes future silent GUI drops auditable | Hook only; no GUI path is wired in this build |
+| Audit | JSONL, no raw token/TOTP, scoped label | Detection and reconstruction | Local log can be altered by an administrator |
+| DSH gate | `tools/pre-execute`, approval-only polling, scoped cache; shell/edit refused | One decision point for DSH write/delete | Not all DSH tools are mapped; shell/edit remain blocked |
+| WebUI | Loopback default; firewall/profile checks for non-loopback | Reduces accidental network exposure | Firewall misconfiguration remains a boundary |
+| Release | RSA-3072 capability, pinned public key, overlay hash pinning, personal plugins opt-in | Publisher verification and fork-drift resistance | The v1.6.1 manifest is signed; the signature must be verified before applying an update |
+
+### v1.6.0 → v1.6.1 security delta
+
+- v1.6.0 shipped 5 `tools/*.vbs` files and WSH launch; v1.6.1 has 0 VBS and 0
+  CMD launchers.
+- v1.6.0 Broker was an execute-on-approval broker of ~33 KB; v1.6.1 adds Job
+  Object, approval-only, `/api/request_approval`, status polling, scoped tokens,
+  bypass, and UIPI, growing to ~66 KB.
+- v1.6.0 had no DSH bridge, no `docs/STATUS_v1.6.1.md`, and no installer
+  dashboard syntax/hash gate.
+- v1.6.0 package had previous release; v1.6.1 has the final file/entry counts published with the release assets.
+- v1.6.1 raises the test floor to 144 Pester + 95 pytest.
 
 **This is not a formal security certification and not legal advice.** A local deployment remains the responsibility of its operator.
 
@@ -16,7 +61,7 @@ This document describes what the security controls are intended to protect, what
 
 | Version | Status | Notes |
 |---|---|---|
-| 1.6.x | Supported | Current signed release line |
+| 1.6.x | Supported | Current release line; the v1.6.1 build must be signed by an administrator before it is called signed |
 | 1.5.x | Security fixes only | No RSA publisher signature and no new public key |
 | < 1.5 | Unsupported | Upgrade through the full installer |
 
@@ -36,6 +81,10 @@ The security model was built around concrete Windows failure modes, not only doc
 | 2026-10-29 | Public security tests and CI | Make claims reproducible instead of documentation-only |
 | 2026-10-31 | Unified installer and three-task service model | One installation pipeline and a clear managed-service boundary |
 | 2026-10-31 | RSA-3072 release manifest signature | Add a detached publisher signature to the update path |
+| 2026-11-01 | Approval-only API and status polling | Stop Broker/DSH double execution |
+| 2026-11-01 | Scoped directory token (30 minutes) | Remove repetitive TOTP prompts for scratch work without a global bypass |
+| 2026-11-02 | Job Object `KILL_ON_JOB_CLOSE` | Kill orphan process trees when the Broker exits |
+| 2026-11-02 | DSH/Cordis bridge and UIPI audit hook | Cross-ecosystem approval and defensive GUI logging |
 
 ### Windows pitfalls found during the build
 
@@ -59,6 +108,7 @@ The security model was built around concrete Windows failure modes, not only doc
 | Shared folder | Files the agent may read or send |
 | Audit logs | Detection and incident reconstruction |
 | AstrBot configuration and session data | Provider credentials and conversation data |
+| Scoped directory token | Grants 30-minute destructive authority inside one approved directory |
 
 ### Adversaries and trust boundaries
 
@@ -73,6 +123,7 @@ The security model was built around concrete Windows failure modes, not only doc
 | Network attacker | Reaches a misbound port | Loopback checks in Broker and dashboard | A local reverse proxy can still expose the service if configured carelessly |
 | Malicious plugin / dependency | Executes code inside AstrBot | Review dependencies, least privilege, audit | Third-party plugins are outside this project's trust boundary |
 | File-copy bypass | Copies an external file into the whitelist | File-owner check + path/name/archive/batch policy + TOTP | A process with the same owner as a trusted file may still be treated as trusted |
+| Scoped-token holder | Reuses a valid directory token to delete or overwrite several files | 30-minute TTL, canonical directory binding, shared/tmp-only scope, broker-token-gated status | The token intentionally covers every destructive action inside that directory during its lifetime; it is a convenience grant, not a per-file approval |
 
 ### File-egress edge cases (P1)
 
@@ -124,6 +175,30 @@ flowchart LR
 ```
 
 **Core principle:** the LLM is not trusted with direct destructive authority. It can request an action; the Broker requires a human second factor before executing it.
+
+### 2.1 Scoped-token trust boundary
+
+A Scoped Token is issued only after a successful TOTP approval and only for a
+target inside `SHARED` or `TMP_ROOTS`. It is a memory-only token, never
+persisted, with a hard 30-minute TTL. It is deliberately **not** a general
+capability:
+
+- it never applies to `MEMORY_ROOTS` (`AstrBot/data/memory`, `data/config`,
+  `cmd_config.json`) or the TOTP vault;
+- it never applies to `send`/`send_file`;
+- it is bound to the canonical parent directory and cannot cross into a sibling
+  or parent directory;
+- it covers `delete`, `overwrite`, and `write_file` in that directory for its
+  lifetime, so the directory should be a dedicated scratch/draft area;
+- status returns the token only while the state is `approved` and only to a
+  caller presenting `X-Broker-Token`;
+- an invalid/expired token produces `scoped_invalid: true`, and the DSH bridge
+  clears its local cache.
+
+The token is **not** a substitute for ACLs, the TOTP vault, or egress policy. It
+is an approval-ergonomics grant. A malicious process that steals the token can
+use it for its remaining TTL within that directory; protect the DSH/Broker token
+files and the desktop session accordingly.
 
 ---
 
@@ -362,16 +437,31 @@ The Broker should therefore be described as **a human-in-the-loop gate for autom
 
 ## 8. Reporting a Vulnerability
 
-Do not open a public issue containing live credentials, TOTP seeds, recovery codes, or personal paths.
+**Do not open a public issue** containing live credentials, TOTP seeds, recovery
+codes, personal paths, or a working exploit.
 
-Contact the maintainer at `YOUR_SECURITY_EMAIL` with:
+Use GitHub's private vulnerability reporting / Security Advisory flow:
 
+```text
+https://github.com/JunxiangPan/Cyber-Butler-Security/security/advisories/new
+```
+
+If that flow is unavailable, contact the maintainer through the repository
+profile and ask for a private channel before sending details.
+
+Include:
+
+- exact `VERSION` and package SHA-256;
+- installation tier (High / Medium / Light) and Windows build;
 - affected file/commit;
-- reproduction steps;
-- impact;
-- whether the issue is already public.
+- minimal reproduction steps and expected/actual behavior;
+- impact and whether the issue is already public;
+- the smallest relevant log excerpt, with tokens/QQ ids/SMTP secrets removed.
 
-Allow a reasonable disclosure window before publishing details.
+Allow a reasonable coordinated-disclosure window before publishing details.
+Do not include live TOTP codes, scoped tokens, `.astrbot_token`, or
+`broker_token.txt`. This project is an early Beta and does not offer a bug bounty
+or a guaranteed response SLA.
 
 ### Release sanitization residual
 
@@ -568,6 +658,21 @@ child. The broker assigns itself to the job, so every child and grandchild that
 does not explicitly break away is terminated when the last job handle closes,
 including a broker crash or forced termination.
 
+Mechanism:
+
+1. `CreateJobObjectW` creates an unnamed job.
+2. `SetInformationJobObject(..., JobObjectExtendedLimitInformation, ...)` sets
+   `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` (`0x2000`).
+3. `AssignProcessToJobObject(job, GetCurrentProcess())` puts the broker in the
+   job **before** `verify_runtime_acl()` or any subprocess starts.
+4. Child processes inherit the job by default (no `CREATE_BREAKAWAY_FROM_JOB`).
+5. When the broker exits, the OS closes its last job handle; Windows terminates
+   every remaining process in the job.
+
+The implementation fails closed if Job Object creation or assignment fails, and
+it closes the handle in `finally` during normal shutdown. It is process-tree
+containment, not a syscall sandbox.
+
 Verified on Windows:
 
 ```text
@@ -639,3 +744,24 @@ A future GUI call that returns `None`/`False` should pass its result through
 
 This is a logging hook, not proof that UIPI was the cause; the alert must be
 correlated with the process integrity level and desktop/session.
+
+Operational rule: if a future AppContainer/restricted-token build adds a GUI
+approval dialog, focus, clipboard, or window-message path, every such call must
+pass its result through `guard_gui_result`. A `None` or `False` result is treated
+as a possible silent UIPI drop and written to the audit log as
+`UIPI_BLOCKED_GUI_INTERACTION`. Do not infer success from a missing exception:
+UIPI is allowed to discard the interaction without raising.
+
+The current build has no GUI interaction path in the Broker or the inspected
+AstrBot overlay, so this remains a defensive hook, not a tested GUI feature.
+
+## 17. No Absolute Security Guarantee
+
+CBS is defense-in-depth, not a complete security product. It does not guarantee
+that it cannot be bypassed, that every tool/plugin/shell/Python/GUI/egress path
+is mediated, that an autonomous agent cannot cause data or account loss, that a
+compromised phone/QQ account/desktop session/administrator account/supply chain
+is contained, that antivirus or SmartScreen will not flag the build, or that the
+software is fit for any particular purpose. See
+[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md) for the authoritative
+shipped/incomplete/non-guaranteed list.

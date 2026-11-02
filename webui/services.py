@@ -1,9 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import asyncio
 import re
 import socket
 import subprocess
+
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -61,6 +63,7 @@ def _nvidia() -> dict | None:
             ],
             text=True,
             timeout=5,
+            creationflags=_NO_WINDOW,
         ).strip()
     except Exception:
         return None

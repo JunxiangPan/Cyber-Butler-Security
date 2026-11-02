@@ -1,4 +1,76 @@
-[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+
+## ✅ Покрытие тестами / Test Coverage
+
+✅ **Уровень High**: полный сквозной тест на реальной машине завершён — установка, запуск служб, TOTP, SCOPED и удаление.
+
+⚠️ **Уровень Medium**: выполнено несколько частичных тестов; скорее всего работоспособен, но полный сквозной сценарий на реальной машине не принят.
+
+❌ **Уровень Light (минимальный)**: полный тест на реальной машине ещё не проводился; оцените риск самостоятельно.
+
+Заявление относится к v1.6.1 и не является сертификацией безопасности.
+
+
+
+## v1.6.1 — Обновление безопасности
+
+**Токен с областью действия (30 минут)**: после подтверждения TOTP владелец
+может ответить `SCOPED 30`. Broker выдаёт токен в памяти, привязанный к каталогу
+цели на 30 минут, только для `delete`, `overwrite` и `write_file` внутри
+общего или tmp-дерева. Он никогда не применяется к memory/config, хранилищу
+TOTP или отправке файлов.
+
+**Изоляция Job Object**: Broker устанавливает
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` до создания дочерних процессов. При
+завершении Broker Windows завершает дерево процессов. AstrBot — отдельная
+задача и автоматически не входит в это дерево.
+
+**Плагин DSH/Cordis**: отдельный bundle `dsh-cbs-gate` использует
+`tools/pre-execute`, approval-only запросы, опрос статуса и кэш токенов.
+Подробности: [README.md](README.md), [SECURITY.md](SECURITY.md). Status and non-guarantees: [docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md).
+
+### Ключевые функции v1.6.1
+
+- **WPF-установщик**: High/Medium/Light, путь, API-ключ, QQ владельца, прогресс/ETA и копируемое окно состояния.
+- **Интерфейс на 8 языках**: главное окно, диалоги, статус, удаление и справка.
+- **Нативный запуск**: `START-INSTALLER.exe` / `CyberButlerLauncher.exe`; без VBS, wscript и CMD.
+- **Job Object**: `KILL_ON_JOB_CLOSE` завершает дерево процессов Broker при его остановке.
+- **Approval-only**: TOTP только разрешает; DSH выполняет исходный инструмент, без двойного выполнения.
+- **SCOPED 30**: 30-минутный токен для текущего чернового каталога; только delete/overwrite/write_file.
+- **DSH/Cordis**: `tools/pre-execute`, опрос статуса и кэш токена; `edit`/shell запрещены.
+- **Тесты**: 144 Pester + 95 pytest.
+
+### Статус и отсутствие гарантий (v1.6.1)
+
+**Готово**: Scoped Token, Job Object брокера, approval-only API, мост
+DSH/Cordis, нативный установщик, защита хешей dashboard.
+
+**Не завершено**: дочерние процессы AstrBot в Job, AppContainer/syscall-
+песочница, посредничество shell/edit, TOTP для медиа, подпись кода, независимый
+аудит, полная проверка на чистой VM.
+
+**Не гарантируется**: CBS не гарантирует абсолютную безопасность,
+невозможность обхода, покрытие всех инструментов/плагинов/shell/Python/GUI,
+отсутствие блокировки антивирусом, защиту при скомпрометированном QQ,
+рабочем столе или учётной записи администратора.
+
+## 🔐 Проверка подписи релиза
+
+Скачайте `public-release-v<version>.zip`, `update-manifest.json` и
+`update-manifest.sig`. В распакованном дереве релиза выполните:
+
+```powershell
+python tools/verify_release.py `
+  --manifest update-manifest.json `
+  --signature update-manifest.sig `
+  --pubkey tools/update_pubkey.pem
+```
+
+Ожидаемый результат: `VALID`. Если получено `INVALID`, подпись отсутствует или
+версия не совпадает, **не устанавливайте**. Валидная подпись подтверждает
+только владение закреплённым закрытым ключом, а не отсутствие вредоносного кода.
+
+📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 
 ## 🤖 Agent-Ready Deployment (для ИИ-агентов)
 
@@ -6,14 +78,14 @@
 
 1. Прочитайте [`docs/使用说明.md`](docs/使用说明.md), чтобы понять полную логику развёртывания.
 2. Проверьте, есть ли у пользователя права администратора. Если нет — попросите их; никогда не обходите UAC.
-3. Следуйте разделу «учётная запись с низкими правами» в руководстве, создайте и проверьте сервисную учётную запись, затем зарегистрируйте задачи автозапуска с помощью `tools/install_startup_tasks.ps1`.
+3. Следуйте разделу «учётная запись с низкими правами» в руководстве, создайте и проверьте сервисную учётную запись, затем зарегистрируйте задачи автозапуска с помощью `START-INSTALLER.exe`.
 4. Помогите пользователю установить Ollama и загрузить модель, указанную в [`config.pro.example.json`](config.pro.example.json).
 5. Перед запуском Broker спросите QQ ID и API-ключ; храните их в переменных окружения или хранилище секретов, но никогда в Git.
 6. **Важно:** не обходите UAC и не выполняйте разрушительные команды вроде `rm -rf`. Проект построен по принципу Zero-Trust.
 
 ---
 
-# Su Jinyan / Cyber Steward — открытая архитектура для локального хостинга
+# Su Jinyan / Cyber-Butler Security (CBS) — открытая архитектура для локального хостинга
 
 > Архитектура для QQ-агента под Windows: изоляция двух учётных записей, планирование GPU/VRAM, Broker для опасных действий, проверка TOTP, контроль отправки файлов и ежедневный аудит.
 
@@ -188,3 +260,44 @@ flowchart LR
 `overlay/` содержит изменённые файлы на основе AstrBot (AGPL-3.0). При распространении репозитория или изменённых версий необходимо соблюдать AGPL-3.0, включая обязанность предоставлять исходный код.
 
 AstrBot, SnowLuma, Ollama и другие зависимости принадлежат их авторам. Перед использованием ознакомьтесь с их лицензиями и соблюдайте их.
+
+## Устранение неполадок v1.6.1
+
+При `QQ challenge send failed` или 6199 без `Established` сначала войдите в QQ и
+используйте `SnowLuma Startup` (`SNOWLUMA_HOOK_AUTOLOAD=true`); смотрите
+`SnowLuma\logs\startup-snowluma.out.log`. Если TOTP остаётся `pending`, QQ
+владельца должен отличаться от QQ бота; ответьте `<код> SCOPED 30` за 300 с.
+При `Bot not found ... qq_sujinyan` используйте реальный platform id AstrBot
+(обычно `QQ`). Security Gate требует `qq` в нижнем регистре: удалите
+`__pycache__` и перезапустите. Замените `YOUR_QQ_ID` в `tools\broker.py` и
+плагинах AstrBot. При конфликте 6185 завершите все `main.py` и запустите один
+раз. Не давайте права записи на `tools`; логи в `SnowLuma\logs`.
+Подробно: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## Community Credits
+
+This project is shaped by the community. Special thanks to u/Auten, u/Reid Marlow, u/QuanTradin, u/Practical-Craft4967, u/More-Ad7285, and u/HeartMaleficent35 from r/AI_Agents for their architectural feedback and security audits.
+
+**Обязательная первичная настройка:** укажите email администратора WebUI и код авторизации SMTP в установщике. CBS WebUI `8765` использует email-OTP, AstrBot `6185` — логин/пароль. Без email появится красный баннер.
+
+## Почта WebUI и SMTP (первая настройка)
+
+CBS WebUI (`http://127.0.0.1:8765`) использует **email-OTP**; AstrBot
+(`http://127.0.0.1:6185`) — логин/пароль.
+
+| Поле | Значение |
+|---|---|
+| **WebUI email** | Почта администратора для входа, подтверждений TOTP и оповещений; **не** QQ бота. |
+| **SMTP host** | Сервер исходящей почты, например `smtp.163.com` или `smtp.gmail.com`. |
+| **SMTP port** | SSL-порт; в этой сборке неявный SSL, поэтому `465`. `587`/STARTTLS не поддерживается. |
+| **SMTP auth code** | Пароль приложения/код авторизации провайдера, **не** пароль входа; шифруется DPAPI. |
+| **SMTP user** | Обычно тот же адрес, что WebUI email. |
+
+Если не настроено: не отправляется OTP входа и TOTP-письмо, Broker возвращает
+HTTP 503, а панель показывает красный баннер. Хранение:
+`webui\config.json` (`admin_email`), `C:\ProgramData\CyberButler\email_secret.json`
+(DPAPI), `webui\data\approval-contact.json` (резерв WebUI). WebUI никогда не
+пишет `tools\broker_config.json`; в High каталог `tools` только для чтения.
+
+> Gmail/Outlook могут требовать своих SMTP/IMAP-настроек. В этой версии IMAP
+> для email-подтверждений по умолчанию 163.

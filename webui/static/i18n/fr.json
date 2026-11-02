@@ -50,7 +50,7 @@
     "auth.error.network": "Anomalie du réseau, veuillez réessayer plus tard.",
     "auth.error.sendFailed": "Le code de vérification n'a pas pu être envoyé, veuillez réessayer plus tard.",
     "auth.error.rate": "La demande était trop fréquente, veuillez réessayer plus tard.",
-    "auth.error.mailer": "Le code de vérification n'a pas pu être envoyé, veuillez réessayer plus tard.",
+    "auth.error.mailer": "L’e-mail de vérification n’a pas pu être envoyé. Vérifiez le code SMTP et l’OTP Mailer (port 8766).",
     "auth.resendCountdown": "Renvoyer({seconds}s)",
     "dash.eyebrow": "SECURE SIDECAR · PHASE 2",
     "dash.hero": "Content de te revoir.",
@@ -163,6 +163,8 @@
     "email.subject": "[Cyber-Butler] Code de vérification de connexion Web",
     "email.body": "Votre code de vérification de connexion Cyber-Butler Web est : {code}\n\nValable pendant {minutes} minutes et ne peut être utilisé qu'une seule fois.\nS'il ne s'agit pas d'une connexion initiée par vous, veuillez ignorer cet e-mail et vérifier la sécurité de votre e-mail.",
     "dash.logout": "Se déconnecter",
-    "dash.tabs": "Panneaux"
+    "dash.tabs": "Panneaux",
+    "auth.email_unknown": "Cette adresse n’est pas la boîte administrateur configurée lors de l’installation.",
+    "auth.error.rateWait": "Trop de requêtes. Réessayez dans {seconds} secondes."
   }
 }

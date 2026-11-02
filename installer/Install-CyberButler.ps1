@@ -48,6 +48,10 @@ param(
     [object]$ApiKey = $null,
     [object]$SmtpSecret = $null,
     [string]$ApiKeyFile = '',
+    [string]$WebUIAdminEmail = 'owner@example.com',
+    [string]$SmtpHost = 'smtp.163.com',
+    [int]$SmtpPort = 465,
+    [string]$SmtpUser = '',
 
     [string]$AstrBotPackage = '',
     [string]$SnowLumaPackage = '',
@@ -114,6 +118,22 @@ if (-not [string]::IsNullOrWhiteSpace($TestConfigPath)) {
     if ($testConfig.RollbackHandlers) { $RollbackHandlers = $testConfig.RollbackHandlers }
     if ($testConfig.ApiKey) { $ApiKey = $testConfig.ApiKey }
     if ($testConfig.SmtpSecret) { $SmtpSecret = $testConfig.SmtpSecret }
+}
+
+if (-not $SmtpSecret -and $env:CB_SMTP_AUTH_CODE) {
+    $SmtpSecret = $env:CB_SMTP_AUTH_CODE
+}
+
+if ($GuiMode) {
+    $guiEmail = ([string]$WebUIAdminEmail).Trim()
+    if ($guiEmail -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$') {
+        Write-InstallerLine 'GUI validation failed: a valid WebUI admin email is required.' -Level ERROR
+        exit (Get-InstallerExitCode -Name ValidationFailed)
+    }
+    if (-not $env:CB_SMTP_AUTH_CODE -and (Test-CyberButlerSecureStringEmpty $SmtpSecret)) {
+        Write-InstallerLine 'GUI validation failed: SMTP auth code is required for WebUI email approval.' -Level ERROR
+        exit (Get-InstallerExitCode -Name ValidationFailed)
+    }
 }
 
 try {
@@ -409,7 +429,19 @@ $coreResult = $null
 $pythonSource = if ($preflight.python_source) { [string]$preflight.python_source } else { 'system' }
 $pythonVersion = if ($preflight.python_resolved_version) { [string]$preflight.python_resolved_version } else { '' }
 
-if (-not (Test-MainStepDone -Journal $journal -Name 'core')) {
+$coreJournalDone = Test-MainStepDone -Journal $journal -Name 'core'
+# In handler-driven tests the core tree is simulated; do not inspect the real
+# filesystem there. Production installs have no handlers.
+$coreTree = if ($TestConfigPath) {
+    [pscustomobject]@{ satisfied = $true; missing = @() }
+} else {
+    Test-CyberButlerCoreDeploy -InstallPath $InstallPath
+}
+$coreNeedsDeploy = (-not $coreJournalDone) -or (-not $coreTree.satisfied)
+if ($coreNeedsDeploy) {
+    if ($coreJournalDone -and -not $coreTree.satisfied) {
+        Write-Output ('CORE invalid despite journal; missing: ' + (($coreTree.missing | Select-Object -First 8) -join ', '))
+    }
     $pythonStep = Get-CyberButlerJournalStep -Journal $journal -Name 'python'
     if ($preflight.python_needs_bundle) {
         $reusePython = $null
@@ -426,7 +458,7 @@ if (-not (Test-MainStepDone -Journal $journal -Name 'core')) {
             Write-Output ('PYTHON ' + [string]$pythonResult.status)
             if ([string]$pythonResult.status -in @('completed', 'skipped')) {
                 $pythonPath = [string]$pythonResult.python_path
-                $pythonSource = 'bundled'
+                $pythonSource = if ($pythonResult.python_source) { [string]$pythonResult.python_source } else { 'bundled' }
                 $pythonVersion = [string]$pythonResult.python_version
                 if (-not (Get-CyberButlerJournalStep -Journal $journal -Name 'python')) {
                     Add-MainJournalStep -Journal $journal -Name 'python' -Status 'completed' -Reason ([string]$pythonResult.reason)
@@ -458,7 +490,7 @@ if (-not (Test-MainStepDone -Journal $journal -Name 'core')) {
 }
 
 # Core deploy: real download/verify/extract/venv/overlay.
-if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'core')) {
+if (-not $failure -and $coreNeedsDeploy) {
     Write-Output ('CORE start existing=' + $preflight.install_path.existing_state)
     $coreResult = Invoke-CyberButlerCoreDeploy -InstallPath $InstallPath `
         -ExistingState $preflight.install_path.existing_state -Tier $resolution.Tier `
@@ -466,8 +498,10 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'core')) 
         -AstrBotSha256 $AstrBotSha256 -SnowLumaSha256 $SnowLumaSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `
         -DownloadTimeoutSeconds $DownloadTimeoutSeconds -DownloadRetryCount $DownloadRetryCount -ResumeDownload:$ResumeDownload -PythonPath $pythonPath -PythonSource $pythonSource -PythonVersion $pythonVersion -PipLogPath (Join-Path $ReportDirectory 'pip-install.log') `
-        -PersonalPluginsPath $PersonalPluginsPath -Repair:$Repair `
+        -PersonalPluginsPath $PersonalPluginsPath `
         -OwnerQQ $OwnerQQ -ToolServiceAccount $AstrBotAccount -ToolDesktopAccount $DesktopAccount `
+        -WebUIAdminEmail $WebUIAdminEmail `
+        -Repair:($Repair -or ($coreJournalDone -and -not $coreTree.satisfied)) `
         -Journal $journal -JournalStep 'core' -Handlers $Handlers
     Write-Output ('CORE ' + [string]$coreResult.status)
     if ([string]$coreResult.status -eq 'failed') {
@@ -520,7 +554,10 @@ $taskServiceAccountPassword = ''
 
 # Accounts: only needed when isolation is enabled and core succeeded.
 if (-not $failure -and $resolution.Isolation) {
-    if (-not (Test-MainStepDone -Journal $journal -Name 'accounts')) {
+    $accountTest = Test-CyberButlerAccount -AccountName $ServiceAccountName
+    $accountNeedsSetup = if ($TestConfigPath) { -not (Test-MainStepDone -Journal $journal -Name 'accounts') } else { -not $accountTest.satisfied }
+    if ($accountNeedsSetup) {
+        Write-Output ('ACCOUNT setup required: exists=' + [string]$accountTest.exists + ' reason=' + [string]$accountTest.reason)
         if (-not (Request-MainApproval -Token 'APPROVE ACCOUNT' -Step 'accounts' -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive)) {
             Add-MainJournalStep -Journal $journal -Name 'accounts' -Status 'failed' -Reason 'needs approval'
             $failure = [pscustomobject]@{ step = 'accounts'; message = 'APPROVE ACCOUNT required'; kind = 'needs_approval' }
@@ -540,6 +577,13 @@ if (-not $failure -and $resolution.Isolation) {
     }
 } else {
     Add-MainJournalStep -Journal $journal -Name 'accounts' -Status 'skipped' -Reason 'single-account tier'
+}
+
+if (-not $failure -and $resolution.Isolation -and -not $TestConfigPath) {
+    $accountReady = Test-CyberButlerAccount -AccountName $ServiceAccountName
+    if (-not $accountReady.satisfied) {
+        $failure = [pscustomobject]@{ step = 'accounts'; message = ('service account not ready: ' + [string]$accountReady.reason); kind = 'configuration' }
+    }
 }
 
 if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
@@ -671,6 +715,22 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'firewall
         $result = Invoke-CyberButlerFirewallRule -RuleName 'Cyber-Butler Web UI 8765' -DisplayName 'Cyber-Butler Web UI 8765' -Direction Inbound -Profile Private -RemoteAddress '127.0.0.1' -Port $WebUIPort -Protocol TCP -Action Allow -JournalStep 'firewall' -Journal $journal -Approval 'APPROVE FIREWALL' -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'firewall' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'firewall'; message = ('firewall: ' + [string]$result.status + ' ' + [string]$result.message) }
+        }
+    }
+}
+
+# Optional one-click SMTP/OTP configuration for the CBS WebUI.
+# The auth code is passed as a SecureString in-process, never on the command line.
+if (-not $failure -and -not (Test-CyberButlerSecureStringEmpty $SmtpSecret) -and $WebUIAdminEmail) {
+    $emailScript = Join-Path $InstallPath 'tools\setup_email_secret.ps1'
+    if (Test-Path -LiteralPath $emailScript) {
+        try {
+            $smtpLogin = if ($SmtpUser) { $SmtpUser } else { $WebUIAdminEmail }
+            & $emailScript -SmtpHost $SmtpHost -SmtpPort $SmtpPort -SmtpUser $smtpLogin -AllowedSender $WebUIAdminEmail -SmtpAuthCode $SmtpSecret -BrokerAccount $DesktopAccount -SkipTest
+            if ($LASTEXITCODE -ne 0) { throw ('setup_email_secret exit code ' + $LASTEXITCODE) }
+            Write-Output 'EMAIL WebUI OTP configured'
+        } catch {
+            Write-Output ('EMAIL warning: ' + $_.Exception.Message)
         }
     }
 }

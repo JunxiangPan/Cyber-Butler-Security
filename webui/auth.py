@@ -27,6 +27,10 @@ class MailerFailed(Exception):
     pass
 
 
+class UnknownEmail(Exception):
+    pass
+
+
 class RateLimiter:
     def __init__(self) -> None:
         self._hits: dict[str, deque[float]] = defaultdict(deque)
@@ -40,6 +44,10 @@ class RateLimiter:
             return False
         bucket.append(now)
         return True
+
+    def forget(self, key: str) -> None:
+        self._hits.pop(key, None)
+        self._hits.pop("cooldown:" + key, None)
 
     def cooldown(self, key: str, seconds: int) -> bool:
         now = time.monotonic()
@@ -61,10 +69,12 @@ class AuthService:
 
     async def request_otp(self, email: str, ip: str, lang: str = "zh") -> None:
         email = email.strip().lower()
-        if not self.limiter.allow("otp-ip:" + ip, 10, 300):
-            raise RateLimited(300)
+        # Keep the public response generic for an unknown address, but do not
+        # consume the IP budget: otherwise a typo silently becomes a lockout.
         if email != self.settings.admin_email:
             return
+        if not self.limiter.allow("otp-ip:" + ip, 15, 300):
+            raise RateLimited(300)
         if not self.limiter.cooldown("otp-email:" + email, 60):
             raise RateLimited(60)
         if not self.limiter.allow("otp-email-window:" + email, 3, 300):
@@ -77,6 +87,11 @@ class AuthService:
             await self.mailer.send(email, code, self.settings.otp_ttl_seconds, lang)
         except Exception as exc:
             logger.error("OTP mail delivery failed: %s", exc)
+            # Do not punish the operator for a failed SMTP attempt; otherwise
+            # a transient mail failure becomes a 60-second/5-minute lockout.
+            self.limiter.forget("otp-ip:" + ip)
+            self.limiter.forget("otp-email:" + email)
+            self.limiter.forget("otp-email-window:" + email)
             raise MailerFailed("verification mail could not be sent") from exc
 
     def verify(self, email: str, code: str, ip: str) -> tuple[str, str]:

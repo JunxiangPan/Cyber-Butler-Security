@@ -49,13 +49,15 @@ $xaml = @'
       <Setter Property="Foreground" Value="#111827"/>
     </Style>
   </Window.Resources>
+  <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
   <Grid Margin="30">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
+      <RowDefinition Height="240"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -79,85 +81,139 @@ $xaml = @'
       </ComboBox>
     </StackPanel>
 
-    <Border Grid.Row="1" Background="#0F1B2E" BorderBrush="#1E3A5F" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="180"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="20"/>
-          <ColumnDefinition Width="180"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Grid.Row="1" Background="#0F1B2E" BorderBrush="#1E3A5F" BorderThickness="1"
+            CornerRadius="12" Padding="20" Margin="0,0,0,16">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
 
-        <TextBlock x:Name="InstallPathLabel" Grid.Row="0" Grid.Column="0" Text="Install path" Foreground="#CBD5E1" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="0" Grid.Column="1" x:Name="InstallPathBox" Text="C:\CyberButler"
-                 Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+          <TextBlock x:Name="InstallPathLabel" Grid.Row="0" Grid.Column="0" Text="Install path" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+          <TextBox Grid.Row="0" Grid.Column="1" x:Name="InstallPathBox" Text="C:\CyberButler"
+                   Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
 
-        <TextBlock x:Name="TierLabel" Grid.Row="0" Grid.Column="3" Text="Tier" Foreground="#CBD5E1" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="0" Grid.Column="4" x:Name="TierBox" SelectedIndex="1"
-                  Background="#0B1220" Foreground="#111827" Padding="6">
-          <ComboBoxItem Content="High" Tag="High"/>
-          <ComboBoxItem Content="Medium" Tag="Medium"/>
-          <ComboBoxItem Content="Light" Tag="Light"/>
-        </ComboBox>
+          <TextBlock x:Name="TierLabel" Grid.Row="0" Grid.Column="3" Text="Tier" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+          <ComboBox Grid.Row="0" Grid.Column="4" x:Name="TierBox" SelectedIndex="1"
+                    Background="#0B1220" Foreground="#111827" Padding="6">
+            <ComboBoxItem Content="High" Tag="High"/>
+            <ComboBoxItem Content="Medium" Tag="Medium"/>
+            <ComboBoxItem Content="Light" Tag="Light"/>
+          </ComboBox>
 
-        <TextBlock x:Name="OwnerQQLabel" Grid.Row="1" Grid.Column="0" Text="Owner QQ" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="OwnerQQBox" Margin="0,12,0,0"
-                 Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+          <TextBlock x:Name="OwnerQQLabel" Grid.Row="1" Grid.Column="0" Text="Owner QQ" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
+          <TextBox Grid.Row="1" Grid.Column="1" x:Name="OwnerQQBox" Margin="0,12,0,0"
+                   Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
 
-        <TextBlock x:Name="BindLabel" Grid.Row="1" Grid.Column="3" Text="WebUI bind" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
-        <ComboBox Grid.Row="1" Grid.Column="4" x:Name="BindBox" SelectedIndex="0" Margin="0,12,0,0"
-                  Background="#0B1220" Foreground="#111827" Padding="6">
-          <ComboBoxItem Content="Loopback" Tag="Loopback"/>
-          <ComboBoxItem Content="Tailscale" Tag="Tailscale"/>
-          <ComboBoxItem Content="LAN" Tag="LAN"/>
-        </ComboBox>
+          <TextBlock x:Name="BindLabel" Grid.Row="1" Grid.Column="3" Text="WebUI bind" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,12,0,0"/>
+          <ComboBox Grid.Row="1" Grid.Column="4" x:Name="BindBox" SelectedIndex="0" Margin="0,12,0,0"
+                    Background="#0B1220" Foreground="#111827" Padding="6">
+            <ComboBoxItem Content="Loopback" Tag="Loopback"/>
+            <ComboBoxItem Content="Tailscale" Tag="Tailscale"/>
+            <ComboBoxItem Content="LAN" Tag="LAN"/>
+          </ComboBox>
 
-        <Expander x:Name="AdvancedExpander" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
-                  IsExpanded="False" Foreground="#CBD5E1" Margin="0,14,0,0"
-                  Header="Advanced: personal plugins / API key">
-          <Grid Margin="0,8,0,0">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="180"/>
-              <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="20"/>
-              <ColumnDefinition Width="180"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <TextBlock x:Name="PersonalPluginsLabel" Grid.Row="0" Grid.Column="0" Text="Personal plugins" Foreground="#CBD5E1" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="0" Grid.Column="1" x:Name="PersonalPluginsBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
-            <TextBlock x:Name="ApiKeyFileLabel" Grid.Row="0" Grid.Column="3" Text="API key file (optional)" Foreground="#CBD5E1" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="0" Grid.Column="4" x:Name="ApiKeyFileBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
-            <TextBlock x:Name="ApiKeyNote" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
-                       Text="API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log."
-                       Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
-          </Grid>
-        </Expander>
+          <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
+                  Background="#0B182B" BorderBrush="#1D4ED8" BorderThickness="1"
+                  CornerRadius="8" Padding="14" Margin="0,16,0,4">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
+                         Text="WebUI 邮箱与邮件审批（必填） / WebUI email and email approval (required)"
+                         Foreground="#93C5FD" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/>
 
-        <TextBlock x:Name="QuickHelp" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
-                   Text=""
-                   Foreground="#A8B7CB" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0"/>
-        <CheckBox x:Name="DefenderExclusionCheck" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
-                  Content="I understand this build is unsigned; add only C:\CyberButler to Defender exclusions"
-                  Foreground="#FBBF24" FontSize="12" Margin="0,12,0,0" IsChecked="False"/>
-        <TextBlock x:Name="DefenderHint" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"
-                   Text="Huorong/360: add C:\CyberButler to the trust list manually. This installer never disables real-time protection."
-                   Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/>
-      </Grid>
-    </Border>
+              <TextBlock x:Name="WebUIEmailLabel" Grid.Row="1" Grid.Column="0"
+                         Text="WebUI email / 管理员邮箱" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,10,0,0"/>
+              <TextBox x:Name="WebUIEmailBox" Grid.Row="1" Grid.Column="1"
+                       Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8" Margin="0,10,0,0"
+                       ToolTip="管理员登录 CBS WebUI、接收 TOTP 审批/告警的邮箱，不是机器人 QQ。 / Administrator login + TOTP/alert recipient, not the bot QQ."/>
+              <TextBlock x:Name="SmtpAuthLabel" Grid.Row="1" Grid.Column="3"
+                         Text="SMTP auth code / 授权码" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,10,0,0"/>
+              <PasswordBox x:Name="SmtpAuthBox" Grid.Row="1" Grid.Column="4"
+                           Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8" Margin="0,10,0,0"
+                           ToolTip="邮箱服务商生成的应用授权码/短信授权码，不是邮箱登录密码。DPAPI 加密保存。 / Provider app password, not the mailbox login password. Stored with DPAPI."/>
+
+              <TextBlock x:Name="SmtpHostLabel" Grid.Row="2" Grid.Column="0"
+                         Text="SMTP host / 服务器" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,10,0,0"/>
+              <TextBox x:Name="SmtpHostBox" Grid.Row="2" Grid.Column="1" Text="smtp.163.com"
+                       Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8" Margin="0,10,0,0"
+                       ToolTip="发信服务器，例如 smtp.163.com 或 smtp.gmail.com。 / Outgoing mail server, e.g. smtp.163.com or smtp.gmail.com."/>
+              <TextBlock x:Name="SmtpPortLabel" Grid.Row="2" Grid.Column="3"
+                         Text="SMTP port / 端口" Foreground="#CBD5E1" VerticalAlignment="Center" Margin="0,10,0,0"/>
+              <TextBox x:Name="SmtpPortBox" Grid.Row="2" Grid.Column="4" Text="465"
+                       Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8" Margin="0,10,0,0"
+                       ToolTip="当前邮件组件使用隐式 SSL，填 465；587/STARTTLS 暂不支持。 / This build uses implicit SSL on 465; 587/STARTTLS is not supported."/>
+
+              <TextBlock x:Name="EmailHelp" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
+                         Text="管理员邮箱用于 CBS WebUI 登录和 TOTP/告警；SMTP 是发信服务器，授权码不是邮箱登录密码。缺失时 WebUI 显示红色 Banner，Broker 返回 503。点击“说明/Help”查看 163/Gmail 的获取方法。"
+                         Foreground="#93C5FD" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0"/>
+              <TextBlock x:Name="EmailHelpEn" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
+                         Text="WebUI email is for CBS WebUI login and TOTP/alerts; SMTP is the outgoing server and the auth code is not your mailbox password. Missing values show a red banner and Broker 503. Use Help for 163/Gmail setup steps."
+                         Foreground="#64748B" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </Grid>
+          </Border>
+
+          <Expander x:Name="AdvancedExpander" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"
+                    IsExpanded="False" Foreground="#CBD5E1" Margin="0,14,0,0"
+                    Header="Advanced: personal plugins / API key">
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock x:Name="PersonalPluginsLabel" Grid.Row="0" Grid.Column="0" Text="Personal plugins" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+              <TextBox Grid.Row="0" Grid.Column="1" x:Name="PersonalPluginsBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+              <TextBlock x:Name="ApiKeyFileLabel" Grid.Row="0" Grid.Column="3" Text="API key file (optional)" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+              <TextBox Grid.Row="0" Grid.Column="4" x:Name="ApiKeyFileBox" Background="#0B1220" Foreground="#F8FAFC" BorderBrush="#334155" Padding="8"/>
+              <TextBlock x:Name="ApiKeyNote" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
+                         Text="API keys are not stored in this UI. The optional file is read by the installer and never written to the GUI log."
+                         Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </Grid>
+          </Expander>
+
+          <TextBlock x:Name="QuickHelp" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
+                     Text=""
+                     Foreground="#A8B7CB" FontSize="11" TextWrapping="Wrap" Margin="0,12,0,0"/>
+          <CheckBox x:Name="DefenderExclusionCheck" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"
+                    Content="I understand this build is unsigned; add only C:\CyberButler to Defender exclusions"
+                    Foreground="#FBBF24" FontSize="12" Margin="0,12,0,0" IsChecked="False"/>
+          <TextBlock x:Name="DefenderHint" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5"
+                     Text="Huorong/360: add C:\CyberButler to the trust list manually. This installer never disables real-time protection."
+                     Foreground="#64748B" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/>
+        </Grid>
+      </Border>
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14">
       <Button x:Name="StartButton" Content="Start installation" Width="160" Height="38" Margin="0,0,10,0"
@@ -188,6 +244,7 @@ $xaml = @'
       <TextBlock x:Name="InstallerPathText" Text="" Foreground="#64748B" FontSize="11" TextTrimming="CharacterEllipsis" Width="760"/>
     </StackPanel>
   </Grid>
+  </ScrollViewer>
 </Window>
 '@
 
@@ -200,6 +257,20 @@ $ownerQQBox = $window.FindName('OwnerQQBox')
 $bindBox = $window.FindName('BindBox')
 $personalPluginsBox = $window.FindName('PersonalPluginsBox')
 $apiKeyFileBox = $window.FindName('ApiKeyFileBox')
+$webUIEmailBox = $window.FindName('WebUIEmailBox')
+$smtpAuthBox = $window.FindName('SmtpAuthBox')
+$smtpHostBox = $window.FindName('SmtpHostBox')
+$smtpPortBox = $window.FindName('SmtpPortBox')
+$mainScroll = $window.FindName('MainScroll')
+if ($mainScroll) {
+    $mainScroll.Add_PreviewMouseWheel({
+        param($sender, $eventArgs)
+        $step = [Math]::Max(24, [Math]::Abs([int]$eventArgs.Delta) / 2)
+        if ($eventArgs.Delta -gt 0) { $sender.ScrollToVerticalOffset($sender.VerticalOffset - $step) }
+        else { $sender.ScrollToVerticalOffset($sender.VerticalOffset + $step) }
+        $eventArgs.Handled = $true
+    })
+}
 $startButton = $window.FindName('StartButton')
 $reportButton = $window.FindName('ReportButton')
 $removeButton = $window.FindName('RemoveButton')
@@ -713,6 +784,71 @@ function Get-UiText([string]$key) {
     return [string]$value
 }
 
+function Get-EmailHelpText {
+    $langs = @('zh', 'en', 'de', 'es', 'fr', 'ja', 'ko', 'ru')
+    $index = [Math]::Max(0, [Math]::Min($langs.Count - 1, [int]$languageBox.SelectedIndex))
+    $lang = $langs[$index]
+    $text = $script:EmailHelpText[$lang]
+    if ([string]::IsNullOrWhiteSpace([string]$text)) { $text = $script:EmailHelpText['en'] }
+    return [string]$text
+}
+
+$script:EmailHelpText = @{
+    zh = "WebUI 邮箱 / SMTP 详细说明`n`nCBS WebUI 8765 使用管理员邮箱 + 邮件验证码；AstrBot 6185 使用用户名/密码。`n`nWebUI 邮箱：管理员登录 CBS WebUI、接收 TOTP 审批和告警的邮箱；不是机器人 QQ。`nSMTP host：邮箱服务商的发信服务器，例如 163 用 smtp.163.com，Gmail 用 smtp.gmail.com。`nSMTP port：当前邮件组件使用隐式 SSL，必须填 465；587/STARTTLS 暂不支持。`nSMTP 授权码：服务商生成的应用授权码/应用专用密码，不是邮箱登录密码；安装器用 DPAPI 加密保存。`nSMTP 用户：通常与管理员邮箱相同。`n`n如何找到：`n163：登录 mail.163.com -> 设置 -> POP3/SMTP/IMAP -> 开启 SMTP -> 生成授权码。`nGmail：Google 账户 -> 安全性 -> 两步验证 -> 应用专用密码。`nOutlook/其他：在邮箱账户设置的 SMTP/IMAP 页面生成应用密码或授权码。`n`n缺失时 WebUI 显示红色 Banner，Broker 邮件审批返回 503。当前版本邮件审批的 IMAP 默认是 163；非 163 邮箱请先确认 SMTP 和 IMAP 都可用。"
+    en = "WebUI email / SMTP details`n`nCBS WebUI 8765 uses an administrator email + email OTP; AstrBot 6185 uses username/password.`n`nWebUI email: administrator mailbox for CBS login and TOTP/alert mail; not the bot QQ.`nSMTP host: provider outgoing server, e.g. smtp.163.com for 163, smtp.gmail.com for Gmail.`nSMTP port: this build uses implicit SSL, so use 465; 587/STARTTLS is not supported yet.`nSMTP auth code: provider app password/authorization code, not your mailbox login password; stored encrypted with DPAPI.`nSMTP user: usually the same address as WebUI email.`n`nWhere to find it:`n163: mail.163.com -> Settings -> POP3/SMTP/IMAP -> enable SMTP -> generate authorization code.`nGmail: Google Account -> Security -> 2-Step Verification -> App passwords.`nOutlook/others: account security or SMTP/IMAP settings -> app password/authorization code.`n`nIf missing: red WebUI banner and Broker email approval HTTP 503. This build defaults email-approval IMAP to 163; for other providers verify both SMTP and IMAP."
+    de = "WebUI-E-Mail / SMTP – Details`n`nCBS WebUI 8765 nutzt Admin-E-Mail + E-Mail-OTP; AstrBot 6185 nutzt Benutzername/Passwort.`nWebUI email: Admin-Postfach für Login und TOTP-/Warnmails, nicht die Bot-QQ.`nSMTP host: Postausgangsserver, z. B. smtp.163.com oder smtp.gmail.com.`nSMTP port: dieser Build nutzt implizites SSL, also 465; 587/STARTTLS wird nicht unterstützt.`nSMTP auth code: App-Passwort/Autorisierungscode, nicht das Login-Passwort; DPAPI-verschlüsselt.`nSMTP user: normalerweise dieselbe Adresse.`n`n163: mail.163.com -> Einstellungen -> POP3/SMTP/IMAP -> SMTP aktivieren -> Autorisierungscode.`nGmail: Google-Konto -> Sicherheit -> 2-Faktor -> App-Passwörter.`nOutlook/andere: SMTP/IMAP-Einstellungen -> App-Passwort.`n`nFehlt die Konfiguration: rotes Banner und Broker HTTP 503. IMAP für Mail-Freigaben ist hier standardmäßig 163."
+    es = "Correo WebUI / SMTP: detalles`n`nCBS WebUI 8765 usa correo de administrador + OTP; AstrBot 6185 usa usuario/contraseña.`nWebUI email: buzón del administrador para login y avisos TOTP, no el QQ del bot.`nSMTP host: servidor de salida, p. ej. smtp.163.com o smtp.gmail.com.`nSMTP port: esta versión usa SSL implícito, use 465; 587/STARTTLS no está soportado.`nSMTP auth code: contraseña de aplicación/código de autorización, no la contraseña del correo; cifrado DPAPI.`nSMTP user: normalmente la misma dirección.`n`n163: mail.163.com -> Configuración -> POP3/SMTP/IMAP -> activar SMTP -> generar código.`nGmail: Cuenta de Google -> Seguridad -> Verificación en dos pasos -> Contraseñas de aplicación.`nOutlook/otros: ajustes SMTP/IMAP -> contraseña de aplicación.`n`nSi falta: banner rojo y Broker HTTP 503. La parte IMAP de aprobación usa 163 por defecto."
+    fr = "E-mail WebUI / SMTP : détails`n`nCBS WebUI 8765 utilise un e-mail administrateur + OTP ; AstrBot 6185 utilise un nom d’utilisateur/mot de passe.`nWebUI email : boîte admin pour la connexion et les alertes TOTP, pas le QQ du bot.`nSMTP host : serveur d’envoi, par ex. smtp.163.com ou smtp.gmail.com.`nSMTP port : cette version utilise SSL implicite, donc 465 ; 587/STARTTLS non pris en charge.`nSMTP auth code : mot de passe d’application/code d’autorisation, pas le mot de passe de connexion ; chiffré DPAPI.`nSMTP user : normalement la même adresse.`n`n163 : mail.163.com -> Paramètres -> POP3/SMTP/IMAP -> activer SMTP -> code d’autorisation.`nGmail : Compte Google -> Sécurité -> Validation en deux étapes -> Mots de passe d’application.`nOutlook/autres : réglages SMTP/IMAP -> mot de passe d’application.`n`nSi absent : bandeau rouge et Broker HTTP 503. L’IMAP des approbations est 163 par défaut."
+    ja = "WebUI メール / SMTP の詳細`n`nCBS WebUI 8765 は管理者メール + メール OTP、AstrBot 6185 はユーザー名/パスワードです。`nWebUI email: CBS ログインと TOTP/アラート用の管理者メール。ボット QQ ではありません。`nSMTP host: 送信サーバー。163 は smtp.163.com、Gmail は smtp.gmail.com。`nSMTP port: このビルドは暗黙 SSL のため 465。587/STARTTLS は未対応です。`nSMTP auth code: プロバイダーのアプリパスワード/認証コード。ログインパスワードではありません。DPAPI で暗号化。`nSMTP user: 通常は WebUI email と同じアドレス。`n`n163: mail.163.com -> 設定 -> POP3/SMTP/IMAP -> SMTP 有効化 -> 認証コード生成。`nGmail: Google アカウント -> セキュリティ -> 2 段階認証 -> アプリ パスワード。`nOutlook/その他: SMTP/IMAP 設定 -> アプリ パスワード。`n`n未設定だと赤いバナーと Broker HTTP 503。メール承認の IMAP は既定で 163 です。"
+    ko = "WebUI 이메일 / SMTP 상세`n`nCBS WebUI 8765는 관리자 이메일 + 이메일 OTP, AstrBot 6185는 사용자 이름/비밀번호를 사용합니다.`nWebUI email: CBS 로그인과 TOTP/알림용 관리자 메일. 봇 QQ가 아닙니다.`nSMTP host: 발신 서버. 163은 smtp.163.com, Gmail은 smtp.gmail.com.`nSMTP port: 이 빌드는 암시적 SSL이라 465. 587/STARTTLS 미지원.`nSMTP auth code: 공급자 앱 비밀번호/인증 코드. 로그인 비밀번호가 아니며 DPAPI로 암호화됩니다.`nSMTP user: 보통 WebUI email과 같은 주소.`n`n163: mail.163.com -> 설정 -> POP3/SMTP/IMAP -> SMTP 활성화 -> 인증 코드 생성.`nGmail: Google 계정 -> 보안 -> 2단계 인증 -> 앱 비밀번호.`nOutlook/기타: SMTP/IMAP 설정 -> 앱 비밀번호.`n`n없으면 빨간 배너와 Broker HTTP 503. 메일 승인 IMAP 기본값은 163입니다."
+    ru = "WebUI email / SMTP: подробности`n`nCBS WebUI 8765 использует почту администратора + OTP; AstrBot 6185 — логин/пароль.`nWebUI email: почта администратора для входа и TOTP/оповещений, не QQ бота.`nSMTP host: сервер исходящей почты, например smtp.163.com или smtp.gmail.com.`nSMTP port: в этой сборке неявный SSL, поэтому 465; 587/STARTTLS не поддерживается.`nSMTP auth code: пароль приложения/код авторизации, не пароль входа; шифруется DPAPI.`nSMTP user: обычно тот же адрес.`n`n163: mail.163.com -> Настройки -> POP3/SMTP/IMAP -> включить SMTP -> создать код.`nGmail: аккаунт Google -> Безопасность -> 2FA -> пароли приложений.`nOutlook/другие: настройки SMTP/IMAP -> пароль приложения.`n`nЕсли не задано: красный баннер и Broker HTTP 503. IMAP для подтверждений по умолчанию 163."
+}
+
+function Show-CyberButlerHelp {
+    $helpXaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cyber-Butler Help" Width="760" Height="620"
+        WindowStartupLocation="CenterOwner" Background="#0F172A">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock Text="Cyber-Butler Help" Foreground="#F8FAFC" FontSize="22" FontWeight="SemiBold"/>
+    <TextBox x:Name="HelpBox" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
+             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+             TextWrapping="Wrap" Background="#020617" Foreground="#CBD5E1"
+             BorderBrush="#1E293B" Padding="12" Margin="0,14,0,14"/>
+    <Button x:Name="CloseHelp" Grid.Row="2" Content="Close / 关闭" Width="120" Height="34"
+            HorizontalAlignment="Right" Background="#0EA5E9" Foreground="#FFFFFF"
+            BorderBrush="#0EA5E9"/>
+  </Grid>
+</Window>
+'@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$helpXaml)
+    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    $box = $dialog.FindName('HelpBox')
+    $box.Text = (Get-UiText 'HelpBody') + "`n`n" + (Get-EmailHelpText)
+    $dialog.FindName('CloseHelp').Add_Click({ $dialog.Close() })
+    $dialog.ShowDialog() | Out-Null
+}
+
+function Get-PostNextDetails {
+    $langs = @('zh', 'en', 'de', 'es', 'fr', 'ja', 'ko', 'ru')
+    $index = [Math]::Max(0, [Math]::Min($langs.Count - 1, [int]$languageBox.SelectedIndex))
+    $path = Join-Path $installerRoot 'lib\post-next-details.json'
+    try {
+        $data = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+        $lines = $data.($langs[$index])
+        if ($null -eq $lines) { $lines = $data.en }
+        return @($lines)
+    } catch {
+        return @('AstrBot setup: open http://127.0.0.1:6185/ and configure an OneBot v11 platform with reverse WebSocket 127.0.0.1:6199.')
+    }
+}
+
 function Apply-GuiLanguage {
     $window.Title = Get-UiText 'Title'
     $headerTitle.Text = Get-UiText 'Title'
@@ -989,6 +1125,7 @@ function Show-GuiCompletionIfReady {
             PostTitle = Get-UiText 'PostTitle'
             PostSubtitle = Get-UiText 'PostSubtitle'
             PostNext = Get-UiText 'PostNext'
+            PostNextDetailed = (Get-PostNextDetails)
             OpenWebUI = Get-UiText 'OpenWebUI'
             OpenAstrBot = Get-UiText 'OpenAstrBot'
             OpenGuide = Get-UiText 'OpenGuide'
@@ -1025,8 +1162,130 @@ function Show-GuiCompletionIfReady {
     }
 }
 
-function Remove-CyberButlerGuiInstall([string]$Root) {
+function Remove-CyberButlerServiceAccountProfile {
+    $name = 'CyberButlerSvc'
+    $current = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+    if ($current.EndsWith('\' + $name, [StringComparison]::OrdinalIgnoreCase)) {
+        return [pscustomobject]@{ removed = $false; reason = 'refusing to remove the currently logged-on service account' }
+    }
+    $user = Get-LocalUser -Name $name -ErrorAction SilentlyContinue
+    $profilePath = Join-Path $env:SystemDrive ('Users\' + $name)
+    if (-not $user -and -not (Test-Path -LiteralPath $profilePath)) {
+        return [pscustomobject]@{ removed = $false; reason = 'service account/profile not present' }
+    }
+    $errors = New-Object System.Collections.Generic.List[string]
+
+    # The profile may still be loaded by the service account even after the
+    # project tasks were removed. Kill only processes whose executable or
+    # command line is inside this exact profile, never the interactive user.
+    foreach ($item in @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)) {
+        $exe = [string]$item.ExecutablePath
+        $cmd = [string]$item.CommandLine
+        if (($exe -and $exe.StartsWith($profilePath, [StringComparison]::OrdinalIgnoreCase)) -or
+            ($cmd -and $cmd.IndexOf($profilePath, [StringComparison]::OrdinalIgnoreCase) -ge 0)) {
+            try { & taskkill.exe /PID $item.ProcessId /T /F 2>$null | Out-Null } catch { }
+        }
+    }
+    Start-Sleep -Seconds 3
+
+    if ($user) {
+        try { Remove-LocalUser -Name $name -ErrorAction Stop }
+        catch { $errors.Add('user: ' + $_.Exception.Message) }
+    }
+    $profileRemoved = $false
+    for ($attempt = 1; $attempt -le 6; $attempt++) {
+        try {
+            $profile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
+                Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $profilePath.TrimEnd('\') } |
+                Select-Object -First 1
+            if ($profile) { Remove-CimInstance -InputObject $profile -ErrorAction Stop }
+            $profileRemoved = $true
+            break
+        } catch {
+            $errors.Add('profile try ' + $attempt + ': ' + $_.Exception.Message)
+            Start-Sleep -Seconds 3
+        }
+    }
+    if (-not $profileRemoved -and (Test-Path -LiteralPath $profilePath)) {
+        # The profile is still loaded. Schedule a one-time cleanup for the next
+        # reboot instead of forcibly deleting a live Windows profile. This
+        # never touches the interactive CBS profile.
+        try {
+            $cleanupDir = Join-Path $env:WINDIR 'Temp'
+            $cleanupScript = Join-Path $cleanupDir 'CyberButler-svc-profile-cleanup.ps1'
+            @'
+$name = 'CyberButlerSvc'
+$profilePath = Join-Path $env:SystemDrive ('Users\' + $name)
+$profile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
+    Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $profilePath.TrimEnd('\') } |
+    Select-Object -First 1
+if ($profile) { Remove-CimInstance -InputObject $profile -ErrorAction SilentlyContinue }
+Get-LocalUser -Name $name -ErrorAction SilentlyContinue | Remove-LocalUser -ErrorAction SilentlyContinue
+if (Test-Path -LiteralPath $profilePath) { Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction SilentlyContinue }
+Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
+'@ | Set-Content -LiteralPath $cleanupScript -Encoding UTF8
+            $runOnce = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce'
+            New-Item -Path $runOnce -Force | Out-Null
+            Set-ItemProperty -Path $runOnce -Name 'CyberButlerSvcProfileCleanup' `
+                -Value ('powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $cleanupScript + '"')
+            $errors.Add('profile still loaded; cleanup scheduled for next reboot')
+        } catch { $errors.Add('schedule: ' + $_.Exception.Message) }
+    } elseif (Test-Path -LiteralPath $profilePath) {
+        try { Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction Stop }
+        catch { $errors.Add('folder: ' + $_.Exception.Message) }
+    }
+    $still = (Get-LocalUser -Name $name -ErrorAction SilentlyContinue) -or (Test-Path -LiteralPath $profilePath)
+    return [pscustomobject]@{
+        removed = (-not $still)
+        pending_reboot = ($still -and (Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'CyberButlerSvcProfileCleanup' -ErrorAction SilentlyContinue))
+        reason = ($errors -join '; ')
+    }
+}
+
+function Show-CyberButlerRemoveProgress {
+    param($Owner)
+    $xaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cyber-Butler Uninstall" Width="620" Height="210"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        WindowStyle="ToolWindow" ShowInTaskbar="False" Background="#0F172A">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="RemoveTitle" Text="正在删除 Cyber-Butler / Uninstalling" Foreground="#F8FAFC" FontSize="18" FontWeight="SemiBold"/>
+    <ProgressBar x:Name="RemoveBar" Grid.Row="1" Height="18" Minimum="0" Maximum="100" Value="0" Margin="0,18,0,8" Foreground="#0EA5E9" Background="#1E293B"/>
+    <TextBlock x:Name="RemoveDetail" Grid.Row="2" Text="准备开始…" Foreground="#94A3B8" FontSize="12" TextWrapping="Wrap"/>
+  </Grid>
+</Window>
+'@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
+    if ($Owner) { $dialog.Owner = $Owner }
+    $dialog.Show() | Out-Null
+    return [pscustomobject]@{
+        Window = $dialog
+        Bar = $dialog.FindName('RemoveBar')
+        Detail = $dialog.FindName('RemoveDetail')
+    }
+}
+
+function Update-CyberButlerRemoveProgress($Progress, [double]$Percent, [string]$Message) {
+    if ($null -eq $Progress) { return }
+    try {
+        $Progress.Bar.Value = [Math]::Max(0, [Math]::Min(100, $Percent))
+        $Progress.Detail.Text = $Message
+        $Progress.Window.Dispatcher.Invoke([Action]{}, [System.Windows.Threading.DispatcherPriority]::Background) | Out-Null
+    } catch { }
+}
+
+function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = $null) {
     $full = [IO.Path]::GetFullPath($Root).TrimEnd([char]92)
+    $report = { param($pct, $msg) if ($OnProgress) { & $OnProgress $pct $msg } }
+    & $report 2 ('准备删除 / Preparing: ' + $full)
     $rootOfDrive = [IO.Path]::GetPathRoot($full).TrimEnd([char]92)
     if ([string]::IsNullOrWhiteSpace($full) -or $full -eq $rootOfDrive -or $full.Length -lt 4) {
         throw ('Refusing to remove unsafe root: ' + $full)
@@ -1040,42 +1299,125 @@ function Remove-CyberButlerGuiInstall([string]$Root) {
     if (($full -eq $progFiles) -or $full.StartsWith($progFiles + $sep, [StringComparison]::OrdinalIgnoreCase)) {
         throw ('Refusing to remove Program Files directory: ' + $full)
     }
-    foreach ($marker in @('VERSION', 'AstrBot', 'webui', 'tools')) {
-        if (-not (Test-Path -LiteralPath (Join-Path $full $marker))) {
-            throw ('Refusing to remove non-Cyber-Butler directory: missing ' + $marker)
-        }
+    $markers = @('VERSION', 'AstrBot', 'webui', 'tools', 'SnowLuma', 'installer-report', '.cbs-install-root')
+    $hasMarker = $false
+    foreach ($marker in $markers) {
+        if (Test-Path -LiteralPath (Join-Path $full $marker)) { $hasMarker = $true; break }
     }
-    foreach ($taskName in @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services')) {
+    # A failed install may have no complete marker set. The default root is
+    # still safe to remove; arbitrary user folders remain refused.
+    if (-not $hasMarker -and ([IO.Path]::GetFileName($full) -notmatch '(?i)cyber.?butler')) {
+        throw ('Refusing to remove non-Cyber-Butler directory: missing install markers at ' + $full)
+    }
+
+    $taskNames = @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services', 'Cyber-Butler OTP Mailer', 'SnowLuma Startup')
+    & $report 5 '停止计划任务 / Stopping scheduled tasks'
+    foreach ($taskName in $taskNames) {
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
         if ($task) {
             Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        }
+    }
+    & $report 12 '计划任务已停止 / Scheduled tasks stopped'
+
+    # Stop every process whose executable or command line belongs to this
+    # install, including AstrBot, OTP Mailer, Broker, WebUI, SnowLuma and its
+    # guardian. Port checks alone missed SnowLuma (5099/3000/3001) and 8766.
+    $portSet = @(6185, 18090, 8765, 8766, 5099, 3000, 3001)
+    $pids = New-Object System.Collections.Generic.HashSet[int]
+    foreach ($port in $portSet) {
+        foreach ($conn in @(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)) {
+            if ($conn.OwningProcess) { [void]$pids.Add([int]$conn.OwningProcess) }
+        }
+    }
+    foreach ($item in @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)) {
+        $cmd = [string]$item.CommandLine
+        $exe = [string]$item.ExecutablePath
+        if (($cmd -and $cmd.IndexOf($full, [StringComparison]::OrdinalIgnoreCase) -ge 0) -or
+            ($exe -and $exe.StartsWith($full, [StringComparison]::OrdinalIgnoreCase))) {
+            [void]$pids.Add([int]$item.ProcessId)
+        }
+    }
+    & $report 18 ('结束关联进程 / Stopping processes: ' + @($pids).Count)
+    foreach ($processId in @($pids)) {
+        try { & taskkill.exe /PID $processId /T /F 2>$null | Out-Null } catch { }
+        try { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue } catch { }
+    }
+    Start-Sleep -Seconds 2
+    & $report 28 '删除计划任务 / Unregistering tasks'
+    foreach ($taskName in $taskNames) {
+        if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
             Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
         }
     }
     Remove-NetFirewallRule -DisplayName 'Cyber-Butler Web UI 8765' -ErrorAction SilentlyContinue
-    foreach ($port in @(6185, 18090, 8765)) {
-        foreach ($conn in @(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)) {
-            $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
-            if ($proc -and $proc.Path -and $proc.Path.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-            }
-        }
-    }
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-        Where-Object { $_.CommandLine -and $_.CommandLine -like ('*' + $full + '*') } |
-        ForEach-Object {
-            $proc = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
-            if ($proc -and $proc.Path -and $proc.Path.StartsWith($full, [StringComparison]::OrdinalIgnoreCase)) {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-            }
-        }
+
     if (Test-Path -LiteralPath $full) {
-        Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
+        $files = @(Get-ChildItem -LiteralPath $full -Recurse -Force -ErrorAction SilentlyContinue)
+        $total = [Math]::Max(1, $files.Count)
+        $seen = 0
+        foreach ($file in $files) {
+            $seen++
+            if (($seen % 20) -eq 0 -or $seen -eq $total) {
+                $relative = $file.FullName.Substring($full.Length).TrimStart([char]92)
+                & $report (30 + (35 * $seen / $total)) ('盘点 / Preparing: ' + $relative)
+            }
+        }
+        # First try the normal delete. Do not run a recursive takeown upfront:
+        # on a venv-sized tree that can take many minutes and looks like a hang.
+        $lastError = $null
+        for ($attempt = 1; $attempt -le 5; $attempt++) {
+            & $report (68 + (5 * $attempt)) ('删除文件 / Removing files (attempt ' + $attempt + '/5)')
+            try {
+                Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop
+                $lastError = $null
+                break
+            } catch {
+                $lastError = $_
+                if ($attempt -eq 2) {
+                    & $report 72 '仅修复根目录权限 / Repairing root ACL only'
+                    try {
+                        & takeown.exe /F $full /A 2>$null | Out-Null
+                        & icacls.exe $full /grant '*S-1-5-32-544:(F)' 2>$null | Out-Null
+                    } catch { }
+                } elseif ($attempt -eq 3) {
+                    $aclSteps = @(
+                        @{ Exe = 'takeown.exe'; Args = @('/F', $full, '/A', '/R', '/D', 'Y'); Label = '递归获取所有权 / Recursive takeown' },
+                        @{ Exe = 'icacls.exe'; Args = @($full, '/grant', '*S-1-5-32-544:(F)', '/T', '/C'); Label = '递归修复 ACL / Recursive icacls' }
+                    )
+                    foreach ($aclStep in $aclSteps) {
+                        & $report 78 ($aclStep.Label + ' — this can take several minutes, please wait…')
+                        try {
+                            $aclProcess = Start-Process -FilePath $aclStep.Exe -ArgumentList $aclStep.Args `
+                                -WindowStyle Hidden -PassThru
+                            $aclDeadline = (Get-Date).AddMinutes(10)
+                            while (-not $aclProcess.HasExited) {
+                                $elapsed = [int]((Get-Date) - $aclProcess.StartTime).TotalSeconds
+                                & $report 78 ($aclStep.Label + ' — ' + $elapsed + 's elapsed, still working…')
+                                if ((Get-Date) -gt $aclDeadline) {
+                                    try { Stop-Process -Id $aclProcess.Id -Force } catch { }
+                                    throw ($aclStep.Label + ' timed out after 10 minutes')
+                                }
+                                Start-Sleep -Seconds 2
+                            }
+                        } catch {
+                            & $report 79 ('ACL step warning: ' + $_.Exception.Message)
+                        }
+                    }
+                }
+                Start-Sleep -Seconds (2 * $attempt)
+            }
+        }
+        if ($lastError) {
+            throw ('Could not remove ' + $full + ' after stopping processes. Close QQ/SnowLuma, then retry. Last error: ' + $lastError.Exception.Message)
+        }
     }
+    & $report 92 '清理 ProgramData / Cleaning ProgramData'
     $programData = Join-Path $env:ProgramData 'CyberButler'
     if (Test-Path -LiteralPath $programData) {
         Remove-Item -LiteralPath $programData -Recurse -Force -ErrorAction SilentlyContinue
     }
+    & $report 100 '删除完成 / Uninstall complete'
     return $full
 }
 
@@ -1143,6 +1485,24 @@ $startButton.Add_Click({
                 Write-GuiLog ((Get-UiText 'DefenderExclusionFailed') + $_.Exception.Message)
             }
         }
+        $adminEmailValue = ([string]$webUIEmailBox.Text).Trim()
+        $smtpAuthValue = [string]$smtpAuthBox.Password
+        $emailPattern = '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+        if ($adminEmailValue -notmatch $emailPattern) {
+            [System.Windows.MessageBox]::Show('请输入合法的管理员邮箱（例如 admin@example.com）。Email TOTP 审批需要该邮箱。', (Get-UiText 'Title')) | Out-Null
+            return
+        }
+        if ([string]::IsNullOrWhiteSpace($smtpAuthValue)) {
+            [System.Windows.MessageBox]::Show('请输入 SMTP 授权码；没有它 WebUI 邮件 OTP 和 TOTP 邮件审批无法工作。', (Get-UiText 'Title')) | Out-Null
+            return
+        }
+        $smtpHostValue = ([string]$smtpHostBox.Text).Trim()
+        $smtpPortValue = 0
+        if ([string]::IsNullOrWhiteSpace($smtpHostValue) -or -not [int]::TryParse(([string]$smtpPortBox.Text).Trim(), [ref]$smtpPortValue) -or $smtpPortValue -lt 1 -or $smtpPortValue -gt 65535) {
+            [System.Windows.MessageBox]::Show('请输入合法的 SMTP 主机和端口（例如 smtp.163.com / 465）。', (Get-UiText 'Title')) | Out-Null
+            return
+        }
+
         Set-GuiBusy $true
         $script:GuiInstallPath = $installPath
         $script:GuiCompletionShown = $false
@@ -1156,6 +1516,10 @@ $startButton.Add_Click({
             -Tier $tierValue -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
             -PersonalPluginsPath ([string]$personalPluginsBox.Text) `
             -ApiKeyFile ([string]$apiKeyFileBox.Text) `
+            -WebUIAdminEmail ([string]$webUIEmailBox.Text) `
+            -SmtpAuth ([string]$smtpAuthBox.Password) `
+            -SmtpHost ([string]$smtpHostBox.Text) `
+            -SmtpPort ([string]$smtpPortBox.Text) `
             -OnLog { param($line) Write-GuiLog $line } `
             -OnStatus {
                 param($line)
@@ -1196,7 +1560,9 @@ $reportButton.Add_Click({
 })
 
 $helpButton.Add_Click({
-    [System.Windows.MessageBox]::Show((Get-UiText 'HelpBody'), (Get-UiText 'Help')) | Out-Null
+    try { Show-CyberButlerHelp } catch {
+        [System.Windows.MessageBox]::Show(((Get-UiText 'HelpBody') + "`n`n" + (Get-EmailHelpText)), (Get-UiText 'Help')) | Out-Null
+    }
 })
 
 $statusButton.Add_Click({
@@ -1222,19 +1588,58 @@ $removeButton.Add_Click({
     if (-not $choice) { return }
     $answer = [System.Windows.MessageBox]::Show((Get-UiText 'RemoveConfirm2'), (Get-UiText 'Remove'), 'YesNo', 'Warning')
     if ($answer -ne 'Yes') { return }
+    $removeProgress = $null
     try {
         $messages = @()
         if ($choice -in @('project', 'both')) {
-            Remove-CyberButlerGuiInstall ([string]$installPathBox.Text) | Out-Null
+            $removeProgress = Show-CyberButlerRemoveProgress -Owner $window
+            Remove-CyberButlerGuiInstall ([string]$installPathBox.Text) -OnProgress {
+                param($percent, $detail)
+                Update-CyberButlerRemoveProgress -Progress $removeProgress -Percent $percent -Message $detail
+            } | Out-Null
             $messages += (Get-UiText 'RemoveProjectDone')
         }
         if ($choice -in @('package', 'both')) {
             Remove-CyberButlerPackage -InstallerRoot $installerRoot | Out-Null
             $messages += $(if ($choice -eq 'both') { Get-UiText 'RemoveBothDone' } else { Get-UiText 'RemovePackageDone' })
         }
-        [System.Windows.MessageBox]::Show(($messages -join "`n"), (Get-UiText 'Remove')) | Out-Null
+        $serviceAccountMessage = ''
+        $serviceUser = Get-LocalUser -Name 'CyberButlerSvc' -ErrorAction SilentlyContinue
+        $serviceProfile = Join-Path $env:SystemDrive 'Users\CyberButlerSvc'
+        if ($script:cbRemoveCleanup) {
+            Update-CyberButlerRemoveProgress -Progress $removeProgress -Percent 97 -Message '清理 CyberButlerSvc 服务账户 / Cleaning service account'
+            $cleanup = Remove-CyberButlerServiceAccountProfile
+            if ($cleanup.removed) { $serviceAccountMessage = 'CyberButlerSvc 服务账户及 profile 已删除。' }
+            elseif ($cleanup.pending_reboot) { $serviceAccountMessage = 'CyberButlerSvc 服务账户已删除；profile 仍被系统占用，已安排下次重启自动清理。' }
+            else { $serviceAccountMessage = 'CyberButlerSvc 未完全删除：' + $cleanup.reason }
+        } elseif ($serviceUser -or (Test-Path -LiteralPath $serviceProfile)) {
+            $serviceAccountMessage = '保留了 CyberButlerSvc 服务账户/profile；如确认不再使用，可重新运行删除并勾选清理。'
+        }
+        $desktopPath = [Environment]::GetFolderPath('Desktop')
+        $bigFishPath = Join-Path $desktopPath '大肥鱼专用文件夹'
+        $dashboardShortcut = Join-Path $desktopPath 'Cyber-Butler 主控台.lnk'
+        $dataNote = ''
+        if ($script:cbRemoveBigFish) {
+            Update-CyberButlerRemoveProgress -Progress $removeProgress -Percent 98 -Message '删除桌面大肥鱼专用文件夹 / Removing Big Fish folder'
+            try {
+                if (Test-Path -LiteralPath $bigFishPath) { Remove-Item -LiteralPath $bigFishPath -Recurse -Force -ErrorAction Stop }
+                $dataNote = '桌面大肥鱼专用文件夹已删除。'
+            } catch { $dataNote = '大肥鱼专用文件夹删除失败：' + $_.Exception.Message }
+        } else {
+            $dataNote = '保留桌面大肥鱼专用文件夹（用户文件）：' + $bigFishPath
+        }
+        if ($script:cbRemoveDashboardShortcut) {
+            try { if (Test-Path -LiteralPath $dashboardShortcut) { Remove-Item -LiteralPath $dashboardShortcut -Force -ErrorAction Stop } }
+            catch { $dataNote += "`n主控台快捷方式删除失败：" + $_.Exception.Message }
+        }
+        if ($removeProgress) { $removeProgress.Window.Close() }
+        $profileNote = 'C:\Users\' + $env:USERNAME + ' 是 Windows 当前用户 profile（不是项目数据），不能删除。项目数据原本在 C:\CyberButler 和 C:\ProgramData\CyberButler。'
+        if ($serviceAccountMessage) { $profileNote += "`n" + $serviceAccountMessage }
+        if ($dataNote) { $profileNote += "`n" + $dataNote }
+        [System.Windows.MessageBox]::Show((($messages -join "`n") + "`n`n" + $profileNote), (Get-UiText 'Remove')) | Out-Null
         if ($choice -in @('package', 'both')) { $window.Close() }
     } catch {
+        if ($removeProgress) { $removeProgress.Window.Close() }
         [System.Windows.MessageBox]::Show(((Get-UiText 'RemoveFailed') + $_.Exception.Message), (Get-UiText 'Remove')) | Out-Null
     }
 })
