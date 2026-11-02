@@ -16,7 +16,7 @@ from pathlib import Path
 
 from win_path_guard import TargetSnapshot
 
-ROOT = Path(os.environ.get("CBS_ROOT", r"C:\CyberButler"))
+ROOT = Path(os.environ.get("CBS_ROOT", r"C:\CyberButler")).resolve()
 QUARANTINE_ROOT = ROOT / "tools" / "broker" / "quarantine"
 
 
@@ -87,9 +87,10 @@ def quarantine_file(
         "reason": reason[:300],
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    _manifest_path(entry).write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    manifest_path = _manifest_path(entry)
+    tmp = manifest_path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(manifest_path)
     return entry
 
 

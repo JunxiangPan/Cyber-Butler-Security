@@ -76,7 +76,7 @@ def _sid(account: str) -> str:
     command = [
         "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
-        f"$u=Get-LocalUser -Name '{account}' -ErrorAction Stop; $u.Sid.Value",
+        f"$u=Get-LocalUser -Name '{account.replace(chr(39), chr(39)*2)}' -ErrorAction Stop; $u.Sid.Value",
     ]
     result = _run(command)
     sid = (result.stdout or "").strip().splitlines()[-1].strip()
@@ -149,8 +149,6 @@ def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
     commands = build_apply_commands(canonical, sid, mode=effective_mode)
     if not commands:
         return {"mode": effective_mode, "applied": 0, "sid": sid}
-    if not commands:
-        return {"mode": canonical["mode"], "applied": 0, "sid": sid}
     for command in commands:
         result = _run([
             "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
@@ -159,6 +157,13 @@ def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
         if result.returncode != 0:
             raise WfpError((result.stderr or result.stdout or "New-NetFirewallRule failed").strip())
     return {"mode": effective_mode, "applied": len(commands), "sid": sid}
+
+
+def _write_status(policy_path: Path, status: dict) -> None:
+    target = policy_path.with_name("wfp-guard-status.json")
+    tmp = target.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(status, sort_keys=True), encoding="utf-8")
+    tmp.replace(target)
 
 
 def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False) -> None:
@@ -174,18 +179,13 @@ def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False)
                     allow_enforce=allow_enforce,
                 )
                 status = {"ok": True, "updated_at": __import__("time").time(), **result}
-                policy_path.with_name("wfp-guard-status.json").write_text(
-                    json.dumps(status, sort_keys=True), encoding="utf-8"
-                )
+                _write_status(policy_path, status)
                 last_mtime = mtime
         except Exception as exc:
             try:
-                policy_path.with_name("wfp-guard-status.json").write_text(
-                    json.dumps({"ok": False, "error": str(exc), "updated_at": __import__("time").time()}),
-                    encoding="utf-8",
-                )
-            except OSError:
-                pass
+                _write_status(policy_path, {"ok": False, "error": str(exc), "updated_at": __import__("time").time()})
+            except OSError as status_exc:
+                print(f"WFP status write failed: {status_exc}", flush=True)
             print(f"WFP policy apply failed: {exc}", flush=True)
         time.sleep(max(2, int(interval)))
 

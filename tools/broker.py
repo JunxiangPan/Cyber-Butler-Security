@@ -148,7 +148,6 @@ def _job_limit_flags() -> tuple[int, dict[str, int]]:
         | JOB_OBJECT_LIMIT_JOB_MEMORY
         | JOB_OBJECT_LIMIT_JOB_TIME
         | JOB_OBJECT_LIMIT_ACTIVE_PROCESS
-        | JOB_OBJECT_LIMIT_PROCESS_TIME
     )
     return flags, limits
 
@@ -341,8 +340,8 @@ def log(message: str) -> None:
     try:
         with LOG.open("a", encoding="utf-8") as handle:
             handle.write(line + "\n")
-    except OSError:
-        pass
+    except OSError as exc:
+        print(f"broker log write failed: {exc}", flush=True)
 
 
 def _start_audit_chain_mirror() -> None:
@@ -371,6 +370,7 @@ def _start_audit_chain_mirror() -> None:
                         try:
                             record = json.loads(raw.decode("utf-8"))
                         except ValueError:
+                            log("audit chain mirror skipped a malformed legacy line")
                             continue
                         if isinstance(record, dict):
                             audit_chain.append_event(chain_path, record)
