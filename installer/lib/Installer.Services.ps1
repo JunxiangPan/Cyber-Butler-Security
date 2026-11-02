@@ -112,6 +112,8 @@ function Get-CyberButlerServiceSpecs {
     return @(
         [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
+        [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $webPythonw; args = ('"{0}" --watch --policy "{1}"' -f (Join-Path $rootFull 'tools\wfp_guard.py'), (Join-Path $rootFull 'webui\data
+etwork-policy.json')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
         [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
         [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $webPythonw; args = 'otp_mailer.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 },
         [pscustomobject]@{

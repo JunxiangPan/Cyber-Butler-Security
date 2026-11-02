@@ -150,6 +150,21 @@ def apply_policy(policy: dict) -> dict:
     return {"mode": canonical["mode"], "applied": len(commands), "sid": sid}
 
 
+def watch(policy_path: Path, interval: int = 15) -> None:
+    import time
+
+    last_mtime = None
+    while True:
+        try:
+            mtime = policy_path.stat().st_mtime_ns
+            if last_mtime != mtime:
+                apply_policy(json.loads(policy_path.read_text(encoding="utf-8")))
+                last_mtime = mtime
+        except Exception as exc:
+            print(f"WFP policy apply failed: {exc}", flush=True)
+        time.sleep(max(2, int(interval)))
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -157,9 +172,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", required=True)
     parser.add_argument("--plan", action="store_true")
+    parser.add_argument("--watch", action="store_true")
+    parser.add_argument("--interval", type=int, default=15)
     args = parser.parse_args()
     data = json.loads(Path(args.policy).read_text(encoding="utf-8"))
     if args.plan:
         print(json.dumps(build_block_plan(data).__dict__, indent=2))
+    elif args.watch:
+        watch(Path(args.policy), args.interval)
     else:
         print(json.dumps(apply_policy(data), indent=2))
