@@ -261,6 +261,17 @@ function Invoke-CyberButlerPipInstall {
     Set-Content -LiteralPath $LogPath -Value '' -Encoding UTF8
     Set-Content -LiteralPath $stderrPath -Value '' -Encoding UTF8
 
+    $sbomPath = [IO.Path]::Combine(
+        (Split-Path -Parent $Requirements),
+        [IO.Path]::GetFileNameWithoutExtension($Requirements) + '.sbom.json'
+    )
+    $sbomTool = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'tools\sbom.py'
+    if ((Test-Path -LiteralPath $sbomPath) -and (Test-Path -LiteralPath $sbomTool)) {
+        & $PythonPath $sbomTool verify --requirements $Requirements --manifest $sbomPath | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw ('dependency SBOM verification failed: ' + $sbomPath)
+        }
+    }
     $quote = { param($value) '"' + ([string]$value).Replace('"', '""') + '"' }
     $command = (& $quote $PythonPath) + ' -m pip install --disable-pip-version-check --progress-bar on -r ' + (& $quote $Requirements)
     $argumentLine = '/d /s /c "' + $command + '"'

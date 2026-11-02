@@ -25,7 +25,7 @@ def build(requirements: Path, output: Path | None = None) -> dict:
     ]
     manifest = {
         "schema": 1,
-        "source": str(requirements),
+        "source": requirements.name,
         "sha256": _sha256(requirements),
         "requirements": lines,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -46,3 +46,24 @@ def verify(requirements: Path, manifest: Path) -> tuple[bool, str]:
     if expected.get("requirements") != actual["requirements"]:
         return False, "requirements list mismatch"
     return True, "SBOM matches requirements.txt"
+
+
+def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["build", "verify"])
+    parser.add_argument("--requirements", required=True)
+    parser.add_argument("--manifest", required=True)
+    args = parser.parse_args()
+    if args.command == "build":
+        build(Path(args.requirements), Path(args.manifest))
+        print("SBOM_BUILT")
+        return 0
+    ok, reason = verify(Path(args.requirements), Path(args.manifest))
+    print(reason)
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
