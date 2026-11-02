@@ -122,6 +122,8 @@
     if (!csrf) return;
     const data = await getJson("/api/config/email-status");
     if (!data || !data.ok) return;
+    const physicalBanner = $("physicalBanner");
+    if (physicalBanner) physicalBanner.hidden = data.physical_separated === true;
     if (data.email_ready) {
       if (emailBanner) emailBanner.hidden = true;
       return;

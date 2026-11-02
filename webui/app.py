@@ -57,6 +57,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     files = FileManager(settings)
     broker_config_path = Path(settings.project_root) / "tools" / "broker_config.json"
     contact_path = Path(settings.data_dir) / "approval-contact.json"
+    physical_separation_path = Path(settings.project_root) / "tools" / "physical-separation.json"
     email_secret_path = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "email_secret.json"
 
     def _read_json(path: Path) -> dict:
@@ -120,6 +121,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             "smtp_configured": bool(secret_readable),
             "email_ready": bool(email) and bool(secret_readable),
             "source": "broker_config" if str(broker.get("admin_email", "") or "").strip() else ("approval-contact" if str(contact.get("admin_email", "") or "").strip() else ""),
+            "physical_separated": bool(_read_json(physical_separation_path).get("separate_device") is True),
         }
 
     app = FastAPI(title="Cyber-Butler Web", docs_url=None, redoc_url=None, openapi_url=None)

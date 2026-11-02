@@ -30,6 +30,7 @@ import email_approval
 import quarantine
 import approval_preview
 import port_guard
+import audit_chain
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 
 try:
@@ -340,6 +341,42 @@ def log(message: str) -> None:
             handle.write(line + "\n")
     except OSError:
         pass
+
+
+def _start_audit_chain_mirror() -> None:
+    """Mirror newly appended legacy audit lines into the chained sidecar."""
+    import threading
+
+    def run() -> None:
+        try:
+            offset = AUDIT.stat().st_size if AUDIT.exists() else 0
+        except OSError:
+            offset = 0
+        chain_path = AUDIT.with_name(AUDIT.name + ".chain.jsonl")
+        while True:
+            time.sleep(0.5)
+            try:
+                if not AUDIT.exists():
+                    continue
+                size = AUDIT.stat().st_size
+                if size < offset:
+                    offset = 0
+                if size == offset:
+                    continue
+                with AUDIT.open("rb") as handle:
+                    handle.seek(offset)
+                    for raw in handle:
+                        try:
+                            record = json.loads(raw.decode("utf-8"))
+                        except ValueError:
+                            continue
+                        if isinstance(record, dict):
+                            audit_chain.append_event(chain_path, record)
+                    offset = handle.tell()
+            except Exception as exc:
+                log(f"audit chain mirror failed: {exc}")
+
+    threading.Thread(target=run, name="audit-chain", daemon=True).start()
 
 
 UIPI_BLOCKED_EVENT = "UIPI_BLOCKED_GUI_INTERACTION"
@@ -1859,6 +1896,7 @@ def main() -> None:
         log(f"broker startup refused: {exc}")
         raise
     ensure_token()
+    _start_audit_chain_mirror()
     QUARANTINE.mkdir(parents=True, exist_ok=True)
     STAGING.mkdir(parents=True, exist_ok=True)
     log(f"broker HTTP listening on {HOST}:{PORT}")
