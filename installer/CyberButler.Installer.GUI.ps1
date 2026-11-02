@@ -1313,17 +1313,27 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
     }
 
     $taskNames = @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services', 'Cyber-Butler OTP Mailer', 'SnowLuma Startup', 'Cyber-Butler WFP Guard', 'Cyber-Butler Broker Watchdog')
-    & $report 3 '断开 WFP 出站规则 / Removing WFP egress rules'
+    $env:CBS_IS_UNINSTALLING = '1'
     try {
-        Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue |
-            Remove-NetFirewallRule -ErrorAction SilentlyContinue
-    } catch { }
+        $markerDir = Join-Path $env:ProgramData 'CyberButler'
+        New-Item -ItemType Directory -Path $markerDir -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $markerDir 'uninstalling.marker') -Value '1' -Encoding ASCII
+    } catch {
+        & $report 1 ('无法写入卸载标记 / Cannot write uninstall marker: ' + $_.Exception.Message)
+    }
     & $report 5 '停止计划任务 / Stopping scheduled tasks'
     foreach ($taskName in $taskNames) {
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
         if ($task) {
             Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
         }
+    }
+    & $report 8 '断开 WFP 出站规则 / Removing WFP egress rules'
+    try {
+        Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue |
+            Remove-NetFirewallRule -ErrorAction Stop
+    } catch {
+        & $report 8 ('WFP 规则删除失败 / WFP rule removal failed: ' + $_.Exception.Message)
     }
     & $report 12 '计划任务已停止 / Scheduled tasks stopped'
 
