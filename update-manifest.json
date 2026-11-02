@@ -348,6 +348,11 @@
       "size": 1223
     },
     {
+      "path": "docs/releases/RELEASE_NOTES_v1.6.2.md",
+      "sha256": "e4da01b614d30a6fff815e64ba0962f75cdd1922c33fe09600333cee68b2ebcf",
+      "size": 1704
+    },
+    {
       "path": "docs/使用说明.md",
       "sha256": "05105d32808c143795cedb1383c1967c0ebf2539bcb23d1fb30618e7c86df597",
       "size": 86882
@@ -359,8 +364,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "2a47350d9dd944fea0c4c7818ecaf3ca255f3a81b38b66d5f7e23e95d9eb7674",
-      "size": 48379
+      "sha256": "22482c3018715e3362c84e53e5b007f683a3eefb3f4e1f8cadd5f80a0fdfc857",
+      "size": 48821
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -394,8 +399,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "6b2f9c2c1493566bc60f4bcf91a25b4a243e9aa7cd8d5dcc5969682ad70b5a97",
-      "size": 14941
+      "sha256": "66493be640d369ab471b496413bc76af8b3524608fd6b3a63b3b709f07397bb9",
+      "size": 16336
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
@@ -914,8 +919,8 @@
     },
     {
       "path": "tests/test_approval_preview.py",
-      "sha256": "e622a8b6a8434c623d92e102cb0e72bf5c310688fe06946ef36217af4908fd35",
-      "size": 2420
+      "sha256": "7c7dec021b242d40380272d28827ae72dc0bf52615dd933dc7bb0c0867382495",
+      "size": 3953
     },
     {
       "path": "tests/test_audit_chain.py",
@@ -938,9 +943,29 @@
       "size": 1195
     },
     {
+      "path": "tests/test_credential_proxy.py",
+      "sha256": "1970c6a095581aa3b0c26bd5242ad4418a54802e5963c56e15a4aab3b63c9ffb",
+      "size": 2567
+    },
+    {
+      "path": "tests/test_critical_integrity.py",
+      "sha256": "039ced99778945997210e33a2a5ebbd91bf1323789c9ffe27476c9696e21bc9b",
+      "size": 1583
+    },
+    {
       "path": "tests/test_email_approval.py",
       "sha256": "3f6eabbe47d2b6d9c70f98f8d43d636dd4bf43e539c156af26122bc30dbc017f",
       "size": 907
+    },
+    {
+      "path": "tests/test_injection_audit.py",
+      "sha256": "4444c6f86cea24d44da7cb9d722971750b1bccc54d98dac887949e3d46674566",
+      "size": 1155
+    },
+    {
+      "path": "tests/test_intent_mismatch.py",
+      "sha256": "e4406eb02af341726d47c786ae95b5e913eac956fa2331cd26c1412a5499f7ad",
+      "size": 1174
     },
     {
       "path": "tests/test_job_limits.py",
@@ -1074,8 +1099,8 @@
     },
     {
       "path": "tools/approval_preview.py",
-      "sha256": "063362339a56dc9cee10034032e9271c1fdbfbb27e0173a6bb94f1c70ceb75e5",
-      "size": 7283
+      "sha256": "50c73b436f348073724bc3ecbb19dd87f60d9899d32594062aab914fdd641de5",
+      "size": 8621
     },
     {
       "path": "tools/audit_chain.py",
@@ -1089,8 +1114,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "0e8a78b9024e7ebfef45c2e0e717d78ed340916567bd5dff1853b078c3142f77",
-      "size": 78521
+      "sha256": "587ccabfbbde5657f84b68cf498ae35fac7ea8d473899e9ced73d5470ee4276e",
+      "size": 81975
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1121,6 +1146,16 @@
       "path": "tools/create_update_shortcut.ps1",
       "sha256": "0107d240e591c40315e57333a5d1c24178f5694efbed6ae7f686e70e7b9c3e3c",
       "size": 532
+    },
+    {
+      "path": "tools/credential_proxy.example.json",
+      "sha256": "0af472e0a041f788cc9f8bffd4bf12209362c7c85aaf23bcd2a0125e3a133e08",
+      "size": 185
+    },
+    {
+      "path": "tools/credential_proxy.py",
+      "sha256": "74823ff36f21be7cab373ae67d6cdff74f76fde802e6698e19b3d7e856de0c94",
+      "size": 5596
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
@@ -1281,6 +1316,11 @@
       "path": "tools/harden_broker_runtime.ps1",
       "sha256": "6dc544848e3fab180e22dbc77f63e1f2543707ec2b2c1b8de2e517447487edf8",
       "size": 1393
+    },
+    {
+      "path": "tools/injection_audit.py",
+      "sha256": "904edccb35ac95f0d149ca0377af59b25fcc6f0aa2b11f90cb1f522d7a1daed1",
+      "size": 2162
     },
     {
       "path": "tools/install_boot_selfcheck.ps1",

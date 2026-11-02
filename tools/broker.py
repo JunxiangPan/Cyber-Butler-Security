@@ -595,6 +595,8 @@ def _critical_integrity_hit(target: str) -> bool:
     name = path.name.casefold()
     if name in CRITICAL_INTEGRITY_NAMES:
         return True
+    if ".claude" in lowered_parts and name == "settings.json":
+        return True
     if ".github" in lowered_parts:
         index = lowered_parts.index(".github")
         if index + 1 < len(lowered_parts) and lowered_parts[index + 1] == "workflows":
