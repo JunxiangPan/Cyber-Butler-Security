@@ -27,6 +27,7 @@ import pyotp
 import requests
 import email_approval
 import quarantine
+import approval_preview
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 
 try:
@@ -1269,6 +1270,17 @@ def run_request(payload: dict) -> tuple[int, dict]:
         return 400, {"ok": False, "error": "send is not available in email mode; switch approval_channel to qq"}
     challenge = secrets.token_hex(2).upper() if email_mode else ""
 
+    try:
+        preview = approval_preview.build_preview(
+            action,
+            target_text,
+            content=payload.get("content"),
+            source=str(payload.get("source", "")),
+        )
+    except (OSError, ValueError) as exc:
+        _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
+        return 409, {"ok": False, "error": f"cannot build approval preview: {exc}"}
+
     event = None
     with _lock:
         if _pending:
@@ -1290,39 +1302,14 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "channel": "email" if email_mode else "qq",
             "challenge": challenge,
             "approval_only": approval_only,
+            "preview": preview,
             "_snapshot": target_snapshot,
             "_source_snapshot": source_snapshot,
         }
-        if action == "delete":
-            prompt = "哥，瑾言想删除以下对象，请输入动态验证码。" + chr(10)
-            prompt += f"完整路径与哈希：{_path_summary(target_text)}" + chr(10)
-            prompt += "仅本次：<6 位动态码>" + chr(10)
-            prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
-            prompt += "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30" + chr(10)
-            prompt += f"请求号：{request_id}"
-        elif action == "overwrite":
-            source_text = str(payload.get("source", ""))
-            prompt = "哥，瑾言想用源文件覆盖目标文件，请输入动态验证码。" + chr(10)
-            prompt += f"源：{_path_summary(source_text)}" + chr(10)
-            prompt += f"目标：{_path_summary(target_text)}" + chr(10)
-            prompt += "仅本次：<6 位动态码>" + chr(10)
-            prompt += "同一目录同动作 30 秒：<6 位动态码> BYPASS 30" + chr(10)
-            prompt += "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30" + chr(10)
-            prompt += f"请求号：{request_id}"
-        elif action == "write_file":
-            content = payload.get("content")
-            size = len(content.encode("utf-8")) if isinstance(content, str) else 0
-            prompt = chr(10).join([
-                "哥，瑾言想写入核心文件，请输入动态验证码。",
-                f"目标：{_path_summary(target_text)}",
-                f"写入大小：{size} bytes",
-                "仅本次：<6 位动态码>",
-                "同一目录同动作 30 秒：<6 位动态码> BYPASS 30",
-                "当前草稿目录 30 分钟：<6 位动态码> SCOPED 30",
-                f"请求号：{request_id}",
-            ])
-        else:
+        if action == "send":
             prompt = _manifest_prompt(manifest or [])
+        else:
+            prompt = approval_preview.format_preview(preview, request_id)
         if action == "send":
             event = threading.Event()
             _send_events[request_id] = event
@@ -1333,6 +1320,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         if not admin_email:
             with _lock:
                 if _pending and _pending.get("id") == request_id:
+                    _close_request_snapshots(_pending)
                     _pending = None
             return 503, {"ok": False, "error": "email approval requires admin_email; configure it in the installer or WebUI"}
         try:
@@ -1348,6 +1336,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         except Exception as exc:
             with _lock:
                 if _pending and _pending.get("id") == request_id:
+                    _close_request_snapshots(_pending)
                     _pending = None
             return 502, {"ok": False, "error": f"email challenge send failed: {exc}"}
         threading.Thread(target=email_watch, args=(request_id,), daemon=True).start()
@@ -1359,6 +1348,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
     if not send_qq(prompt):
         with _lock:
             if _pending and _pending.get("id") == request_id:
+                _close_request_snapshots(_pending)
                 _pending = None
             _send_events.pop(request_id, None)
             _send_results.pop(request_id, None)
