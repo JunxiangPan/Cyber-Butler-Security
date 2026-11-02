@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "version": "1.6.1",
+  "version": "1.6.2",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "f9f3bd5439e891f9c485e900b1778b0fc378e798c807614af90fc496783365be",
-      "size": 638
+      "sha256": "547a73ee5ff29d40f3be2f841a0432e0d9c02cc5f8832e698d7f28c6d6f7b3ff",
+      "size": 776
     },
     {
       "path": ".gitignore",
@@ -29,63 +29,63 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "d8beafe247afa2d2f0a469f50de9cc828091eff993ee85511b9e548ef8e48492",
-      "size": 14768
+      "sha256": "ac4221a882016954f0d411d7b3700b650a745c0e157e5f816c786e3a23e62757",
+      "size": 14841
     },
     {
       "path": "README.md",
-      "sha256": "f07a8e33717fa361f98f23048420e3905341526aeba19446a4c1cb790dbdbfdb",
-      "size": 41568
+      "sha256": "57564ffd1504ac797fa76c47949b2bc5149a792e499f43793dae99389182b618",
+      "size": 41641
     },
     {
       "path": "README_de.md",
-      "sha256": "add19c887ee74620d749a2f0352aaf845b48bf2193b794a79152cf3504ac014f",
-      "size": 17244
+      "sha256": "5aae1ad2e410edff879150e5047331db7f66c2b2cc5b818e4a82111b0743c93e",
+      "size": 17317
     },
     {
       "path": "README_en.md",
-      "sha256": "f1b418459de62b93ccf2b13b2d36ceb1c3d165f9db6d46b39af9b3a6b3baa064",
-      "size": 40780
+      "sha256": "80479fe42959d0de0e6d5d1bbb8763ecab8adcfbd4f371b78b3f0751bef2a6a3",
+      "size": 40853
     },
     {
       "path": "README_es.md",
-      "sha256": "6c69d1edb6d973c3e519e42c96cb17f105f676605848c48f7987986eedf6a897",
-      "size": 17274
+      "sha256": "62371b1e9b6ac2fd2da73af2b7444dfd213cb4045643f4e58d0dffe8733f7636",
+      "size": 17347
     },
     {
       "path": "README_fr.md",
-      "sha256": "6dd948638fe83f127a2b15cc89b998e01bdf3ec4f0b4daa8ab5a578f5a6fed69",
-      "size": 18044
+      "sha256": "09dc7586685f9f89915c753909200df448305d11d893dcf8516d995821ed0d9b",
+      "size": 18117
     },
     {
       "path": "README_ja.md",
-      "sha256": "afdf42b9bd0aa9d5e5c343db79cbe12371d3e377f0600cc451cd6f34078df40e",
-      "size": 20343
+      "sha256": "15cb7391b1497daa763a0715945c6373785962caa7743003c14a1622c51579fc",
+      "size": 20416
     },
     {
       "path": "README_ko.md",
-      "sha256": "b387280f7749bbec39b6c34d7165c0933a60f7fa948604c93aec2b6d62039dcb",
-      "size": 17787
+      "sha256": "0cffa93af39a9d1aadc9fe31321814672065637c1ca0b9a82b53f58bafc8c732",
+      "size": 17860
     },
     {
       "path": "README_ru.md",
-      "sha256": "acd9ef1f2159137633502f6d2b47edf5517de7211c514766b3085b25da78e134",
-      "size": 25468
+      "sha256": "633035c9f18c041b8cb221e94959541857f010d30ea4fd1210de2a1c5e9032ef",
+      "size": 25541
     },
     {
       "path": "README_zh.md",
-      "sha256": "b63463c77e054f573b256c664cd00e43697b25208533fe549d1e32d345f5b0fa",
-      "size": 37391
+      "sha256": "8803c1ab20d1bc404f16c5b3fe9393f95e7d520e1d45e955e0fed57f000aef12",
+      "size": 37464
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "97c35ff48b543eae0dc2a64b776675bfcbd4bcedc26151b670404bdae801585a",
-      "size": 4925
+      "sha256": "67064758d3fb0ce7a99c72bbb78a022a6eb009b0b75d95d046af06322d9188c3",
+      "size": 9305
     },
     {
       "path": "SECURITY.md",
-      "sha256": "fad5347b63a3ec9307cc5c8f2188c7933ffc6378c375a312fec6fc5b9f28d9b5",
-      "size": 43578
+      "sha256": "350b0243d1d0539e660698eef538a9c273828eefbea8a3c9f7840bc8f7dcc36b",
+      "size": 43885
     },
     {
       "path": "START-INSTALLER.exe",
@@ -93,8 +93,13 @@
       "size": 8192
     },
     {
+      "path": "THREAT_MODEL.md",
+      "sha256": "5a21c8f74bcdbd28ff27c3d1fd381b436587b72360ef0c4c14d0c8df36a7a18c",
+      "size": 3511
+    },
+    {
       "path": "VERSION",
-      "sha256": "6430a242e9486093ef6f71d9086d48f61ba102f0d2fb0f5b95334c6007a46db3",
+      "sha256": "a2d5e268fe70979caccd895156b3d33bd61a3cc7e660ab7a5b07066849b3e248",
       "size": 6
     },
     {
@@ -159,13 +164,18 @@
     },
     {
       "path": "docs/STATUS_v1.6.1.md",
-      "sha256": "9f32bdce8f925ad3caadb0adaedd54111f52a20fcf9acf215493ac3929c72add",
-      "size": 7623
+      "sha256": "701d01e2feb3e1948f338de3d28418a707849bb1c8855006a1182409f23b2621",
+      "size": 7699
     },
     {
       "path": "docs/TAILSCALE_WEBUI.md",
       "sha256": "c453485d08bc3701ae84431372b7ba1714d319652e170a99c70fd95d74b5b8a5",
       "size": 7132
+    },
+    {
+      "path": "docs/TEST_MATRIX.md",
+      "sha256": "e4c14d7fed0be696a98b2525d2c09aaa69a3802642536a806b03b8d1e545a3dc",
+      "size": 4873
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
@@ -323,14 +333,19 @@
       "size": 28252
     },
     {
+      "path": "docs/releases/RELEASE_NOTES_v1.6.2-beta.md",
+      "sha256": "87ec112165192db0683d504adfc42aef299194cf54584d4ad9a42fd95583a477",
+      "size": 1356
+    },
+    {
       "path": "docs/使用说明.md",
       "sha256": "05105d32808c143795cedb1383c1967c0ebf2539bcb23d1fb30618e7c86df597",
       "size": 86882
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "fe2e14878ea92eee341ded956e968b47d2cd589b00bddf0298e55e62b438f093",
-      "size": 136551
+      "sha256": "1a41e2659a19bc2d4ceb916f3c51f4c32a85f5e5dd44ff14ed6030479d90e4e4",
+      "size": 138242
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -379,8 +394,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "f1d280e921e2f6d048f96b1059f997f2c69888aa8d70be9ca5a9e7fdb9e23ada",
-      "size": 40667
+      "sha256": "3a0207d4ef85c8e0847b4c93244ccb7066e09d9031d1b4275ff1462c4eb48245",
+      "size": 41248
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -439,8 +454,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "63e605123718b90f5f8a33943e26d2d184ecb733bac9149256b28aeca6716242",
-      "size": 51498
+      "sha256": "d614cb339038fa3ee7ade157ec9578f9efe27efe784ebbb51d4380f84ca9f6bb",
+      "size": 51819
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -814,8 +829,8 @@
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/main.py",
-      "sha256": "82f344a21ab0b35a68b516b9fd8c46a8e269e0e1875a4133087f30f3af350649",
-      "size": 10945
+      "sha256": "3faca2adaf6aaa6b8889e141794873f8ec4b99efd376a99c1aaa6cfd146b9e35",
+      "size": 11624
     },
     {
       "path": "plugins/astrbot_plugin_totp_broker/metadata.yaml",
@@ -859,8 +874,8 @@
     },
     {
       "path": "tests/conftest.py",
-      "sha256": "df1456aaa093993726bde4b9733deda0b3e698d9b7a03f5bfc72e092fcf70066",
-      "size": 427
+      "sha256": "daeb59d699df358a4f82b757a9d61227d659582ee640b8f407ab616db2f3bd32",
+      "size": 550
     },
     {
       "path": "tests/fixtures/plugins/clean/main.py",
@@ -888,6 +903,16 @@
       "size": 2483
     },
     {
+      "path": "tests/test_approval_preview.py",
+      "sha256": "b9c1f87b3849f45c1e9de60038df5359281e74cfe631cec1a96af13a93577412",
+      "size": 1598
+    },
+    {
+      "path": "tests/test_audit_chain.py",
+      "sha256": "7c5012badc5d842041d74bf885f41ca0e492162e95a540fae5189f5ceefd174a",
+      "size": 1063
+    },
+    {
       "path": "tests/test_broker_manifest.py",
       "sha256": "ae923721680a71a3da180110ec13357b039d6913f13133703545e204b5b76ab3",
       "size": 4035
@@ -908,9 +933,24 @@
       "size": 907
     },
     {
+      "path": "tests/test_job_limits.py",
+      "sha256": "611ad279a1020b5010f163cfd952c363391e6fa521005ebe276c268f07d8bef2",
+      "size": 1279
+    },
+    {
       "path": "tests/test_media_bypass.py",
       "sha256": "9610806d36c72f49c20d39d8463a1236646a2027e8853f159f840148a28d09e2",
       "size": 1049
+    },
+    {
+      "path": "tests/test_path_guard.py",
+      "sha256": "9de844a91e4a8ee45c212cda7cd7bb3bfd1011d34f554671fa3bf89d7f9aeb11",
+      "size": 2316
+    },
+    {
+      "path": "tests/test_physical_separation.py",
+      "sha256": "b583a67f53b5c2b73d7f6274cbcfcfaec5b7f9326f8b5b3e7b26bf324b413630",
+      "size": 561
     },
     {
       "path": "tests/test_plugin_security_scanner.py",
@@ -918,9 +958,24 @@
       "size": 2559
     },
     {
+      "path": "tests/test_port_guard.py",
+      "sha256": "17e25ca7ccce72824576f2db0404494101b27690c16456a6ed71cd5c2fe3f6d6",
+      "size": 638
+    },
+    {
+      "path": "tests/test_rate_limit.py",
+      "sha256": "742ab00dc799959f77ab4ac375638e0928c793e5f3bb7c5e14f69036f81a34c7",
+      "size": 998
+    },
+    {
       "path": "tests/test_router_package.py",
       "sha256": "bff5c86db9462adcda580b586b297ede09c700ef98b947ccd33aae255f5bd53e",
       "size": 1054
+    },
+    {
+      "path": "tests/test_sbom.py",
+      "sha256": "f30880e5f70010629e8de188402119de0a6ecc16c3553ff7b084ccd6c6601544",
+      "size": 513
     },
     {
       "path": "tests/test_security_gate.py",
@@ -931,6 +986,21 @@
       "path": "tests/test_send_policy_contract.py",
       "sha256": "bfa9df1a8f202743da2b75dc4322ac1901bdfca46c4ba78e0d67a08a5aeaca2f",
       "size": 2015
+    },
+    {
+      "path": "tests/test_test_matrix.py",
+      "sha256": "6961f3302fca1cfe94a826abbcdee4095af8bf246bfe26de267705ef6c3d4dd1",
+      "size": 637
+    },
+    {
+      "path": "tests/test_toctou.py",
+      "sha256": "068f007ad233fd221c1a344ab87c60459dae6dca2ff2428037efa8183fcdcc16",
+      "size": 1406
+    },
+    {
+      "path": "tests/test_toctou_broker.py",
+      "sha256": "d76b836b5e665d2b8d481e2084a339d66d9af413e1fd3003319cf27617fea823",
+      "size": 1702
     },
     {
       "path": "tests/test_totp_bruteforce.py",
@@ -953,9 +1023,44 @@
       "size": 4207
     },
     {
+      "path": "tests/test_watchdog.py",
+      "sha256": "d11030b7a82e3873918b68d7f8f800ec5c7d39a239a12164a628f99b2fa29f69",
+      "size": 701
+    },
+    {
+      "path": "tests/test_wfp_guard.py",
+      "sha256": "ce18833bbb93f3b5e07869469fce98f3c9aaae0830af0fcc7c82ca02efaf625e",
+      "size": 1842
+    },
+    {
+      "path": "tests/test_wfp_policy.py",
+      "sha256": "1ad405cb7bfb2231f6c132b740a118c3637553d305ef1ef48b405d6cb1cd5cbc",
+      "size": 860
+    },
+    {
+      "path": "tests/test_wfp_tripwire.py",
+      "sha256": "1acf5cb601fe5562f02ebec295eb50cd0f72519fdedec9eb41a5edb269cb61e9",
+      "size": 1069
+    },
+    {
       "path": "tools/CyberButlerLauncher.exe",
       "sha256": "ab8f9b2e278bfddcd2b504248f92da870560ff26c885d29569466f584275c10c",
       "size": 8192
+    },
+    {
+      "path": "tools/Test-WfpTripwire.ps1",
+      "sha256": "2d6a73018c47284f792ecb37bb6f4698a3c6e76e4b32263e16b746ff059f7ce8",
+      "size": 1738
+    },
+    {
+      "path": "tools/approval_preview.py",
+      "sha256": "ac83e56dee921868aea9bfc1ae2656d095a31f081effef9db7c0e5460e5db01f",
+      "size": 5675
+    },
+    {
+      "path": "tools/audit_chain.py",
+      "sha256": "c890054177d747fd214449595bd52c76420f1c73db055815cf375fa98cc70b8d",
+      "size": 4111
     },
     {
       "path": "tools/boot-selfcheck.ps1",
@@ -964,8 +1069,13 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "1ecfbdcdbece928476bfe15171afafc0c26424fe2c8ee75f0acc8cab852f1e26",
-      "size": 68401
+      "sha256": "02c753637b3d00acce983c7a908c879de3d88978c168c51a2595b5a755bbacc1",
+      "size": 77917
+    },
+    {
+      "path": "tools/broker_watchdog.py",
+      "sha256": "30c6cf7110bb86f5ca7835e8287cd3998841d389623670cca3e2d206c7fb660a",
+      "size": 1791
     },
     {
       "path": "tools/build_update_manifest.py",
@@ -1208,6 +1318,11 @@
       "size": 5450
     },
     {
+      "path": "tools/physical_separation.py",
+      "sha256": "1b76c1c67a556761033ed8816f4e74339a981a59de3e31ca2bcc47207e0a5852",
+      "size": 953
+    },
+    {
       "path": "tools/plugin_hub.ps1",
       "sha256": "5a85c7cd01bd90cdb21a0f87cd3dc56a4febb8705224eb5795aea65518dd1be6",
       "size": 12352
@@ -1228,6 +1343,11 @@
       "size": 11045
     },
     {
+      "path": "tools/port_guard.py",
+      "sha256": "d656d6dc5fa610b3d99c0fb26af6c1733d0cb715540d5039fe58710f8984a5c2",
+      "size": 1637
+    },
+    {
       "path": "tools/privacy_scan.py",
       "sha256": "ab15dab66df0d5ee0464fb6035f93c711b7aeb61a8df68ed2e61fc7409b94401",
       "size": 2861
@@ -1236,6 +1356,11 @@
       "path": "tools/protect_shared_acl.ps1",
       "sha256": "356221a9a441f13b8f5980fc46379d4b9fac0373f49c3a388f5c9e9e5b8e3727",
       "size": 2015
+    },
+    {
+      "path": "tools/quarantine.py",
+      "sha256": "bb5f1a8688bc5ef7974fcad93a3fddbabb1126d29260f60cf5fa2ab11a05550f",
+      "size": 2964
     },
     {
       "path": "tools/repair_memory_sources.py",
@@ -1256,6 +1381,11 @@
       "path": "tools/sanitize_for_release.py",
       "sha256": "ed96dcd463131318393d82e565702fdef10622d827a262be0cb8b2384d6b7f7f",
       "size": 4027
+    },
+    {
+      "path": "tools/sbom.py",
+      "sha256": "6697f8f4a43963e64eca007d8a122481afd6db98a22653bc151b2fbcac93e0cd",
+      "size": 2247
     },
     {
       "path": "tools/secure_totp_vault.ps1",
@@ -1324,8 +1454,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "8a1bc67d37a7326dd09260a11df872647d746d4ae93dbe03f2d8af43cd477b80",
-      "size": 11758
+      "sha256": "1ffc3ba60400532f528f145e3a9e610a9298022ea71a85a75664bc0c6b311045",
+      "size": 11782
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1363,6 +1493,26 @@
       "size": 9713
     },
     {
+      "path": "tools/wfp_guard.py",
+      "sha256": "2cbc14e28dba883e65a440a7ac4c57bab5d1db0c073c53917a127683b522ef1d",
+      "size": 7147
+    },
+    {
+      "path": "tools/wfp_policy.py",
+      "sha256": "255ad40a0a482369149ee657aee17accae5b009bc442a6aa948d9bf158e0514c",
+      "size": 2804
+    },
+    {
+      "path": "tools/wfp_tripwire.py",
+      "sha256": "0905d11afc2689d8441c95e363cec7df8b3529322bf6bc45c116cf29520293ec",
+      "size": 3237
+    },
+    {
+      "path": "tools/win_path_guard.py",
+      "sha256": "0c8e2fa3748924f9fe8a596af7e0ef8cbdebe1e20e0fcd230a6e018d107afa88",
+      "size": 15000
+    },
+    {
       "path": "tools/write_memory_metadata.py",
       "sha256": "5c775110b5c54edcbb8a1ef435f4329850c58e032d275fd02be2ec2e6001f8ee",
       "size": 3706
@@ -1374,8 +1524,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "838879ecbf2afc89069d8d42174bf4d851639a47908f25eb8015cb9dc9ef05b6",
-      "size": 21581
+      "sha256": "8f0e03dd78705d9f0e98d661aa12e63ceabdb2956951a02ded7d00aebd6d6ff0",
+      "size": 23628
     },
     {
       "path": "webui/auth.py",
@@ -1408,6 +1558,11 @@
       "size": 6213
     },
     {
+      "path": "webui/requirements.sbom.json",
+      "sha256": "002ccc0e65a4274d08fbab744833e5e3d57dcef833bd84fda36655017e5a3d6c",
+      "size": 318
+    },
+    {
       "path": "webui/requirements.txt",
       "sha256": "aefb3944a25c1389bee9c4b89d164cffff3f6fdaddf71d99acf0aac214056f16",
       "size": 71
@@ -1434,8 +1589,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "1f6eb2cc17de212c52d665fc54218011ea1c0708fee026d851c67ae921f632cb",
-      "size": 23305
+      "sha256": "3715686a37c7f3f45007893e0410f86cc68fff0e7ce9ded97ac50a2f7af06561",
+      "size": 24868
     },
     {
       "path": "webui/static/error.js",
@@ -1514,8 +1669,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "fca08bf875172af4fd0449c76fb95c19669020ac0c7c7f1613cf1f3d01fc7113",
-      "size": 11023
+      "sha256": "e95e0db958ae8c1fe066a3bc73518e65ad82337991bb8c3937d1937a5e5528ec",
+      "size": 12364
     },
     {
       "path": "webui/templates/error.html",
@@ -1539,8 +1694,8 @@
     },
     {
       "path": "webui/tests/test_phase2_api.py",
-      "sha256": "94dabd02e152b80531b59b8334100bdba8cbd7570e19ac9069d5b99429a56f99",
-      "size": 4288
+      "sha256": "a2800197eb7e3bcaa1a0feef3e0f9887629d014702c22b2ac3b8b166f2535fde",
+      "size": 5097
     },
     {
       "path": "webui/tests/test_webui_auth.py",
