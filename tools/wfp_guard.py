@@ -170,17 +170,17 @@ def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False)
     import time
 
     last_mtime = None
+    last_result = {}
     while True:
         try:
             mtime = policy_path.stat().st_mtime_ns
             if last_mtime != mtime:
-                result = apply_policy(
+                last_result = apply_policy(
                     json.loads(policy_path.read_text(encoding="utf-8-sig")),
                     allow_enforce=allow_enforce,
                 )
-                status = {"ok": True, "updated_at": __import__("time").time(), **result}
-                _write_status(policy_path, status)
                 last_mtime = mtime
+            _write_status(policy_path, {"ok": True, "updated_at": __import__("time").time(), **last_result})
         except Exception as exc:
             try:
                 _write_status(policy_path, {"ok": False, "error": str(exc), "updated_at": __import__("time").time()})

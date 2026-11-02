@@ -142,12 +142,16 @@
     const detail = $("wfpBannerDetail");
     const status = $("networkStatus");
     const guard = (data && data.guard) || {};
-    const healthy = data && data.ok && guard.ok === true;
+    const updated = Number(guard.updated_at || 0);
+    const fresh = updated > 0 && (Date.now() / 1000 - updated < 45);
+    const healthy = data && data.ok && guard.ok === true && fresh;
     if (banner) banner.hidden = Boolean(healthy);
     if (detail && !healthy) {
       detail.textContent = guard.error
         ? ("WFP Guard 错误 / error: " + guard.error)
-        : "WFP Guard 尚未启动或没有心跳；网络策略可能未生效。";
+        : (guard.ok === true
+          ? "WFP Guard 心跳超过 45 秒未更新；服务可能已停止。"
+          : "WFP Guard 尚未启动或没有心跳；网络策略可能未生效。");
     }
     if (status) {
       status.textContent = healthy
