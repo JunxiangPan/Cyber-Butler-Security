@@ -1114,8 +1114,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "587ccabfbbde5657f84b68cf498ae35fac7ea8d473899e9ced73d5470ee4276e",
-      "size": 81975
+      "sha256": "79f74901c21c2e2fb5fc58ae2901f00d09d19bfc7a4b228f912600241d8ed984",
+      "size": 82060
     },
     {
       "path": "tools/broker_watchdog.py",
