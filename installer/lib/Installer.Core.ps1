@@ -672,15 +672,21 @@ function Invoke-CyberButlerCoreDeploy {
         }
 
         $brokerConfigPath = Join-Path $toolsTarget 'broker_config.json'
-        if (Test-Path -LiteralPath $brokerConfigPath) {
-            try {
+        try {
+            if (Test-Path -LiteralPath $brokerConfigPath) {
                 $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
-                $brokerConfig.admin_email = $WebUIAdminEmail
-                if ($WebUIAdminEmail) { $brokerConfig.approval_channel = 'email' }
-                $brokerConfig | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $brokerConfigPath -Encoding UTF8
-            } catch {
-                Write-Host ('CORE broker_config admin_email warning: ' + $_.Exception.Message)
+            } else {
+                $brokerConfig = [pscustomobject]@{
+                    approval_channel = 'qq'
+                    admin_email = ''
+                }
+                Write-Host 'CORE broker_config: creating first-run configuration'
             }
+            $brokerConfig.admin_email = $WebUIAdminEmail
+            if ($WebUIAdminEmail) { $brokerConfig.approval_channel = 'email' }
+            Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
+        } catch {
+            throw ('CORE broker_config initialization failed: ' + $_.Exception.Message)
         }
 
         if (-not $SkipDependencyInstall) {

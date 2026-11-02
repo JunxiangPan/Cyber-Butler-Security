@@ -64,6 +64,9 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $base 'install\webui\run.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\tools\broker.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'install\tools\email_approval.py')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $base 'install	oolsroker_config.json')) | Should Be $true
+            $fixtureBrokerConfig = Get-Content -LiteralPath (Join-Path $base 'install	oolsroker_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+            ([string]$fixtureBrokerConfig.approval_channel) | Should Be 'qq'
             (Test-Path -LiteralPath (Join-Path $base 'install\AstrBot\data')) | Should Be $true
             foreach ($cbs in @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')) {
                 $cbsPath = Join-Path (Join-Path (Join-Path $base 'install\AstrBot\data') 'plugins') ($cbs + '\main.py')
