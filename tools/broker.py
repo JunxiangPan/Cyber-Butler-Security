@@ -131,10 +131,12 @@ def _job_limit_environment() -> dict[str, int]:
         return max(minimum, min(value, maximum))
 
     return {
-        "memory_mb": _int("CBS_BROKER_JOB_MEMORY_MB", 1024, 64, 65536),
-        "process_memory_mb": _int("CBS_BROKER_PROCESS_MEMORY_MB", 512, 32, 65536),
-        "cpu_seconds": _int("CBS_BROKER_JOB_CPU_SECONDS", 1800, 30, 86400),
-        "active_process": _int("CBS_BROKER_ACTIVE_PROCESS", 32, 1, 256),
+        # Generous defaults: do not OOM-kill a normal local model during
+        # inference. Operators can lower these only after measuring their host.
+        "memory_mb": _int("CBS_BROKER_JOB_MEMORY_MB", 32768, 64, 262144),
+        "process_memory_mb": _int("CBS_BROKER_PROCESS_MEMORY_MB", 16384, 32, 262144),
+        "cpu_seconds": _int("CBS_BROKER_JOB_CPU_SECONDS", 14400, 30, 86400),
+        "active_process": _int("CBS_BROKER_ACTIVE_PROCESS", 64, 1, 256),
     }
 
 

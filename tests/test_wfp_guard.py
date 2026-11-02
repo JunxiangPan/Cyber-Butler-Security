@@ -39,3 +39,13 @@ def test_apply_commands_are_sid_bound_and_blocking():
     assert commands
     assert all("-LocalUser 'S-1-5-18'" in item for item in commands)
     assert all("-Action Block" in item for item in commands)
+
+
+def test_apply_policy_downgrades_enforce_without_opt_in(monkeypatch):
+    monkeypatch.setattr(wfp_guard, "_sid", lambda account: "S-1-5-18")
+    monkeypatch.setattr(wfp_guard, "remove_policy", lambda: None)
+    monkeypatch.setattr(wfp_guard, "build_apply_commands", lambda *a, **k: [])
+    policy = _policy()
+    result = wfp_guard.apply_policy(policy)
+    assert result["mode"] == "audit"
+    assert result["applied"] == 0

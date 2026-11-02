@@ -132,12 +132,21 @@ def remove_policy() -> None:
     ])
 
 
-def apply_policy(policy: dict) -> dict:
-    """Apply the policy through Windows Firewall; audit mode is a no-op."""
+def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
+    """Apply the policy through Windows Firewall; audit is the safe default.
+
+    A policy that says ``enforce`` is still downgraded to audit unless the
+    caller explicitly passes ``allow_enforce`` after real-machine validation.
+    """
     canonical = validate(policy)
+    effective_mode = canonical["mode"]
+    if effective_mode == "enforce" and not allow_enforce and os.environ.get("CBS_WFP_ALLOW_ENFORCE") != "1":
+        effective_mode = "audit"
     sid = _sid(canonical["service_account"])
     remove_policy()
-    commands = build_apply_commands(canonical, sid)
+    commands = build_apply_commands(canonical, sid, mode=effective_mode)
+    if not commands:
+        return {"mode": effective_mode, "applied": 0, "sid": sid}
     if not commands:
         return {"mode": canonical["mode"], "applied": 0, "sid": sid}
     for command in commands:
@@ -147,10 +156,10 @@ def apply_policy(policy: dict) -> dict:
         ])
         if result.returncode != 0:
             raise WfpError((result.stderr or result.stdout or "New-NetFirewallRule failed").strip())
-    return {"mode": canonical["mode"], "applied": len(commands), "sid": sid}
+    return {"mode": effective_mode, "applied": len(commands), "sid": sid}
 
 
-def watch(policy_path: Path, interval: int = 15) -> None:
+def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False) -> None:
     import time
 
     last_mtime = None
@@ -158,7 +167,10 @@ def watch(policy_path: Path, interval: int = 15) -> None:
         try:
             mtime = policy_path.stat().st_mtime_ns
             if last_mtime != mtime:
-                apply_policy(json.loads(policy_path.read_text(encoding="utf-8")))
+                apply_policy(
+                    json.loads(policy_path.read_text(encoding="utf-8")),
+                    allow_enforce=allow_enforce,
+                )
                 last_mtime = mtime
         except Exception as exc:
             print(f"WFP policy apply failed: {exc}", flush=True)
@@ -174,11 +186,12 @@ if __name__ == "__main__":
     parser.add_argument("--plan", action="store_true")
     parser.add_argument("--watch", action="store_true")
     parser.add_argument("--interval", type=int, default=15)
+    parser.add_argument("--allow-enforce", action="store_true")
     args = parser.parse_args()
     data = json.loads(Path(args.policy).read_text(encoding="utf-8"))
     if args.plan:
         print(json.dumps(build_block_plan(data).__dict__, indent=2))
     elif args.watch:
-        watch(Path(args.policy), args.interval)
+        watch(Path(args.policy), args.interval, allow_enforce=args.allow_enforce)
     else:
         print(json.dumps(apply_policy(data), indent=2))
