@@ -26,6 +26,8 @@ from urllib.parse import parse_qs, urlparse
 import pyotp
 import requests
 import email_approval
+import quarantine
+from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 
 try:
     import win32crypt  # Windows-only; tests inject a verifier.
@@ -33,6 +35,7 @@ except ImportError:  # pragma: no cover - exercised on Linux CI
     win32crypt = None
 
 ROOT = Path(r"YOUR_PROJECT_PATH")
+os.environ.setdefault("CBS_ROOT", str(ROOT))
 BROKER = ROOT / "tools" / "broker"
 QUARANTINE = BROKER / "quarantine"
 STAGING = BROKER / "staging"
@@ -524,6 +527,43 @@ def _consume_bypass(token: str, action: str, target: str) -> dict | None:
         return dict(record)
 
 
+def _close_request_snapshots(request: dict | None) -> None:
+    if not isinstance(request, dict):
+        return
+    for key in ("_snapshot", "_source_snapshot"):
+        snap = request.get(key)
+        if snap is not None:
+            try:
+                snap.close()
+            except Exception:
+                pass
+
+
+def _prepare_snapshots(action: str, target: str, source: str = "") -> tuple:
+    if action not in {"delete", "overwrite", "write_file"}:
+        return None, None
+    target_path = Path(target)
+    target_snapshot = None
+    source_snapshot = None
+    if action == "write_file" and not target_path.exists():
+        return None, None
+    target_snapshot = TargetSnapshot.open(
+        target,
+        write=action in {"write_file", "overwrite"},
+        delete=action == "delete",
+    )
+    if action == "overwrite":
+        source_snapshot = TargetSnapshot.open(source, write=False)
+    return target_snapshot, source_snapshot
+
+
+def _assert_snapshots_current(request: dict) -> None:
+    for key in ("_snapshot", "_source_snapshot"):
+        snap = request.get(key)
+        if snap is not None:
+            snap.assert_unchanged()
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -667,54 +707,91 @@ def verify_code(code: str) -> str:
 def execute(request: dict) -> tuple[bool, str]:
     action = request.get("action")
     target = Path(request.get("target", ""))
-    if not target or not _allowed_target(target):
-        return False, "目标不在允许的 Broker 路径内，拒绝执行。"
-    if action == "delete":
-        if not target.exists():
-            return False, "目标文件不存在。"
-        QUARANTINE.mkdir(parents=True, exist_ok=True)
-        trash = QUARANTINE / f"{request['id']}_{target.name}"
-        shutil.move(str(target), str(trash))
-        return True, f"已把 {target.name} 移到隔离区：{trash.name}"
-    if action == "overwrite":
-        source = Path(request.get("source", ""))
-        if not source.exists():
-            return False, "覆盖源文件不存在。"
-        source_ok = inside_shared(source) or _inside_any(source, TMP_ROOTS)
-        try:
-            source.resolve().relative_to(STAGING.resolve())
-            source_ok = True
-        except ValueError:
-            pass
-        if not source_ok:
-            return False, "覆盖源文件必须在大肥鱼专用文件夹、tmp 或 broker staging 内。"
-        if target.exists():
-            QUARANTINE.mkdir(parents=True, exist_ok=True)
-            backup = QUARANTINE / f"{request['id']}_{target.name}.bak"
-            shutil.copy2(target, backup)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-        return True, f"已覆盖 {target.name}，旧版本备份在隔离区。"
-    if action == "write_file":
-        content = request.get("content")
-        if not isinstance(content, str):
-            return False, "write_file 需要字符串 content。"
-        if len(content.encode("utf-8")) > 256 * 1024:
-            return False, "write_file 内容超过 256KB。"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if request.get("mode") == "create":
-            try:
-                with target.open("x", encoding="utf-8") as handle:
-                    handle.write(content)
-            except FileExistsError:
-                return False, "创建模式发现目标已存在；拒绝覆盖。"
-            return True, f"已创建 {target.name}（{len(content.encode('utf-8'))} bytes）。"
-        temp = target.with_name(target.name + ".broker.tmp")
-        temp.write_text(content, encoding="utf-8")
-        os.replace(temp, target)
-        return True, f"已写入 {target.name}（{len(content.encode('utf-8'))} bytes）。"
-    return False, "不支持的操作类型。"
+    snapshot = request.get("_snapshot")
+    source_snapshot = request.get("_source_snapshot")
+    try:
+        if snapshot is not None:
+            snapshot.assert_unchanged()
+        if source_snapshot is not None:
+            source_snapshot.assert_unchanged()
 
+        if not target or not _allowed_target(target):
+            return False, "目标不在允许的 Broker 路径内，拒绝执行。"
+
+        if action == "delete":
+            if snapshot is not None and not snapshot.is_directory:
+                quarantine.QUARANTINE_ROOT = QUARANTINE
+                entry = quarantine.quarantine_file(
+                    snapshot,
+                    str(request.get("id", "request")),
+                    original_path=str(target),
+                    action="delete",
+                    reason=str(request.get("reason", "")),
+                )
+                return True, f"已把 {target.name} 移到隔离区：{entry.name}"
+            if not target.exists():
+                return False, "目标文件不存在。"
+            QUARANTINE.mkdir(parents=True, exist_ok=True)
+            trash = QUARANTINE / f"{request['id']}_{target.name}"
+            shutil.move(str(target), str(trash))
+            return True, f"已把 {target.name} 移到隔离区：{trash.name}"
+
+        if action == "overwrite":
+            source = Path(request.get("source", ""))
+            source_ok = inside_shared(source) or _inside_any(source, TMP_ROOTS)
+            try:
+                source.resolve().relative_to(STAGING.resolve())
+                source_ok = True
+            except ValueError:
+                pass
+            if not source_ok:
+                return False, "覆盖源文件必须在大肥鱼专用文件夹、tmp 或 broker staging 内。"
+            if source_snapshot is not None:
+                data = source_snapshot.read_bytes(limit=50 * 1024 * 1024)
+                snapshot.rewrite(data)
+                return True, f"已覆盖 {target.name}（句柄绑定，旧版本未直接删除）。"
+            if not source.exists():
+                return False, "覆盖源文件不存在。"
+            if target.exists():
+                QUARANTINE.mkdir(parents=True, exist_ok=True)
+                backup = QUARANTINE / f"{request['id']}_{target.name}.bak"
+                shutil.copy2(target, backup)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            return True, f"已覆盖 {target.name}，旧版本备份在隔离区。"
+
+        if action == "write_file":
+            content = request.get("content")
+            if not isinstance(content, str):
+                return False, "write_file 需要字符串 content。"
+            data = content.encode("utf-8")
+            if len(data) > 256 * 1024:
+                return False, "write_file 内容超过 256KB。"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if request.get("mode") == "create" and snapshot is None:
+                create_exclusive(str(target), data)
+                return True, f"已创建 {target.name}（{len(data)} bytes）。"
+            if snapshot is not None:
+                if request.get("mode") == "create":
+                    return False, "创建模式发现目标已存在；拒绝覆盖。"
+                snapshot.rewrite(data)
+                return True, f"已写入 {target.name}（{len(data)} bytes，句柄绑定）。"
+            if request.get("mode") == "create":
+                try:
+                    with target.open("x", encoding="utf-8") as handle:
+                        handle.write(content)
+                except FileExistsError:
+                    return False, "创建模式发现目标已存在；拒绝覆盖。"
+                return True, f"已创建 {target.name}（{len(data)} bytes）。"
+            temp = target.with_name(target.name + ".broker.tmp")
+            temp.write_text(content, encoding="utf-8")
+            os.replace(temp, target)
+            return True, f"已写入 {target.name}（{len(data)} bytes）。"
+        return False, "不支持的操作类型。"
+    except TargetGuardError as exc:
+        return False, f"目标在审批后发生变化（TOCTOU）：{exc}"
+    finally:
+        _close_request_snapshots(request)
 
 def timeout_watch(request_id: str) -> None:
     global _pending
@@ -724,6 +801,7 @@ def timeout_watch(request_id: str) -> None:
     with _lock:
         if _pending and _pending.get("id") == request_id:
             approval_only = bool(_pending.get("approval_only"))
+            _close_request_snapshots(_pending)
             _pending = None
             expired = True
     if expired:
@@ -758,6 +836,7 @@ def email_watch(request_id: str) -> None:
         log(f"email config failed: {exc}")
         with _lock:
             if _pending and _pending.get("id") == request_id:
+                _close_request_snapshots(_pending)
                 _pending = None
         return
 
@@ -795,19 +874,30 @@ def email_watch(request_id: str) -> None:
                 if _pending and _pending.get("id") == request_id:
                     _pending["attempts"] = int(_pending.get("attempts", 0)) + 1
                     if _pending["attempts"] >= TOTP_MAX_ATTEMPTS:
+                        _close_request_snapshots(_pending)
                         _pending = None
                         log("email approval locked after too many failures")
                         return
             log("email approval ignored: invalid TOTP")
             continue
-        if _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+        try:
+            _assert_snapshots_current(request)
+        except TargetGuardError as exc:
             with _lock:
+                _close_request_snapshots(_pending)
+                _pending = None
+            _email_result(config, request, f"target changed before approval: {exc}")
+            return
+        if request.get("_snapshot") is None and _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+            with _lock:
+                _close_request_snapshots(_pending)
                 _pending = None
             _email_result(config, request, "target changed before approval")
             return
-        if request.get("action") == "overwrite":
+        if request.get("action") == "overwrite" and request.get("_source_snapshot") is None:
             if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
                 with _lock:
+                    _close_request_snapshots(_pending)
                     _pending = None
                 _email_result(config, request, "source changed before approval")
                 return
@@ -820,6 +910,7 @@ def email_watch(request_id: str) -> None:
 
     with _lock:
         if _pending and _pending.get("id") == request_id:
+            _close_request_snapshots(_pending)
             _pending = None
     try:
         email_approval.send_email(
@@ -1029,11 +1120,19 @@ def run_request(payload: dict) -> tuple[int, dict]:
     if risk == "deny":
         return 403, {"ok": False, "error": "target is not allowed by broker policy"}
 
+    try:
+        target_snapshot, source_snapshot = _prepare_snapshots(
+            action, target_text, str(payload.get("source", ""))
+        )
+    except (OSError, ValueError, TargetGuardError) as exc:
+        return 409, {"ok": False, "error": f"target cannot be bound: {exc}"}
+
     bypass_token = str(payload.get("bypass_token", "") or "")
     if action in {"delete", "overwrite", "write_file"} and risk == "totp" and bypass_token:
         bypass = _consume_bypass(bypass_token, action, target_text)
         if bypass:
             if approval_only:
+                _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
                 return 200, {
                     "ok": True,
                     "status": "allowed",
@@ -1051,6 +1150,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "content": payload.get("content"),
                 "mode": _target_mode(action, target_text),
                 "reason": str(payload.get("reason", ""))[:300],
+                "_snapshot": target_snapshot,
+                "_source_snapshot": source_snapshot,
             }
             ok, result = execute(request)
             if ok:
@@ -1065,6 +1166,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         scoped = _consume_scoped(scoped_token, action, target_text)
         if scoped:
             if approval_only:
+                _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
                 audit_request = {
                     "id": "",
                     "action": action,
@@ -1094,6 +1196,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "content": payload.get("content"),
                 "mode": _target_mode(action, target_text),
                 "reason": str(payload.get("reason", ""))[:300],
+                "_snapshot": target_snapshot,
+                "_source_snapshot": source_snapshot,
             }
             ok, result = execute(request)
             if ok:
@@ -1128,6 +1232,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
     if action in {"delete", "overwrite", "write_file"} and risk == "allow":
         if approval_only:
+            _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
             return 200, {
                 "ok": True,
                 "status": "allowed",
@@ -1145,6 +1250,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "content": payload.get("content"),
             "mode": _target_mode(action, target_text),
             "reason": str(payload.get("reason", ""))[:300],
+            "_snapshot": target_snapshot,
+            "_source_snapshot": source_snapshot,
         }
         ok, result = execute(request)
         _audit_auto(request, ok, result)
@@ -1154,15 +1261,18 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
     channel = _approval_channel()
     if approval_only and channel == "email":
+        _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
         return 400, {"ok": False, "error": "approval_only requires approval_channel=qq"}
     email_mode = channel == "email" and action in {"delete", "overwrite"}
     if channel == "email" and action == "send":
+        _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
         return 400, {"ok": False, "error": "send is not available in email mode; switch approval_channel to qq"}
     challenge = secrets.token_hex(2).upper() if email_mode else ""
 
     event = None
     with _lock:
         if _pending:
+            _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
             return 409, {"ok": False, "error": "another TOTP request is pending"}
         request_id = secrets.token_hex(6)
         _pending = {
@@ -1180,6 +1290,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "channel": "email" if email_mode else "qq",
             "challenge": challenge,
             "approval_only": approval_only,
+            "_snapshot": target_snapshot,
+            "_source_snapshot": source_snapshot,
         }
         if action == "delete":
             prompt = "哥，瑾言想删除以下对象，请输入动态验证码。" + chr(10)
@@ -1321,6 +1433,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             expired_id = str(_pending.get("id", ""))
             if _pending.get("approval_only"):
                 _set_approval_state(expired_id, "expired", approval_only=True)
+            _close_request_snapshots(_pending)
             _pending = None
             return 410, {"ok": False, "error": "verification code expired"}
         code_type = verify_code(code)
@@ -1337,6 +1450,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             if attempts >= TOTP_MAX_ATTEMPTS:
                 if _pending.get("approval_only"):
                     _set_approval_state(str(_pending.get("id", "")), "denied", approval_only=True)
+                _close_request_snapshots(_pending)
                 _pending = None
                 _verify_locked_until = time.monotonic() + VERIFY_LOCK_SECONDS
                 log(
@@ -1372,10 +1486,17 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 return 409, {"ok": False, "error": "file manifest changed before approval"}
         _pending = None
         if request.get("action") in {"delete", "overwrite", "write_file"}:
-            if _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+            try:
+                _assert_snapshots_current(request)
+            except TargetGuardError as exc:
+                _close_request_snapshots(request)
+                return 409, {"ok": False, "error": f"target changed before approval (TOCTOU): {exc}"}
+            if request.get("_snapshot") is None and _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
+                _close_request_snapshots(request)
                 return 409, {"ok": False, "error": "target changed before approval"}
-            if request.get("action") == "overwrite":
+            if request.get("action") == "overwrite" and request.get("_source_snapshot") is None:
                 if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
+                    _close_request_snapshots(request)
                     return 409, {"ok": False, "error": "source changed before approval"}
         if request.get("approval_only"):
             scoped = None
@@ -1399,6 +1520,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     "approval_only": True,
                 }, ensure_ascii=False) + "\n")
             log(f"approval-only approved: {request_id} {request.get('action')}")
+            _close_request_snapshots(request)
             response = {
                 "ok": True,
                 "approved": True,
