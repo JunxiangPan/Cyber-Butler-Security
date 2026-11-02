@@ -914,8 +914,8 @@
     },
     {
       "path": "tests/test_approval_preview.py",
-      "sha256": "b9c1f87b3849f45c1e9de60038df5359281e74cfe631cec1a96af13a93577412",
-      "size": 1598
+      "sha256": "e622a8b6a8434c623d92e102cb0e72bf5c310688fe06946ef36217af4908fd35",
+      "size": 2420
     },
     {
       "path": "tests/test_audit_chain.py",
@@ -1074,8 +1074,8 @@
     },
     {
       "path": "tools/approval_preview.py",
-      "sha256": "ac83e56dee921868aea9bfc1ae2656d095a31f081effef9db7c0e5460e5db01f",
-      "size": 5675
+      "sha256": "063362339a56dc9cee10034032e9271c1fdbfbb27e0173a6bb94f1c70ceb75e5",
+      "size": 7283
     },
     {
       "path": "tools/audit_chain.py",
