@@ -44,6 +44,15 @@ class TotpBrokerPlugin(Star):
         self._scoped_token = ""
 
     @staticmethod
+    def _broker_healthy() -> bool:
+        try:
+            response = requests.get(BROKER_URL + "/health", timeout=1.5)
+            data = response.json()
+            return response.ok and data.get("ok") is True and data.get("service") == "totp-broker"
+        except Exception:
+            return False
+
+    @staticmethod
     def _headers() -> dict:
         token = TOKEN_FILE.read_text(encoding="utf-8").strip() if TOKEN_FILE.exists() else ""
         return {"X-Broker-Token": token, "Content-Type": "application/json"}
@@ -81,6 +90,8 @@ class TotpBrokerPlugin(Star):
         """
         if str(event.get_sender_id() or "") != TRUSTED_QQ:
             return "只有主人可以发起高危文件操作。"
+        if not self._broker_healthy():
+            return "Broker 不健康，已 fail-closed，拒绝执行。"
         action = (action or "").strip().lower()
         if action not in {"delete", "overwrite"}:
             return "只支持 delete 或 overwrite。"
@@ -125,6 +136,8 @@ class TotpBrokerPlugin(Star):
         """
         if str(event.get_sender_id() or "") != TRUSTED_QQ:
             return "只有主人可以发起文件写入。"
+        if not self._broker_healthy():
+            return "Broker 不健康，已 fail-closed，拒绝执行。"
         if not target:
             return "target 不能为空。"
         if len((content or "").encode("utf-8")) > 256 * 1024:
@@ -161,6 +174,8 @@ class TotpBrokerPlugin(Star):
         """
         if str(event.get_sender_id() or "") != TRUSTED_QQ:
             return "只有主人可以发起文件外发。"
+        if not self._broker_healthy():
+            return "Broker 不健康，已 fail-closed，拒绝执行。"
         items = [line.strip() for line in (paths or "").splitlines() if line.strip()]
         if not items or len(items) > 5:
             return "paths 必须是 1–5 个非空行。"
