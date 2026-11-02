@@ -348,8 +348,9 @@ def apply_restricted_acl(path: Path) -> None:
         str(path),
         "/inheritance:r",
         "/grant:r",
-        "SYSTEM:(F)",
-        "Administrators:(F)",
+        "*S-1-5-18:(F)",       # SYSTEM
+        "*S-1-5-32-544:(F)",   # Administrators
+        "*S-1-5-32-545:(RX)",  # Users: read-only, never write
     ]
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     result = subprocess.run(script, capture_output=True, text=True, creationflags=flags)
@@ -368,13 +369,8 @@ def create_exclusive(raw_path: str, content: bytes) -> Path:
     finally:
         os.close(fd)
     try:
-        production_root = Path(os.environ.get("CBS_ROOT", r"C:\CyberButler")).resolve(strict=False)
-        try:
-            path.resolve(strict=False).relative_to(production_root)
+        if os.environ.get("CBS_DISABLE_ACL") != "1":
             apply_restricted_acl(path)
-        except ValueError:
-            # Test/tmp files are not part of the protected CBS root.
-            pass
     except Exception:
         try:
             path.unlink(missing_ok=True)

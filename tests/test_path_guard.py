@@ -50,3 +50,25 @@ def test_create_exclusive_never_overwrites(tmp_path: Path):
     with pytest.raises(FileExistsError):
         create_exclusive(str(target), b"second")
     assert target.read_bytes() == b"first"
+
+
+def test_restricted_acl_uses_explicit_sids(monkeypatch, tmp_path):
+    import os
+    import subprocess
+
+    if os.name != "nt":
+        pytest.skip("Windows ACL only")
+    calls = []
+
+    class Result:
+        returncode = 0
+        stderr = ""
+
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: calls.append((a, k)) or Result())
+    from win_path_guard import apply_restricted_acl
+
+    apply_restricted_acl(tmp_path / "x.txt")
+    args = calls[0][0][0]
+    assert "/inheritance:r" in args
+    assert "*S-1-5-32-545:(RX)" in args
+    assert "*S-1-5-32-545:(F)" not in args
