@@ -43,6 +43,7 @@ ALLOWED_ROOT_FILES = {
     "README_ru.md",
     "SECURITY.md",
     "TROUBLESHOOTING.md",
+    "THREAT_MODEL.md",
     "ROADMAP.md",
     "CONTRIBUTING.md",
     "DEPLOYMENT.md",
