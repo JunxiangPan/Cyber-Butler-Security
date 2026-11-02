@@ -682,8 +682,8 @@ function Invoke-CyberButlerCoreDeploy {
                 }
                 Write-Host 'CORE broker_config: creating first-run configuration'
             }
-            $brokerConfig.admin_email = $WebUIAdminEmail
-            if ($WebUIAdminEmail) { $brokerConfig.approval_channel = 'email' }
+            $brokerConfig | Add-Member -NotePropertyName admin_email -NotePropertyValue $WebUIAdminEmail -Force
+            if ($WebUIAdminEmail) { $brokerConfig | Add-Member -NotePropertyName approval_channel -NotePropertyValue 'email' -Force }
             Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
         } catch {
             throw ('CORE broker_config initialization failed: ' + $_.Exception.Message)
