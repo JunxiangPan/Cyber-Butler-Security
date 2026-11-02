@@ -338,6 +338,11 @@
       "size": 1356
     },
     {
+      "path": "docs/releases/RELEASE_NOTES_v1.6.2-rc.md",
+      "sha256": "a45c8786b6755aaaffa90d31a5f9f8e243da88d587add5917b2b50d2949391bb",
+      "size": 1223
+    },
+    {
       "path": "docs/使用说明.md",
       "sha256": "05105d32808c143795cedb1383c1967c0ebf2539bcb23d1fb30618e7c86df597",
       "size": 86882
@@ -1049,8 +1054,8 @@
     },
     {
       "path": "tools/Test-WfpTripwire.ps1",
-      "sha256": "2d6a73018c47284f792ecb37bb6f4698a3c6e76e4b32263e16b746ff059f7ce8",
-      "size": 1738
+      "sha256": "d5379be828303d06b4a2d6b996096b73662515f2e17b95f2b7751afb094034f4",
+      "size": 1750
     },
     {
       "path": "tools/approval_preview.py",
@@ -1059,8 +1064,8 @@
     },
     {
       "path": "tools/audit_chain.py",
-      "sha256": "c890054177d747fd214449595bd52c76420f1c73db055815cf375fa98cc70b8d",
-      "size": 4111
+      "sha256": "922ea40537f397a8f4a6c169251c9216d9a13bb96a47a3f17d690fe098141192",
+      "size": 5070
     },
     {
       "path": "tools/boot-selfcheck.ps1",
@@ -1359,8 +1364,8 @@
     },
     {
       "path": "tools/quarantine.py",
-      "sha256": "bb5f1a8688bc5ef7974fcad93a3fddbabb1126d29260f60cf5fa2ab11a05550f",
-      "size": 2964
+      "sha256": "00932d6c41eba737dabb43d03c9688852571e017b0b836debcdc323e3ff8967a",
+      "size": 3715
     },
     {
       "path": "tools/repair_memory_sources.py",
@@ -1494,8 +1499,8 @@
     },
     {
       "path": "tools/wfp_guard.py",
-      "sha256": "2cbc14e28dba883e65a440a7ac4c57bab5d1db0c073c53917a127683b522ef1d",
-      "size": 7147
+      "sha256": "5a86621b9403f8515fcde6283042f6059abcb3c35b17658d5ce95998ec66b550",
+      "size": 7876
     },
     {
       "path": "tools/wfp_policy.py",
@@ -1524,8 +1529,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "8f0e03dd78705d9f0e98d661aa12e63ceabdb2956951a02ded7d00aebd6d6ff0",
-      "size": 23628
+      "sha256": "090b1122beb12ecd0c841c6fce8d18c28ad13f3079c526e6a064b4fb13d24b6f",
+      "size": 24353
     },
     {
       "path": "webui/auth.py",
