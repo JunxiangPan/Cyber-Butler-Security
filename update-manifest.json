@@ -138,6 +138,11 @@
       "size": 982
     },
     {
+      "path": "dependencies.sbom.json",
+      "sha256": "752b2c8b20ae072977a29b8f1f630344b3edb6c0a5a96a2ebd5e339f33574f33",
+      "size": 639
+    },
+    {
       "path": "docs/DASHBOARD_BACKGROUND.md",
       "sha256": "191f54c37594696aa3aeea71613b613f3db2a148e9b57c1b8fac132433ed4c88",
       "size": 4741
@@ -349,8 +354,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "1a41e2659a19bc2d4ceb916f3c51f4c32a85f5e5dd44ff14ed6030479d90e4e4",
-      "size": 138242
+      "sha256": "434a0f08a0225c5364ee3614e0d7bbc0e48bd65e480e623016b19a09f3552025",
+      "size": 139053
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -399,8 +404,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "3a0207d4ef85c8e0847b4c93244ccb7066e09d9031d1b4275ff1462c4eb48245",
-      "size": 41248
+      "sha256": "da415376b6a7a448727cec1c359a99e87f6f21d460403a01375294cd17c146e5",
+      "size": 41672
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -968,6 +973,11 @@
       "size": 638
     },
     {
+      "path": "tests/test_qa_concurrency.py",
+      "sha256": "2baeb631654bc8d129c24f451d4fe6328072d1430a83e03a1ea4f1e160d20c2d",
+      "size": 1551
+    },
+    {
       "path": "tests/test_rate_limit.py",
       "sha256": "742ab00dc799959f77ab4ac375638e0928c793e5f3bb7c5e14f69036f81a34c7",
       "size": 998
@@ -979,8 +989,8 @@
     },
     {
       "path": "tests/test_sbom.py",
-      "sha256": "f30880e5f70010629e8de188402119de0a6ecc16c3553ff7b084ccd6c6601544",
-      "size": 513
+      "sha256": "a9ba7bd9e5bd859e66d869da3ddf99bbc8efa12ad3fddf98e72efc67ded3e72b",
+      "size": 1185
     },
     {
       "path": "tests/test_security_gate.py",
@@ -1016,6 +1026,11 @@
       "path": "tests/test_totp_replay.py",
       "sha256": "0b3e32108f44919a6799af3bbcd4160ff57424c384e240dfdd8494b26854dcf0",
       "size": 1127
+    },
+    {
+      "path": "tests/test_uninstall_failclosed.py",
+      "sha256": "ba08613b406dafd0fb43bf14a5dbad7bde774f3645193ac8725b4cd16b1d9fd2",
+      "size": 650
     },
     {
       "path": "tests/test_update_merge.py",
@@ -1074,8 +1089,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "02c753637b3d00acce983c7a908c879de3d88978c168c51a2595b5a755bbacc1",
-      "size": 77917
+      "sha256": "0e8a78b9024e7ebfef45c2e0e717d78ed340916567bd5dff1853b078c3142f77",
+      "size": 78521
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1364,8 +1379,8 @@
     },
     {
       "path": "tools/quarantine.py",
-      "sha256": "00932d6c41eba737dabb43d03c9688852571e017b0b836debcdc323e3ff8967a",
-      "size": 3715
+      "sha256": "0a100f6132d4bc1c563bf6ba28d90be8fae28214f456a34b0a230eaa3c55ae05",
+      "size": 3816
     },
     {
       "path": "tools/repair_memory_sources.py",
@@ -1389,8 +1404,8 @@
     },
     {
       "path": "tools/sbom.py",
-      "sha256": "6697f8f4a43963e64eca007d8a122481afd6db98a22653bc151b2fbcac93e0cd",
-      "size": 2247
+      "sha256": "6bdb222a8a8785b3095b7ec87a4417d55c4f8e45e0746514aa6eb690da3475e3",
+      "size": 4890
     },
     {
       "path": "tools/secure_totp_vault.ps1",
@@ -1459,8 +1474,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "1ffc3ba60400532f528f145e3a9e610a9298022ea71a85a75664bc0c6b311045",
-      "size": 11782
+      "sha256": "ab77b5be4d4ae5b1a3f720f6cc38181fd454692752ee15810d12ea5d0db4d1be",
+      "size": 11813
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1499,8 +1514,8 @@
     },
     {
       "path": "tools/wfp_guard.py",
-      "sha256": "5a86621b9403f8515fcde6283042f6059abcb3c35b17658d5ce95998ec66b550",
-      "size": 7876
+      "sha256": "bc05c12b363b687039a053c481322f35041929731b7e155a1e9c940eff456a53",
+      "size": 7904
     },
     {
       "path": "tools/wfp_policy.py",
@@ -1529,8 +1544,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "090b1122beb12ecd0c841c6fce8d18c28ad13f3079c526e6a064b4fb13d24b6f",
-      "size": 24353
+      "sha256": "8dcc6829f66eeb293eb02a20c913107145ee2ba4e1135c1428ad598f8c591c0e",
+      "size": 24598
     },
     {
       "path": "webui/auth.py",
@@ -1594,8 +1609,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "3715686a37c7f3f45007893e0410f86cc68fff0e7ce9ded97ac50a2f7af06561",
-      "size": 24868
+      "sha256": "d38f61879421dc5b2bf869afe7c6823ce92e5d2ec48d1c831866c66f3ccd8dff",
+      "size": 26086
     },
     {
       "path": "webui/static/error.js",
@@ -1674,8 +1689,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "e95e0db958ae8c1fe066a3bc73518e65ad82337991bb8c3937d1937a5e5528ec",
-      "size": 12364
+      "sha256": "3a428db9cd61df583810f4da81abc26907d74d7353b847169162efc7aca571c2",
+      "size": 12783
     },
     {
       "path": "webui/templates/error.html",
@@ -1699,8 +1714,8 @@
     },
     {
       "path": "webui/tests/test_phase2_api.py",
-      "sha256": "a2800197eb7e3bcaa1a0feef3e0f9887629d014702c22b2ac3b8b166f2535fde",
-      "size": 5097
+      "sha256": "e2c6df6026c55753a95cd25230e543e95243e5d2a606ca5f98676f27f576f38e",
+      "size": 5830
     },
     {
       "path": "webui/tests/test_webui_auth.py",
