@@ -373,11 +373,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/security/network-policy")
     async def get_network_policy(session=Depends(require_session)):
-        return {
-            "ok": True,
-            "policy": _read_json(network_policy_path),
-            "guard": _read_json(network_policy_path.with_name("wfp-guard-status.json")),
-        }
+        guard = _read_json(network_policy_path.with_name("wfp-guard-status.json"))
+        try:
+            age = time.time() - float(guard.get("updated_at", 0))
+        except (TypeError, ValueError):
+            age = 999999
+        guard["healthy"] = bool(guard.get("ok") is True and 0 <= age < 45)
+        guard["age_seconds"] = int(max(0, age))
+        return {"ok": True, "policy": _read_json(network_policy_path), "guard": guard}
 
     @app.post("/api/security/network-policy")
     async def set_network_policy(body: NetworkPolicyUpdate, request: Request, session=Depends(require_session)):

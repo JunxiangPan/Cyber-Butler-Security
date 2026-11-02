@@ -1211,8 +1211,17 @@ def _audit_bypass(request: dict, result: str, scope: str) -> None:
         log(f"audit write failed: {exc}")
 
 
+def _is_uninstalling() -> bool:
+    if os.environ.get("CBS_IS_UNINSTALLING") == "1":
+        return True
+    candidate = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "uninstalling.marker"
+    return candidate.exists()
+
+
 def run_request(payload: dict) -> tuple[int, dict]:
     global _pending
+    if _is_uninstalling():
+        return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     action = str(payload.get("action", "")).strip().lower()
@@ -1507,6 +1516,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
 def run_verify(payload: dict) -> tuple[int, dict]:
     global _pending, _verify_locked_until, _global_failures, _global_lock_until
+    if _is_uninstalling():
+        return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
     request_id = str(payload.get("id", "")).strip()
     code = str(payload.get("code", "")).strip()
     try:

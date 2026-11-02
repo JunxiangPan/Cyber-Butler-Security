@@ -132,3 +132,19 @@ def test_network_policy_is_authenticated_and_validated(tmp_path: Path) -> None:
         json={"mode": "bad", "domains": ""},
     )
     assert bad.status_code == 400
+
+
+def test_wfp_guard_heartbeat_is_server_side_checked(tmp_path: Path) -> None:
+    import json
+    import time
+
+    client, mailer, _ = make_client(tmp_path)
+    headers = auth_headers(client, mailer)
+    status_path = tmp_path / "data" / "wfp-guard-status.json"
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(json.dumps({"ok": True, "updated_at": time.time()}), encoding="utf-8")
+    body = client.get("/api/security/network-policy").json()
+    assert body["guard"]["healthy"] is True
+    status_path.write_text(json.dumps({"ok": True, "updated_at": time.time() - 60}), encoding="utf-8")
+    body = client.get("/api/security/network-policy").json()
+    assert body["guard"]["healthy"] is False

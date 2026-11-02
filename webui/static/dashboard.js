@@ -142,9 +142,7 @@
     const detail = $("wfpBannerDetail");
     const status = $("networkStatus");
     const guard = (data && data.guard) || {};
-    const updated = Number(guard.updated_at || 0);
-    const fresh = updated > 0 && (Date.now() / 1000 - updated < 45);
-    const healthy = data && data.ok && guard.ok === true && fresh;
+    const healthy = Boolean(data && data.ok && guard.healthy === true);
     if (banner) banner.hidden = Boolean(healthy);
     if (detail && !healthy) {
       detail.textContent = guard.error
