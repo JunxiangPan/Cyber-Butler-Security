@@ -1,4 +1,4 @@
-# Cyber-Butler / 苏瑾言部署与排障交接
+﻿# Cyber-Butler / 苏瑾言部署与排障交接
 
 ## 故障排查入口
 
@@ -269,7 +269,7 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 - 启动脚本：`public-release\webui\start-services.ps1`
 - 安装脚本：`public-release\webui\install-startup-task.ps1`
 - 计划任务：`Cyber-Butler Web UI Services`
-- 触发：用户 `PCVP\pjx20` 登录后 20 秒（`AtLogOn`，Interactive / Limited）
+- 触发：用户 `PCVP\<YOUR_USERNAME>` 登录后 20 秒（`AtLogOn`，Interactive / Limited）
 - 不用 `AtStartup`/SYSTEM 的原因：OTP mailer 需要当前用户的 DPAPI 邮件密钥；SYSTEM 下解不开。
 - Web UI：`0.0.0.0:8765`
 - OTP mailer：`127.0.0.1:8766`

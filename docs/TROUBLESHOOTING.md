@@ -117,7 +117,7 @@ The Broker and the TOTP/security plugins must use the same value:
 If the configured id is `QQ`, use:
 
 ```text
-QQ:FriendMessage:2351671738
+QQ:FriendMessage:<YOUR_QQ_ID>
 ```
 
 Do not hardcode `qq_sujinyan` unless that is the actual platform id.
@@ -564,7 +564,7 @@ for ($i = 0; $i -lt 30; $i++) {
 
 必须等 GUI 和 launcher 都退出后再删，不要在主进程内同步删除自己的目录。
 
-## 不要删除 `C:\Users\CBS`
+## 不要删除 `C:\Users\<YOUR_USERNAME>`
 
 这是当前 Windows 用户 profile，里面有：
 
@@ -580,13 +580,13 @@ AppData
 ## 可以删除的桌面对象
 
 ```text
-C:\Users\CBS\Desktop\大肥鱼专用文件夹
-C:\Users\CBS\Desktop\Cyber-Butler 主控台.lnk
+C:\Users\<YOUR_USERNAME>\Desktop\大肥鱼专用文件夹
+C:\Users\<YOUR_USERNAME>\Desktop\Cyber-Butler 主控台.lnk
 ```
 
 前者是用户文件，删除前必须让用户明确选择；后者只是快捷方式。
 
-# 18. `C:\Users\CyberButlerSvc` 与 `UsrClass.dat` 锁死
+# 18. `C:\Users\<SERVICE_ACCOUNT>` 与 `UsrClass.dat` 锁死
 
 ## 症状
 
@@ -605,7 +605,7 @@ CyberButlerSvc profile 无法删除
 
 1. 停止并确认五个任务已结束。
 2. 只结束可执行文件路径位于
-   `C:\Users\CyberButlerSvc` 内的进程。
+   `C:\Users\<SERVICE_ACCOUNT>` 内的进程。
 3. `Remove-LocalUser -Name CyberButlerSvc`。
 4. `Remove-CimInstance Win32_UserProfile` 重试 6 次。
 5. 如果仍失败，写一次性 RunOnce：
@@ -618,7 +618,7 @@ Set-ItemProperty -Path $runOnce -Name 'CyberButlerSvcProfileCleanup' `
 
 清理脚本在下次重启后删除 profile，然后删除自身。
 
-6. **绝不**删除 `C:\Users\CBS`；RunOnce 只匹配 `CyberButlerSvc` 精确名称。
+6. **绝不**删除 `C:\Users\<YOUR_USERNAME>`；RunOnce 只匹配 `CyberButlerSvc` 精确名称。
 
 ## 验收
 

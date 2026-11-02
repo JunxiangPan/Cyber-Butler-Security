@@ -19,8 +19,8 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "8f2fde37494ed7351cffb1472efffcfb479610a9c33676de2c2906a06f5e365b",
-      "size": 15248
+      "sha256": "e27d3fc29a4a0aa338426322a66fc5b549a689fefd41cabfb99923fccf7d4c3b",
+      "size": 15261
     },
     {
       "path": "LICENSE",
@@ -29,8 +29,8 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "d4dbbe86f08ddcebd5abd6793c7081d3c387d5917c25f19506bd3b112be1f133",
-      "size": 14756
+      "sha256": "d8beafe247afa2d2f0a469f50de9cc828091eff993ee85511b9e548ef8e48492",
+      "size": 14768
     },
     {
       "path": "README.md",
@@ -169,8 +169,8 @@
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
-      "sha256": "d5fc7defa60ebdacc1f582192041eff42788c2380d64b46e49f4f2ad7cbbc64e",
-      "size": 22592
+      "sha256": "b27a8e41f2507684c63643613bbb4b977eab9b42097697831ee86de828cc01df",
+      "size": 22648
     },
     {
       "path": "docs/releases/README.md",
@@ -329,8 +329,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "726978a9c866272248f6edea7b350c6bc226aeb01ebaa3ac0dd7d7d644d08782",
-      "size": 136562
+      "sha256": "fe2e14878ea92eee341ded956e968b47d2cd589b00bddf0298e55e62b438f093",
+      "size": 136551
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -509,8 +509,8 @@
     },
     {
       "path": "installer/tests/Installer.Gui.Tests.ps1",
-      "sha256": "f2dd49cbab1a34ff874005b3da40710677ad30999e22dceefdb84eb93636788a",
-      "size": 1593
+      "sha256": "2d66092af9643cd31cc5568cdee8d1b8a11f3249f1e1b33cad1d18a68a6e1519",
+      "size": 1632
     },
     {
       "path": "installer/tests/Installer.Journal.Tests.ps1",
@@ -1144,8 +1144,8 @@
     },
     {
       "path": "tools/game-mode.ps1.router-20261030",
-      "sha256": "f5f3ba70ea47c2ce203787494606e9af97cd1e24fac3fa4d6d7d985d9a64d87c",
-      "size": 48669
+      "sha256": "10376c06a7fe98920044f78832f3e9883621001c875bc0e97f11c206dccd9a0e",
+      "size": 48714
     },
     {
       "path": "tools/harden_broker_runtime.ps1",

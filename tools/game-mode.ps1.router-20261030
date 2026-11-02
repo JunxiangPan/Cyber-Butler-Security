@@ -40,7 +40,7 @@ $StateFile = Join-Path $RuntimeDir "game-mode.state.json"
 $MutexName = "Local\AstrBotGameMode"
 $OllamaApi = "http://127.0.0.1:11434"
 # After the 2026-10-28 service migration AstrBot runs as AstrBot_User from a
-# scheduled task. This monitor must never launch it as pjx20 again; the task
+# scheduled task. This monitor must never launch it as <YOUR_USERNAME> again; the task
 # supervisor owns start/restart and process priority.
 $AstrBotServiceMode = $true
 
@@ -52,13 +52,16 @@ $AstrBotPython = Join-Path $AstrBotDir ".venv\Scripts\python.exe"
 $AstrBotMain = Join-Path $AstrBotDir "main.py"
 $FfmpegBin = Join-Path $ScriptDir "ffmpeg-9.0.2-essentials_build\bin"
 $TokenFile = Join-Path $AstrBotRoot ".astrbot_token"
-$PrivateUmo = "qq_sujinyan:FriendMessage:2351671738"
+$PrivateUmo = "qq_sujinyan:FriendMessage:<YOUR_QQ_ID>"
 $LocalProvider = "local_qwen36"
 $ApiProvider = "deepseek"
-$RouterSettings = Join-Path $AstrBotDir "dataouter\settings.json"
-$RouterTokenFile = "C:\ProgramData\CyberButler\secretsouter_signal.token.dpapi"
+$RouterSettings = Join-Path $AstrBotDir "data
+outer\settings.json"
+$RouterTokenFile = "C:\ProgramData\CyberButler\secrets
+outer_signal.token.dpapi"
 $RouterSignalUrl = "http://127.0.0.1:6185/api/v1/plugins/extensions/astrbot_plugin_router/signal"
-$RouterOutbox = Join-Path $AstrBotDir "dataouter-signals\outbox"
+$RouterOutbox = Join-Path $AstrBotDir "data
+outer-signals\outbox"
 
 # Epic installs are often outside "...\Epic Games\"; read the launcher manifests.
 $EpicManifestDir = "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
@@ -667,7 +670,7 @@ function Start-AstrBot {
         return $true
     }
     if ($AstrBotServiceMode) {
-        Write-Log "AstrBot is managed by the AstrBot Service task; refusing to start it as pjx20."
+        Write-Log "AstrBot is managed by the AstrBot Service task; refusing to start it as <YOUR_USERNAME>."
         return $false
     }
     if (-not (Test-Path $AstrBotPython)) {
@@ -727,7 +730,7 @@ function Ensure-AstrBot {
     }
     if ($AstrBotServiceMode) {
         if (-not $script:AstrBotProcessWaitLogged) {
-            Write-Log "AstrBot is managed by the AstrBot Service task; not auto-starting it as pjx20."
+            Write-Log "AstrBot is managed by the AstrBot Service task; not auto-starting it as <YOUR_USERNAME>."
             $script:AstrBotProcessWaitLogged = $true
         }
         return $false
@@ -939,7 +942,7 @@ function Wake-OllamaModel {
         Write-Log ("[dry-run] would wake model: {0}" -f $Model)
         return $true
     }
-    # AstrBot runs as AstrBot_User, so pjx20 cannot read its process command
+    # AstrBot runs as AstrBot_User, so <YOUR_USERNAME> cannot read its process command
     # line. Use the local HTTP API as the source of truth instead.
     if (-not (Test-AstrBotApi)) {
         Write-Log "AstrBot API is not reachable; skip model wake."

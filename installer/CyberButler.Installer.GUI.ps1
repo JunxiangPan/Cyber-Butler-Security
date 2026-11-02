@@ -1633,7 +1633,7 @@ $removeButton.Add_Click({
             catch { $dataNote += "`n主控台快捷方式删除失败：" + $_.Exception.Message }
         }
         if ($removeProgress) { $removeProgress.Window.Close() }
-        $profileNote = 'C:\Users\' + $env:USERNAME + ' 是 Windows 当前用户 profile（不是项目数据），不能删除。项目数据原本在 C:\CyberButler 和 C:\ProgramData\CyberButler。'
+        $profileNote = $env:USERPROFILE + ' 是 Windows 当前用户 profile（不是项目数据），不能删除。项目数据原本在 C:\CyberButler 和 C:\ProgramData\CyberButler。'
         if ($serviceAccountMessage) { $profileNote += "`n" + $serviceAccountMessage }
         if ($dataNote) { $profileNote += "`n" + $dataNote }
         [System.Windows.MessageBox]::Show((($messages -join "`n") + "`n`n" + $profileNote), (Get-UiText 'Remove')) | Out-Null

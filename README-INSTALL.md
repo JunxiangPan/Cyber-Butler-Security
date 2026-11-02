@@ -211,7 +211,7 @@ Get-ChildItem "C:\ProgramData\CyberButler\installer\diagnostics" -ErrorAction Si
 `install-report.json` 很大时，PowerShell 5.1 的 `ConvertFrom-Json` 可能失败；用 Python 校验：
 
 ```powershell
-& "C:\Users\PAN\AppData\Local\Programs\Python\Python313\python.exe" -c "import json; p=r'C:\ProgramData\CyberButler\installer-report\install-report.json'; d=json.load(open(p,encoding='utf-8')); print(d.get('status'))"
+& "C:\Users\<YOUR_USERNAME>\AppData\Local\Programs\Python\Python313\python.exe" -c "import json; p=r'C:\ProgramData\CyberButler\installer-report\install-report.json'; d=json.load(open(p,encoding='utf-8')); print(d.get('status'))"
 ```
 
 ## 6. 如何检查服务 / Check services

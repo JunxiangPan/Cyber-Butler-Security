@@ -1,4 +1,4 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $repoRoot = Split-Path -Parent $installerRoot
 $gui = Join-Path $installerRoot 'CyberButler.Installer.GUI.ps1'
@@ -12,7 +12,7 @@ Describe 'Visual installer' {
             -InstallerPath "C:\A B\Install-CyberButler.ps1" `
             -Tier Medium `
             -InstallPath "D:\Cyber'Butler" `
-            -OwnerQQ "123456" `
+            -OwnerQQ "10001" `
             -WebUIBind Loopback
         $command | Should Match "-Tier 'Medium'"
         $command | Should Match "C:\\A B\\Install-CyberButler.ps1"
