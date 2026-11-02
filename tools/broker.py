@@ -29,6 +29,7 @@ import requests
 import email_approval
 import quarantine
 import approval_preview
+import port_guard
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 
 try:
@@ -1847,6 +1848,8 @@ def main() -> None:
         log("broker startup refused: unrendered YOUR_* placeholder; run the installer or render the template first")
         raise SystemExit("Broker refuses to start: unrendered YOUR_* placeholder")
 
+    log("broker startup; checking loopback port ownership")
+    port_guard.assert_broker_port(PORT)
     log("broker starting; installing job object")
     initialize_job_object()
     log("broker starting; verifying runtime ACL")
