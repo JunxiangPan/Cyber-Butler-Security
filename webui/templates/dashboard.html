@@ -71,6 +71,15 @@
       </div>
     </section>
 
+    <section id="wfpBanner" class="security-banner" hidden>
+      <div class="security-icon">!</div>
+      <div>
+        <strong>WFP Guard 异常 / WFP Guard is not healthy</strong>
+        <p id="wfpBannerDetail">WFP Guard 状态未知或服务未启动；网络策略可能没有生效。</p>
+        <p>WFP Guard is not healthy. The displayed allowlist may not be enforced.</p>
+      </div>
+    </section>
+
     <section id="networkPanel" class="panel" style="margin-top:18px">
       <h2>网络放行白名单 / Network allowlist</h2>
       <p>写入 webui/data/network-policy.json；WFP Guard 会热加载。audit 模式只观察，enforce 仍需手动确认。</p>

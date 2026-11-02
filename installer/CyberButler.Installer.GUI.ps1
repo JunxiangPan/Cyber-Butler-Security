@@ -1490,7 +1490,10 @@ $startButton.Add_Click({
             New-Item -ItemType Directory -Path $physDir -Force | Out-Null
             @{ schema = 1; separate_device = [bool]$physicalCheck.IsChecked; acknowledged_at = (Get-Date).ToUniversalTime().ToString('o') } |
                 ConvertTo-Json | Set-Content -LiteralPath (Join-Path $physDir 'physical-separation.json') -Encoding UTF8
-        } catch { }
+        } catch {
+            Write-GuiLog ('PHYSICAL STATE WRITE FAILED: ' + $_.Exception.Message)
+            [System.Windows.MessageBox]::Show(('无法写入物理隔离状态；WebUI 将保持红灯。 / Cannot write physical separation state: ' + $_.Exception.Message), (Get-UiText 'Title')) | Out-Null
+        }
         if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
             [System.Windows.MessageBox]::Show((Get-UiText 'NotAdmin'), (Get-UiText 'Title')) | Out-Null
             return

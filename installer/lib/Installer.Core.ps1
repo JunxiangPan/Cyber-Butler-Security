@@ -265,7 +265,15 @@ function Invoke-CyberButlerPipInstall {
         (Split-Path -Parent $Requirements),
         [IO.Path]::GetFileNameWithoutExtension($Requirements) + '.sbom.json'
     )
-    $sbomTool = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'tools\sbom.py'
+    $packageRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $bundlePath = Join-Path $packageRoot 'dependencies.sbom.json'
+    $sbomTool = Join-Path $packageRoot 'tools\sbom.py'
+    if ((Test-Path -LiteralPath $bundlePath) -and (Test-Path -LiteralPath $sbomTool)) {
+        & $PythonPath $sbomTool verify-bundle --root $packageRoot --manifest $bundlePath | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw ('dependency bundle SBOM verification failed: ' + $bundlePath)
+        }
+    }
     if ((Test-Path -LiteralPath $sbomPath) -and (Test-Path -LiteralPath $sbomTool)) {
         & $PythonPath $sbomTool verify --requirements $Requirements --manifest $sbomPath | Out-Null
         if ($LASTEXITCODE -ne 0) {

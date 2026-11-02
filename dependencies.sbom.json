@@ -1,0 +1,26 @@
+{
+  "entries": [
+    {
+      "path": "requirements-dev.txt",
+      "requirements": [
+        "pytest>=8.0",
+        "pyotp>=2.9",
+        "requests>=2.31"
+      ],
+      "sha256": "43817134c3b17783c3e9122556a6218bcff7de3972b60df4f1b16e206f66ca2f"
+    },
+    {
+      "path": "webui/requirements.txt",
+      "requirements": [
+        "fastapi==0.162.0",
+        "uvicorn==0.54.0",
+        "jinja2>=3.1",
+        "httpx==0.28.1",
+        "pytest>=8.0"
+      ],
+      "sha256": "aefb3944a25c1389bee9c4b89d164cffff3f6fdaddf71d99acf0aac214056f16"
+    }
+  ],
+  "generated_at": "2026-11-02T22:19:48+00:00",
+  "schema": 2
+}

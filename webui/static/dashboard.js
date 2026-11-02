@@ -137,18 +137,45 @@
     }
   };
 
+  const renderNetworkGuard = (data) => {
+    const banner = $("wfpBanner");
+    const detail = $("wfpBannerDetail");
+    const status = $("networkStatus");
+    const guard = (data && data.guard) || {};
+    const healthy = data && data.ok && guard.ok === true;
+    if (banner) banner.hidden = Boolean(healthy);
+    if (detail && !healthy) {
+      detail.textContent = guard.error
+        ? ("WFP Guard 错误 / error: " + guard.error)
+        : "WFP Guard 尚未启动或没有心跳；网络策略可能未生效。";
+    }
+    if (status) {
+      status.textContent = healthy
+        ? "WFP Guard 正常 / healthy"
+        : (guard.error || "WFP Guard 异常或未启动 / unavailable");
+      status.style.color = healthy ? "#4ade80" : "#f87171";
+      status.style.fontWeight = "700";
+    }
+  };
+
+  const loadNetworkGuard = async () => {
+    if (!csrf) return;
+    const data = await getJson("/api/security/network-policy");
+    if (data && data.ok) renderNetworkGuard(data);
+  };
+
   const loadNetworkPolicy = async () => {
     if (!csrf) return;
     const data = await getJson("/api/security/network-policy");
     if (!data || !data.ok) return;
+    renderNetworkGuard(data);
     const policy = data.policy || {};
     const mode = $("networkMode");
     const domains = $("networkDomains");
     if (mode && policy.mode) mode.value = policy.mode;
     if (domains) {
       const names = (policy.allow || []).filter((x) => x.kind === "domain").map((x) => x.name);
-      domains.value = names.join("
-");
+      domains.value = names.join("\n");
     }
   };
 
@@ -624,6 +651,7 @@
         refreshAll();
         loadEmailStatus();
         loadNetworkPolicy();
+        setInterval(loadNetworkGuard, 10000);
       })
       .catch(() => {});
 

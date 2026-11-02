@@ -51,6 +51,7 @@ ALLOWED_ROOT_FILES = {
     ".gitignore",
     ".gitattributes",
     "requirements-dev.txt",
+    "dependencies.sbom.json",
     "pytest.ini",
     "update-manifest.sig",
     "config.pro.example.json",
