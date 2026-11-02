@@ -71,6 +71,20 @@
       </div>
     </section>
 
+    <section id="networkPanel" class="panel" style="margin-top:18px">
+      <h2>网络放行白名单 / Network allowlist</h2>
+      <p>写入 webui/data/network-policy.json；WFP Guard 会热加载。audit 模式只观察，enforce 仍需手动确认。</p>
+      <label for="networkMode">模式 / Mode</label>
+      <select id="networkMode">
+        <option value="audit">audit-only</option>
+        <option value="enforce">enforce</option>
+      </select>
+      <label for="networkDomains">域名（每行一个，HTTPS 443） / Domains (one per line)</label>
+      <textarea id="networkDomains" rows="5" style="width:100%;margin:8px 0"></textarea>
+      <button id="networkSave" class="primary" type="button">保存策略 / Save policy</button>
+      <span id="networkStatus" role="status"></span>
+    </section>
+
     <section class="welcome">
       <p class="eyebrow" data-i18n="dash.eyebrow"></p>
       <h1 data-i18n="dash.hero"></h1>

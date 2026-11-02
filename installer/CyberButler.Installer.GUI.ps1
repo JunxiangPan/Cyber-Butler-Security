@@ -225,6 +225,8 @@ $xaml = @'
       <Button x:Name="HelpButton" Content="Help" Width="80" Height="38" Margin="0,0,10,0"/>
       <CheckBox x:Name="ApprovalCheck" Content="I have read the notes above and approve these installer steps"
                 Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
+      <CheckBox x:Name="PhysicalSeparationCheck" Content="我已确认 TOTP 验证器（手机/邮箱）不在当前这台机器上 / TOTP authenticator is on another device"
+                Foreground="#F87171" VerticalAlignment="Center" Margin="8,0,0,0"/>
     </StackPanel>
 
     <ProgressBar Grid.Row="3" x:Name="InstallProgress" Height="8" Minimum="0" Maximum="100" Value="0"
@@ -1463,6 +1465,22 @@ $startButton.Add_Click({
             [System.Windows.MessageBox]::Show((Get-UiText 'NeedApproval'), (Get-UiText 'Title')) | Out-Null
             return
         }
+        $tierValue = Get-SelectedComboText $tierBox
+        if ([string]::IsNullOrWhiteSpace($tierValue)) { $tierValue = 'Medium' }
+        $physicalCheck = $window.FindName('PhysicalSeparationCheck')
+        if (-not $physicalCheck.IsChecked) {
+            if ($tierValue -like 'High*' -or $tierValue -eq 'High') {
+                [System.Windows.MessageBox]::Show('High 档必须确认 TOTP 验证器不在当前主机。', (Get-UiText 'Title')) | Out-Null
+                return
+            }
+            [System.Windows.MessageBox]::Show('警告：TOTP 验证器与 Agent 同机，物理隔离不成立。', (Get-UiText 'Title')) | Out-Null
+        }
+        try {
+            $physDir = Join-Path ([string]$installPathBox.Text) 'tools'
+            New-Item -ItemType Directory -Path $physDir -Force | Out-Null
+            @{ schema = 1; separate_device = [bool]$physicalCheck.IsChecked; acknowledged_at = (Get-Date).ToUniversalTime().ToString('o') } |
+                ConvertTo-Json | Set-Content -LiteralPath (Join-Path $physDir 'physical-separation.json') -Encoding UTF8
+        } catch { }
         if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
             [System.Windows.MessageBox]::Show((Get-UiText 'NotAdmin'), (Get-UiText 'Title')) | Out-Null
             return

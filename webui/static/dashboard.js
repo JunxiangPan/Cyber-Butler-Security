@@ -137,6 +137,43 @@
     }
   };
 
+  const loadNetworkPolicy = async () => {
+    if (!csrf) return;
+    const data = await getJson("/api/security/network-policy");
+    if (!data || !data.ok) return;
+    const policy = data.policy || {};
+    const mode = $("networkMode");
+    const domains = $("networkDomains");
+    if (mode && policy.mode) mode.value = policy.mode;
+    if (domains) {
+      const names = (policy.allow || []).filter((x) => x.kind === "domain").map((x) => x.name);
+      domains.value = names.join("
+");
+    }
+  };
+
+  const saveNetworkPolicy = async () => {
+    if (!csrf) return;
+    const status = $("networkStatus");
+    if (status) status.textContent = "保存中… / Saving…";
+    const response = await fetch("/api/security/network-policy", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+      body: JSON.stringify({
+        mode: $("networkMode")?.value || "audit",
+        domains: $("networkDomains")?.value || "",
+        block_unknown: true,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (status) {
+      status.textContent = response.ok && data.ok
+        ? "已保存 / Saved; WFP Guard will reload."
+        : (data.message || "保存失败 / Save failed");
+    }
+  };
+
   const saveAdminEmail = async () => {
     if (!csrf || !adminEmailInput) return;
     if (emailSaveStatus) emailSaveStatus.textContent = "保存中… / Saving…";
@@ -567,6 +604,7 @@
       if (emailSetupPanel) emailSetupPanel.hidden = !emailSetupPanel.hidden;
     });
     $("adminEmailSave")?.addEventListener("click", saveAdminEmail);
+    $("networkSave")?.addEventListener("click", saveNetworkPolicy);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });
@@ -585,6 +623,7 @@
         chatCount.textContent = i18n.t("chat.count", { count: formatNumber(0) });
         refreshAll();
         loadEmailStatus();
+        loadNetworkPolicy();
       })
       .catch(() => {});
 
