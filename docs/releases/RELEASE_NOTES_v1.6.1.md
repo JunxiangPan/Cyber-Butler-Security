@@ -55,9 +55,10 @@ scoped-token cache. `edit` and shell tools remain refused.
 ## Still incomplete
 
 AstrBot child processes are not yet in the Broker Job; there is no AppContainer
-or syscall sandbox; shell/edit mediation and media TOTP are not complete; no
-third-party audit, code signing, or clean-VM acceptance is included in this
-note. See the status page.
+or syscall sandbox; shell/edit mediation and media TOTP are not complete. The
+release manifest is signed, but there is no third-party audit. High-tier
+real-machine acceptance is complete; Medium is partially tested and Light has no
+complete real-machine test. See the status page.
 
 ## Not guaranteed
 
