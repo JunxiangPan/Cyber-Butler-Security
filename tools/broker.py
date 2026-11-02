@@ -74,6 +74,11 @@ DENY_JITTER_MAX = 0.25
 # separate scheduled task, so it is NOT automatically in this job; see the
 # caveat in SECURITY.md before claiming that AstrBot's children are covered.
 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
+JOB_OBJECT_LIMIT_PROCESS_TIME = 0x00000002
+JOB_OBJECT_LIMIT_JOB_TIME = 0x00000004
+JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 0x00000008
+JOB_OBJECT_LIMIT_PROCESS_MEMORY = 0x00000100
+JOB_OBJECT_LIMIT_JOB_MEMORY = 0x00000200
 JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
 _job_handle = None
 
@@ -112,6 +117,36 @@ class _JOBOBJECT_EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
         ("PeakProcessMemoryUsed", ctypes.c_size_t),
         ("PeakJobMemoryUsed", ctypes.c_size_t),
     ]
+
+
+def _job_limit_environment() -> dict[str, int]:
+    """Read bounded resource limits for the Broker Job Object."""
+    def _int(name: str, default: int, minimum: int, maximum: int) -> int:
+        try:
+            value = int(os.environ.get(name, str(default)))
+        except (TypeError, ValueError):
+            value = default
+        return max(minimum, min(value, maximum))
+
+    return {
+        "memory_mb": _int("CBS_BROKER_JOB_MEMORY_MB", 1024, 64, 65536),
+        "process_memory_mb": _int("CBS_BROKER_PROCESS_MEMORY_MB", 512, 32, 65536),
+        "cpu_seconds": _int("CBS_BROKER_JOB_CPU_SECONDS", 1800, 30, 86400),
+        "active_process": _int("CBS_BROKER_ACTIVE_PROCESS", 32, 1, 256),
+    }
+
+
+def _job_limit_flags() -> tuple[int, dict[str, int]]:
+    limits = _job_limit_environment()
+    flags = (
+        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        | JOB_OBJECT_LIMIT_PROCESS_MEMORY
+        | JOB_OBJECT_LIMIT_JOB_MEMORY
+        | JOB_OBJECT_LIMIT_JOB_TIME
+        | JOB_OBJECT_LIMIT_ACTIVE_PROCESS
+        | JOB_OBJECT_LIMIT_PROCESS_TIME
+    )
+    return flags, limits
 
 
 def initialize_job_object() -> bool:
@@ -158,7 +193,12 @@ def initialize_job_object() -> bool:
         )
 
     info = _JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-    info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    flags, limits = _job_limit_flags()
+    info.BasicLimitInformation.LimitFlags = flags
+    info.BasicLimitInformation.PerJobUserTimeLimit = limits["cpu_seconds"] * 10_000_000
+    info.BasicLimitInformation.ActiveProcessLimit = limits["active_process"]
+    info.ProcessMemoryLimit = limits["process_memory_mb"] * 1024 * 1024
+    info.JobMemoryLimit = limits["memory_mb"] * 1024 * 1024
     if not kernel32.SetInformationJobObject(
         job,
         JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
