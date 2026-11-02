@@ -15,6 +15,7 @@ import json
 import os
 import secrets
 import shutil
+import random
 import subprocess
 import threading
 import time
@@ -55,6 +56,10 @@ HOST = "127.0.0.1"
 PORT = 18090
 TIMEOUT_SECONDS = 300
 REQUEST_RATE_LIMIT_SECONDS = 1.0
+REQUEST_BURST = 3
+REQUEST_REFILL_SECONDS = 30.0
+DENY_JITTER_MIN = 0.05
+DENY_JITTER_MAX = 0.25
 
 # ---------------------------------------------------------------------------
 # Windows Job Object: KILL_ON_JOB_CLOSE
@@ -209,6 +214,7 @@ _lock = threading.Lock()
 _replay_lock = threading.Lock()
 _request_rate_lock = threading.Lock()
 _last_request_at = 0.0
+_request_buckets: dict[str, tuple[float, float]] = {}
 _used_totp: dict[str, float] = {}
 TOTP_REPLAY_TTL = 120
 TOTP_MAX_ATTEMPTS = 5
@@ -232,6 +238,29 @@ SCOPED_TTL_SECONDS = 1800
 SCOPED_MAX_MINUTES = 30
 _scoped_lock = threading.Lock()
 _scoped_tokens: dict[str, dict] = {}
+
+def _allow_request(key: str = "default", now: float | None = None) -> tuple[bool, int]:
+    """Token bucket for TOTP requests; returns (allowed, retry_after_seconds)."""
+    moment = time.monotonic() if now is None else float(now)
+    bucket_key = str(key or "default")
+    with _request_rate_lock:
+        tokens, last = _request_buckets.get(bucket_key, (float(REQUEST_BURST), moment))
+        tokens = min(float(REQUEST_BURST), tokens + (moment - last) / REQUEST_REFILL_SECONDS)
+        if tokens < 1.0:
+            retry = max(1, int((1.0 - tokens) * REQUEST_REFILL_SECONDS) + 1)
+            _request_buckets[bucket_key] = (tokens, moment)
+            return False, retry
+        _request_buckets[bucket_key] = (tokens - 1.0, moment)
+        _last_request_at = moment
+        return True, 0
+
+
+def _deny_jitter() -> None:
+    """Blunt timing oracles for zero-information rejections."""
+    if os.environ.get("CBS_DISABLE_JITTER") == "1":
+        return
+    time.sleep(random.uniform(DENY_JITTER_MIN, DENY_JITTER_MAX))
+
 
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 WEBUI_CONTACT = ROOT / "webui" / "data" / "approval-contact.json"
@@ -1119,6 +1148,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         return 400, {"ok": False, "error": "action must be delete, overwrite, write_file or send"}
     risk = classify(action, target_text)
     if risk == "deny":
+        _deny_jitter()
         return 403, {"ok": False, "error": "target is not allowed by broker policy"}
 
     try:
@@ -1126,6 +1156,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             action, target_text, str(payload.get("source", ""))
         )
     except (OSError, ValueError, TargetGuardError) as exc:
+        _deny_jitter()
         return 409, {"ok": False, "error": f"target cannot be bound: {exc}"}
 
     bypass_token = str(payload.get("bypass_token", "") or "")
@@ -1452,6 +1483,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     "error": "too many invalid attempts; verification locked",
                     "attempts": attempts,
                 }
+            _deny_jitter()
             return 403, {
                 "ok": False,
                 "error": "invalid verification code",
@@ -1712,13 +1744,15 @@ class Handler(BaseHTTPRequestHandler):
         try:
             parsed = urlparse(self.path)
             if parsed.path in {"/request", "/api/request_approval"}:
-                with _request_rate_lock:
-                    global _last_request_at
-                    now = time.monotonic()
-                    if now - _last_request_at < REQUEST_RATE_LIMIT_SECONDS:
-                        self._json(429, {"ok": False, "error": "request rate limited"})
-                        return
-                    _last_request_at = now
+                bucket_key = str(payload.get("source") or payload.get("action") or "default")
+                allowed, retry_after = _allow_request(bucket_key)
+                if not allowed:
+                    self._json(429, {
+                        "ok": False,
+                        "error": "request rate limited",
+                        "retry_after": retry_after,
+                    })
+                    return
                 if parsed.path == "/api/request_approval":
                     status, body = run_approval_request(payload)
                 else:
