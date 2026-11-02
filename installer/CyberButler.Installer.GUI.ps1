@@ -1310,7 +1310,12 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
         throw ('Refusing to remove non-Cyber-Butler directory: missing install markers at ' + $full)
     }
 
-    $taskNames = @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services', 'Cyber-Butler OTP Mailer', 'SnowLuma Startup')
+    $taskNames = @('AstrBot Service', 'AstrBot TOTP Broker', 'Cyber-Butler Web UI Services', 'Cyber-Butler OTP Mailer', 'SnowLuma Startup', 'Cyber-Butler WFP Guard', 'Cyber-Butler Broker Watchdog')
+    & $report 3 '断开 WFP 出站规则 / Removing WFP egress rules'
+    try {
+        Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue |
+            Remove-NetFirewallRule -ErrorAction SilentlyContinue
+    } catch { }
     & $report 5 '停止计划任务 / Stopping scheduled tasks'
     foreach ($taskName in $taskNames) {
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
