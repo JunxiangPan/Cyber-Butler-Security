@@ -111,3 +111,24 @@ def test_chat_requires_csrf_and_enforces_length_and_rate(tmp_path: Path) -> None
         "/api/chat/send", json={"message": "hello"}, headers=headers
     ).status_code == 429
     assert services.sent == ["hello"] * 5
+
+
+def test_network_policy_is_authenticated_and_validated(tmp_path: Path) -> None:
+    client, mailer, _ = make_client(tmp_path)
+    assert client.get("/api/security/network-policy").status_code == 401
+    headers = auth_headers(client, mailer)
+    response = client.post(
+        "/api/security/network-policy",
+        headers=headers,
+        json={"mode": "audit", "domains": "api.example.com", "block_unknown": True},
+    )
+    assert response.status_code == 200
+    policy = client.get("/api/security/network-policy").json()["policy"]
+    assert policy["mode"] == "audit"
+    assert policy["allow"][1]["name"] == "api.example.com"
+    bad = client.post(
+        "/api/security/network-policy",
+        headers=headers,
+        json={"mode": "bad", "domains": ""},
+    )
+    assert bad.status_code == 400

@@ -48,6 +48,12 @@ class AdminEmailUpdate(BaseModel):
     email: str = Field(min_length=3, max_length=254)
 
 
+class NetworkPolicyUpdate(BaseModel):
+    mode: str = Field(default="audit", max_length=16)
+    domains: str = Field(default="", max_length=4000)
+    block_unknown: bool = True
+
+
 def create_app(settings: Settings | None = None, mailer=None, services=None) -> FastAPI:
     settings = settings or Settings.load()
     store = Store(settings.db_path, settings.server_secret)
@@ -58,6 +64,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     broker_config_path = Path(settings.project_root) / "tools" / "broker_config.json"
     contact_path = Path(settings.data_dir) / "approval-contact.json"
     physical_separation_path = Path(settings.project_root) / "tools" / "physical-separation.json"
+    network_policy_path = Path(settings.data_dir) / "network-policy.json"
     email_secret_path = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "email_secret.json"
 
     def _read_json(path: Path) -> dict:
@@ -363,6 +370,36 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     @app.get("/api/config/email-status")
     async def email_status(session=Depends(require_session)):
         return _email_status()
+
+    @app.get("/api/security/network-policy")
+    async def get_network_policy(session=Depends(require_session)):
+        return {"ok": True, "policy": _read_json(network_policy_path)}
+
+    @app.post("/api/security/network-policy")
+    async def set_network_policy(body: NetworkPolicyUpdate, session=Depends(require_session)):
+        mode = str(body.mode or "").strip().lower()
+        if mode not in {"audit", "enforce"}:
+            raise HTTPException(status_code=400, detail={"code": "network.mode", "message": "mode must be audit or enforce"})
+        domains = []
+        for raw in re.split(r"[, \r\n]+", body.domains or ""):
+            name = raw.strip().lower()
+            if not name:
+                continue
+            if not re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,63}", name):
+                raise HTTPException(status_code=400, detail={"code": "network.domain", "message": f"invalid domain: {name}"})
+            if name not in domains:
+                domains.append(name)
+        policy = {
+            "schema": 1,
+            "mode": mode,
+            "service_account": "CyberButlerSvc",
+            "allow": [{"kind": "loopback", "port": 18090}]
+                     + [{"kind": "domain", "name": name, "port": 443} for name in domains],
+            "block_unknown": bool(body.block_unknown),
+        }
+        network_policy_path.parent.mkdir(parents=True, exist_ok=True)
+        network_policy_path.write_text(json.dumps(policy, ensure_ascii=False, indent=2), encoding="utf-8")
+        return {"ok": True, "policy": policy}
 
     @app.post("/api/config/admin-email")
     async def save_admin_email(body: AdminEmailUpdate, request: Request, session=Depends(require_session)):
