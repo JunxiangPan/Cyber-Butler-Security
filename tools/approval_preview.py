@@ -22,6 +22,22 @@ _SECRET_RE = re.compile(
 MAX_PREVIEW_BYTES = 256 * 1024
 MAX_DIFF_LINES = 80
 MAX_DIFF_CHARS = 8 * 1024
+MAGIC_TYPES = ((b"#!", "Shebang"), (b"MZ", "PE"), (b"ELF", "ELF"))
+
+
+def _magic_type(data: bytes) -> str | None:
+    for prefix, label in MAGIC_TYPES:
+        if data.startswith(prefix):
+            return label
+    return None
+
+
+def _magic_head(path: Path) -> bytes:
+    try:
+        with path.open("rb") as handle:
+            return handle.read(8)
+    except OSError:
+        return b""
 
 
 def _redact(text: str) -> str:
@@ -102,13 +118,24 @@ def build_preview(
         "kind": "delete" if action == "delete" else ("create" if not target_info["exists"] else "replace"),
         "before": target_info,
         "script_warning": target_path.suffix.lower() in SCRIPT_SUFFIXES,
+        "magic_warning": False,
+        "magic_types": [],
     }
     if action == "delete":
         return preview
+    if target_info.get("exists"):
+        target_magic = _magic_type(_magic_head(target_path))
+        if target_magic:
+            preview["magic_types"].append(target_magic)
+    preview["magic_warning"] = bool(preview["magic_types"])
     if action == "overwrite":
         source_path = Path(str(source))
         source_info = _stat(source_path)
         preview["source"] = source_info
+        source_magic = _magic_type(_magic_head(source_path))
+        if source_magic and source_magic not in preview["magic_types"]:
+            preview["magic_types"].append(source_magic)
+        preview["magic_warning"] = bool(preview["magic_types"])
         if target_info.get("exists") and source_info.get("exists"):
             preview["diff"], preview["diff_truncated"] = _diff(
                 _text(target_path), _text(source_path)
@@ -117,6 +144,11 @@ def build_preview(
         return preview
 
     new_text = content if isinstance(content, str) else None
+    if new_text is not None:
+        content_magic = _magic_type(new_text.encode("utf-8")[:8])
+        if content_magic and content_magic not in preview["magic_types"]:
+            preview["magic_types"].append(content_magic)
+    preview["magic_warning"] = bool(preview["magic_types"])
     preview["after_size"] = len((new_text or "").encode("utf-8"))
     if new_text is not None:
         preview["after_sha256"] = hashlib.sha256(new_text.encode("utf-8")).hexdigest()
@@ -136,7 +168,10 @@ def format_preview(preview: dict[str, Any], request_id: str = "") -> str:
     """Render the owner-facing prompt; never includes the AI reason field."""
     lines = ["哥，以下是底层真实参数，未经 Agent 转述。"]
     if preview.get("script_warning"):
-        lines.append("⚠️ 脚本修改")
+        lines.append("扩展名属于脚本类型")
+    if preview.get("magic_warning"):
+        types = ", ".join(preview.get("magic_types") or [])
+        lines.append(f"目标内容包含可执行代码特征（{types}）")
     lines.append(f"动作：{preview.get('action')}")
     lines.append(f"目标：{preview.get('target')}")
     if preview.get("kind") == "delete":

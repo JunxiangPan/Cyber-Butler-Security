@@ -44,3 +44,26 @@ def test_delete_preview_never_reads_file_content(tmp_path: Path):
     text = approval_preview.format_preview(preview)
     assert "do-not-print-this" not in text
     assert str(target) in text
+
+
+def test_txt_with_shebang_is_flagged(tmp_path: Path):
+    target = tmp_path / "innocent.txt"
+    preview = approval_preview.build_preview(
+        "write_file",
+        str(target),
+        content="#!/bin/bash\necho pwned\n",
+    )
+    assert preview["magic_warning"] is True
+    assert "Shebang" in preview["magic_types"]
+    text = approval_preview.format_preview(preview)
+    assert "可执行代码特征（Shebang）" in text
+    assert "恶意" not in text
+    assert "安全" not in text
+
+
+def test_pe_with_txt_extension_is_flagged(tmp_path: Path):
+    target = tmp_path / "not-really.txt"
+    target.write_bytes(b"MZ" + b"\x00" * 20)
+    preview = approval_preview.build_preview("overwrite", str(target), source=str(target))
+    assert preview["magic_warning"] is True
+    assert "PE" in preview["magic_types"]
