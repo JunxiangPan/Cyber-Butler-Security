@@ -90,6 +90,24 @@ Scoped Token is a transition mechanism, not the final policy.
 - **UX objective**: fewer prompts for routine draft edits, never fewer prompts
   for memory/config/egress.
 
+### v1.6.3 backlog carried from the review
+
+- **Full WebUI session/CSRF protection**: every state-changing form requires a
+  session-bound CSRF token; no state-changing GET.
+- **Sensitive config encryption**: DPAPI for secrets, ACL-locked config files,
+  and no plaintext tokens in WebUI responses.
+- **XSS hardening**: escape file names and log lines at every render boundary.
+- **One-time recovery codes**: generate, display once, hash at rest, consume on
+  use, and require a fresh TOTP to regenerate.
+- **Overlay self-heal**: detect when an AstrBot upgrade overwrites an overlay
+  patch and report/repair it without silently claiming success.
+- **Upgrade rollback**: one-click rollback plus a documented config migration
+  path.
+- **Uninstall cleanup**: RunOnce removal for a locked service profile, WFP
+  rules, extraction directory, and scheduled tasks.
+- **AstrBot/DSH cache alignment**: the same scoped-token cache semantics in the
+  native plugin and the DSH adapter.
+
 **Exit criteria**
 
 ```text
