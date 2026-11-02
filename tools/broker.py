@@ -31,6 +31,7 @@ import quarantine
 import approval_preview
 import port_guard
 import audit_chain
+import injection_audit
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 
 try:
@@ -1401,6 +1402,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
         return 409, {"ok": False, "error": f"cannot build approval preview: {exc}"}
 
+    preview["external_read_warning"] = injection_audit.warning()
     event = None
     with _lock:
         if _pending:
@@ -1512,6 +1514,19 @@ def run_request(payload: dict) -> tuple[int, dict]:
         response["scoped_invalid"] = True
         response["scoped_error"] = "CBS_SCOPED_INVALID"
     return 200, response
+
+
+def record_external_read(payload: dict) -> tuple[int, dict]:
+    """Let the agent report an external read; never store page content."""
+    try:
+        event = injection_audit.record(
+            str(payload.get("kind", "web")),
+            str(payload.get("source", "")),
+            str(payload.get("summary", "")),
+        )
+    except (OSError, ValueError) as exc:
+        return 400, {"ok": False, "error": str(exc)}
+    return 200, {"ok": True, "event": event}
 
 
 def run_verify(payload: dict) -> tuple[int, dict]:
@@ -1848,6 +1863,8 @@ class Handler(BaseHTTPRequestHandler):
                     status, body = run_approval_request(payload)
                 else:
                     status, body = run_request(payload)
+            elif parsed.path == "/external-read":
+                status, body = record_external_read(payload)
             elif parsed.path == "/verify":
                 status, body = run_verify(payload)
             else:

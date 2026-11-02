@@ -172,6 +172,8 @@ def format_preview(preview: dict[str, Any], request_id: str = "") -> str:
     if preview.get("magic_warning"):
         types = ", ".join(preview.get("magic_types") or [])
         lines.append(f"目标内容包含可执行代码特征（{types}）")
+    if preview.get("external_read_warning"):
+        lines.append(str(preview["external_read_warning"]))
     lines.append(f"动作：{preview.get('action')}")
     lines.append(f"目标：{preview.get('target')}")
     if preview.get("kind") == "delete":

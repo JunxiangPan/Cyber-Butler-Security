@@ -67,3 +67,13 @@ def test_pe_with_txt_extension_is_flagged(tmp_path: Path):
     preview = approval_preview.build_preview("overwrite", str(target), source=str(target))
     assert preview["magic_warning"] is True
     assert "PE" in preview["magic_types"]
+
+
+def test_external_read_warning_is_objective_not_a_verdict(tmp_path: Path):
+    target = tmp_path / "draft.txt"
+    preview = approval_preview.build_preview("write_file", str(target), content="hello")
+    preview["external_read_warning"] = "提示：Agent 最近读取了外部网页/文件，请仔细核对本次操作的合理性。"
+    text = approval_preview.format_preview(preview)
+    assert "最近读取了外部网页/文件" in text
+    assert "恶意" not in text
+    assert "安全" not in text
