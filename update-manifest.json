@@ -409,8 +409,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "fde20787c83631a3655f9bccf16572658aa19af74d7678f47b4865d3395b1424",
-      "size": 17299
+      "sha256": "8a7930f20885fc5b9cb190343acbc840a97ef7724ae3cab31f904df0a532957c",
+      "size": 17417
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
