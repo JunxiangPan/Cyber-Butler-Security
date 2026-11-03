@@ -1,4 +1,4 @@
-# Known limitations (v1.6.2-rc2)
+# Known limitations (v1.6.2)
 
 This file is the authoritative list of current boundaries. It is linked from every language README.
 
@@ -16,7 +16,7 @@ Light has no real-machine acceptance. It is not a substitute for High.
 
 ## Clean VM acceptance
 
-v1.6.2-rc2 has not completed a clean-VM install/upgrade/uninstall run. Host-side SCM validation passed on one machine only.
+v1.6.2 has not completed a clean-VM install/upgrade/uninstall run. Host-side SCM validation passed on one machine only.
 
 ## 6199 is not a service
 

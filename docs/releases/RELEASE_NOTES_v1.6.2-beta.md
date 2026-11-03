@@ -1,3 +1,5 @@
+> **Historical / superseded.** This file is retained for history only. The current release is `docs/releases/RELEASE_NOTES_v1.6.2.md` (SCM service release). Do not use this preview as current installation guidance.
+
 # v1.6.2-beta — 实机验证包（未签名）
 
 > **Beta only.** This is not a formal signed release. Do not publish it as

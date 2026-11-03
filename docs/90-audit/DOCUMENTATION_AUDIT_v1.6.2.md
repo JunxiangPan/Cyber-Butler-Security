@@ -85,7 +85,7 @@ README_ru.md
 - WFP enforce mode is not enabled; current mode is audit, `applied=0`.
 - Native WFP filter API is not implemented.
 - Light tier has no real-machine acceptance.
-- v1.6.2-rc2 has no clean-VM full install/uninstall acceptance.
+- v1.6.2 has no clean-VM full install/uninstall acceptance.
 - Credential Proxy and full audit-chain replacement remain partial.
 - 6199 is not a system service and is absent until the AstrBot OneBot adapter is configured.
 
@@ -95,4 +95,15 @@ The active documentation is structured, deduplicated, and consistent across the 
 
 ## Package
 
-The documentation audit is complete; the v1.6.2-rc2 package must be rebuilt and signed after this audit.
+The documentation audit is complete; the v1.6.2 package is rebuilt and signed after this audit.
+
+## Round 6: GitHub-facing cleanup
+
+- Replaced the root README with a language selector and kept eight localized entry points; no duplicate `README.md`/`README_en.md` body remains.
+- Updated `README-INSTALL.md` from v1.6.1 headings to v1.6.2 and replaced the moved v1.6.1 status link with `docs/_data/status-v1.6.2.json`.
+- Added `docs/releases/RELEASE_NOTES_v1.6.2.md` as the copy-paste GitHub Release body.
+- Archived the earlier v1.6.2 preview/beta/rc notes with a `Historical / superseded` banner.
+- Added `docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md` for manual GitHub web actions.
+- Verified active links after the cleanup; historical archived files are excluded from the active link gate.
+- No “Coming soon” placeholder remains in active docs; S4U appears only as retired/historical context.
+- Compatibility statement: v1.6.1 remains the previous stable release; v1.6.2 preview/beta/rc are superseded by the final v1.6.2 SCM release note.

@@ -1,3 +1,5 @@
+> **Historical / superseded.** This file is retained for history only. The current release is `docs/releases/RELEASE_NOTES_v1.6.2.md` (SCM service release). Do not use this preview as current installation guidance.
+
 # v1.6.2-rc — Release Candidate (unsigned)
 
 > **RC only.** Not a formal signed release. Native WFP filter and full audit

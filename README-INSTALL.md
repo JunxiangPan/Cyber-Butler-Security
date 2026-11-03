@@ -30,7 +30,7 @@ The old VBS / `wscript.exe` launcher is gone. The only entry point is
 `START-INSTALLER.exe`, a native C# launcher that does not depend on VBS or
 `.cmd`.
 
-## 1.1 v1.6.1 安全能力 / v1.6.1 security capabilities
+## 1.1 v1.6.2 安全能力 / v1.6.2 security capabilities
 
 - **Scoped Token**：TOTP 审批时可回复 `SCOPED 30`，获得当前共享草稿目录
   30 分钟授权；仅限 `delete` / `overwrite` / `write_file`，不适用于
@@ -42,14 +42,14 @@ The old VBS / `wscript.exe` launcher is gone. The only entry point is
 - **Dashboard 完整性**：安装器会校验 dashboard 语法，并保护官方模块哈希，
   避免 `YOUR_QQ_ID` 占位符替换破坏模块。
 
-## 1.2 v1.6.1 状态与不保证 / Status and non-guarantees
+## 1.2 v1.6.2 状态与不保证 / Status and non-guarantees
 
 已完成、未完成、明确不保证的内容以
-[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md) 为准。安装成功不等于获得
+[docs/_data/status-v1.6.2.json](docs/_data/status-v1.6.2.json) 为准。安装成功不等于获得
 绝对安全、第三方审计、代码签名或对未来 QQ/AstrBot/DSH 版本的兼容保证。
 
 The authoritative shipped/incomplete/non-guaranteed list is
-[docs/STATUS_v1.6.1.md](docs/STATUS_v1.6.1.md). A successful install is not a
+[docs/_data/status-v1.6.2.json](docs/_data/status-v1.6.2.json). A successful install is not a
 guarantee of absolute security, third-party audit, code signing, or future
 QQ/AstrBot/DSH compatibility.
 
@@ -263,7 +263,7 @@ installer\                          安装器、GUI、TOTP、服务脚本
 START-INSTALLER.exe
 installer\CyberButler.Installer.GUI.ps1
 VERSION                             版本号
-docs/releases/RELEASE_NOTES_v1.6.1.md  发布说明（历史版本也在此目录）
+docs/releases/RELEASE_NOTES_v1.6.2.md  v1.6.2 发布说明
 AstrBot\ / webui\ / tools\           安装载荷
 ```
 

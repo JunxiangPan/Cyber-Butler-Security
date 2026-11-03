@@ -1,3 +1,5 @@
+> **Historical / superseded.** This file is retained for history only. The current release is `docs/releases/RELEASE_NOTES_v1.6.2.md` (SCM service release). Do not use this preview as current installation guidance.
+
 # ⚠️ v1.6.2 Experimental Preview — DO NOT USE FOR NORMAL INSTALLATION
 
 > 这是一份先导版/实验版，不是稳定版，不是生产版，也不是给普通用户直接使用的版本。

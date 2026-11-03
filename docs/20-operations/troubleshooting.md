@@ -30,4 +30,4 @@ Check `SnowLuma\logs\start-snowluma-console.log` and `SnowLuma\logs\startup-snow
 
 ## WFP reports `Remove-NetFirewallRule failed`
 
-The guard now checks for matching rules before removing them. A status of `ok=true, applied=0` means audit mode is healthy. Enforcement is not enabled in v1.6.2-rc2.
+The guard now checks for matching rules before removing them. A status of `ok=true, applied=0` means audit mode is healthy. Enforcement is not enabled in v1.6.2.
