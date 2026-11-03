@@ -963,7 +963,7 @@ function Get-GuiInstallStatusText {
     $reportFailure = ''
     if (Test-Path -LiteralPath $reportPath) {
         try {
-            $raw = Get-Content -LiteralPath $reportPath -Raw
+            $raw = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8
             $m = [regex]::Match($raw, '"status"\s*:\s*"([^"]+)"')
             if ($m.Success) { $reportStatus = $m.Groups[1].Value }
             $f = [regex]::Match($raw, '"failure"\s*:\s*\{[^\}]*?"message"\s*:\s*"([^"]+)"', [Text.RegularExpressions.RegexOptions]::Singleline)
@@ -1111,7 +1111,7 @@ function Show-GuiCompletionIfReady {
     $failure = ''
     if (Test-Path -LiteralPath $reportPath) {
         try {
-            $raw = Get-Content -LiteralPath $reportPath -Raw
+            $raw = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8
             $m = [regex]::Match($raw, '"status"\s*:\s*"([^"]+)"')
             if ($m.Success) { $status = $m.Groups[1].Value }
             $f = [regex]::Match($raw, '"failure"\s*:\s*\{[^\}]*?"message"\s*:\s*"([^"]+)"', [Text.RegularExpressions.RegexOptions]::Singleline)
