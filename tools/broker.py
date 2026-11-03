@@ -57,6 +57,7 @@ UMO = "QQ:FriendMessage:YOUR_QQ_ID"
 PLATFORM_IDS = ("QQ", "qq", "qq_sujinyan", "default")
 HOST = "127.0.0.1"
 PORT = 18090
+ALLOWED_HOSTS = {"127.0.0.1:18090", "localhost:18090"}
 TIMEOUT_SECONDS = 300
 REQUEST_RATE_LIMIT_SECONDS = 1.0
 REQUEST_BURST = 3
@@ -1530,7 +1531,15 @@ def run_request(payload: dict) -> tuple[int, dict]:
             return 502, {"ok": False, "error": f"email challenge send failed: {exc}"}
         threading.Thread(target=email_watch, args=(request_id,), daemon=True).start()
         log(f"email challenge sent: {request_id} {action} {target_text}")
-        return 200, {"ok": True, "id": request_id, "channel": "email", "challenge": challenge, "action": action, "target": target_text}
+        return 200, {
+            "ok": True,
+            "status": "requires_totp",
+            "id": request_id,
+            "channel": "email",
+            "challenge": challenge,
+            "action": action,
+            "target": target_text,
+        }
 
     # Network I/O must never run while _lock is held: send_qq can block for
     # up to 60 seconds, and the lock only protects pending-state transitions.
@@ -1576,7 +1585,13 @@ def run_request(payload: dict) -> tuple[int, dict]:
         send_qq("哥，验证码超时了，这次发送没有执行。")
         return 408, {"ok": False, "approved": False, "error": "verification timed out"}
 
-    response = {"ok": True, "id": request_id, "action": action, "target": target_text}
+    response = {
+        "ok": True,
+        "status": "requires_totp",
+        "id": request_id,
+        "action": action,
+        "target": target_text,
+    }
     if scoped_invalid:
         response["scoped_invalid"] = True
         response["scoped_error"] = "CBS_SCOPED_INVALID"
@@ -1848,16 +1863,41 @@ class Handler(BaseHTTPRequestHandler):
         provided = self.headers.get("X-Broker-Token", "")
         return secrets.compare_digest(provided, expected)
 
+    def _host_origin_ok(self) -> bool:
+        """Reject DNS-rebinding / cross-site requests before token auth."""
+        host_header = str(self.headers.get("Host", "") or "").strip().casefold()
+        if host_header not in ALLOWED_HOSTS:
+            return False
+        origin = str(self.headers.get("Origin", "") or "").strip()
+        if origin:
+            try:
+                parsed = urlparse(origin)
+            except ValueError:
+                return False
+            if parsed.scheme not in {"http", "https"}:
+                return False
+            if (parsed.hostname or "").lower() not in {"127.0.0.1", "localhost"}:
+                return False
+        return True
+
     def _local_only(self) -> bool:
-        host = str(self.client_address[0] if self.client_address else "").strip()
+        peer = str(self.client_address[0] if self.client_address else "").strip()
         try:
-            if host and ipaddress.ip_address(host).is_loopback:
-                return True
+            loopback = bool(peer and ipaddress.ip_address(peer).is_loopback)
         except ValueError:
-            pass
-        self._json(403, {"ok": False, "error": "loopback access only"})
-        log(f"rejected non-loopback client: {host}")
-        return False
+            loopback = False
+        if not loopback:
+            self._json(403, {"ok": False, "error": "loopback access only"})
+            log(f"rejected non-loopback client: {peer}")
+            return False
+        if not self._host_origin_ok():
+            self._json(403, {"ok": False, "error": "invalid Host or Origin"})
+            log(
+                "rejected forged Host/Origin: host=%r origin=%r"
+                % (self.headers.get("Host", ""), self.headers.get("Origin", ""))
+            )
+            return False
+        return True
 
     def _body(self) -> dict:
         length = min(int(self.headers.get("Content-Length", "0") or 0), 65536)

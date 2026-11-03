@@ -46,3 +46,7 @@ AstrBot SCM service, 6185, SQLite write probe, Job Object assignment, Broker 180
 
 AstrBot v4.29.3 and SnowLuma v2.2.1 are external upstream applications. CBS verifies the integration boundary it owns, not the internal behaviour of those applications, their plugins, QQ clients, or upstream APIs. Hidden third-party defects and future upstream changes are outside CBS's guarantee and require revalidation after upgrades.
 
+## WFP enforce status in v1.6.3
+
+WFP remains in audit mode in v1.6.3. CBS does not currently provide an outbound enforcement block at the WFP layer. The red-team defence matrix therefore reports the WFP unknown-egress test as **FAIL**, not PASS or SKIP, until a real enforce implementation and rollback test exist.
+

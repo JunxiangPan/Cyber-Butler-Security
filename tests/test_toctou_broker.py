@@ -35,6 +35,7 @@ def test_verify_rejects_handle_content_change(monkeypatch, tmp_path: Path) -> No
         {"action": "write_file", "target": str(target), "content": "approved"}
     )
     assert status == 200
+    assert body["status"] == "requires_totp"
     assert broker._pending is not None
 
     # Mutate through the same approved handle. A path re-open would not notice
