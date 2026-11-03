@@ -66,6 +66,21 @@ namespace CyberButler
             psi.EnvironmentVariables["QT_QPA_PLATFORM"] = "offscreen";
             psi.EnvironmentVariables["DISPLAY"] = "";
 
+            // Prove the service account can write the data directory before
+            // launching AstrBot; a failure is logged and fails the service.
+            try
+            {
+                string probe = Path.Combine(dataDir, ".service-write-probe");
+                File.WriteAllText(probe, DateTime.UtcNow.ToString("o"));
+                File.Delete(probe);
+                Append("SERVICE_DATA_WRITE_OK dir=" + dataDir);
+            }
+            catch (Exception ex)
+            {
+                Append("SERVICE_DATA_WRITE_FAIL dir=" + dataDir + " error=" + ex.GetType().Name + ": " + ex.Message);
+                throw;
+            }
+
             // Create the job before the child so descendants are bound to it.
             job = CreateJobObject(IntPtr.Zero, null);
             if (job == IntPtr.Zero) { throw new InvalidOperationException("CreateJobObject failed"); }

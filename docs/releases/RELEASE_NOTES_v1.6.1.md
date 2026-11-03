@@ -95,9 +95,9 @@ shipped/incomplete/non-guaranteed list is
   real-time protection, SmartScreen, or broad drives.
 - **Scoped uninstall**: package/project/both, stops processes, removes firewall
   rules and scheduled tasks, preserves reports.
-- **High-tier account and launch fixes**: S4U denial falls back to saved-password
-  logon; user rights are written through the LSA API instead of `secedit`; the
-  per-user Python runtime is copied where `CyberButlerSvc` can read it.
+- **High-tier account and launch fixes**: v1.6.1 used an S4U/password task
+  fallback; that historical path is retired in v1.6.2 in favour of the SCM
+  service `CyberButlerAstrBot`.
 
 ## 2. Broker and runtime controls
 
