@@ -132,8 +132,8 @@ Describe 'Installer ACL safety' {
     It 'lists only core outputs and excludes the later TOTP vault' {
         $targets = @(Get-CyberButlerAclTargets -InstallPath 'C:\CyberButler')
         $targets.Count | Should Be 4
-        ($targets -join ';') | Should Not Match 'AstrBot'
-        ($targets -join ';') | Should Not Match 'SnowLuma'
+        ($targets -join ';') | Should Not Match 'ExternalAgent'
+        ($targets -join ';') | Should Not Match 'ExternalApplication'
         ($targets -join ';') | Should Match 'tools'
         ($targets -join ';') | Should Match 'webui'
         ($targets -join ';') | Should Match 'data'

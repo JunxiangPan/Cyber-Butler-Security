@@ -1,4 +1,4 @@
-# TOTP material and vault lifecycle for the Cyber-Butler installer.
+﻿# TOTP material and vault lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerTotpMaterialPaths {
@@ -21,8 +21,8 @@ function Test-CyberButlerTotpVaultAcl {
         [Parameter(Mandatory = $true)]
         [string]$ReaderAccount,
         [Parameter(Mandatory = $true)]
-        [string]$AstrBotAccount,
-        [bool]$RequireAstrBotDeny = $true
+        [string]$ExternalAgentAccount,
+        [bool]$RequireExternalAgentDeny = $true
     )
 
     $result = [ordered]@{
@@ -38,16 +38,16 @@ function Test-CyberButlerTotpVaultAcl {
         $result.reason = 'vault-missing'
         return [pscustomobject]$result
     }
-    if ($ReaderAccount -ieq $AstrBotAccount) {
+    if ($ReaderAccount -ieq $ExternalAgentAccount) {
         $result.reason = 'reader-and-astrbot-are-same-account'
         return [pscustomobject]$result
     }
     try {
         $acl = Get-Acl -LiteralPath $VaultPath -ErrorAction Stop
         $readerSid = ([System.Security.Principal.NTAccount]$ReaderAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
-        $astrbotSid = ([System.Security.Principal.NTAccount]$AstrBotAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
+        $astrbotSid = ([System.Security.Principal.NTAccount]$ExternalAgentAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
         $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-        if ($currentSid -eq $astrbotSid) { $RequireAstrBotDeny = $false }
+        if ($currentSid -eq $astrbotSid) { $RequireExternalAgentDeny = $false }
         foreach ($rule in @($acl.Access)) {
             $id = [string]$rule.IdentityReference.Value
             $sid = $null
@@ -61,19 +61,19 @@ function Test-CyberButlerTotpVaultAcl {
             }
         }
         $result.vault_exists = $true
-        if ($RequireAstrBotDeny -and $result.astrbot_deny) {
+        if ($RequireExternalAgentDeny -and $result.astrbot_deny) {
             foreach ($materialName in @('totp_secret.dpapi', 'recovery_hashes.json')) {
                 $materialPath = Join-Path $VaultPath $materialName
                 if (-not (Test-Path -LiteralPath $materialPath)) { continue }
                 $materialAcl = Get-Acl -LiteralPath $materialPath -ErrorAction Stop
                 $materialDenied = @($materialAcl.Access | Where-Object {
                     $_.AccessControlType -eq 'Deny' -and
-                    (([string]$_.IdentityReference) -eq $AstrBotAccount -or ([string]$_.IdentityReference).Contains([string][char]92 + $AstrBotAccount))
+                    (([string]$_.IdentityReference) -eq $ExternalAgentAccount -or ([string]$_.IdentityReference).Contains([string][char]92 + $ExternalAgentAccount))
                 }).Count -gt 0
                 if (-not $materialDenied) { $result.astrbot_deny = $false; break }
             }
         }
-        $result.satisfied = $result.system_ok -and $result.administrators_ok -and $result.reader_ok -and ((-not $RequireAstrBotDeny) -or $result.astrbot_deny)
+        $result.satisfied = $result.system_ok -and $result.administrators_ok -and $result.reader_ok -and ((-not $RequireExternalAgentDeny) -or $result.astrbot_deny)
         if (-not $result.satisfied) { $result.reason = 'vault-acl-incomplete' }
     } catch {
         $result.reason = $_.Exception.Message
@@ -88,18 +88,18 @@ function Test-CyberButlerTotp {
         [Parameter(Mandatory = $true)]
         [string]$ReaderAccount,
         [Parameter(Mandatory = $true)]
-        [string]$AstrBotAccount,
-        [bool]$RequireAstrBotDeny = $true,
+        [string]$ExternalAgentAccount,
+        [bool]$RequireExternalAgentDeny = $true,
         $Handlers = @{}
     )
 
-    $context = [pscustomobject]@{ VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; AstrBotAccount = $AstrBotAccount }
+    $context = [pscustomobject]@{ VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; ExternalAgentAccount = $ExternalAgentAccount }
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'totp.test') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'totp.test' -Context $context)
     }
 
     $paths = Get-CyberButlerTotpMaterialPaths -VaultPath $VaultPath
-    $acl = Test-CyberButlerTotpVaultAcl -VaultPath $paths.vault -ReaderAccount $ReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny $RequireAstrBotDeny
+    $acl = Test-CyberButlerTotpVaultAcl -VaultPath $paths.vault -ReaderAccount $ReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny $RequireExternalAgentDeny
     $result = [ordered]@{
         vault_path = $paths.vault
         secret_path = $paths.secret
@@ -111,7 +111,7 @@ function Test-CyberButlerTotp {
         vault_exists = $acl.vault_exists
         vault_acl_satisfied = $acl.satisfied
         reader_account = $ReaderAccount
-        astrbot_account = $AstrBotAccount
+        astrbot_account = $ExternalAgentAccount
         supported = $true
         can_manage = [bool](Test-InstallerAdministrator)
         satisfied = $false
@@ -143,7 +143,7 @@ function New-CyberButlerTotpMaterial {
 
     $paths = Get-CyberButlerTotpMaterialPaths -VaultPath $VaultPath
     New-Item -ItemType Directory -Path $paths.vault -Force | Out-Null
-    $python = Join-Path $Root 'AstrBot\.venv\Scripts\python.exe'
+    $python = Join-Path $Root 'ExternalAgent\.venv\Scripts\python.exe'
     if (-not (Test-Path -LiteralPath $python)) {
         $command = Get-Command python.exe -ErrorAction SilentlyContinue
         if ($command) { $python = [string]$command.Source }
@@ -199,7 +199,7 @@ function Show-CyberButlerTotpEnrollment {
         throw 'Existing TOTP secret found without recovery codes; refusing to regenerate the secret. Restore recovery_codes.txt or reset the TOTP vault manually.'
     }
     if ($hasSecret -and -not $hasQr) {
-        $python = Join-Path $Root 'AstrBot\.venv\Scripts\python.exe'
+        $python = Join-Path $Root 'ExternalAgent\.venv\Scripts\python.exe'
         if (-not (Test-Path -LiteralPath $python)) {
             $command = Get-Command python.exe -ErrorAction SilentlyContinue
             if ($command) { $python = [string]$command.Source }
@@ -286,8 +286,8 @@ function Set-CyberButlerTotpVaultAcl {
         [Parameter(Mandatory = $true)]
         [string]$ReaderAccount,
         [Parameter(Mandatory = $true)]
-        [string]$AstrBotAccount,
-        [bool]$RequireAstrBotDeny = $true,
+        [string]$ExternalAgentAccount,
+        [bool]$RequireExternalAgentDeny = $true,
         $Journal = $null,
         [string]$JournalStep = 'totp',
         $Handlers = @{}
@@ -295,11 +295,11 @@ function Set-CyberButlerTotpVaultAcl {
 
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'totp.acl') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'totp.acl' -Context ([pscustomobject]@{
-            VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; AstrBotAccount = $AstrBotAccount
+            VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; ExternalAgentAccount = $ExternalAgentAccount
             Journal = $Journal; JournalStep = $JournalStep
         }))
     }
-    if ($ReaderAccount -ieq $AstrBotAccount) { throw 'Vault reader account cannot equal the AstrBot account.' }
+    if ($ReaderAccount -ieq $ExternalAgentAccount) { throw 'Vault reader account cannot equal the ExternalAgent account.' }
     if ($null -eq $Journal) { throw 'TOTP vault ACL changes require a journal for backup.' }
 
     $backup = Backup-CyberButlerAcl -Journal $Journal -Step $JournalStep -Path $VaultPath -NoTrack
@@ -311,16 +311,16 @@ function Set-CyberButlerTotpVaultAcl {
     $prop = [System.Security.AccessControl.PropagationFlags]::None
     $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
     $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-    $astrbotSid = ([System.Security.Principal.NTAccount]$AstrBotAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
-    $denyAstrBot = [bool]$RequireAstrBotDeny
+    $astrbotSid = ([System.Security.Principal.NTAccount]$ExternalAgentAccount).Translate([System.Security.Principal.SecurityIdentifier]).Value
+    $denyExternalAgent = [bool]$RequireExternalAgentDeny
 
     # Remove stale explicit denies that would still block the installer or the
-    # single-account AstrBot identity. Inherited rules were already removed.
+    # single-account ExternalAgent identity. Inherited rules were already removed.
     foreach ($rule in @($acl.Access)) {
         if ([string]$rule.AccessControlType -ne 'Deny') { continue }
         $ruleSid = $null
         try { $ruleSid = ([System.Security.Principal.NTAccount]([string]$rule.IdentityReference.Value)).Translate([System.Security.Principal.SecurityIdentifier]).Value } catch { }
-        if ($ruleSid -eq $currentSid -or (-not $denyAstrBot -and $ruleSid -eq $astrbotSid)) {
+        if ($ruleSid -eq $currentSid -or (-not $denyExternalAgent -and $ruleSid -eq $astrbotSid)) {
             $acl.RemoveAccessRule($rule) | Out-Null
         }
     }
@@ -329,11 +329,11 @@ function Set-CyberButlerTotpVaultAcl {
     $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule('BUILTIN\Administrators', 'FullControl', $inherit, $prop, $allow)))
     $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($currentIdentity, 'FullControl', $inherit, $prop, $allow)))
     $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($ReaderAccount, 'Read,ReadAndExecute', $inherit, $prop, $allow)))
-    if ($denyAstrBot) {
-        $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($AstrBotAccount, 'FullControl', $inherit, $prop, $deny)))
+    if ($denyExternalAgent) {
+        $acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($ExternalAgentAccount, 'FullControl', $inherit, $prop, $deny)))
     }
     Set-Acl -LiteralPath $VaultPath -AclObject $acl -ErrorAction Stop
-    if ($denyAstrBot) {
+    if ($denyExternalAgent) {
         # Windows does not reliably propagate a newly added inherited Deny to
         # already existing files. Broker ACL verification checks the material
         # files themselves, so put the Deny on each sensitive file explicitly.
@@ -346,7 +346,7 @@ function Set-CyberButlerTotpVaultAcl {
             if (-not (Test-Path -LiteralPath $materialFile)) { continue }
             $fileAcl = Get-Acl -LiteralPath $materialFile -ErrorAction Stop
             $fileAcl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule(
-                $AstrBotAccount, 'FullControl',
+                $ExternalAgentAccount, 'FullControl',
                 [System.Security.AccessControl.InheritanceFlags]::None,
                 [System.Security.AccessControl.PropagationFlags]::None,
                 $deny)))
@@ -354,10 +354,10 @@ function Set-CyberButlerTotpVaultAcl {
         }
     }
     $singleAccountMarker = Join-Path $VaultPath 'single-account.marker'
-    if ($denyAstrBot) {
+    if ($denyExternalAgent) {
         Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue
     } else {
-        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: AstrBot and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
+        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: ExternalAgent and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
     }
     return $backup
 }
@@ -369,17 +369,17 @@ function Assert-CyberButlerTotp {
         [Parameter(Mandatory = $true)]
         [string]$ReaderAccount,
         [Parameter(Mandatory = $true)]
-        [string]$AstrBotAccount,
-        [bool]$RequireAstrBotDeny = $true,
+        [string]$ExternalAgentAccount,
+        [bool]$RequireExternalAgentDeny = $true,
         $Handlers = @{}
     )
 
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'totp.assert') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'totp.assert' -Context ([pscustomobject]@{
-            VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; AstrBotAccount = $AstrBotAccount
+            VaultPath = $VaultPath; ReaderAccount = $ReaderAccount; ExternalAgentAccount = $ExternalAgentAccount
         }))
     }
-    $test = Test-CyberButlerTotp -VaultPath $VaultPath -ReaderAccount $ReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny $RequireAstrBotDeny -Handlers $Handlers
+    $test = Test-CyberButlerTotp -VaultPath $VaultPath -ReaderAccount $ReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny $RequireExternalAgentDeny -Handlers $Handlers
     return [bool]$test.satisfied
 }
 
@@ -430,8 +430,8 @@ function Invoke-CyberButlerTotp {
         [Parameter(Mandatory = $true)]
         [string]$ReaderAccount,
         [Parameter(Mandatory = $true)]
-        [string]$AstrBotAccount,
-        [bool]$RequireAstrBotDeny = $true,
+        [string]$ExternalAgentAccount,
+        [bool]$RequireExternalAgentDeny = $true,
         [string]$Issuer = 'Cyber-Butler',
         [string]$Account = 'owner',
         [string]$JournalStep = 'totp',
@@ -445,7 +445,7 @@ function Invoke-CyberButlerTotp {
         $Handlers = @{}
     )
 
-    $test = Test-CyberButlerTotp -VaultPath $VaultPath -ReaderAccount $ReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny $RequireAstrBotDeny -Handlers $Handlers
+    $test = Test-CyberButlerTotp -VaultPath $VaultPath -ReaderAccount $ReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny $RequireExternalAgentDeny -Handlers $Handlers
     $base = [ordered]@{
         module = 'totp'
         step = $JournalStep
@@ -458,9 +458,9 @@ function Invoke-CyberButlerTotp {
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
     }
-    if ($ReaderAccount -ieq $AstrBotAccount) {
+    if ($ReaderAccount -ieq $ExternalAgentAccount) {
         $base.status = 'conflict'
-        $base.message = 'Vault reader account cannot equal the AstrBot account.'
+        $base.message = 'Vault reader account cannot equal the ExternalAgent account.'
         $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
         return [pscustomobject]$base
     }
@@ -528,7 +528,7 @@ function Invoke-CyberButlerTotp {
                 }
             }
         }
-        $aclBackup = Set-CyberButlerTotpVaultAcl -VaultPath $paths.vault -ReaderAccount $ReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny $RequireAstrBotDeny -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
+        $aclBackup = Set-CyberButlerTotpVaultAcl -VaultPath $paths.vault -ReaderAccount $ReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny $RequireExternalAgentDeny -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
         if ($null -ne $Journal -and $aclBackup) {
             Add-CyberButlerReverseAction -Journal $Journal -Step $JournalStep -Action ([pscustomobject]@{
                 type = 'restore-acl'
@@ -536,7 +536,7 @@ function Invoke-CyberButlerTotp {
                 backup = [IO.Path]::GetFullPath($aclBackup)
             })
         }
-        $asserted = Assert-CyberButlerTotp -VaultPath $paths.vault -ReaderAccount $ReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny $RequireAstrBotDeny -Handlers $Handlers
+        $asserted = Assert-CyberButlerTotp -VaultPath $paths.vault -ReaderAccount $ReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny $RequireExternalAgentDeny -Handlers $Handlers
         if (-not $asserted) { throw 'TOTP assertion failed.' }
         if ($null -ne $Journal) { Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed | Out-Null }
         $base.status = 'completed'

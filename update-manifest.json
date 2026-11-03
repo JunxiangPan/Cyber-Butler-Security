@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "files": [
     {
       "path": ".github/ISSUE_TEMPLATE/documentation.yml",
@@ -109,8 +109,8 @@
     },
     {
       "path": "VERSION",
-      "sha256": "5e161b64f3dd8b20a291b5368b01a124132bc78229fbdd8da23171f55f966a9c",
-      "size": 7
+      "sha256": "86f8fa832a76358201d6e2fcf0bb47727efe2db23af730db64cead6527776bea",
+      "size": 6
     },
     {
       "path": "build/CyberButlerLauncher.cs",
@@ -184,8 +184,8 @@
     },
     {
       "path": "docs/10-security/known-limitations.md",
-      "sha256": "80e5b5a1b9224a553d4e08cd69876ef9185d61ce75d5cb9490cdb834dda1ca6c",
-      "size": 2273
+      "sha256": "6de393aff367684c76b162af91656d41ba8ae60fcd996b1470721aaaafa1dd59",
+      "size": 2593
     },
     {
       "path": "docs/10-security/scm-service-hardening.md",
@@ -393,6 +393,11 @@
       "size": 1495
     },
     {
+      "path": "docs/_data/status-v1.6.3.json",
+      "sha256": "59e506aeb241d970c39978174ee7c56e8f5a6fc9982e170b1bc0994b093ba8af",
+      "size": 5894
+    },
+    {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
       "sha256": "819fc7825e5a53bdd323cfce430d64ade0401b868aa6c8d1cf2f5d9f0995a23d",
       "size": 4977
@@ -574,18 +579,18 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "704f71c8cb69ca30b043445425635fb9ef8f2d2b92a62877ec22c6cafa101d7b",
-      "size": 143459
+      "sha256": "e54185f9d4282f375101263c50fc2ec969ea11161a2d6bf22cde9bc685ecc5a8",
+      "size": 140943
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "b1aea691f4f4ec25ff2acf80b22370823e29bf0f8a6cac58e4d4ec20ff458266",
-      "size": 50525
+      "sha256": "743b188486a2be26d55987caf55e275ac8a979f2c02b299e96ff52fa358f7fab",
+      "size": 50716
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
-      "sha256": "3cdabacb2229f57d369e1bf77382127feee9527fc6a58af675243408d25da6e9",
-      "size": 22800
+      "sha256": "5ec6e6526023b78172f6d387926c13dd2dc57b8b055ee8523890c47200213517",
+      "size": 22971
     },
     {
       "path": "installer/README.md",
@@ -594,13 +599,13 @@
     },
     {
       "path": "installer/Repair-AstrBotACL.ps1",
-      "sha256": "35f4ccfe28ab868c4c936f1436fa2930e8072da5d89f5f8eca28784684cc2235",
-      "size": 5766
+      "sha256": "b96ab7404aff04ffc6b080b66018a2b050b9fc3af0b4b88be91a548062250ca9",
+      "size": 5784
     },
     {
       "path": "installer/core-sources.json",
-      "sha256": "52db0943d4675530d10fdef34124e9e73e0bcde9660758c7f4906ca2c1f23c7d",
-      "size": 768
+      "sha256": "728faee157574c232ede1795e4fdf1ecae3b3b072e28d36c656fdf660d884b01",
+      "size": 262
     },
     {
       "path": "installer/lib/Add-DefenderExclusion.ps1",
@@ -619,8 +624,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "8a7930f20885fc5b9cb190343acbc840a97ef7724ae3cab31f904df0a532957c",
-      "size": 17417
+      "sha256": "76e5650bb59379406882e75911538432337ec9e007e19ad46e936926ed7690ae",
+      "size": 17377
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
@@ -629,13 +634,13 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "146c4b93326c2dd53a61698375b99584fc52f538c72146d619b28bf7b2b2c11a",
-      "size": 44193
+      "sha256": "e14bd827c57293269883061a26e8db8f941028771b9948ff7f512430e738dba4",
+      "size": 19248
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
-      "sha256": "c988f0e8776d543a364de2d4eb9552f4c5e34c9aae524c1e3606017b7004b9b5",
-      "size": 10121
+      "sha256": "3d7e6d0550c8ff64a210bf42ce7bab3ac631da8f23e25bd1915065630aceb5a0",
+      "size": 10181
     },
     {
       "path": "installer/lib/Installer.Firewall.ps1",
@@ -649,8 +654,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "7be0d1b635022a37d5fbcd9d445f97a2895fa078c05460bbb094e6ffd4529fdd",
-      "size": 37329
+      "sha256": "0e7605ae427f821ac408161a531aa517b943f863df65871b664e6a63fbe6352c",
+      "size": 30223
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
@@ -659,18 +664,18 @@
     },
     {
       "path": "installer/lib/Installer.Overlay.ps1",
-      "sha256": "54a7f94533a71a22e2a3546dcbeeec0662949bdc112da33cef25b685613c7d9c",
-      "size": 3563
+      "sha256": "f53c0749273443ca446abb38e21e9303b757d88ef9de6429c7238c77759ac3bd",
+      "size": 3719
     },
     {
       "path": "installer/lib/Installer.PersonalPlugins.ps1",
-      "sha256": "3bb914b0760b9162f0154496b48bf45e9e7b90e445c2e2a45ecee09d6d7d378c",
-      "size": 7673
+      "sha256": "1c6f442d9dbd92d223b3b47cc7ae8a3f8e392e36504083e74560f8a9626fd403",
+      "size": 7709
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
-      "sha256": "c8b93a2442681612987025d70a424a1371b00702f47c49a08e8ad12b7359582f",
-      "size": 18133
+      "sha256": "8af9383e53a0a53e7323c43e22f8b63e159b3eff9b2b989cfab398c1db686b2c",
+      "size": 18191
     },
     {
       "path": "installer/lib/Installer.Python.ps1",
@@ -689,28 +694,23 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "56e348a8e4d9df5b6bc8e49ffc6046864fdde58e91f92381ff0a1df52b0195bd",
-      "size": 56404
+      "sha256": "5e861956880579a0e2f08d3255b6b3b571d13b13e0519850f3af891a54bad110",
+      "size": 45334
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
-      "sha256": "cc1e2e6f861e11987b35aed046cfff6ea393a26f3de2ea8e454fe58b3b64520e",
-      "size": 9480
+      "sha256": "5bf4f8330f8fb2ef63a18898e961387103959591e92c0e38c33fb357dc6bdcf6",
+      "size": 9532
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "a522bcaa85866d2b99d9619a6628f06e16abf28ed0cc41b7a88bbba81e4eabca",
-      "size": 27015
+      "sha256": "25f8985b8fca4f7ad8d830d507975612590f663c7efa9a74285f8b34022c3262",
+      "size": 27384
     },
     {
       "path": "installer/lib/launch-guide.json",
-      "sha256": "77a35244f212582dc77c8dc044b78686cd36d9af4b22e1e7f8e729df3abb0d7b",
-      "size": 36971
-    },
-    {
-      "path": "installer/lib/post-next-details.json",
-      "sha256": "b9dac8b443cd7b9ecd8ce7d11e00d77d58bfe61c1c62a7f862407411862aee5f",
-      "size": 11951
+      "sha256": "ab1f5158278caf1f98e669270cf5fb1943153e42002b170f3c617923e2b361d2",
+      "size": 6396
     },
     {
       "path": "installer/lib/totp_material.py",
@@ -733,29 +733,19 @@
       "size": 529
     },
     {
-      "path": "installer/service/CyberButlerAstrBotService.cs",
-      "sha256": "951046c70da3c1a7fd1f23c4fb4f6a784b88bf8d9022a186ac776ae1ad40262c",
-      "size": 8661
-    },
-    {
-      "path": "installer/service/CyberButlerAstrBotService.exe",
-      "sha256": "383c02519ef50669679175e28dd5476671918d8bf661dfcad6df4da483bf37c9",
-      "size": 10240
-    },
-    {
       "path": "installer/tests/Installer.Accounts.Tests.ps1",
       "sha256": "f396ea638a6e4f68be987e9e4a8f6a47d9da30194179bbd4e8ce9304d85d4c26",
       "size": 9461
     },
     {
       "path": "installer/tests/Installer.Acl.Tests.ps1",
-      "sha256": "af84bc2998f5b95c51d640295e7c9612cdc6c014c3d69db39065d49674c89681",
-      "size": 8173
+      "sha256": "b85e7411e73572831f357f47014184cb04964a7d6bbf2b53ae133feb2a04436c",
+      "size": 8154
     },
     {
       "path": "installer/tests/Installer.Core.Tests.ps1",
-      "sha256": "c54ec46c50b0757ed6f0b3a30466b6ff01b7b97f135a061f476ae6925030e2c1",
-      "size": 16645
+      "sha256": "932739111b89030c9216b46111d206524c659d942a1ce0647f89aa64788cdc64",
+      "size": 4651
     },
     {
       "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
@@ -774,38 +764,33 @@
     },
     {
       "path": "installer/tests/Installer.Journal.Tests.ps1",
-      "sha256": "76e3f8d1c4e985890ae8ca709ec2433b91fa925c896ef200981531c1b5e3398d",
-      "size": 12243
+      "sha256": "36f38c9256190a3c1c5c2484063274bfeff7ac30153a46bdd7a85344d255c7eb",
+      "size": 12255
     },
     {
       "path": "installer/tests/Installer.Main.Tests.ps1",
-      "sha256": "134c7d82f50a9049c093991bd1021a5722c2654987b1a66ba06e917689239c25",
-      "size": 24530
+      "sha256": "c7a32e38df80d8876b64fc88d2e58222c94a96b2d4e1dd5e28c8fcc66dfd7b9c",
+      "size": 24895
     },
     {
       "path": "installer/tests/Installer.Migration.Tests.ps1",
-      "sha256": "adfe718572431b641474ed3d5e11e7501e608eae40a7f4f79079cc5bd5e96bb8",
-      "size": 10009
+      "sha256": "1b9377785dc047b7d76f63f85af4016e6b000dffde7a2553b122267ba7f05626",
+      "size": 10037
     },
     {
       "path": "installer/tests/Installer.Overlay.Tests.ps1",
-      "sha256": "ff807069864e2e91bfc903726001a89d727eded53d5070bae34221b31d223784",
-      "size": 9403
+      "sha256": "3c282f57bc3a572bb271730963448bea2190a5965dd74a6f94841dc476eebdf9",
+      "size": 8658
     },
     {
       "path": "installer/tests/Installer.PersonalPlugins.Tests.ps1",
-      "sha256": "708b6aa5d7cfb9b422a2efa28611a670a359f10981f5124d3d0bef2a1e123953",
-      "size": 8242
-    },
-    {
-      "path": "installer/tests/Installer.PluginSmoke.Tests.ps1",
-      "sha256": "e769b42d47c3611f4f2e7eebad464d142842e966fb41aea9e9b5d1d30c57a316",
-      "size": 4862
+      "sha256": "5d5ebf757ffedade282cb8e49ca0ff94f3458a2e62683b2cfa51dd75bb93a65c",
+      "size": 8329
     },
     {
       "path": "installer/tests/Installer.Preflight.Tests.ps1",
-      "sha256": "550c539832581ef496a619cce9253b9d34e1e86b11105929ccb773e1da696fab",
-      "size": 7774
+      "sha256": "f19539fe3f2a0b8c2dbf956400828fec31da29baf305262d0893dbe41207e61b",
+      "size": 7786
     },
     {
       "path": "installer/tests/Installer.Python.Tests.ps1",
@@ -824,288 +809,18 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "439831cef6c68615681459faa43939f758e8f5afafa714d0e4414b30663221b8",
-      "size": 12649
+      "sha256": "c25f58eeb9ebe86604d6853508664c6f8997535ec24970e87c160403328b1123",
+      "size": 12418
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",
-      "sha256": "daea44912fcb45c922b9d48a3976d7691f0e0465f8c8a5f324836ca0756934f6",
-      "size": 5649
+      "sha256": "66731d0bfc8d0e338284202f7664e02a8793d06b5d2fd7be93065cc4ad62c2d5",
+      "size": 5655
     },
     {
       "path": "installer/tests/Installer.Totp.Tests.ps1",
-      "sha256": "92ee8311244c464a71a49e5f1b3ec50ae9447f19a8c9e11744cc2bddd37a0cb6",
-      "size": 13990
-    },
-    {
-      "path": "overlay/astrbot/core/agent/runners/tool_loop_agent_runner.py",
-      "sha256": "91707580dfad690bd4602d19b620eb1905b3ab2cd2eb27066660866363a0b9dd",
-      "size": 77219
-    },
-    {
-      "path": "overlay/astrbot/core/astr_agent_tool_exec.py",
-      "sha256": "44bfb74d8f2eb0adbe91ec5acf31024e87805042936a38b0cf358196c0b4c961",
-      "size": 35625
-    },
-    {
-      "path": "overlay/astrbot/core/astr_main_agent.py",
-      "sha256": "36f3c832356c0add1ce90145dfc0fd8d3e523b1b8e2614775574a44fa5e53972",
-      "size": 84143
-    },
-    {
-      "path": "overlay/astrbot/core/db/po.py",
-      "sha256": "de396483b7726ac1386b501f3c904225b5a001c48a74f363e8e2cf37995dfde2",
-      "size": 22606
-    },
-    {
-      "path": "overlay/astrbot/core/db/sqlite.py",
-      "sha256": "cf6733fa120db14fb85eb8f6f51292e60cea3cf25b58c2b1cfc7501cf0301287",
-      "size": 108777
-    },
-    {
-      "path": "overlay/astrbot/core/pipeline/process_stage/method/agent_sub_stages/internal.py",
-      "sha256": "b3683aec591fd07669d40d696916a9f2ddad58fce8a1693c89ba69dcb7914ad1",
-      "size": 29545
-    },
-    {
-      "path": "overlay/astrbot/core/provider/decision.py",
-      "sha256": "37103c0fde7e959c63d40f5c39a984bfb29be3c6b74a4f1e9f7b2faa2d5d66f3",
-      "size": 6667
-    },
-    {
-      "path": "overlay/astrbot/core/provider/entities.py",
-      "sha256": "d3ae6c3221d1dfa59b15d8d7bf27a09691d43d873c1ec2df26fa4dee44d65191",
-      "size": 23531
-    },
-    {
-      "path": "overlay/astrbot/core/provider/provider.py",
-      "sha256": "574be0309752a982178572d7aa99e0db1a543da9204d59d5c020da369a77f81d",
-      "size": 18697
-    },
-    {
-      "path": "overlay/astrbot/core/star/context.py",
-      "sha256": "e754a55207f00a5d340a69ddddc4ad0987df1b7905c1d3f63e79c391d3f0e71b",
-      "size": 43753
-    },
-    {
-      "path": "overlay/astrbot/core/tools/message_tools.py",
-      "sha256": "b8359da19eddf81cd7ca31841e118a9eca04fe7968a847155ea78d2c5e49f8d7",
-      "size": 33504
-    },
-    {
-      "path": "overlay/astrbot/core/tools/web_search_tools.py",
-      "sha256": "67984c744e32b4c23dd2e86d7cb87e988be1220945413a557e9acba925b16cf3",
-      "size": 92215
-    },
-    {
-      "path": "overlay/astrbot/dashboard/server.py",
-      "sha256": "765dea781ea0037ab32fcadd70c80d030bb468a43858f33b3d136b5b19cbbd07",
-      "size": 29678
-    },
-    {
-      "path": "overlay/astrbot/dashboard/services/stat_service.py",
-      "sha256": "5a8e4917cd8fc244287e1e0c3aeb395044f3b6f796ab085aac44072e1baff89a",
-      "size": 39269
-    },
-    {
-      "path": "overlay/astrbot/data/plugins/astrbot_plugin_cloud_fallback/main.py",
-      "sha256": "6a43c8221b3596dfb49cbed1f90b54087e14ed78db5c800f5c34321105043ac1",
-      "size": 7775
-    },
-    {
-      "path": "overlay/overlay-manifest.json",
-      "sha256": "018d237a17cd432e67c0686e9d5943cf89cad5f4e4de5f7cf0ef20de9fdcc2ce",
-      "size": 5357
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/LICENSE",
-      "sha256": "c054702afd834c2603ca81a1d3b41e30473420e37b88d90a70dacc10704a5962",
-      "size": 1061
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/README.md",
-      "sha256": "77f3ba5e06d1ba72e4e70ec8efd1e318fbe54fe3d8770352de67487e8cd73aed",
-      "size": 9895
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/__init__.py",
-      "sha256": "984300ec34fd7be7353cadfa11caf02ca9390ea1bdbfa45f74341f99c5e0ec15",
-      "size": 211
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/debounce_buffer.py",
-      "sha256": "1a34b9ee86d9d55285521513ea6ae78f96f8605d48c0909e6724f04f642a34d0",
-      "size": 2836
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/gatekeeper.py",
-      "sha256": "0527d917d3f055110e3fe865392a7ab89523b6f749f31209f133dc1533e61027",
-      "size": 15455
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/jev_client.py",
-      "sha256": "f2af36fbac6ff6b1d59803ce5cb9e5b7d5d0635c0d3d6c549e8fd2650733e316",
-      "size": 23298
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/main.py",
-      "sha256": "33ce1d80bb58766a4fe67b9f1822ba447ceaf01cf780c3f96374f76cef000d87",
-      "size": 20932
-    },
-    {
-      "path": "plugins/astrbot_plugin_at_gate/metadata.yaml",
-      "sha256": "ae9be8bfcd4a270c09edb9b1713af9f50e9c201d468b768ea46852190e031554",
-      "size": 1060
-    },
-    {
-      "path": "plugins/astrbot_plugin_cloud_fallback/main.py",
-      "sha256": "c5ebe6df6d2292d1fe02c411cb05b9f2350c3158703bcbe227e753302ba50c34",
-      "size": 5172
-    },
-    {
-      "path": "plugins/astrbot_plugin_cloud_fallback/metadata.yaml",
-      "sha256": "e28a895c066a1bd47e40ef30af830109d31a572e74d069a6e07346056cc3f798",
-      "size": 398
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/__init__.py",
-      "sha256": "9e77cd4213f0706383da335b301dd7711549dcb49053c592b8c40ce7034fde47",
-      "size": 40
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/_conf_schema.json",
-      "sha256": "a75830e0b9a5c6622901b875a7c6d1d141eb515cd979fa48ee40ab7dc8a3446d",
-      "size": 302
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/audit.py",
-      "sha256": "4884e6868d923b90996b8eb9364c8e242e259a603a7cac71f5b2c00a6fae1a68",
-      "size": 2297
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/auth.py",
-      "sha256": "62b8ade6d8903ad17deb512ed5cb1874d230d64b64f2873c8be0f79d9a8695c4",
-      "size": 2341
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/commands.py",
-      "sha256": "2c2800d5e4ceac0f8fc4c9893ff47147b9179d29ef1a93d3115cae57c1aa9a69",
-      "size": 1036
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/formatting.py",
-      "sha256": "6d389f2995c4cd5e6698a2f5aeedcc447278c522aca07c0e9513cb471c1d942f",
-      "size": 2696
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/main.py",
-      "sha256": "1ca6b44249562c5865ce896bcc54832f65f94293e403022366bd940b3c866a71",
-      "size": 4524
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/metadata.yaml",
-      "sha256": "39cc24de74f14418469a8e2d42e064a55fb19154926015dd5f15b45ab1b36353",
-      "size": 238
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/redact.py",
-      "sha256": "4d52ff463e8514cb76ff501594dfff270f45b21b5011b7fa037539680d9a333f",
-      "size": 2539
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/service.py",
-      "sha256": "1afd35f5ddc8429464176962a100d9d6806915ddb3e55c0e1554a7f7d84ee1a9",
-      "size": 3192
-    },
-    {
-      "path": "plugins/astrbot_plugin_dsh_bridge/sources.py",
-      "sha256": "201f0592585f308cb54237f6c4a1fc11ccbf85565e9e8ce5869222095c300f03",
-      "size": 8551
-    },
-    {
-      "path": "plugins/astrbot_plugin_dst_guard/main.py",
-      "sha256": "774da1fa85e78428ebf64667a5150b5f79f7d028e498caa3918f9fb7fce66128",
-      "size": 10540
-    },
-    {
-      "path": "plugins/astrbot_plugin_dst_guard/metadata.yaml",
-      "sha256": "b39d6988e04013b2e427a7ea45b846b620bf2e3bb7cba1ff01afd70100d86fcb",
-      "size": 817
-    },
-    {
-      "path": "plugins/astrbot_plugin_dst_guard/tests/test_dst_guard_plugin.py",
-      "sha256": "27c9b7bb85859a15c1f652e2f312276545acc1daadf482556f0f2f68e5755818",
-      "size": 1096
-    },
-    {
-      "path": "plugins/astrbot_plugin_mcp_readonly/main.py",
-      "sha256": "54bc16c805cb1a3ead58313085c063a6508dda85db4e3e1f91855fc872b96627",
-      "size": 1830
-    },
-    {
-      "path": "plugins/astrbot_plugin_mcp_readonly/metadata.yaml",
-      "sha256": "840312e7ac41f3b221bcf20d845e692151a54893cf774abf959dc034a29e4fa6",
-      "size": 337
-    },
-    {
-      "path": "plugins/astrbot_plugin_router/_conf_schema.json",
-      "sha256": "f24d70fbd783e7cffdc3bab77b7a9561b9c8ecfbbd2cef874ea5b245f0763d5c",
-      "size": 1240
-    },
-    {
-      "path": "plugins/astrbot_plugin_router/main.py",
-      "sha256": "854538c0e86bc364aa3a2c8edb9a0c719821183b7ff1e7b0332d5c532489425a",
-      "size": 45080
-    },
-    {
-      "path": "plugins/astrbot_plugin_router/metadata.yaml",
-      "sha256": "2714257355058433d629a1628bfcdf85ce9350bf8b1a1f299ae2363407466972",
-      "size": 268
-    },
-    {
-      "path": "plugins/astrbot_plugin_security_gate/main.py",
-      "sha256": "c7c650398916cb13ef796565215bb73449de079524c3fd42adce92747077e86e",
-      "size": 8336
-    },
-    {
-      "path": "plugins/astrbot_plugin_security_gate/metadata.yaml",
-      "sha256": "fcff790699b6338b1994fbae022447c1311001a045bf1890d410b9a3c7da7b28",
-      "size": 379
-    },
-    {
-      "path": "plugins/astrbot_plugin_totp_broker/main.py",
-      "sha256": "3faca2adaf6aaa6b8889e141794873f8ec4b99efd376a99c1aaa6cfd146b9e35",
-      "size": 11624
-    },
-    {
-      "path": "plugins/astrbot_plugin_totp_broker/metadata.yaml",
-      "sha256": "4ff10606b3a263d62f57099b4843c441a71f4bb94eaed485bdf2055ceeef9992",
-      "size": 345
-    },
-    {
-      "path": "plugins/astrbot_plugin_weather_tools/main.py",
-      "sha256": "51d113badee2a9a8c441d68a19b0b03d74723f816a2a91b6aec7d220550bacc4",
-      "size": 8590
-    },
-    {
-      "path": "plugins/astrbot_plugin_weather_tools/metadata.yaml",
-      "sha256": "ae674032c484345ba21b3de9d5b6e12888b65df294c0511b5529190076015b78",
-      "size": 373
-    },
-    {
-      "path": "plugins/astrbot_plugin_webui_bridge/_conf_schema.json",
-      "sha256": "9f916e36be1ef2bfb6effbe4f760bb275cf3bd30c03a7ef504c23aa38e69ca67",
-      "size": 564
-    },
-    {
-      "path": "plugins/astrbot_plugin_webui_bridge/main.py",
-      "sha256": "d794d8f664d5be4918a83d484fbda894b1e5b7523139e2ea660388a9156982cb",
-      "size": 4231
-    },
-    {
-      "path": "plugins/astrbot_plugin_webui_bridge/metadata.yaml",
-      "sha256": "3720d940aea83567e400333d71b3f749768a1a6829f3db9c2a93fe26cb5d7f10",
-      "size": 279
+      "sha256": "8a6ea5c919d9441c43ded442c65126b2b4c533557ebf7e9c3d7fd9e97752dd6f",
+      "size": 14104
     },
     {
       "path": "pytest.ini",
@@ -1158,6 +873,11 @@
       "size": 1063
     },
     {
+      "path": "tests/test_broker_headers.py",
+      "sha256": "5b73fde48b4f4eee0bc64f6375f40128209677ccb4e97014cf4f513bf5c6005b",
+      "size": 1275
+    },
+    {
       "path": "tests/test_broker_manifest.py",
       "sha256": "ae923721680a71a3da180110ec13357b039d6913f13133703545e204b5b76ab3",
       "size": 4035
@@ -1181,6 +901,11 @@
       "path": "tests/test_critical_integrity.py",
       "sha256": "039ced99778945997210e33a2a5ebbd91bf1323789c9ffe27476c9696e21bc9b",
       "size": 1583
+    },
+    {
+      "path": "tests/test_defense_matrix.py",
+      "sha256": "b8bbfbaa3f298906e70ea18fad476966ab8b3d37d40b5eed7a49f200d70423c4",
+      "size": 1349
     },
     {
       "path": "tests/test_docs_consistency.py",
@@ -1211,6 +936,11 @@
       "path": "tests/test_media_bypass.py",
       "sha256": "9610806d36c72f49c20d39d8463a1236646a2027e8853f159f840148a28d09e2",
       "size": 1049
+    },
+    {
+      "path": "tests/test_package_independence.py",
+      "sha256": "d811a5efb7bdf39806d24bf4a5f05988465f8d8561341f2166785d470f81cbd0",
+      "size": 669
     },
     {
       "path": "tests/test_path_guard.py",
@@ -1274,8 +1004,8 @@
     },
     {
       "path": "tests/test_toctou_broker.py",
-      "sha256": "d76b836b5e665d2b8d481e2084a339d66d9af413e1fd3003319cf27617fea823",
-      "size": 1702
+      "sha256": "ce0cce7c1a35df3c799ab0f19bc8454f84b13c16e2ca19942e87d3feb712a800",
+      "size": 1798
     },
     {
       "path": "tests/test_totp_bruteforce.py",
@@ -1354,8 +1084,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "79f74901c21c2e2fb5fc58ae2901f00d09d19bfc7a4b228f912600241d8ed984",
-      "size": 82060
+      "sha256": "b7d8c5351707759c1773cf50a77ea9bbba7741b6520394cdb5f145a409e6367f",
+      "size": 83411
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1619,8 +1349,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "716f3518869fec0a5a3f6809958920fdee1644e0a20ac76a6d09bd83a9e12110",
-      "size": 5450
+      "sha256": "5490e8183a74b6dbde68a54526eade504a80e977fd2bcbedc86e6707c40f7d4b",
+      "size": 6313
     },
     {
       "path": "tools/physical_separation.py",
@@ -1666,6 +1396,16 @@
       "path": "tools/quarantine.py",
       "sha256": "0a100f6132d4bc1c563bf6ba28d90be8fae28214f456a34b0a230eaa3c55ae05",
       "size": 3816
+    },
+    {
+      "path": "tools/red_team_pentest.py",
+      "sha256": "1ff6eb820f175d8239bc3dcad0e75dded61e3cbe2d6facd7ff22dd9bd46de8bb",
+      "size": 19315
+    },
+    {
+      "path": "tools/red_team_test.py",
+      "sha256": "978b5a4ff4e81d5a1d09ffdc07c41666b8d0ec2b7a9b659d03fdf14945419882",
+      "size": 9465
     },
     {
       "path": "tools/repair_memory_sources.py",
@@ -1824,8 +1564,8 @@
     },
     {
       "path": "tools/win_path_guard.py",
-      "sha256": "f95affa9eed25f0d17d31570ff8aa3b48cde88d8c7ecebd39d0c8a85dbd8ed74",
-      "size": 15026
+      "sha256": "521ae3c8bff1af80021143d82842580aaf20f9a835bea501a76ac8fb87e7cd99",
+      "size": 16031
     },
     {
       "path": "tools/write_memory_metadata.py",
@@ -1879,8 +1619,8 @@
     },
     {
       "path": "webui/requirements.txt",
-      "sha256": "aefb3944a25c1389bee9c4b89d164cffff3f6fdaddf71d99acf0aac214056f16",
-      "size": 71
+      "sha256": "0beb392bf8c31123841b45edeec09eeaf752b04d358930b01aa67069e6b81028",
+      "size": 108
     },
     {
       "path": "webui/run.py",

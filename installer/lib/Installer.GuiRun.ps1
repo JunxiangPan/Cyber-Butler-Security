@@ -323,59 +323,6 @@ function Remove-CyberButlerPackage {
     return ($targets -join '; ')
 }
 
-function Get-CyberButlerAstrBotInitialCredentials {
-    param([Parameter(Mandatory = $true)][string]$InstallPath)
-    $log = Join-Path $InstallPath 'AstrBot\data\logs\astrbot.log'
-    $passwordFile = Join-Path $InstallPath 'AstrBot\data\logs\initial-admin-password.txt'
-    $passwordMarker = Join-Path $InstallPath 'AstrBot\data\.cbs-dashboard-password-configured'
-    $result = [pscustomobject]@{ username = 'astrbot'; password = ''; log = $log; password_file = $passwordFile }
-    $configPath = Join-Path $InstallPath 'AstrBot\data\cmd_config.json'
-    try {
-        if (Test-Path -LiteralPath $configPath) {
-            $cfg = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($cfg.dashboard.username) { $result.username = [string]$cfg.dashboard.username }
-        }
-    } catch { }
-    if ((Test-Path -LiteralPath $passwordFile) -and (Test-Path -LiteralPath $passwordMarker)) {
-        try { $result.password = (Get-Content -LiteralPath $passwordFile -Raw -Encoding UTF8).Trim() } catch { }
-    }
-    if (-not (Test-Path -LiteralPath $log)) { return $result }
-    try {
-        $lines = @(Get-Content -LiteralPath $log -Tail 400 -Encoding UTF8 -ErrorAction Stop)
-        foreach ($line in $lines) {
-            if ($line -match 'Initial username:\s*(\S+)') { $result.username = [string]$Matches[1] }
-            if (-not $result.password -and $line -match 'Initial password:\s*(\S+)') { $result.password = [string]$Matches[1] }
-        }
-    } catch { }
-    return $result
-}
-
-function Get-CyberButlerSnowLumaInitialCredentials {
-    param([Parameter(Mandatory = $true)][string]$InstallPath)
-    $logDir = Join-Path $InstallPath 'SnowLuma\logs'
-    $candidates = @(
-        (Join-Path $logDir 'startup-snowluma.out.log'),
-        (Join-Path $logDir 'start-snowluma-console.log')
-    )
-    $candidates += @(Get-ChildItem -LiteralPath $logDir -Filter 'snowluma-*.log' -File -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending | Select-Object -First 3 -ExpandProperty FullName)
-    $result = [pscustomobject]@{ username = 'admin'; password = ''; log = (Join-Path $logDir 'startup-snowluma.out.log') }
-    foreach ($log in $candidates) {
-        if (-not (Test-Path -LiteralPath $log)) { continue }
-        $result.log = $log
-        try {
-            foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -Encoding UTF8 -ErrorAction Stop)) {
-                if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
-                    $result.username = [string]$Matches['user']
-                    $result.password = [string]$Matches['pass']
-                    return $result
-                }
-            }
-        } catch { }
-    }
-    return $result
-}
-
 function Show-CyberButlerPostInstallWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,
@@ -383,125 +330,63 @@ function Show-CyberButlerPostInstallWindow {
         [string]$ReportPath = (Join-Path $env:ProgramData 'CyberButler\installer-report\install-report.json'),
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
-        [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
-        [string]$SnowLumaUrl = 'http://127.0.0.1:5099/',
         [string]$LaunchGuideText = '',
         [hashtable]$Text = @{},
         [switch]$SelfTest
     )
+    if ($SelfTest) { return $true }
     $title = if ($Text['PostTitle']) { $Text['PostTitle'] } else { 'Installation complete' }
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Installation complete" Width="760" Height="620"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-        Background="#0F172A">
+        Title="Installation complete" Width="700" Height="520"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Background="#0F172A">
   <Grid Margin="24">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <TextBlock x:Name="PostTitle" Text="Installation complete" Foreground="#F8FAFC" FontSize="26" FontWeight="SemiBold"/>
     <TextBlock x:Name="PostSubtitle" Grid.Row="1" Text="" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,10,0,0"/>
-    <TextBox x:Name="PostBody" Grid.Row="2" IsReadOnly="True" AcceptsReturn="True"
-             VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"
-             Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B"
-             Padding="12" TextWrapping="Wrap" Margin="0,14,0,0"/>
+    <TextBox x:Name="PostBody" Grid.Row="2" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B" Padding="12" TextWrapping="Wrap" Margin="0,14,0,0"/>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,14,0,0">
-      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="105" Height="36" Margin="0,0,6,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
-      <Button x:Name="OpenAstrBotButton" Content="Open AstrBot" Width="105" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenSnowLumaButton" Content="Open SnowLuma" Width="115" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenGuideButton" Content="Install guide" Width="100" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenLaunchButton" Content="Startup guide" Width="100" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenReportButton" Content="Open report" Width="95" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="110" Height="36" Margin="0,0,6,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
+      <Button x:Name="OpenGuideButton" Content="Install guide" Width="105" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenReportButton" Content="Open report" Width="100" Height="36" Margin="0,0,6,0"/>
       <Button x:Name="ClosePostButton" Content="Close" Width="70" Height="36"/>
     </StackPanel>
-    <TextBlock Grid.Row="4" Text="" Foreground="#64748B" FontSize="11" Margin="0,16,0,0" TextWrapping="Wrap"/>
   </Grid>
 </Window>
 '@
-    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
-    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
-    if ($SelfTest) { return $true }
+    $dialog = [System.Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader ([xml]$xaml)))
     $dialog.Owner = $Owner
     $dialog.FindName('PostTitle').Text = $title
-    $dialog.FindName('PostSubtitle').Text = $(if ($Text['PostSubtitle']) { $Text['PostSubtitle'] } else { 'The three services are installed. Open the WebUI and configure the bot account and model provider next.' })
-    $body = @()
-    $body += '--- Installation / 安装信息 ---'
-    $body += 'Install path: ' + $InstallPath
-    $body += 'WebUI: ' + $WebUIUrl
-    $body += 'AstrBot: ' + $AstrBotUrl
-    $body += 'SnowLuma: ' + $SnowLumaUrl
-    try {
-        $null = Invoke-WebRequest -Uri 'http://127.0.0.1:8766/health' -UseBasicParsing -TimeoutSec 3
-        $body += 'OTP Mailer (8766): ready'
-    } catch {
-        $body += 'OTP Mailer (8766): NOT ready; run Cyber-Butler OTP Mailer or check webui\data\otp_mailer.err.log'
-    }
-    try {
-        $webCfgPath = Join-Path $InstallPath 'webui\config.json'
-        if (Test-Path -LiteralPath $webCfgPath) {
-            $webCfg = Get-Content -LiteralPath $webCfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($webCfg.file_root) { $body += 'File folder: ' + [string]$webCfg.file_root }
-        }
-    } catch { }
-    $body += 'Report: ' + $ReportPath
-    if ($GuidePath) { $body += 'Guide: ' + $GuidePath }
+    $dialog.FindName('PostSubtitle').Text = 'CBS is installed. It does not bundle or manage an external agent.'
+    $body = @(
+        '--- Installation / 安装信息 ---',
+        ('Install path: ' + $InstallPath),
+        ('CBS WebUI: ' + $WebUIUrl),
+        ('Report: ' + $ReportPath)
+    )
+    if ($GuidePath) { $body += ('Guide: ' + $GuidePath) }
     $body += ''
-    $body += '--- Credentials / 凭据 ---'
-    $astrbotCreds = Get-CyberButlerAstrBotInitialCredentials -InstallPath $InstallPath
-    if ($astrbotCreds.password) {
-        $body += 'AstrBot initial username: ' + $(if ($astrbotCreds.username) { $astrbotCreds.username } else { 'astrbot' })
-        $body += 'AstrBot initial password: ' + $astrbotCreds.password
-        $body += 'Change the AstrBot password after the first login.'
-    } else {
-        $body += 'AstrBot initial password was not captured; see ' + $astrbotCreds.log + ' or reset it with:'
-        $body += '  C:\CyberButler\AstrBot\.venv\Scripts\python.exe -m astrbot.cli password'
-    }
-    $snowCreds = Get-CyberButlerSnowLumaInitialCredentials -InstallPath $InstallPath
-    $body += 'SnowLuma WebUI username: ' + $snowCreds.username
-    if ($snowCreds.password) {
-        $body += 'SnowLuma WebUI initial password: ' + $snowCreds.password
-        $body += 'Change the SnowLuma WebUI password after the first login.'
-    } else {
-        $body += 'SnowLuma WebUI initial password: see ' + $snowCreds.log
-    }
-    $oneBotTokenFile = Join-Path $InstallPath 'data\onebot-reverse-token.txt'
-    if (Test-Path -LiteralPath $oneBotTokenFile) {
-        $oneBotToken = (Get-Content -LiteralPath $oneBotTokenFile -Raw -Encoding UTF8).Trim()
-        $body += ''
-        $body += 'Reverse WebSocket Token (same value in AstrBot and SnowLuma):'
-        $body += $oneBotToken
-        $body += 'Token file: ' + $oneBotTokenFile
-    }
+    $body += '--- External agent / 外部 Agent ---'
+    $body += 'CBS is an independent control plane. Install an external agent or another agent separately, then connect it to the CBS Broker on port 18090.'
+    $body += 'CBS does not install, configure, or manage that external application.'
     $body += ''
-    $body += '--- Next steps / 下一步 ---'
-    $body += $(if ($Text['PostNext']) { $Text['PostNext'] } else { 'Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> keep TOTP recovery codes offline.' })
-    if ($Text['PostNextDetailed']) {
-        $body += ''
-        $body += @($Text['PostNextDetailed'])
-    }
+    $body += '--- Next / 下一步 ---'
+    $body += '1. Open the CBS WebUI and complete approval/TOTP setup.'
+    $body += '2. Point your agent at http://127.0.0.1:18090 (Broker).'
+    $body += '3. Read docs/API_SPEC.md for the standard integration contract.'
     $dialog.FindName('PostBody').Text = ($body -join "`r`n")
-    $dialog.FindName('OpenWebUIButton').Content = $(if ($Text['OpenWebUI']) { $Text['OpenWebUI'] } else { 'Open WebUI' })
-    $dialog.FindName('OpenAstrBotButton').Content = $(if ($Text['OpenAstrBot']) { $Text['OpenAstrBot'] } else { 'Open AstrBot' })
-    $dialog.FindName('OpenSnowLumaButton').Content = $(if ($Text['OpenSnowLuma']) { $Text['OpenSnowLuma'] } else { 'Open SnowLuma' })
-    $dialog.FindName('OpenGuideButton').Content = $(if ($Text['OpenGuide']) { $Text['OpenGuide'] } else { 'Install guide' })
-    $dialog.FindName('OpenLaunchButton').Content = $(if ($Text['OpenLaunchGuide']) { $Text['OpenLaunchGuide'] } else { 'Startup guide' })
-    $dialog.FindName('OpenReportButton').Content = $(if ($Text['OpenReport']) { $Text['OpenReport'] } else { 'Open report' })
-    $dialog.FindName('ClosePostButton').Content = $(if ($Text['Close']) { $Text['Close'] } else { 'Close' })
     $dialog.FindName('OpenWebUIButton').Add_Click({ try { Start-Process $WebUIUrl } catch { } })
-    $dialog.FindName('OpenAstrBotButton').Add_Click({ try { Start-Process $AstrBotUrl } catch { } })
-    $dialog.FindName('OpenSnowLumaButton').Add_Click({ try { Start-Process $SnowLumaUrl } catch { } })
-    $dialog.FindName('OpenGuideButton').Add_Click({ if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) { Start-Process $GuidePath } })
-    $dialog.FindName('OpenLaunchButton').Add_Click({ if ($LaunchGuideText) { Show-CyberButlerInfoWindow -Owner $dialog -Title $(if ($Text['LaunchGuideTitle']) { $Text['LaunchGuideTitle'] } else { 'Startup guide' }) -Text $LaunchGuideText -Copy $(if ($Text['Copy']) { $Text['Copy'] } else { 'Copy' }) -Close $(if ($Text['Close']) { $Text['Close'] } else { 'Close' }) } })
-    $dialog.FindName('OpenReportButton').Add_Click({ if (Test-Path -LiteralPath $ReportPath) { Start-Process $ReportPath } elseif (Test-Path -LiteralPath (Split-Path -Parent $ReportPath)) { Start-Process (Split-Path -Parent $ReportPath) } })
+    if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) {
+        $dialog.FindName('OpenGuideButton').Add_Click({ try { Start-Process $GuidePath } catch { } })
+    }
+    if ($ReportPath -and (Test-Path -LiteralPath (Split-Path -Parent $ReportPath))) {
+        $dialog.FindName('OpenReportButton').Add_Click({ try { Start-Process (Split-Path -Parent $ReportPath) } catch { } })
+    }
     $dialog.FindName('ClosePostButton').Add_Click({ $dialog.Close() })
-    [void]$dialog.ShowDialog()
+    $dialog.ShowDialog() | Out-Null
+    return $true
 }
-
 function Start-CyberButlerGuiInstall {
     param(
         [Parameter(Mandatory = $true)]$Window,

@@ -42,7 +42,7 @@ function Get-CyberButlerTaskPrincipalSpec {
     )
     switch ($PrincipalMode) {
         'SYSTEM' { return [pscustomobject]@{ user_id = 'NT AUTHORITY\SYSTEM'; logon_type = 'ServiceAccount'; run_level = 'Highest' } }
-        'service' { throw 'S4U scheduled tasks are retired; use the native SCM service CyberButlerAstrBot.' }
+        'service' { throw 'S4U scheduled tasks are retired; use the native SCM service CyberButlerExternalAgent.' }
         default { return [pscustomobject]@{ user_id = (Resolve-CyberButlerTaskAccount -Account $DesktopAccount -CurrentUser:([string]::IsNullOrWhiteSpace($DesktopAccount))); logon_type = 'Interactive'; run_level = 'Limited' } }
     }
 }
@@ -89,21 +89,21 @@ function Get-CyberButlerServiceSpecs {
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     $launcher = Join-Path $rootFull 'tools\CyberButlerLauncher.exe'
     $astrbotStart = Join-Path $rootFull 'tools\start-astrbot.ps1'
-    $astrbotLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.log'
+    $astrbotLog = Join-Path $rootFull 'ExternalAgent\data\logs\service-astrbot.log'
     $webLog = Join-Path $rootFull 'webui\data\webui-service.log'
 
-    # The wrapper supplies a known one-time AstrBot dashboard password and
+    # The wrapper supplies a known one-time ExternalAgent dashboard password and
     # lets us display it in the post-install window. It still starts main.py
-    # from the AstrBot directory with the same interpreter.
+    # from the ExternalAgent directory with the same interpreter.
     # Prefer the direct Python entry point. The previous PowerShell wrapper
-    # was an unverified failure path (AstrBot exit 0x2) and is not required for
+    # was an unverified failure path (ExternalAgent exit 0x2) and is not required for
     # the known password now written into cmd_config.json by the installer.
     # A visible console can appear when Task Scheduler starts python.exe.
     # Start python.exe through the hidden launcher; stdout/stderr are redirected
-    # so AstrBot's startup logs and initial credentials are preserved.
-    $astrbotOutLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.out.log'
-    $astrbotErrLog = Join-Path $rootFull 'AstrBot\data\logs\service-astrbot.err.log'
-    $astrbotArgs = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"run-python-hidden.ps1\" -Python \"{1}\" -Script \"main.py\" -WorkDir \"{2}\" -StdOut \"{3}\" -StdErr \"{4}\"" --hidden --wait --log "{5}"' -f (Join-Path $rootFull 'tools'), $python, (Join-Path $rootFull 'AstrBot'), $astrbotOutLog, $astrbotErrLog, $astrbotLog)
+    # so ExternalAgent's startup logs and initial credentials are preserved.
+    $astrbotOutLog = Join-Path $rootFull 'ExternalAgent\data\logs\service-astrbot.out.log'
+    $astrbotErrLog = Join-Path $rootFull 'ExternalAgent\data\logs\service-astrbot.err.log'
+    $astrbotArgs = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"run-python-hidden.ps1\" -Python \"{1}\" -Script \"main.py\" -WorkDir \"{2}\" -StdOut \"{3}\" -StdErr \"{4}\"" --hidden --wait --log "{5}"' -f (Join-Path $rootFull 'tools'), $python, (Join-Path $rootFull 'ExternalAgent'), $astrbotOutLog, $astrbotErrLog, $astrbotLog)
     # Launch the wrapper, not bare run.py: the wrapper starts both WebUI
     # (8765) and OTP Mailer (8766). The previous task never started 8766,
     # so WebUI login always failed with "verification mail failed".
@@ -180,8 +180,8 @@ function Test-CyberButlerServices {
     $taskRows = New-Object System.Collections.Generic.List[object]
     foreach ($spec in $specs) {
         if ([string]$spec.kind -eq 'service') {
-            $svc = Get-Service -Name 'CyberButlerAstrBot' -ErrorAction SilentlyContinue
-            $wmi = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" -ErrorAction SilentlyContinue
+            $svc = Get-Service -Name 'CyberButlerExternalAgent' -ErrorAction SilentlyContinue
+            $wmi = Get-CimInstance Win32_Service -Filter "Name='CyberButlerExternalAgent'" -ErrorAction SilentlyContinue
             $startName = if ($wmi) { [string]$wmi.StartName } else { '' }
             $expectedService = Resolve-CyberButlerTaskAccount -Account $ServiceAccount
             $taskRows.Add([pscustomobject][ordered]@{
@@ -193,9 +193,9 @@ function Test-CyberButlerServices {
                 expected_principal = $expectedService
                 principal_ok = ((ConvertTo-CyberButlerCanonicalPrincipal $startName) -ieq (ConvertTo-CyberButlerCanonicalPrincipal $expectedService))
                 port = $spec.port
-                action_execute = 'CyberButlerAstrBotService.exe'
+                action_execute = 'CyberButlerExternalAgentService.exe'
                 action_arguments = ''
-                action_workdir = (Join-Path $Root 'AstrBot')
+                action_workdir = (Join-Path $Root 'ExternalAgent')
                 last_task_result = 'n/a'
             })
             continue
@@ -338,47 +338,6 @@ function Stop-CyberButlerInstallProcesses {
     return $stopped.ToArray()
 }
 
-function Install-CyberButlerAstrBotService {
-    param(
-        [Parameter(Mandatory = $true)][string]$Root,
-        [Parameter(Mandatory = $true)][string]$ServiceAccount,
-        [string]$ServiceAccountPassword = '',
-        $Journal = $null,
-        [string]$JournalStep = 'services',
-        $Handlers = @{}
-    )
-    $svcName = 'CyberButlerAstrBot'
-    $source = Join-Path $PSScriptRoot '..\service\CyberButlerAstrBotService.exe'
-    $targetDir = Join-Path $Root 'tools\service'
-    $target = Join-Path $targetDir 'CyberButlerAstrBotService.exe'
-    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-    if (-not (Test-Path -LiteralPath $source)) { throw ('Service wrapper missing: ' + $source) }
-    # Stop and remove an existing service BEFORE replacing its locked binary.
-    $existing = Get-Service -Name $svcName -ErrorAction SilentlyContinue
-    if ($existing) {
-        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        & sc.exe delete $svcName | Out-Null
-        Start-Sleep -Seconds 1
-    }
-    Copy-Item -LiteralPath $source -Destination $target -Force
-    & icacls.exe $targetDir /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' 'BUILTIN\Administrators:(OI)(CI)F' ($ServiceAccount + ':(OI)(CI)RX') 2>&1 | Out-Null
-    & icacls.exe $target /inheritance:r /grant:r '*S-1-5-18:F' 'BUILTIN\Administrators:F' ($ServiceAccount + ':RX') 2>&1 | Out-Null
-    $password = $ServiceAccountPassword
-    if ([string]::IsNullOrWhiteSpace($password)) {
-        $password = New-CyberButlerRandomPassword
-        $secure = ConvertTo-SecureString $password -AsPlainText -Force
-        Set-LocalUser -Name $ServiceAccount -Password $secure -ErrorAction Stop
-    }
-    $cred = New-Object System.Management.Automation.PSCredential((Resolve-CyberButlerTaskAccount -Account $ServiceAccount), (ConvertTo-SecureString $password -AsPlainText -Force))
-    New-Service -Name $svcName -BinaryPathName $target -DisplayName 'Cyber-Butler AstrBot Service' -StartupType Automatic -Credential $cred | Out-Null
-    & sc.exe description $svcName 'Runs AstrBot under CyberButlerSvc (SCM-managed High isolation).' | Out-Null
-    & sc.exe failure $svcName reset= 86400 actions= restart/5000/restart/15000/restart/60000 | Out-Null
-    Set-CyberButlerLogonRight -AccountName $ServiceAccount -Right SeDenyInteractiveLogonRight
-    Start-Service -Name $svcName
-    return [pscustomobject]@{ service = $svcName; created = $true }
-}
-
 function Set-CyberButlerServiceTasks {
     param(
         [Parameter(Mandatory = $true)]
@@ -399,8 +358,8 @@ function Set-CyberButlerServiceTasks {
     }
 
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
-    # 确保 AstrBot 写文件日志，plugin smoke 断言能读到 data\logs\astrbot.log
-    $astrbotData = Join-Path $Root 'AstrBot\data'
+    # 确保 ExternalAgent 写文件日志，plugin smoke 断言能读到 data\logs\astrbot.log
+    $astrbotData = Join-Path $Root 'ExternalAgent\data'
     $astrbotLogs = Join-Path $astrbotData 'logs'
     New-Item -ItemType Directory -Force -Path $astrbotLogs -ErrorAction SilentlyContinue | Out-Null
     $astrbotCfg = Join-Path $astrbotData 'cmd_config.json'
@@ -433,7 +392,7 @@ function Set-CyberButlerServiceTasks {
     New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
     $oneBotTokenFile = Join-Path $dataDir 'onebot-reverse-token.txt'
     $oneBotToken = ''
-    $astrbotConfigPath = Join-Path $Root 'AstrBot\data\cmd_config.json'
+    $astrbotConfigPath = Join-Path $Root 'ExternalAgent\data\cmd_config.json'
     if (Test-Path -LiteralPath $astrbotConfigPath) {
         try {
             $astrbotCfgObject = Get-Content -LiteralPath $astrbotConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -461,10 +420,10 @@ function Set-CyberButlerServiceTasks {
             }
         } catch { }
     }
-    # Keep an existing SnowLuma OneBot config aligned when it is already present.
+    # Keep an existing ExternalApplication OneBot config aligned when it is already present.
     # If the user has never added the reverse-WS client, add it automatically;
-    # otherwise 6199 only listens and QQ messages never reach AstrBot.
-    foreach ($snowCfg in @(Get-ChildItem -LiteralPath (Join-Path $Root 'SnowLuma\config') -Filter 'onebot_*.json' -File -ErrorAction SilentlyContinue)) {
+    # otherwise 6199 only listens and QQ messages never reach ExternalAgent.
+    foreach ($snowCfg in @(Get-ChildItem -LiteralPath (Join-Path $Root 'ExternalApplication\config') -Filter 'onebot_*.json' -File -ErrorAction SilentlyContinue)) {
         try {
             $snow = Get-Content -LiteralPath $snowCfg.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
             $clients = @($snow.networks.wsClients)
@@ -491,26 +450,26 @@ function Set-CyberButlerServiceTasks {
             }
         } catch { }
     }
-    $astrbotPasswordDir = Join-Path $Root 'AstrBot\data\logs'
+    $astrbotPasswordDir = Join-Path $Root 'ExternalAgent\data\logs'
     $astrbotPasswordFile = Join-Path $astrbotPasswordDir 'initial-admin-password.txt'
     New-Item -ItemType Directory -Path $astrbotPasswordDir -Force | Out-Null
     if (-not (Test-Path -LiteralPath $astrbotPasswordFile)) {
-        # Guarantee the AstrBot complexity classes (upper/lower/digit/symbol)
+        # Guarantee the ExternalAgent complexity classes (upper/lower/digit/symbol)
         # instead of relying on a random draw that could theoretically miss one.
         $initialPassword = 'Cbs-' + [guid]::NewGuid().ToString('N').Substring(0, 10) + '-Aa1!'
         Set-Content -LiteralPath $astrbotPasswordFile -Value $initialPassword -Encoding UTF8 -NoNewline
     } else {
         $initialPassword = (Get-Content -LiteralPath $astrbotPasswordFile -Raw -Encoding UTF8).Trim()
     }
-    $astrbotConfig = Join-Path $Root 'AstrBot\data\cmd_config.json'
+    $astrbotConfig = Join-Path $Root 'ExternalAgent\data\cmd_config.json'
     $astrbotPasswordScript = Join-Path $Root 'tools\seed_astrbot_dashboard.py'
-    $astrbotPython = Join-Path $Root 'AstrBot\.venv\Scripts\python.exe'
+    $astrbotPython = Join-Path $Root 'ExternalAgent\.venv\Scripts\python.exe'
     if ((Test-Path -LiteralPath $astrbotConfig) -and (Test-Path -LiteralPath $astrbotPasswordScript) -and (Test-Path -LiteralPath $astrbotPython)) {
         try {
             & $astrbotPython $astrbotPasswordScript $Root $initialPassword
-            if ($LASTEXITCODE -ne 0) { Write-Host ('AstrBot password pre-seed exit ' + $LASTEXITCODE) }
+            if ($LASTEXITCODE -ne 0) { Write-Host ('ExternalAgent password pre-seed exit ' + $LASTEXITCODE) }
         } catch {
-            Write-Host ('AstrBot password pre-seed warning: ' + $_.Exception.Message)
+            Write-Host ('ExternalAgent password pre-seed warning: ' + $_.Exception.Message)
         }
     }
     if (@($specs | Where-Object { $_.principal -eq 'service' }).Count -gt 0) {
@@ -542,12 +501,6 @@ function Set-CyberButlerServiceTasks {
     $created = New-Object System.Collections.Generic.List[object]
     $taskBackups = @{}
     foreach ($spec in $specs) {
-        if ([string]$spec.kind -eq 'service') {
-            $svcApplied = Install-CyberButlerAstrBotService -Root $Root -ServiceAccount $ServiceAccount -ServiceAccountPassword $ServiceAccountPassword -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
-            $created.Add([string]$svcApplied.service)
-            Write-Host ('SERVICE installed native SCM service ' + $svcApplied.service)
-            continue
-        }
         $existing = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
         if ($existing) {
             if ($null -ne $Journal) {
@@ -575,112 +528,6 @@ function Set-CyberButlerServiceTasks {
     $afterPids = @(Get-CyberButlerPortOwnerIds -Ports $ports)
     $newPids = @($afterPids | Where-Object { $beforePids -notcontains $_ })
     return [pscustomobject]@{ created = $created.ToArray(); started_process_ids = $newPids; task_backups = $taskBackups; started_at = Get-InstallerUtcTimestamp }
-}
-
-function Get-CyberButlerAstrBotLogFiles {
-    param([Parameter(Mandatory = $true)][string]$Root)
-    $data = Join-Path $Root 'AstrBot\data'
-    $candidates = @(
-        (Join-Path $data 'logs\astrbot.log'),
-        (Join-Path $data 'service-astrbot-stack.log')
-    )
-    $found = New-Object System.Collections.Generic.List[string]
-    foreach ($path in $candidates) { if (Test-Path -LiteralPath $path) { $found.Add($path) } }
-    if ($found.Count -eq 0 -and (Test-Path -LiteralPath $data)) {
-        foreach ($file in @(Get-ChildItem -LiteralPath $data -Filter 'service-astrbot*.log' -File -ErrorAction SilentlyContinue)) {
-            $found.Add($file.FullName)
-        }
-        if ($found.Count -eq 0) {
-            foreach ($file in @(Get-ChildItem -LiteralPath $data -Filter '*.log' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10)) {
-                $found.Add($file.FullName)
-            }
-        }
-    }
-    return $found.ToArray()
-}
-
-function Get-CyberButlerFailedPluginNames {
-    param([string[]]$Lines)
-    $names = New-Object System.Collections.Generic.List[string]
-    foreach ($line in @($Lines)) {
-        $match = [regex]::Match([string]$line, 'Failed to (?:load|import) plugin ([A-Za-z0-9_.-]+)')
-        if ($match.Success -and -not $names.Contains($match.Groups[1].Value)) { $names.Add($match.Groups[1].Value) }
-    }
-    return $names.ToArray()
-}
-
-function Get-CyberButlerPluginFailureBlocks {
-    param([string[]]$Lines, [string[]]$Names)
-    $blocks = New-Object System.Collections.Generic.List[string]
-    for ($i = 0; $i -lt @($Lines).Count; $i++) {
-        $line = [string]$Lines[$i]
-        $match = [regex]::Match($line, 'Failed to (?:load|import) plugin ([A-Za-z0-9_.-]+)')
-        if (-not $match.Success -or $Names -notcontains $match.Groups[1].Value) { continue }
-        $block = New-Object System.Collections.Generic.List[string]
-        $block.Add($line)
-        for ($j = $i + 1; $j -lt @($Lines).Count -and $j -le $i + 60; $j++) {
-            $next = [string]$Lines[$j]
-            $block.Add($next)
-            if ($next -match '^-{10,}$') { break }
-        }
-        $blocks.Add(($block -join "`n"))
-    }
-    return $blocks.ToArray()
-}
-
-function Test-CyberButlerPluginLoadSmoke {
-    param(
-        [Parameter(Mandatory = $true)][string]$Root,
-        [string]$PersonalPluginsPath = '',
-        [int]$StartupTimeoutSeconds = 120,
-        $Handlers = @{}
-    )
-    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'services.plugin-smoke') {
-        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'services.plugin-smoke' -Context ([pscustomobject]@{ Root = $Root; PersonalPluginsPath = $PersonalPluginsPath }))
-    }
-    $cbs = @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')
-    $personal = @('astrbot_plugin_private_companion','astrbot_plugin_livingmemory','astrbot_plugin_memorix')
-    $logs = @(Get-CyberButlerAstrBotLogFiles -Root $Root)
-    if ($logs.Count -eq 0) {
-        return [pscustomobject]@{ ok = $false; reason = 'no_log'; message = 'no AstrBot log found at expected paths'; failed = @(); lines = @() }
-    }
-    $startedAt = Get-Date
-    $lastNotice = 0
-    $tail = @()
-    $started = $false
-    while (((Get-Date) - $startedAt).TotalSeconds -lt [Math]::Max(1, $StartupTimeoutSeconds)) {
-        $all = New-Object System.Collections.Generic.List[string]
-        foreach ($path in $logs) {
-            try { foreach ($line in @(Get-Content -LiteralPath $path -Tail 400 -ErrorAction SilentlyContinue)) { $all.Add([string]$line) } } catch { }
-        }
-        $tail = @($all | Select-Object -Last 20)
-        if (($all -join "`n") -match 'AstrBot started\.') { $started = $true; break }
-        $elapsed = [int]((Get-Date) - $startedAt).TotalSeconds
-        if ($elapsed -ge ($lastNotice + 10)) {
-            Write-Host ('waiting for AstrBot startup... (' + $elapsed + 's)')
-            $lastNotice = $elapsed
-        }
-        Start-Sleep -Seconds 1
-    }
-    $allLines = New-Object System.Collections.Generic.List[string]
-    foreach ($path in $logs) {
-        try { foreach ($line in @(Get-Content -LiteralPath $path -Tail 1000 -ErrorAction SilentlyContinue)) { $allLines.Add([string]$line) } } catch { }
-    }
-    $tail = @($allLines | Select-Object -Last 20)
-    $failed = @(Get-CyberButlerFailedPluginNames -Lines $allLines)
-    $blocked = @($failed | Where-Object { $cbs -contains $_ })
-    if ($PersonalPluginsPath) {
-        $blocked += @($failed | Where-Object { $personal -contains $_ })
-    }
-    $blocked = @($blocked | Select-Object -Unique)
-    if ($blocked.Count -gt 0) {
-        $blocks = @(Get-CyberButlerPluginFailureBlocks -Lines $allLines -Names $blocked)
-        return [pscustomobject]@{ ok = $false; reason = 'plugin_failure'; message = ('plugin load failed: ' + ($blocked -join ', ')); failed = $blocked; lines = $blocks; tail = $tail }
-    }
-    if (-not $started) {
-        return [pscustomobject]@{ ok = $false; reason = 'startup_timeout'; message = ('AstrBot did not finish startup within ' + [int]$StartupTimeoutSeconds + 's'); failed = $failed; lines = $tail; tail = $tail }
-    }
-    return [pscustomobject]@{ ok = $true; reason = 'ok'; message = ''; failed = @(); lines = @(); tail = $tail }
 }
 
 function Save-CyberButlerServicesDiagnostics {
@@ -735,7 +582,7 @@ function Save-CyberButlerServicesDiagnostics {
     }
 
     $logPaths = [ordered]@{
-        'astrbot' = Join-Path $Root 'AstrBot\data\logs\astrbot.log'
+        'astrbot' = Join-Path $Root 'ExternalAgent\data\logs\astrbot.log'
         'broker' = Join-Path $Root 'tools\totp_broker.log'
         'webui-startup' = Join-Path $Root 'webui\data\webui-startup.log'
         'webui-out' = Join-Path $Root 'webui\data\webui.out.log'
@@ -773,7 +620,7 @@ function Format-CyberButlerServiceAssertion {
             $parts.Add('task missing')
         } elseif (-not $task.principal_ok) {
             $parts.Add('principal mismatch')
-        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00000000' -and [string]$task.name -ne 'SnowLuma Startup') {
+        } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00000000' -and [string]$task.name -ne 'ExternalApplication Startup') {
             $parts.Add('task exited immediately')
         } elseif ([string]$task.state -eq 'Ready' -and [string]$task.last_task_result -eq '0x00041301') {
             $parts.Add('task is running (LastTaskResult=0x00041301)')
@@ -862,10 +709,10 @@ function Undo-CyberButlerServices {
         }))
     }
     foreach ($taskName in @($CreatedTasks)) {
-        # Service assertion failures must preserve AstrBot Service in Task
+        # Service assertion failures must preserve ExternalAgent Service in Task
         # Scheduler: deleting it makes diagnosis impossible and forces a full
         # reinstall. Stop processes/ports instead; keep the task definition.
-        if ($KeepTaskDefinitions -and $taskName -eq 'AstrBot Service') { continue }
+        if ($KeepTaskDefinitions -and $taskName -eq 'ExternalAgent Service') { continue }
         if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
             Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
         }
@@ -907,14 +754,6 @@ function Invoke-CyberButlerServices {
     $test = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
     $base = [ordered]@{ module = 'services'; step = $JournalStep; root = $Root; test = $test; changed = $false }
     if ($test.satisfied) {
-        $pluginSmoke = Test-CyberButlerPluginLoadSmoke -Root $Root -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
-        if (-not $pluginSmoke.ok) {
-            $base.status = 'failed'
-            $base.message = ($pluginSmoke.message + "`n" + ((@($pluginSmoke.lines) + @($pluginSmoke.tail)) -join "`n"))
-            $base.exit_code = Get-InstallerExitCode -Name ValidationFailed
-            return [pscustomobject]$base
-        }
-        $base.plugin_smoke = [pscustomobject]@{ status = 'ok'; reason = [string]$pluginSmoke.reason; personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' }) }
         $base.status = 'skipped'
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
@@ -978,15 +817,8 @@ function Invoke-CyberButlerServices {
             }
             throw (Format-CyberButlerServiceAssertion -Assertion $asserted)
         }
-        $pluginSmoke = Test-CyberButlerPluginLoadSmoke -Root $Root -PersonalPluginsPath $PersonalPluginsPath -StartupTimeoutSeconds $StartupTimeoutSeconds -Handlers $Handlers
-        if (-not $pluginSmoke.ok) {
-            throw ($pluginSmoke.message + "`n" + ((@($pluginSmoke.lines) + @($pluginSmoke.tail)) -join "`n"))
-        }
-        $base.plugin_smoke = [pscustomobject]@{ status = 'ok'; reason = [string]$pluginSmoke.reason; personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' }) }
         if ($null -ne $Journal) {
             Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{
-                plugin_smoke = $base.plugin_smoke
-                personal_plugins = $(if ($PersonalPluginsPath) { 'installed' } else { 'skipped' })
             }) | Out-Null
         }
         $base.status = 'completed'

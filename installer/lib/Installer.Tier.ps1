@@ -59,8 +59,8 @@ function Format-CyberButlerPlan {
     $lines.Add(('  Firewall: {0}' -f $p.firewall))
     $lines.Add(('  Audit: {0}' -f $p.audit))
     $lines.Add(('  Broker account: {0}' -f $p.brokerAccount))
-    $lines.Add(('  AstrBot account: {0}' -f $p.astrbotAccount))
-    $lines.Add(('  SnowLuma account: {0}' -f $p.snowLumaAccount))
+    $lines.Add(('  ExternalAgent account: {0}' -f $p.astrbotAccount))
+    $lines.Add(('  ExternalApplication account: {0}' -f $p.snowLumaAccount))
 
     $lines.Add('')
     $lines.Add('BLOCKING approvals:')
@@ -115,7 +115,7 @@ function Resolve-CyberButlerTier {
         [switch]$EnableTailscaleServe,
         [string]$OwnerQQ = '',
 
-        [int]$AstrBotPort = 6185,
+        [int]$ExternalAgentPort = 6185,
         [int]$BrokerPort = 18090,
         [int]$WebUIPort = 8765,
         [int]$OtpMailerPort = 8766
@@ -170,14 +170,14 @@ function Resolve-CyberButlerTier {
         $manual.Add('Enable Tailscale Serve before relying on the Web UI URL.')
     }
 
-    $ports = @($AstrBotPort, $BrokerPort, $WebUIPort, $OtpMailerPort)
+    $ports = @($ExternalAgentPort, $BrokerPort, $WebUIPort, $OtpMailerPort)
     foreach ($port in $ports) {
         if ($port -lt 1 -or $port -gt 65535) {
             $errors.Add("Port out of range: $port")
         }
     }
     if (($ports | Select-Object -Unique).Count -ne $ports.Count) {
-        $errors.Add('AstrBotPort, BrokerPort, WebUIPort and OtpMailerPort must be distinct.')
+        $errors.Add('ExternalAgentPort, BrokerPort, WebUIPort and OtpMailerPort must be distinct.')
     }
 
     $blocking.Add('APPROVE PLAN')
@@ -197,7 +197,7 @@ function Resolve-CyberButlerTier {
     }
 
     if (-not $isolation) {
-        $warnings.Add('Single-account mode: AstrBot and the desktop user share an identity; TOTP guards model actions, not account compromise.')
+        $warnings.Add('Single-account mode: ExternalAgent and the desktop user share an identity; TOTP guards model actions, not account compromise.')
     }
     if ($Tier -eq 'Light') {
         $warnings.Add('Light is an explicit lower-security profile; code ACL, TOTP egress, and daily audit are reduced.')
@@ -218,7 +218,7 @@ function Resolve-CyberButlerTier {
     }
     $manual.Add('Scan the TOTP QR code and store the recovery codes offline.')
     $manual.Add('If `where python` shows WindowsApps before real Python, disable App Execution Aliases for python.exe and python3.exe or move real Python to the front of PATH.')
-    $manual.Add('Log in to QQ / SnowLuma on the desktop account.')
+    $manual.Add('Log in to QQ / ExternalApplication on the desktop account.')
 
     $effective = if ($isolation -and $Tier -ne 'High') { "$Tier + Isolation" } else { $Tier }
     $existing = Get-CyberButlerExistingState -InstallPath $InstallPath

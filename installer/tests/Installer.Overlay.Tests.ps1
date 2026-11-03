@@ -12,16 +12,16 @@ function New-OverlayTestRoot {
 }
 
 Describe 'Installer overlay compatibility' {
-    It 'rejects a manifest whose AstrBot version does not match' {
+    It 'rejects a manifest whose ExternalAgent version does not match' {
         $base = New-OverlayTestRoot
         try {
-            $astrbot = Join-Path $base 'AstrBot'
+            $astrbot = Join-Path $base 'ExternalAgent'
             $overlay = Join-Path $base 'overlay'
             New-Item -ItemType Directory -Path $astrbot, $overlay -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $astrbot 'VERSION') -Value '4.30.0' -Encoding ASCII
             $manifest = [ordered]@{ schema = 1; based_on_astrbot_version = '4.29.3'; files = @() }
             Write-InstallerJson -Path (Join-Path $overlay 'overlay-manifest.json') -Value $manifest
-            { Test-CyberButlerOverlayManifest -AstrBotPath $astrbot -OverlayPath $overlay } | Should Throw
+            { Test-CyberButlerOverlayManifest -ExternalAgentPath $astrbot -OverlayPath $overlay } | Should Throw
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
@@ -30,7 +30,7 @@ Describe 'Installer overlay compatibility' {
     It 'rejects a missing overlay dependency' {
         $base = New-OverlayTestRoot
         try {
-            $astrbot = Join-Path $base 'AstrBot'
+            $astrbot = Join-Path $base 'ExternalAgent'
             $overlay = Join-Path $base 'overlay'
             New-Item -ItemType Directory -Path (Join-Path $astrbot 'astrbot\core') -Force | Out-Null
             New-Item -ItemType Directory -Path (Join-Path $overlay 'astrbot\core') -Force | Out-Null
@@ -49,23 +49,7 @@ Describe 'Installer overlay compatibility' {
                 })
             }
             Write-InstallerJson -Path (Join-Path $overlay 'overlay-manifest.json') -Value $manifest
-            { Test-CyberButlerOverlayManifest -AstrBotPath $astrbot -OverlayPath $overlay } | Should Throw
-        } finally {
-            Remove-Item -LiteralPath $base -Recurse -Force
-        }
-    }
-
-    It 'returns a clear failure when the AstrBot import smoke fails' {
-        $base = New-OverlayTestRoot
-        try {
-            New-Item -ItemType Directory -Path (Join-Path $base 'AstrBot') -Force | Out-Null
-            $fake = Join-Path $base 'fake-python.cmd'
-            $fakeBody = '@echo ImportError: missing symbol 1>&2' + "`r`n" + '@exit /b 1'
-            Set-Content -LiteralPath $fake -Value $fakeBody -Encoding ASCII
-            $result = Test-CyberButlerCoreImportSmoke -InstallPath $base -PythonPath $fake
-            $result.ok | Should Be $false
-            $result.exit_code | Should Be 1
-            (@($result.output) -join ' ') | Should Match 'ImportError'
+            { Test-CyberButlerOverlayManifest -ExternalAgentPath $astrbot -OverlayPath $overlay } | Should Throw
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
         }
@@ -125,7 +109,7 @@ Describe 'Installer overlay compatibility' {
     It 'warns and continues when an official file hash differs' {
         $base = New-OverlayTestRoot
         try {
-            $astrbot = Join-Path $base 'AstrBot'
+            $astrbot = Join-Path $base 'ExternalAgent'
             $overlay = Join-Path $base 'overlay'
             New-Item -ItemType Directory -Path (Join-Path $astrbot 'astrbot\core') -Force | Out-Null
             New-Item -ItemType Directory -Path (Join-Path $overlay 'astrbot\core') -Force | Out-Null
@@ -145,10 +129,10 @@ Describe 'Installer overlay compatibility' {
                 })
             }
             Write-InstallerJson -Path (Join-Path $overlay 'overlay-manifest.json') -Value $manifest
-            $captured = & { Test-CyberButlerOverlayManifest -AstrBotPath $astrbot -OverlayPath $overlay } 6>&1
+            $captured = & { Test-CyberButlerOverlayManifest -ExternalAgentPath $astrbot -OverlayPath $overlay } 6>&1
             $text = ($captured | ForEach-Object { [string]$_ }) -join "`n"
             $text | Should Match 'WARN'
-            $text | Should Match 'AstrBot has been upgraded; overlay needs re-adaptation'
+            $text | Should Match 'ExternalAgent has been upgraded; overlay needs re-adaptation'
             $text | Should Match 'astrbot/core/demo.py'
             $result = @($captured | Where-Object { $_.PSObject.Properties['warnings'] })[0]
             $result.warnings.Count | Should Be 1

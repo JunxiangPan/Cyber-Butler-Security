@@ -33,14 +33,14 @@ param(
     [Security.SecureString]$ServiceAccountPassword = $null,
     [switch]$UseExistingServiceAccount,
 
-    [string]$AstrBotAccount = '',
+    [string]$ExternalAgentAccount = '',
     [string]$DesktopAccount = '',
     [string]$TotpReaderAccount = 'BUILTIN\Administrators',
 
     [string]$DataPath = '',
     [string]$WorkspacePath = '',
 
-    [int]$AstrBotPort = 6185,
+    [int]$ExternalAgentPort = 6185,
     [int]$BrokerPort = 18090,
     [int]$WebUIPort = 8765,
     [int]$OtpMailerPort = 8766,
@@ -53,10 +53,10 @@ param(
     [int]$SmtpPort = 465,
     [string]$SmtpUser = '',
 
-    [string]$AstrBotPackage = '',
-    [string]$SnowLumaPackage = '',
-    [string]$AstrBotSha256 = '',
-    [string]$SnowLumaSha256 = '',
+    [string]$ExternalAgentPackage = '',
+    [string]$ExternalApplicationPackage = '',
+    [string]$ExternalAgentSha256 = '',
+    [string]$ExternalApplicationSha256 = '',
     [string]$CoreSourcesPath = '',
     [string]$PythonPackage = '',
     [string]$PythonSha256 = '',
@@ -294,7 +294,7 @@ $resolution = Resolve-CyberButlerTier `
     -WebUIBind $WebUIBind `
     -EnableTailscaleServe:$EnableTailscaleServe `
     -OwnerQQ $OwnerQQ `
-    -AstrBotPort $AstrBotPort `
+    -ExternalAgentPort $ExternalAgentPort `
     -BrokerPort $BrokerPort `
     -WebUIPort $WebUIPort `
     -OtpMailerPort $OtpMailerPort
@@ -304,8 +304,8 @@ if ($resolution.Errors.Count -gt 0) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 
-if ([string]::IsNullOrWhiteSpace($AstrBotAccount)) {
-    $AstrBotAccount = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+if ([string]::IsNullOrWhiteSpace($ExternalAgentAccount)) {
+    $ExternalAgentAccount = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
 }
 if ([string]::IsNullOrWhiteSpace($DesktopAccount)) {
     $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -339,7 +339,7 @@ $pythonBlocking = @($preflight.blocking | Where-Object { $_.id -eq 'python' }).C
 if ($preflight.python_needs_bundle -or -not $preflight.python_usable -or $pythonBlocking) {
     foreach ($line in @(
         'Install Python 3.10-3.13 and add it to PATH before running this installer.',
-        'Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this AstrBot release.',
+        'Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this ExternalAgent release.',
         'Supply -PythonPackage <path> for offline Python installation.'
     )) {
         if (-not $resolution.ManualSteps.Contains($line)) { $resolution.ManualSteps.Add($line) }
@@ -365,7 +365,7 @@ if ($PlanOnly) {
 if ($Repair) {
     $diagnostics = Get-CyberButlerDiagnostics -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel `
         -Isolation $resolution.Isolation -Root $InstallPath -ServiceAccount $ServiceAccountName `
-        -TotpReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
+        -TotpReaderAccount $TotpReaderAccount -ExternalAgentAccount $ExternalAgentAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
     $report = Write-MainReport -Status 'repair' -Diagnostics $diagnostics -Journal $null -Approvals @() `
         -Steps @() -Failure $null -Message 'Repair mode runs diagnostics only.' -ReportDirectory $ReportDirectory `
         -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel -Isolation $resolution.Isolation -Handlers $Handlers
@@ -517,12 +517,12 @@ if (-not $failure -and $coreNeedsDeploy) {
     Write-Output ('CORE start existing=' + $preflight.install_path.existing_state)
     $coreResult = Invoke-CyberButlerCoreDeploy -InstallPath $InstallPath `
         -ExistingState $preflight.install_path.existing_state -Tier $resolution.Tier `
-        -AstrBotPackage $AstrBotPackage -SnowLumaPackage $SnowLumaPackage `
-        -AstrBotSha256 $AstrBotSha256 -SnowLumaSha256 $SnowLumaSha256 `
+        -ExternalAgentPackage $ExternalAgentPackage -ExternalApplicationPackage $ExternalApplicationPackage `
+        -ExternalAgentSha256 $ExternalAgentSha256 -ExternalApplicationSha256 $ExternalApplicationSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `
         -DownloadTimeoutSeconds $DownloadTimeoutSeconds -DownloadRetryCount $DownloadRetryCount -ResumeDownload:$ResumeDownload -PythonPath $pythonPath -PythonSource $pythonSource -PythonVersion $pythonVersion -PipLogPath (Join-Path $ReportDirectory 'pip-install.log') `
         -PersonalPluginsPath $PersonalPluginsPath `
-        -OwnerQQ $OwnerQQ -ToolServiceAccount $AstrBotAccount -ToolDesktopAccount $DesktopAccount `
+        -OwnerQQ $OwnerQQ -ToolServiceAccount $ExternalAgentAccount -ToolDesktopAccount $DesktopAccount `
         -WebUIAdminEmail $WebUIAdminEmail `
         -Repair:($Repair -or ($coreJournalDone -and -not $coreTree.satisfied)) `
         -Journal $journal -JournalStep 'core' -Handlers $Handlers
@@ -545,7 +545,7 @@ if (-not $failure -and $coreNeedsDeploy) {
     }
 }
 
-$aclIdentity = if ($resolution.Isolation) { $ServiceAccountName } else { $AstrBotAccount }
+$aclIdentity = if ($resolution.Isolation) { $ServiceAccountName } else { $ExternalAgentAccount }
 $aclRoot = if ($coreResult -and $coreResult.paths -and $coreResult.paths.astrbot) { Split-Path -Parent ([string]$coreResult.paths.astrbot) } else { $InstallPath }
 $toolsPath = if ($coreResult -and $coreResult.paths -and $coreResult.paths.tools) { [string]$coreResult.paths.tools } else { Join-Path $aclRoot 'tools' }
 $aclPaths = if ($coreResult -and $coreResult.paths -and $coreResult.paths.astrbot) {
@@ -643,10 +643,10 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
     }
 }
 
-# Harden tools/ and AstrBot/.venv before the TOTP vault deny ACE is applied.
+# Harden tools/ and ExternalAgent/.venv before the TOTP vault deny ACE is applied.
 if (-not $failure) {
     try {
-        $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $AstrBotAccount -DesktopUser $DesktopAccount -Handlers $Handlers
+        $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $ExternalAgentAccount -DesktopUser $DesktopAccount -Handlers $Handlers
         Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status ([string]$brokerAcl.status) -Reason ([string]$brokerAcl.reason)
         if ([string]$brokerAcl.status -eq 'failed') {
             $failure = [pscustomobject]@{ step = 'broker_acl'; message = ('broker ACL: ' + [string]$brokerAcl.message) }
@@ -711,7 +711,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
             }
             if (-not $failure) {
                 Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'in_progress'
-                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
+                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
                 if (-not (Complete-MainSecurityStep -Name 'totp' -Result $result)) {
                     $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP: ' + [string]$result.status + ' ' + [string]$result.message) }
                 } else {
@@ -766,7 +766,7 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
         $failure = [pscustomobject]@{ step = 'secrets'; message = 'APPROVE SECRETS required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'in_progress'
-        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $AstrBotAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -SkipSmtp:$SkipSmtp -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $ExternalAgentAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -SkipSmtp:$SkipSmtp -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'secrets' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'secrets'; message = ('secrets: ' + [string]$result.status + ' ' + [string]$result.message) }
         } elseif ($result.partial) {
@@ -779,7 +779,7 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
 if (-not $failure -and (Test-Path -LiteralPath $vaultPath)) {
     $singleAccountMarker = Join-Path $vaultPath 'single-account.marker'
     if (-not $resolution.Isolation) {
-        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: AstrBot and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
+        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: ExternalAgent and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
     } else {
         Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue
     }
@@ -835,7 +835,7 @@ if ($failure) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 
-# External Agent detection: CBS never installs or manages AstrBot/SnowLuma.
+# External Agent detection: CBS never installs or manages ExternalAgent/ExternalApplication.
 $detectedAgents = @()
 foreach ($agentPort in @(6185, 5099)) {
     if (Get-NetTCPConnection -State Listen -LocalPort $agentPort -ErrorAction SilentlyContinue) {
@@ -846,7 +846,7 @@ if ($detectedAgents.Count -gt 0) {
     Write-InstallerLine ('检测到外部 Agent 正在运行（端口 ' + ($detectedAgents -join ', ') + '）。请参考 docs/API_SPEC.md 进行标准接入。') -Level INFO
     Write-Output ('EXTERNAL_AGENT detected=' + ($detectedAgents -join ','))
 } else {
-    Write-InstallerLine 'CBS 核心已就绪。请自行安装你喜欢的 Agent 框架（如 AstrBot/DSH），并接入 18090 端口。' -Level INFO
+    Write-InstallerLine 'CBS 核心已就绪。请自行安装你喜欢的 Agent 框架（如 ExternalAgent/DSH），并接入 18090 端口。' -Level INFO
     Write-Output 'EXTERNAL_AGENT none'
 }
 
@@ -854,7 +854,7 @@ if ($detectedAgents.Count -gt 0) {
 if ($null -eq $diagnostics) {
     $diagnostics = Get-CyberButlerDiagnostics -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel `
         -Isolation $resolution.Isolation -Root $InstallPath -ServiceAccount $ServiceAccountName `
-        -AstrBotAccount $AstrBotAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
+        -ExternalAgentAccount $ExternalAgentAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
 }
 if (-not (Test-MainStepDone -Journal $journal -Name 'diagnostics')) {
     Add-MainJournalStep -Journal $journal -Name 'diagnostics' -Status 'completed'

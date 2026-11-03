@@ -1,43 +1,6 @@
 ﻿# Real core deployment: download, verify, extract, venv, overlay.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
-function Get-CyberButlerCoreSourceConfig {
-    param(
-        [string]$CoreSourcesPath = ''
-    )
-    if ([string]::IsNullOrWhiteSpace($CoreSourcesPath)) {
-        $CoreSourcesPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'core-sources.json'
-    }
-    if (-not (Test-Path -LiteralPath $CoreSourcesPath)) {
-        throw "Core source config not found: $CoreSourcesPath"
-    }
-    return (Get-Content -LiteralPath $CoreSourcesPath -Raw -Encoding UTF8 | ConvertFrom-Json)
-}
-
-function Resolve-CyberButlerCoreSource {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-        [string]$PackagePath = '',
-        [string]$Sha256 = '',
-        $Config
-    )
-
-    $entry = $Config.$Name
-    if ($null -eq $entry) { throw "Core source entry missing: $Name" }
-    $url = if ($PackagePath) { $PackagePath } else { [string]$entry.url }
-    $hash = if ($Sha256) { $Sha256 } else { [string]$entry.sha256 }
-    if ([string]::IsNullOrWhiteSpace($url)) { throw "Core source URL missing: $Name" }
-    if ([string]::IsNullOrWhiteSpace($hash)) { throw "Core source SHA-256 missing: $Name" }
-    return [pscustomobject]@{
-        name = $Name
-        url = $url
-        sha256 = $hash.ToLowerInvariant()
-        version = [string]$entry.version
-        size_bytes = if ($entry.size_bytes) { [long]$entry.size_bytes } else { 0 }
-    }
-}
-
 function Get-CyberButlerCorePython {
     param(
         [string]$PreferredPath = '',
@@ -67,85 +30,6 @@ function Get-CyberButlerCorePython {
     if (-not $command) { $command = Get-Command py.exe -ErrorAction SilentlyContinue }
     if (-not $command) { throw 'Python was not found.' }
     return [string]$command.Source
-}
-
-function Invoke-CyberButlerCoreDownload {
-    param(
-        [Parameter(Mandatory = $true)]
-        $Source,
-        [Parameter(Mandatory = $true)]
-        [string]$Destination,
-        [int]$TimeoutSeconds = 300,
-        [int]$RetryCount = 3,
-        [switch]$Resume
-    )
-    $parent = Split-Path -Parent $Destination
-    if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
-    if ($Source.url -match '^https?://') {
-        $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
-        $lastError = $null
-        for ($attempt = 1; $attempt -le [Math]::Max(1, $RetryCount); $attempt++) {
-            try {
-                if ($curl) {
-                    $curlArgs = @('-L', '--fail', '--progress-bar', '--connect-timeout', '30', '--max-time', [string]$TimeoutSeconds, '-o', $Destination)
-                    if ($Resume -and (Test-Path -LiteralPath $Destination)) { $curlArgs += @('-C', '-') }
-                    $curlArgs += $Source.url
-                    & $curl.Source @curlArgs
-                    if ($LASTEXITCODE -ne 0) { throw "curl exit code $LASTEXITCODE" }
-                } else {
-                    if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue }
-                    Invoke-WebRequest -Uri $Source.url -OutFile $Destination -UseBasicParsing -TimeoutSec ([Math]::Max(1, $TimeoutSeconds)) -ErrorAction Stop
-                }
-                $lastError = $null
-                break
-            } catch {
-                $lastError = $_
-                if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue }
-                if ($attempt -lt $RetryCount) { Start-Sleep -Seconds ([Math]::Min(8, $attempt * 2)) }
-            }
-        }
-        if ($null -ne $lastError -or -not (Test-Path -LiteralPath $Destination)) {
-            $hint = if ($Source.url -match 'github\.com') {
-                ' GitHub is unreachable or returned an error. Check network, DNS, proxy/VPN, and firewall; or pass a local package with -AstrBotPackage / -SnowLumaPackage.'
-            } else { '' }
-            throw ("Download failed for {0} after {1} attempt(s): {2}.{3}" -f $Source.name, $RetryCount, $lastError.Exception.Message, $hint)
-        }
-    } elseif (Test-Path -LiteralPath $Source.url -PathType Leaf) {
-        Copy-Item -LiteralPath $Source.url -Destination $Destination -Force
-    } else {
-        throw "Core source is not a reachable URL or local file: $($Source.url)"
-    }
-    $actual = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($actual -ne $Source.sha256) {
-        throw "SHA-256 mismatch for $($Source.name): expected $($Source.sha256), got $actual"
-    }
-    return $Destination
-}
-
-function Expand-CyberButlerCoreArchive {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Archive,
-        [Parameter(Mandatory = $true)]
-        [string]$Destination
-    )
-    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-    Expand-Archive -LiteralPath $Archive -DestinationPath $Destination -Force -ErrorAction Stop
-    return $Destination
-}
-
-function Find-CyberButlerCoreRoot {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-        [Parameter(Mandatory = $true)]
-        [string]$Marker
-    )
-    if (Test-Path -LiteralPath (Join-Path $Path $Marker)) { return $Path }
-    foreach ($dir in @(Get-ChildItem -LiteralPath $Path -Directory -ErrorAction SilentlyContinue)) {
-        if (Test-Path -LiteralPath (Join-Path $dir.FullName $Marker)) { return $dir.FullName }
-    }
-    return $null
 }
 
 function Get-CyberButlerCoreFileList {
@@ -388,32 +272,6 @@ function Test-CyberButlerCoreDeploy {
     }
 }
 
-function Test-CyberButlerCoreImportSmoke {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$InstallPath,
-        [Parameter(Mandatory = $true)]
-        [string]$PythonPath,
-        $Handlers = @{}
-    )
-    if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.import') {
-        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.import' -Context ([pscustomobject]@{ InstallPath = $InstallPath }))
-    }
-    $astrbot = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'AstrBot'
-    Push-Location $astrbot
-    try {
-        $output = @((& $PythonPath -c 'import astrbot.core' 2>&1 | Out-String))
-        $code = [int]$LASTEXITCODE
-    } finally {
-        Pop-Location
-    }
-    return [pscustomobject]@{
-        ok = ($code -eq 0)
-        exit_code = $code
-        output = @($output | ForEach-Object { [string]$_ })
-    }
-}
-
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -421,10 +279,10 @@ function Invoke-CyberButlerCoreDeploy {
         [string]$InstallPath,
         [string]$ExistingState = 'None',
         [string]$Tier = 'Medium',
-        [string]$AstrBotPackage = '',
-        [string]$SnowLumaPackage = '',
-        [string]$AstrBotSha256 = '',
-        [string]$SnowLumaSha256 = '',
+        [string]$ExternalAgentPackage = '',
+        [string]$ExternalApplicationPackage = '',
+        [string]$ExternalAgentSha256 = '',
+        [string]$ExternalApplicationSha256 = '',
         [string]$CoreSourcesPath = '',
         [switch]$SkipDependencyInstall,
         [int]$DownloadTimeoutSeconds = 300,

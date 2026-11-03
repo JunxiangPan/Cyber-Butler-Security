@@ -30,7 +30,6 @@ Describe 'Installer services safety' {
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $true; supported = $true; can_manage = $true } }
                 'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @(); started_process_ids = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
-                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers
             $result.status | Should Be 'skipped'
@@ -48,9 +47,8 @@ Describe 'Installer services safety' {
             $global:cbServiceCalls = @{ apply = 0; undo = 0 }
             $handlers = @{
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
-                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @(4242) } }
+                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('ExternalAgent Service'); started_process_ids = @(4242) } }
                 'services.assert' = { param($c) $true }
-                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers
@@ -75,7 +73,7 @@ Describe 'Installer services safety' {
             $global:cbServiceCalls = @{ apply = 0; undo = 0 }
             $handlers = @{
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
-                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @() } }
+                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('ExternalAgent Service'); started_process_ids = @() } }
                 'services.assert' = { param($c) $false }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
@@ -143,7 +141,7 @@ Describe 'Installer services safety' {
         $assertion = [pscustomobject]@{
             satisfied = $false
             tasks = @(
-                [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exists = $true; principal_ok = $true; state = 'Ready'; last_task_result = '0x00000000'; port = 18090 }
+                [pscustomobject]@{ name = 'ExternalAgent TOTP Broker'; exists = $true; principal_ok = $true; state = 'Ready'; last_task_result = '0x00000000'; port = 18090 }
             )
             ports = @(
                 [pscustomobject]@{ port = 18090; listening = $false; healthy = $false; owner_pid = $null }
@@ -151,14 +149,14 @@ Describe 'Installer services safety' {
         }
         $text = Format-CyberButlerServiceAssertion -Assertion $assertion
         $text | Should Match 'Service assertion failed'
-        $text | Should Match 'AstrBot TOTP Broker'
+        $text | Should Match 'ExternalAgent TOTP Broker'
         $text | Should Match '18090 not listening'
         $text | Should Match 'task exited immediately'
     }
 
     It 'saves a service diagnostics snapshot' {
         $base = Join-Path $env:TEMP ('cb-services-diag-' + [guid]::NewGuid().ToString('N'))
-        $logDir = Join-Path (Join-Path (Join-Path $base 'AstrBot') 'data') 'logs'
+        $logDir = Join-Path (Join-Path (Join-Path $base 'ExternalAgent') 'data') 'logs'
         New-Item -ItemType Directory -Path $logDir -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $logDir 'astrbot.log') -Value 'line' -Encoding UTF8
         try {
@@ -172,10 +170,10 @@ Describe 'Installer services safety' {
 
     It 'stops listeners owned by the install root by port' {
         $base = Join-Path $env:TEMP ('cb-services-ports-' + [guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path (Join-Path $base 'AstrBot') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $base 'ExternalAgent') -Force | Out-Null
         $python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
         if (-not $python) { return }
-        $script = Join-Path (Join-Path $base 'AstrBot') 'fake-listener.py'
+        $script = Join-Path (Join-Path $base 'ExternalAgent') 'fake-listener.py'
         Set-Content -LiteralPath $script -Value 'import socket,sys,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",int(sys.argv[1]))); s.listen(1); time.sleep(30)' -Encoding ASCII
         $ports = @(46233, 46234, 46235, 46236)
         $procs = @()

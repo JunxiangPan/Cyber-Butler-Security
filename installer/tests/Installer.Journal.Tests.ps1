@@ -108,7 +108,7 @@ Describe 'Installer journal lifecycle' {
         $base = New-JournalTestRoot
         try {
             $install = Join-Path $base 'install'
-            $astrbot = Join-Path $install 'AstrBot'
+            $astrbot = Join-Path $install 'ExternalAgent'
             New-Item -ItemType Directory -Path $astrbot -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $astrbot 'main.py') -Value 'fixture' -Encoding ASCII
 
@@ -122,7 +122,7 @@ Describe 'Installer journal lifecycle' {
             Add-CyberButlerJournalStep -Journal $journal -Name 'services' -Status failed | Out-Null
             Add-CyberButlerReverseAction -Journal $journal -Step 'services' -Action ([pscustomobject]@{
                 type = 'delete-created-scheduled-task'
-                task_name = 'AstrBot Service'
+                task_name = 'ExternalAgent Service'
             })
 
             $result = Invoke-CyberButlerRollback -Journal $journal -Handlers @{

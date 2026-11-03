@@ -6,8 +6,8 @@
 )
 
 $ErrorActionPreference = 'Stop'
-$data = Join-Path $Root 'AstrBot\data'
-if (-not (Test-Path -LiteralPath $data)) { throw "AstrBot data directory missing: $data" }
+$data = Join-Path $Root 'ExternalAgent\data'
+if (-not (Test-Path -LiteralPath $data)) { throw "ExternalAgent data directory missing: $data" }
 $svc = if ($ServiceAccount -match '\\') { $ServiceAccount } else { $env:COMPUTERNAME + '\' + $ServiceAccount }
 $pluginsProbe = Join-Path $data 'plugins\astrbot_plugin_totp_broker\main.py'
 $t2iProbe = Join-Path $data 't2i_templates\base.html'
@@ -19,7 +19,7 @@ function Invoke-AclStep([string]$label, [string[]]$arguments) {
 }
 
 if (-not $ProbeOnly) {
-    Write-Host ("Repairing AstrBot data ACL: " + $data)
+    Write-Host ("Repairing ExternalAgent data ACL: " + $data)
     # 1. Take ownership of the whole data tree. This is intentionally the
     # first operation: inherited/denied ACEs can otherwise survive every grant.
     & takeown.exe /f $data /r /d y | Out-Null

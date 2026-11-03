@@ -65,7 +65,7 @@ function Invoke-Migration {
     $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $migrationScript, $Mode,
         '-Tier', 'Medium', '-InstallPath', (Join-Path $Base 'install'),
         '-ServiceAccountName', 'FakeSvc', '-DesktopAccount', 'DESKTOP\Owner',
-        '-AstrBotAccount', 'DESKTOP\Owner', '-JournalRoot', (Join-Path $Base 'state'),
+        '-ExternalAgentAccount', 'DESKTOP\Owner', '-JournalRoot', (Join-Path $Base 'state'),
         '-ReportDirectory', (Join-Path $Base 'report'), '-TestConfigPath', $Config)
     if ($Mode -eq '-Apply' -or $Mode -eq '-PlanOnly' -or $Mode -eq '-Verify') { $args += '-NonInteractive' }
     if ($StatePath) { $args += @('-StatePath', $StatePath) }
@@ -73,7 +73,7 @@ function Invoke-Migration {
 }
 
 Describe 'Isolation migration' {
-    It 'plans without changing state and documents SnowLuma/Broker' {
+    It 'plans without changing state and documents ExternalApplication/Broker' {
         $base = Join-Path $env:TEMP ('cb-migrate-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
@@ -82,7 +82,7 @@ Describe 'Isolation migration' {
             $LASTEXITCODE | Should Be 0
             $text = $out -join "`n"
             ($text -match 'Downtime estimate') | Should Be $true
-            ($text -match 'SnowLuma: unchanged') | Should Be $true
+            ($text -match 'ExternalApplication: unchanged') | Should Be $true
             ($text -match 'Broker: unchanged') | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'report\migration-report.json')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $base 'state')) | Should Be $false

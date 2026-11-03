@@ -42,7 +42,7 @@ Describe 'Installer core deployment' {
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
-    It 'deploys a CBS-only tree without AstrBot or SnowLuma' {
+    It 'deploys a CBS-only tree without ExternalAgent or ExternalApplication' {
         $base = Join-Path $env:TEMP ('cb-core-cbs-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
@@ -53,8 +53,8 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $target 'webui\run.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'data')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'workspace')) | Should Be $true
-            (Test-Path -LiteralPath (Join-Path $target 'AstrBot')) | Should Be $false
-            (Test-Path -LiteralPath (Join-Path $target 'SnowLuma')) | Should Be $false
+            (Test-Path -LiteralPath (Join-Path $target 'ExternalAgent')) | Should Be $false
+            (Test-Path -LiteralPath (Join-Path $target 'ExternalApplication')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $target 'webui\.venv\Scripts\python.exe')) | Should Be $true
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }

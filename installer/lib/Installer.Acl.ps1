@@ -199,7 +199,7 @@ function Set-CyberButlerDataAcl {
     }
 
     # Keep broad principals out. The runtime account needs Modify on data so
-    # AstrBot can create data_v4.db/WAL and save its config; agent tool writes
+    # ExternalAgent can create data_v4.db/WAL and save its config; agent tool writes
     # remain policy-controlled by the Broker.
     & icacls.exe $DataRoot /inheritance:r `
         /grant:r '*S-1-5-18:(OI)(CI)F' `

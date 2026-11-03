@@ -87,22 +87,22 @@ function Get-CyberButlerProcessSnapshot {
         $name = [string]$process.Name
         $command = [string]$process.CommandLine
         $pidValue = [int]$process.ProcessId
-        $isAstrBotPort = $astrbotPids -contains $pidValue
+        $isExternalAgentPort = $astrbotPids -contains $pidValue
         $isBrokerPort = $brokerPids -contains $pidValue
-        if (-not $command -and -not $isAstrBotPort -and -not $isBrokerPort) { continue }
+        if (-not $command -and -not $isExternalAgentPort -and -not $isBrokerPort) { continue }
         $item = [pscustomobject][ordered]@{
             pid = $pidValue
             name = $name
             command_line = if ($command.Length -gt 320) { $command.Substring(0, 320) } else { $command }
-            detected_by = if ($isAstrBotPort -or $isBrokerPort) { 'port' } else { 'command-line' }
+            detected_by = if ($isExternalAgentPort -or $isBrokerPort) { 'port' } else { 'command-line' }
         }
-        if ($name -ieq 'python.exe' -and ($command -match 'main\.py' -or $isAstrBotPort)) {
+        if ($name -ieq 'python.exe' -and ($command -match 'main\.py' -or $isExternalAgentPort)) {
             $astrbot.Add($item)
         }
         if ($name -ieq 'python.exe' -and ($command -match 'tools[\/]broker\.py' -or $isBrokerPort)) {
             $broker.Add($item)
         }
-        if ($name -ieq 'node.exe' -and $command -match 'SnowLuma') {
+        if ($name -ieq 'node.exe' -and $command -match 'ExternalApplication') {
             $snowluma.Add($item)
         }
     }
@@ -127,7 +127,7 @@ function Get-CyberButlerScheduledTaskSnapshot {
         $tasks = @(Get-ScheduledTask -ErrorAction Stop)
         $wanted = New-Object System.Collections.Generic.List[object]
         foreach ($task in $tasks) {
-            if ([string]$task.TaskName -notmatch 'AstrBot|SnowLuma|Ollama|Game Mode|Cyber-Butler') { continue }
+            if ([string]$task.TaskName -notmatch 'ExternalAgent|ExternalApplication|Ollama|Game Mode|Cyber-Butler') { continue }
             $principal = $null
             try { $principal = [string]$task.Principal.UserId } catch { }
             $wanted.Add([pscustomobject][ordered]@{
@@ -191,7 +191,7 @@ function Get-CyberButlerPythonSnapshot {
         if ($command) { $paths.Add([string]$command.Source) }
         $launcher = Get-Command py.exe -ErrorAction SilentlyContinue
         if ($launcher) { $paths.Add([string]$launcher.Source) }
-        $paths.Add((Join-Path $InstallPath 'AstrBot\.venv\Scripts\python.exe'))
+        $paths.Add((Join-Path $InstallPath 'ExternalAgent\.venv\Scripts\python.exe'))
         # Python's official installer normally installs per-user into this
         # directory. It may not be on PATH, so probe it explicitly before
         # deciding that a bundled interpreter is required.

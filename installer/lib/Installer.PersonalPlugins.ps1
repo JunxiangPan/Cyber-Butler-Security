@@ -70,13 +70,13 @@ function Copy-CyberButlerPluginTree {
 
 function Copy-CyberButlerCbsPlugins {
     param(
-        [Parameter(Mandatory = $true)][string]$AstrBotPath,
+        [Parameter(Mandatory = $true)][string]$ExternalAgentPath,
         [Parameter(Mandatory = $true)][string]$ReleasePluginsPath,
         $Journal = $null,
         [string]$JournalStep = 'core'
     )
     if (-not (Test-Path -LiteralPath $ReleasePluginsPath)) { throw ("CBS plugins source missing: " + $ReleasePluginsPath) }
-    $targetRoot = Join-Path $AstrBotPath 'data\plugins'
+    $targetRoot = Join-Path $ExternalAgentPath 'data\plugins'
     New-Item -ItemType Directory -Path $targetRoot -Force | Out-Null
     $installed = New-Object System.Collections.Generic.List[object]
     foreach ($name in $script:CyberButlerCbsPlugins) {
@@ -85,7 +85,7 @@ function Copy-CyberButlerCbsPlugins {
             throw ("CBS plugin missing main.py: " + $name)
         }
         $result = Copy-CyberButlerPluginTree -Source $source -Destination (Join-Path $targetRoot $name) `
-            -AllowedRoot $AstrBotPath -Journal $Journal -JournalStep $JournalStep -Label $name
+            -AllowedRoot $ExternalAgentPath -Journal $Journal -JournalStep $JournalStep -Label $name
         $installed.Add([pscustomobject]@{ name = $name; status = 'installed'; copied = $result.copied; skipped = $result.skipped; path = $result.path })
     }
     return [pscustomobject]@{ status = 'installed'; path = $targetRoot; plugins = $installed.ToArray() }
@@ -93,13 +93,13 @@ function Copy-CyberButlerCbsPlugins {
 
 function Copy-CyberButlerPersonalPlugins {
     param(
-        [Parameter(Mandatory = $true)][string]$AstrBotPath,
+        [Parameter(Mandatory = $true)][string]$ExternalAgentPath,
         [string]$PersonalPluginsPath = '',
         [switch]$Repair,
         $Journal = $null,
         [string]$JournalStep = 'core'
     )
-    $targetRoot = Join-Path $AstrBotPath 'data\plugins'
+    $targetRoot = Join-Path $ExternalAgentPath 'data\plugins'
     if ([string]::IsNullOrWhiteSpace($PersonalPluginsPath)) {
         return [pscustomobject]@{ status = 'skipped'; path = ''; plugins = @(); reason = 'personal plugins path not supplied' }
     }
@@ -143,7 +143,7 @@ function Copy-CyberButlerPersonalPlugins {
     $anyUpdated = $false
     foreach ($name in $selected) {
         $result = Copy-CyberButlerPluginTree -Source (Join-Path $sourceRoot $name) -Destination (Join-Path $targetRoot $name) `
-            -AllowedRoot $AstrBotPath -Journal $Journal -JournalStep $JournalStep -PreserveSchema -Label $name
+            -AllowedRoot $ExternalAgentPath -Journal $Journal -JournalStep $JournalStep -PreserveSchema -Label $name
         $status = if ($result.copied -gt 0) { 'updated'; $anyUpdated = $true } else { 'preserved' }
         $installed.Add([pscustomobject]@{ name = $name; status = $status; copied = $result.copied; skipped = $result.skipped; path = $result.path })
     }
