@@ -74,6 +74,15 @@ The ZIP, manifest, signature, and public key are the only release assets require
 - Existing 1.6.0 installations should use the upgrade/repair path and preserve data.
 - If AstrBot was previously reading the wrong data root, the service correction applies after the new service binary is installed.
 
+
+## Third-party components and scope of validation
+
+AstrBot (v4.29.3) and SnowLuma (v2.2.1) are independent upstream applications. CBS validates the integration boundary it owns: service launch, account and ACL boundaries, port ownership, configuration hand-off, TOTP/approval routing, and health checks.
+
+CBS does not audit or guarantee the internal behaviour of AstrBot, SnowLuma, their plugins, QQ clients, upstream APIs, or future upstream releases. Hidden defects in a third-party component remain the responsibility of that upstream project. An upstream update may invalidate the tested integration and requires revalidation.
+
+The High-tier real-machine test has been reported as completed by the operator. A full clean-VM install/upgrade/uninstall acceptance is still a separate requirement and is not claimed by this release note alone.
+
 ## Acknowledgements
 
 CBS was shaped by the global open-source community. See [CONTRIBUTORS.md](../../CONTRIBUTORS.md) for the full record.
