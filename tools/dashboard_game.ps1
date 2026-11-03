@@ -20,7 +20,7 @@ param(
 $ErrorActionPreference = 'Continue'
 $root = if ($ProjectRoot) { (Resolve-Path -LiteralPath $ProjectRoot).Path } else { Split-Path -Parent $PSScriptRoot }
 $tools = Join-Path $root 'tools'
-$bigFishDir = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+$bigFishDir = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
 New-Item -ItemType Directory -Path $bigFishDir -Force -ErrorAction SilentlyContinue | Out-Null
 $autoFile = Join-Path $bigFishDir 'game-list.auto.txt'
 $scanLog = Join-Path $bigFishDir 'dashboard_game.log'

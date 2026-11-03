@@ -31,7 +31,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Runtime state/logs must not live under tools/: the hardened ACL makes tools/
 # read-only to the desktop account. Keep mutable game-mode state in the owner's
 # shared folder instead.
-$RuntimeDir = Join-Path $env:USERPROFILE "Desktop\大肥鱼专用文件夹"
+$RuntimeDir = Join-Path $env:LOCALAPPDATA "CyberButler\game-mode"
 if (-not (Test-Path -LiteralPath $RuntimeDir)) {
     New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
 }

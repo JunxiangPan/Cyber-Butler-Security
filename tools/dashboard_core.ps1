@@ -103,7 +103,7 @@ function Get-GameWhitelist {
     param([string]$ProjectRoot)
     $result = @()
     $seen = @{}
-    $bigFishDir = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+    $bigFishDir = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
     $specs = @(
         @{ File = 'AstrBot\data\game-list.auto.txt'; Source = 'AUTO' },
         @{ File = 'AstrBot\data\game-list.txt'; Source = 'MANUAL' },

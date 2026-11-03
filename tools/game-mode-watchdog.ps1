@@ -3,7 +3,7 @@
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $gameScript = Join-Path $PSScriptRoot 'game-mode.ps1'
-$runtime = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹'
+$runtime = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
 $stateFile = Join-Path $runtime 'game-mode.state.json'
 $log = Join-Path $runtime 'game-mode-watchdog.log'
 

@@ -1,10 +1,12 @@
 ﻿from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
 import re
 import secrets
+import string
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -465,6 +467,42 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
                 "log": str(log_path),
                 "url": "http://127.0.0.1:5099/",
             },
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.post("/api/security/snowluma-reset-password")
+    async def snowluma_reset_password(request: Request, session=Depends(require_session)):
+        if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
+            return JSONResponse({"ok": False, "code": "auth.csrf_invalid", "message": "invalid csrf token"}, status_code=403)
+        config_path = Path(settings.project_root) / "SnowLuma" / "config" / "webui.json"
+        try:
+            data = json.loads(config_path.read_text(encoding="utf-8-sig")) if config_path.is_file() else {}
+            if not isinstance(data, dict):
+                data = {}
+            alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+            # SnowLuma requires >=10 chars, upper/lower/special, no spaces.
+            password = ("CBS-" + "".join(secrets.choice(alphabet) for _ in range(20)) + "!Aa1")
+            salt = secrets.token_hex(16)
+            digest = hashlib.scrypt(
+                password.encode("utf-8"),
+                salt=salt.encode("utf-8"),
+                n=16384, r=8, p=1, dklen=64,
+            ).hex()
+            now = datetime.now(timezone.utc).isoformat()
+            data["passwordHash"] = digest
+            data["passwordSalt"] = salt
+            data["mustChangePassword"] = False
+            data["generatedAt"] = data.get("generatedAt") or now
+            data["updatedAt"] = now
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = config_path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(config_path)
+        except Exception as exc:
+            logger.warning("snowluma password reset failed: %s", exc)
+            return JSONResponse({"ok": False, "code": "snowluma.reset_failed", "message": "cannot write SnowLuma webui.json"}, status_code=500)
+        return JSONResponse(
+            {"ok": True, "username": "admin", "password": password, "must_restart": True},
             headers={"Cache-Control": "no-store"},
         )
 

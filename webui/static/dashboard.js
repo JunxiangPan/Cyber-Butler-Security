@@ -326,6 +326,26 @@
     }
   };
 
+  const resetSnow = async () => {
+    const status = $("snowLumaResetStatus");
+    if (!csrf) return;
+    if (status) { status.textContent = "正在重置…"; status.style.color = "#64748b"; }
+    try {
+      const response = await fetch("/api/security/snowluma-reset-password", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.message || "重置失败");
+      renderSnow({ username: data.username || "admin", password: data.password || "" });
+      if (snowState.password) { snowState.revealed = false; revealSnow(); }
+      if (status) { status.textContent = "已重置；请重启 SnowLuma 后使用新密码。"; status.style.color = "#15803d"; }
+    } catch (e) {
+      if (status) { status.textContent = "重置失败：" + (e && e.message ? e.message : "未知错误"); status.style.color = "#b91c1c"; }
+    }
+  };
+
   const saveAdminEmail = async () => {
     if (!csrf || !adminEmailInput) return;
     if (emailSaveStatus) emailSaveStatus.textContent = "保存中… / Saving…";
@@ -762,6 +782,7 @@
     $("oneBotCopy")?.addEventListener("click", copyOneBot);
     $("snowLumaReveal")?.addEventListener("click", revealSnow);
     $("snowLumaCopy")?.addEventListener("click", copySnow);
+    $("snowLumaReset")?.addEventListener("click", resetSnow);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });
