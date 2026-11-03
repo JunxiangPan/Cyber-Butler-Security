@@ -93,7 +93,7 @@ def check_broker_totp(broker_module=None) -> DefenseResult:
         except Exception as exc:  # pragma: no cover - environment-dependent
             return _run_pytest_result("Broker TOTP Challenge", SKIP, f"broker import failed: {exc}")
 
-    with tempfile.TemporaryDirectory(prefix="cbs-broker-") as directory:
+    with tempfile.TemporaryDirectory(prefix="cbs-broker-", dir=str(Path.cwd())) as directory:
         root = Path(directory)
         memory = root / "memory"
         memory.mkdir()
@@ -113,6 +113,8 @@ def check_broker_totp(broker_module=None) -> DefenseResult:
             for name, value in names.items():
                 previous[name] = getattr(broker, name)
                 setattr(broker, name, value)
+            previous["send_qq"] = broker.send_qq
+            previous["verify_code"] = broker.verify_code
             broker.send_qq = lambda text: True
             broker.verify_code = lambda code: "totp"
             status, body = broker.run_request(
@@ -142,7 +144,7 @@ def check_toctou(broker_module=None) -> DefenseResult:
         except Exception as exc:  # pragma: no cover
             return _run_pytest_result("TOCTOU Tamper Block", SKIP, f"broker import failed: {exc}")
     broker = broker_module
-    with tempfile.TemporaryDirectory(prefix="cbs-toctou-") as directory:
+    with tempfile.TemporaryDirectory(prefix="cbs-toctou-", dir=str(Path.cwd())) as directory:
         root = Path(directory)
         memory = root / "memory"
         memory.mkdir()
@@ -161,6 +163,8 @@ def check_toctou(broker_module=None) -> DefenseResult:
             for name, value in names.items():
                 previous[name] = getattr(broker, name)
                 setattr(broker, name, value)
+            previous["send_qq"] = broker.send_qq
+            previous["verify_code"] = broker.verify_code
             broker.send_qq = lambda text: True
             broker.verify_code = lambda code: "totp"
             status, body = broker.run_request(
