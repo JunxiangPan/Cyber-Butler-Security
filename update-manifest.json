@@ -549,8 +549,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "088cbf4903232de2d73485009a53cac14c001ba12a0c57445bd7f2987dd56eaf",
-      "size": 141410
+      "sha256": "e4530ac8557118e5cb9cfe3387bef97dbd08e59c099b39006df7f2f558076ebf",
+      "size": 143146
     },
     {
       "path": "installer/Install-CyberButler.ps1",
