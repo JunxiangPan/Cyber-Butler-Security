@@ -34,7 +34,7 @@ not a certification.
 | Diagnostics | ETA/status window and persistent report under ProgramData | Failure evidence survives rollback | The report is local; it is not a tamper-proof remote log |
 | Defender | Opt-in exclusion helper, exact `C:\CyberButler`, never disable RTP | Avoids the “turn off AV” anti-pattern | AV may still flag; reputation is not guaranteed |
 | Uninstall | Multiple scopes; stops processes, removes tasks/firewall rules | Reduces leftover services after removal | A user can interrupt cleanup |
-| High account | S4U fallback to password; LSA API rights; readable Python copy | Makes the service identity usable when S4U is denied | Password fallback stores a task credential under Windows task protection |
+| High account | Native SCM service `CyberButlerAstrBot`; `CyberButlerSvc`; LSA API rights; readable Python copy | Removes Task Scheduler S4U/password limitations and keeps the service identity usable | The service binary ACL and SCM DACL must remain locked to Svc:RX / SYSTEM:F / Administrators:F |
 | Job Object | `KILL_ON_JOB_CLOSE` before child creation | Broker descendants cannot survive a Broker crash | AstrBot is a separate task and is not automatically covered |
 | Broker | Loopback-only, `X-Broker-Token`, one pending request, TOTP/replay/backoff | Only an authenticated local caller can request approval | A local administrator can bypass OS controls |
 | Approval-only | `/api/request_approval` changes state; does not execute | Removes Broker/DSH double-execution | The external agent must implement its own correct allow path |

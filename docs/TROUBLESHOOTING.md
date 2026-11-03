@@ -299,7 +299,7 @@ ko: 작업 디렉터리가 틀리면 암호 해시가 잘못된 위치에 기록
 ru: Неверный рабочий каталог записывает хэш пароля не туда.
 ```
 
-# 13. High: S4U 被拒绝与密码回退
+# 13. High: AstrBot 服务启动失败
 
 ## 症状
 
@@ -310,79 +310,78 @@ AstrBot Service: LastTaskResult=0x00000002
 
 ## 根因
 
-`S4U`（Service-for-User）不是所有 Windows 版本、域策略或本地安全策略都允许。
-任务以 `CyberButlerSvc` 注册时，`LogonType=S4U` 可能在注册阶段直接被拒绝。
+v1.6.2 起 High 档已废弃 S4U 计划任务。本地非域 Windows 上 Task Scheduler
+可能拒绝本地账户的 S4U 注册；用 SYSTEM 启动器绕过会引入提权风险。
 
-## 修复原则
+## 当前架构
 
-1. **先测**：用目标服务账户注册一个最小任务。
-2. **失败回退**：使用该账户的显式密码注册 `Password` 登录类型。
-3. **不要回退为空密码**：`PSCredential` 的 SecureString 与任务需要的明文密码
-   必须分开传递；回退时检查字符串非空。
-4. 安装器必须记录回退原因，不要静默吞掉 S4U 错误。
-5. 服务账户仍是标准用户；密码只进入 Windows 任务凭据，不写入项目文件。
+```text
+服务名：CyberButlerAstrBot
+运行账户：CyberButlerSvc
+托管：Windows SCM
+入口：CyberButlerAstrBotService.exe
+工作目录：<InstallPath>\AstrBot
+日志：AstrBot\data\logs\service-astrbot.log
+```
 
-## 验收
+## 排查顺序
 
 ```powershell
-Get-ScheduledTask -TaskName 'AstrBot Service' |
-  Select-Object TaskName,State
+Get-Service CyberButlerAstrBot
+Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" |
+  Select-Object Name,State,StartName,ProcessId
 
-Get-ScheduledTaskInfo -TaskName 'AstrBot Service' |
-  Format-List LastRunTime,LastTaskResult
+Get-NetTCPConnection -LocalPort 6185 -State Listen -ErrorAction SilentlyContinue
+
+Get-Content '<InstallPath>\AstrBot\data\logs\service-astrbot.log' -Tail 100 -Encoding UTF8
 ```
 
-`LastTaskResult=0` 且端口 6185 在监听才算成功。
-
-# 14. 0x00000002 与 0x00000001 的区别
-
-## `0x00000002`
-
-```text
-任务已启动，但子进程/启动器在建立日志或端口之前就退出
-```
-
-常见原因：
-
-- launcher 参数错误；
-- PowerShell wrapper 相对路径错；
-- 工作目录不可读；
-- 子进程没有启动，日志文件不存在。
-
-排查顺序：
+如果服务未运行：
 
 ```powershell
-Get-ScheduledTaskInfo -TaskName 'AstrBot Service' |
-  Format-List LastRunTime,LastTaskResult
-
-Get-Content 'C:\CyberButler\AstrBot\data\logs\service-astrbot.err.log' -Tail 80 -ErrorAction SilentlyContinue
-Get-Content 'C:\CyberButler\AstrBot\data\logs\service-astrbot.out.log' -Tail 80 -ErrorAction SilentlyContinue
+Start-Service CyberButlerAstrBot
+Get-WinEvent -LogName System -MaxEvents 50 |
+  Where-Object { $_.ProviderName -match 'Service Control Manager' }
 ```
 
-## `0x00000001`
+不要再用 `Register-ScheduledTask` 注册 `AstrBot Service`。
+
+# 14. AstrBot 服务启动结果码
+
+## 服务已启动但 6185 不监听
+
+```powershell
+Get-Service CyberButlerAstrBot
+Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" |
+  Select-Object Name,State,StartName,ProcessId
+
+Get-NetTCPConnection -LocalPort 6185 -State Listen -ErrorAction SilentlyContinue
+
+Get-Content '<InstallPath>\AstrBot\data\logs\service-astrbot.log' -Tail 100 -Encoding UTF8
+```
+
+日志中应包含：
 
 ```text
-Python 已经启动，但进程自身以 1 退出
+SERVICE_START account=...
+SERVICE_CHILD pid=... job=assigned
 ```
 
-常见原因：
+## 常见原因
 
-- 使用 `pythonw.exe` 运行需要 stdout/stderr 的 AstrBot；
-- AstrBot `main.py` 导入失败；
-- 配置 JSON 损坏；
-- 工作目录不是 `AstrBot`。
+- 服务 exe 没有部署到 `tools\service`；
+- 服务二进制 ACL 没有给 `CyberButlerSvc` RX；
+- AstrBot 数据目录不可写，SQLite 无法打开数据库或创建 WAL/SHM；
+- 服务账户被恢复为禁止交互登录，但 SCM 服务登录权限缺失；
+- Python 入口或工作目录不是绝对路径。
 
-## 最容易踩的坑
-
-把 AstrBot 强行改成 `pythonw.exe`，stdout 为 `None`，AstrBot 启动日志写入时
-直接退出 1。正确方案：
+## 不要这样做
 
 ```text
-AstrBot: python.exe + hidden launcher + redirected stdout/stderr
-WebUI / OTP Mailer: pythonw.exe
+不要重新注册 AstrBot Service 计划任务
+不要用 SYSTEM 启动器绕过 SCM
+不要把服务二进制放在用户可写目录
 ```
-
-不要用“所有 Python 都改 pythonw”这种一刀切方案。
 
 # 15. WebUI / SnowLuma 初始密码与“访问令牌”
 
@@ -720,7 +719,6 @@ scoped_root
 |---|---|---|---|---|---|---|---|---|
 | Test coverage | 测试覆盖 | Test coverage | Testabdeckung | Cobertura | Couverture | テスト範囲 | 테스트 범위 | Покрытие |
 | Installer CWD | 工作目录 | Working directory | Arbeitsverzeichnis | Directorio | Répertoire | 作業ディレクトリ | 작업 디렉터리 | Рабочий каталог |
-| S4U | S4U 回退 | S4U fallback | S4U-Fallback | Respaldo S4U | Repli S4U | S4U フォールバック | S4U 대체 | Резерв S4U |
 | Exit codes | 退出码 | Exit codes | Exitcodes | Códigos | Codes de sortie | 終了コード | 종료 코드 | Коды выхода |
 | Initial password | 初始密码 | Initial password | Anfangspasswort | Contraseña inicial | Mot de passe initial | 初期パスワード | 초기 암호 | Начальный пароль |
 | Black console | 黑框 | Console flash | Konsolenfenster | Ventana negra | Fenêtre noire | 黒い画面 | 검은 창 | Чёрное окно |

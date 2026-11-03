@@ -541,7 +541,7 @@ Get-ScheduledTask -TaskName 'AstrBot Service' | Select-Object -ExpandProperty Pr
 规则：
 
 - Medium / Light 单账户：AstrBot Service 使用当前登录用户，principal 为 `Interactive`。
-- High 隔离：AstrBot Service 使用本地服务账户，principal 为 `S4U`；账户名应解析为 `<YourComputer>\CyberButlerSvc`。
+- High 隔离：AstrBot 使用原生 Windows 服务 `CyberButlerAstrBot`，运行账户为 `<YourComputer>\CyberButlerSvc`；服务由 SCM 托管，不再使用 S4U 计划任务。
 - TOTP Broker 使用 `NT AUTHORITY\SYSTEM`。
 
 安装器现在会打印：

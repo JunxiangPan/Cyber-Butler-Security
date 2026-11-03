@@ -310,3 +310,8 @@ Dashboard は赤いバナーを表示します。保存先：
 
 > Gmail/Outlook は個別の SMTP/IMAP 設定が必要な場合があります。この版の
 > メール承認の IMAP は既定で 163 です。
+
+## High 分離: Windows サービス (SCM)
+
+v1.6.2 以降、High の AstrBot は S4U スケジュール タスクではなく、ネイティブ Windows サービスとして動作します。ローカル非ドメイン アカウントでは Task Scheduler が S4U 登録を拒否する場合があり、SYSTEM ランチャーで回避すると権限昇格の面を作ります。AstrBot は `CyberButlerAstrBot` として SCM 配下で `CyberButlerSvc` アカウントにより実行されます。バイナリ ACL は `CyberButlerSvc:RX`、`SYSTEM:F`、`Administrators:F` で、`SeDenyInteractiveLogonRight` を復元します。絶対パス、固定作業ディレクトリ、GUI なしの Session 0、`AstrBot\data\logs\service-astrbot.log` への stdout/stderr 統合ログ、子プロセス ツリー全体の Job Object を使用します。
+

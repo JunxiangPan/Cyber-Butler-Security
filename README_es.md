@@ -301,3 +301,8 @@ escribe `tools\broker_config.json`; High mantiene `tools` de solo lectura.
 
 > Gmail/Outlook pueden requerir SMTP/IMAP propios. La parte IMAP de aprobación
 > usa 163 por defecto en esta versión.
+
+## Aislamiento High: servicio de Windows (SCM)
+
+Desde v1.6.2, AstrBot en el nivel High es un servicio nativo de Windows, no una tarea programada S4U. Task Scheduler puede rechazar el registro S4U de cuentas locales fuera de dominio; usar un lanzador SYSTEM como rodeo crearía una vía de escalada de privilegios. AstrBot se ejecuta como `CyberButlerAstrBot` bajo SCM con la cuenta `CyberButlerSvc`. La ACL del binario es `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; se restaura `SeDenyInteractiveLogonRight`. El servicio usa rutas absolutas, directorio de trabajo fijo, sesión 0 sin GUI, registro combinado de stdout/stderr en `AstrBot\data\logs\service-astrbot.log` y un Job Object para todo el árbol de procesos.
+

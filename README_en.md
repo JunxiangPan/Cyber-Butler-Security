@@ -126,10 +126,11 @@ preserves the official dashboard-module hashes.
   It never disables real-time protection, SmartScreen, or broad drives.
 - **Scoped uninstall**: package-only, project-only, or both; stops processes,
   removes firewall rules and scheduled tasks, and preserves failure reports.
-- **High-tier fixes**: S4U registration is still not universally available;
-  when it is denied the installer falls back to password logon. User rights are
-  written through the Windows LSA API rather than `secedit`, and the runtime
-  Python/venv is placed where the service account can read it.
+- **High-tier startup**: AstrBot runs as the SCM service `CyberButlerAstrBot`
+  under `CyberButlerSvc`; the S4U scheduled-task path is retired. The service
+  binary is ACL-locked, interactive logon is denied, and a Job Object owns the
+  child tree. User rights are written through the Windows LSA API, and the
+  runtime Python/venv is placed where the service account can read it.
 
 ### 2. Broker and runtime protection
 
@@ -779,3 +780,8 @@ This repository is released under the **GNU Affero General Public License v3.0 (
 AstrBot, SnowLuma, Ollama, and other dependencies remain the property of their respective authors. Read and comply with their licenses before use.
 
 **Required first-run setup:** enter the WebUI administrator email and the SMTP authorization code in the installer. CBS WebUI `8765` uses email OTP; AstrBot `6185` uses username/password. If the email is missing, the dashboard shows a red banner instead of silently failing.
+
+## High isolation: Windows service (SCM)
+
+Starting with v1.6.2, the High-tier AstrBot runtime is a native Windows service, not an S4U scheduled task. Task Scheduler can reject S4U registration for local non-domain accounts, and a SYSTEM launcher used to bypass that would create a privilege-escalation surface. AstrBot now runs as `CyberButlerAstrBot` under SCM with the `CyberButlerSvc` account. The service binary ACL is `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` is restored. The service uses absolute paths, a fixed working directory, GUI-disabled Session 0 settings, combined stdout/stderr logging in `AstrBot\data\logs\service-astrbot.log`, and a Job Object for the whole child tree.
+

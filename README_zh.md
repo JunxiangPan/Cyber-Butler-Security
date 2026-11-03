@@ -120,9 +120,10 @@ DeepSeek Super-agent 这类常驻自主智能体，正在从单轮聊天变成�
   SmartScreen，也不排除整块磁盘。
 - **分范围卸载**：发布包/主项目/两者三种范围；自动停止进程、清理防火墙规则
   和计划任务，并保留失败报告。
-- **High 档权限与启动修复**：S4U 并非所有环境都可用；被拒绝时回退到密码登录。
-  用户权限通过 Windows LSA API 写入，不再依赖 `secedit`；运行时 Python/venv
-  放到服务账户可读的位置。
+- **High 档启动**：AstrBot 改为 SCM 服务 `CyberButlerAstrBot`，以 `CyberButlerSvc`
+  运行；S4U 计划任务路径已废弃。服务二进制 ACL 锁定、禁止交互登录，并用
+  Job Object 接管子进程树。用户权限通过 Windows LSA API 写入，不再依赖
+  `secedit`；运行时 Python/venv 放到服务账户可读的位置。
 
 ### 2. 底层安全与运行时防护
 
@@ -700,3 +701,8 @@ Broker 会把 `approval-contact.json` 作为兜底；两种来源都没有邮箱
 AstrBot、SnowLuma、Ollama 等依赖项目仍归各自作者所有，使用前请阅读并遵守其许可证。
 
 **首次配置必填**：在安装器中填写 WebUI 管理员邮箱和 SMTP 授权码。CBS WebUI `8765` 使用邮箱验证码，AstrBot `6185` 使用用户名/密码；邮箱缺失时 dashboard 顶部会显示红色警告，而不是静默失败。
+
+## High 隔离：Windows 服务（SCM）
+
+从 v1.6.2 起，High 档的 AstrBot 改为原生 Windows 服务，不再使用 S4U 计划任务。本地非域 Windows 上 Task Scheduler 可能拒绝本地账户的 S4U 注册；若用 SYSTEM 启动器绕过，会引入提权面。现在 AstrBot 由 SCM 以 `CyberButlerAstrBot` 服务运行，账户仍为 `CyberButlerSvc`。服务二进制 ACL 为 `CyberButlerSvc:RX`、`SYSTEM:F`、`Administrators:F`，并恢复 `SeDenyInteractiveLogonRight`。服务使用绝对路径、固定工作目录、Session 0 禁用 GUI、把 stdout/stderr 合并写入 `AstrBot\data\logs\service-astrbot.log`，并用 Job Object 接管整个子进程树。
+

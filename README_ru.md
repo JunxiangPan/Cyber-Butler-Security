@@ -301,3 +301,8 @@ HTTP 503, а панель показывает красный баннер. Хр
 
 > Gmail/Outlook могут требовать своих SMTP/IMAP-настроек. В этой версии IMAP
 > для email-подтверждений по умолчанию 163.
+
+## Изоляция High: служба Windows (SCM)
+
+Начиная с v1.6.2 AstrBot в уровне High работает как собственная служба Windows, а не как задача S4U. Task Scheduler может отклонять регистрацию S4U для локальных недоменных учетных записей; обход через SYSTEM-запускатор создал бы поверхность повышения привилегий. Теперь AstrBot работает как служба `CyberButlerAstrBot` под SCM с учетной записью `CyberButlerSvc`. ACL двоичного файла: `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` восстановлен. Служба использует абсолютные пути, фиксированный рабочий каталог, Session 0 без GUI, объединенный stdout/stderr в `AstrBot\data\logs\service-astrbot.log` и Job Object для всего дерева дочерних процессов.
+

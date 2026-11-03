@@ -1,4 +1,4 @@
-# Scheduled-task and service-health lifecycle for the installer.
+﻿# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -41,7 +41,7 @@ function Get-CyberButlerTaskPrincipalSpec {
     )
     switch ($PrincipalMode) {
         'SYSTEM' { return [pscustomobject]@{ user_id = 'NT AUTHORITY\SYSTEM'; logon_type = 'ServiceAccount'; run_level = 'Highest' } }
-        'service' { return [pscustomobject]@{ user_id = (Resolve-CyberButlerTaskAccount -Account $ServiceAccount); logon_type = 'S4U'; run_level = 'Limited' } }
+        'service' { throw 'S4U scheduled tasks are retired; use the native SCM service CyberButlerAstrBot.' }
         default { return [pscustomobject]@{ user_id = (Resolve-CyberButlerTaskAccount -Account $DesktopAccount -CurrentUser:([string]::IsNullOrWhiteSpace($DesktopAccount))); logon_type = 'Interactive'; run_level = 'Limited' } }
     }
 }
@@ -110,7 +110,7 @@ function Get-CyberButlerServiceSpecs {
     $webArgs = '--exe "powershell.exe" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
 
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
+        [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); kind = $(if ($Isolation) { 'service' } else { 'task' }); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
         [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
         [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $webPythonw; args = ('"{0}" --watch --policy "{1}"' -f (Join-Path $rootFull 'tools\wfp_guard.py'), (Join-Path $rootFull 'webui\data
 etwork-policy.json')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
@@ -181,6 +181,27 @@ function Test-CyberButlerServices {
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
     $taskRows = New-Object System.Collections.Generic.List[object]
     foreach ($spec in $specs) {
+        if ([string]$spec.kind -eq 'service') {
+            $svc = Get-Service -Name 'CyberButlerAstrBot' -ErrorAction SilentlyContinue
+            $wmi = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" -ErrorAction SilentlyContinue
+            $startName = if ($wmi) { [string]$wmi.StartName } else { '' }
+            $expectedService = Resolve-CyberButlerTaskAccount -Account $ServiceAccount
+            $taskRows.Add([pscustomobject][ordered]@{
+                name = $spec.name
+                kind = 'service'
+                exists = [bool]$svc
+                state = if ($svc) { [string]$svc.Status } else { $null }
+                principal = $startName
+                expected_principal = $expectedService
+                principal_ok = ((ConvertTo-CyberButlerCanonicalPrincipal $startName) -ieq (ConvertTo-CyberButlerCanonicalPrincipal $expectedService))
+                port = $spec.port
+                action_execute = 'CyberButlerAstrBotService.exe'
+                action_arguments = ''
+                action_workdir = (Join-Path $Root 'AstrBot')
+                last_task_result = 'n/a'
+            })
+            continue
+        }
         $task = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
         $principal = $null
         if ($task) { try { $principal = [string]$task.Principal.UserId } catch { } }
@@ -252,40 +273,7 @@ function New-CyberButlerScheduledTask {
     try {
         Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger -Principal $principal -Settings $settings -Force | Out-Null
     } catch {
-        $s4uError = $_.Exception.Message
-        if ($principalSpec.logon_type -eq 'S4U') {
-            $effectivePassword = $ServiceAccountPassword
-            if (-not $effectivePassword) {
-                # The account may already exist but its installer password is
-                # unknown (for example a resumed install). Rotate it once and
-                # register with an explicit password instead of leaving the
-                # task unregistered.
-                try {
-                    $localUser = Get-LocalUser -Name $ServiceAccount -ErrorAction Stop
-                    if ($localUser) {
-                        $effectivePassword = New-CyberButlerRandomPassword
-                        $securePassword = ConvertTo-SecureString -String $effectivePassword -AsPlainText -Force
-                        Set-LocalUser -Name $ServiceAccount -Password $securePassword -ErrorAction Stop
-                    }
-                } catch {
-                    Write-Host ('SERVICE password fallback could not rotate ' + $ServiceAccount + ': ' + $_.Exception.Message)
-                }
-            }
-            if ($effectivePassword) {
-                try {
-                    Write-Host ('SERVICE S4U registration denied for ' + $Name + '; retrying with password logon.')
-                    Register-ScheduledTask -TaskName $Name -Action $action -Trigger $taskTrigger `
-                        -User $principalSpec.user_id -Password $effectivePassword -RunLevel $principalSpec.run_level `
-                        -Settings $settings -Force | Out-Null
-                } catch {
-                    throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U and password fallback): ' + $s4uError + ' / ' + $_.Exception.Message)
-                }
-            } else {
-                throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', S4U): ' + $s4uError)
-            }
-        } else {
-            throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', LogonType=' + $principalSpec.logon_type + '): ' + $s4uError)
-        }
+        throw ('Register-ScheduledTask failed for ' + $Name + ' (UserId=' + $principalSpec.user_id + ', LogonType=' + $principalSpec.logon_type + '): ' + $_.Exception.Message)
     }
     try {
         Start-ScheduledTask -TaskName $Name
@@ -350,6 +338,46 @@ function Stop-CyberButlerInstallProcesses {
         } catch { }
     }
     return $stopped.ToArray()
+}
+
+function Install-CyberButlerAstrBotService {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$ServiceAccount,
+        [string]$ServiceAccountPassword = '',
+        $Journal = $null,
+        [string]$JournalStep = 'services',
+        $Handlers = @{}
+    )
+    $svcName = 'CyberButlerAstrBot'
+    $source = Join-Path $PSScriptRoot '..\service\CyberButlerAstrBotService.exe'
+    $targetDir = Join-Path $Root 'tools\service'
+    $target = Join-Path $targetDir 'CyberButlerAstrBotService.exe'
+    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    if (-not (Test-Path -LiteralPath $source)) { throw ('Service wrapper missing: ' + $source) }
+    Copy-Item -LiteralPath $source -Destination $target -Force
+    & icacls.exe $targetDir /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' 'BUILTIN\Administrators:(OI)(CI)F' ($ServiceAccount + ':(OI)(CI)RX') 2>&1 | Out-Null
+    & icacls.exe $target /inheritance:r /grant:r '*S-1-5-18:F' 'BUILTIN\Administrators:F' ($ServiceAccount + ':RX') 2>&1 | Out-Null
+    $password = $ServiceAccountPassword
+    if ([string]::IsNullOrWhiteSpace($password)) {
+        $password = New-CyberButlerRandomPassword
+        $secure = ConvertTo-SecureString $password -AsPlainText -Force
+        Set-LocalUser -Name $ServiceAccount -Password $secure -ErrorAction Stop
+    }
+    $cred = New-Object System.Management.Automation.PSCredential((Resolve-CyberButlerTaskAccount -Account $ServiceAccount), (ConvertTo-SecureString $password -AsPlainText -Force))
+    $existing = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+    if ($existing) {
+        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 1
+        & sc.exe delete $svcName | Out-Null
+        Start-Sleep -Seconds 1
+    }
+    New-Service -Name $svcName -BinaryPathName $target -DisplayName 'Cyber-Butler AstrBot Service' -StartupType Automatic -Credential $cred | Out-Null
+    & sc.exe description $svcName 'Runs AstrBot under CyberButlerSvc (SCM-managed High isolation).' | Out-Null
+    & sc.exe failure $svcName reset= 86400 actions= restart/5000/restart/15000/restart/60000 | Out-Null
+    Set-CyberButlerLogonRight -AccountName $ServiceAccount -Right SeDenyInteractiveLogonRight
+    Start-Service -Name $svcName
+    return [pscustomobject]@{ service = $svcName; created = $true }
 }
 
 function Set-CyberButlerServiceTasks {
@@ -500,6 +528,12 @@ function Set-CyberButlerServiceTasks {
     $created = New-Object System.Collections.Generic.List[object]
     $taskBackups = @{}
     foreach ($spec in $specs) {
+        if ([string]$spec.kind -eq 'service') {
+            $svcApplied = Install-CyberButlerAstrBotService -Root $Root -ServiceAccount $ServiceAccount -ServiceAccountPassword $ServiceAccountPassword -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
+            $created.Add([string]$svcApplied.service)
+            Write-Host ('SERVICE installed native SCM service ' + $svcApplied.service)
+            continue
+        }
         $existing = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
         if ($existing) {
             if ($null -ne $Journal) {
