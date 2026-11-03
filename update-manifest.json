@@ -184,8 +184,8 @@
     },
     {
       "path": "docs/10-security/known-limitations.md",
-      "sha256": "8511488026fff84b8b14139cde70676e97d240ecfeb79ec61e25781033075da6",
-      "size": 1855
+      "sha256": "8b2fdd53b4505454116b7b5c0e54f1f0089acfaa32071a6b4f743b766ed7f930",
+      "size": 2227
     },
     {
       "path": "docs/10-security/scm-service-hardening.md",
@@ -394,8 +394,8 @@
     },
     {
       "path": "docs/releases/GITHUB_RELEASE_v1.6.2.md",
-      "sha256": "ab08b482634d17ec349bc8fd166030842ab111a8708f8e4f428c29d420f34b98",
-      "size": 5381
+      "sha256": "64ecb7d1606574569c3e2fa5777ac18243181f8097219d8315c9a20eba8c4894",
+      "size": 6329
     },
     {
       "path": "docs/releases/README.md",
