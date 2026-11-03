@@ -215,18 +215,23 @@ $xaml = @'
         </Grid>
       </Border>
 
-    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14">
-      <Button x:Name="StartButton" Content="Start installation" Width="160" Height="38" Margin="0,0,10,0"
-              Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9" FontWeight="SemiBold"/>
-      <Button x:Name="ReportButton" Content="Open report folder" Width="140" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="RemoveButton" Content="Uninstall" Width="110" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="StatusButton" Content="Check status" Width="110" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="CloseButton" Content="Exit" Width="80" Height="38" Margin="0,0,10,0"/>
-      <Button x:Name="HelpButton" Content="Help" Width="80" Height="38" Margin="0,0,10,0"/>
-      <CheckBox x:Name="ApprovalCheck" Content="I have read the notes above and approve these installer steps"
-                Foreground="#FBBF24" VerticalAlignment="Center" Margin="16,0,0,0"/>
+    <StackPanel Grid.Row="2" Margin="0,0,0,14">
+      <StackPanel Orientation="Horizontal">
+        <Button x:Name="StartButton" Content="Start installation" Width="160" Height="38" Margin="0,0,10,0"
+                Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9" FontWeight="SemiBold"/>
+        <Button x:Name="ReportButton" Content="Open report folder" Width="140" Height="38" Margin="0,0,10,0"/>
+        <Button x:Name="RemoveButton" Content="Uninstall" Width="110" Height="38" Margin="0,0,10,0"/>
+        <Button x:Name="StatusButton" Content="Check status" Width="110" Height="38" Margin="0,0,10,0"/>
+        <Button x:Name="CloseButton" Content="Exit" Width="80" Height="38" Margin="0,0,10,0"/>
+        <Button x:Name="HelpButton" Content="Help" Width="80" Height="38" Margin="0,0,10,0"/>
+      </StackPanel>
+      <CheckBox x:Name="ApprovalCheck" Foreground="#FBBF24" Margin="0,8,0,0">
+        <CheckBox.Content>
+          <TextBlock x:Name="ApprovalText" Text="I have read the notes above and approve these installer steps" TextWrapping="Wrap" Width="760"/>
+        </CheckBox.Content>
+      </CheckBox>
       <CheckBox x:Name="PhysicalSeparationCheck" Content="我已确认 TOTP 验证器（手机/邮箱）不在当前这台机器上 / TOTP authenticator is on another device"
-                Foreground="#F87171" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                Foreground="#F87171" VerticalAlignment="Center" Margin="0,6,0,0"/>
     </StackPanel>
 
     <ProgressBar Grid.Row="3" x:Name="InstallProgress" Height="8" Minimum="0" Maximum="100" Value="0"
@@ -282,8 +287,20 @@ $helpButton = $window.FindName('HelpButton')
 $quickHelp = $window.FindName('QuickHelp')
 $installProgress = $window.FindName('InstallProgress')
 $approvalCheck = $window.FindName('ApprovalCheck')
+$approvalText = $window.FindName('ApprovalText')
 $defenderExclusionCheck = $window.FindName('DefenderExclusionCheck')
 $defenderHint = $window.FindName('DefenderHint')
+
+function Update-DefenderExclusionText {
+    $p = [string]$installPathBox.Text
+    if ([string]::IsNullOrWhiteSpace($p)) { $p = 'C:\CyberButler' }
+    if ($p.TrimEnd([char]92) -ieq 'C:\CyberButler') {
+        $defenderExclusionCheck.Content = Get-UiText 'DefenderExclusion'
+    } else {
+        $defenderExclusionCheck.Content = 'Optional: add only this exact folder to Defender exclusions: ' + $p
+    }
+}
+$installPathBox.Add_TextChanged({ Update-DefenderExclusionText })
 $logBox = $window.FindName('LogBox')
 $statusText = $window.FindName('StatusText')
 $installerPathText = $window.FindName('InstallerPathText')
@@ -869,8 +886,16 @@ function Apply-GuiLanguage {
     $helpButton.Content = Get-UiText 'Help'
     $removeButton.Content = Get-UiText 'Remove'
     $statusButton.Content = Get-UiText 'CheckStatus'
-    $approvalCheck.Content = Get-UiText 'Approval'
-    $defenderExclusionCheck.Content = Get-UiText 'DefenderExclusion'
+    if ($approvalText) {
+        $approvalText.Text = (Get-UiText 'Approval') + ' / TOTP will be confirmed in the next dialog.'
+    } else {
+        $approvalCheck.Content = Get-UiText 'Approval'
+    }
+    if (Get-Command Update-DefenderExclusionText -ErrorAction SilentlyContinue) {
+        Update-DefenderExclusionText
+    } else {
+        $defenderExclusionCheck.Content = Get-UiText 'DefenderExclusion'
+    }
     $defenderHint.Text = Get-UiText 'DefenderHint'
     $advancedExpander.Header = Get-UiText 'Advanced'
     $quickHelp.Text = Get-UiText 'QuickHelp'
@@ -1530,7 +1555,7 @@ $startButton.Add_Click({
         if ($defenderExclusionCheck.IsChecked) {
             $defenderScript = Join-Path $installerRoot 'lib\Add-DefenderExclusion.ps1'
             try {
-                $defOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $defenderScript -InstallRoot $installPath 2>&1
+                $defOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $defenderScript -InstallRoot $installPath -AllowCustomRoot 2>&1
                 if ($LASTEXITCODE -ne 0) { throw (($defOut | ForEach-Object { [string]$_ }) -join ' ') }
                 Write-GuiLog (Get-UiText 'DefenderExclusionDone')
             } catch {

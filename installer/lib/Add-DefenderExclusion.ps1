@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string]$InstallRoot
+    [string]$InstallRoot,
+    [switch]$AllowCustomRoot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -10,9 +11,29 @@ $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $InstallRoot)) {
     New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
 }
-$root = (Resolve-Path -LiteralPath $InstallRoot -ErrorAction Stop).Path.TrimEnd('\')
-if ($root -notmatch '^[A-Za-z]:\\CyberButler$') {
-    throw "Refusing to add a Defender exclusion outside C:\\CyberButler: $root"
+$root = (Resolve-Path -LiteralPath $InstallRoot -ErrorAction Stop).Path.TrimEnd([char]92)
+$isDefaultRoot = ($root -ieq 'C:\CyberButler')
+if (-not $isDefaultRoot) {
+    if (-not $AllowCustomRoot) {
+        throw "Refusing to add a Defender exclusion outside C:\\CyberButler: $root"
+    }
+    $driveRoot = [IO.Path]::GetPathRoot($root)
+    if ($root -ieq $driveRoot) {
+        throw "Refusing to exclude a drive root: $root"
+    }
+    $forbidden = @(
+        [IO.Path]::GetFullPath($env:SystemRoot),
+        [IO.Path]::GetFullPath($env:ProgramFiles),
+        [IO.Path]::GetFullPath($env:ProgramData),
+        [IO.Path]::GetFullPath([Environment]::GetFolderPath('UserProfile'))
+    )
+    foreach ($bad in $forbidden) {
+        if ([string]::IsNullOrWhiteSpace($bad)) { continue }
+        $bad = $bad.TrimEnd([char]92)
+        if ($root -ieq $bad -or $root.StartsWith($bad + '\', [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Refusing to exclude a protected Windows/user directory: $root"
+        }
+    }
 }
 
 $status = Get-MpComputerStatus -ErrorAction Stop
