@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -99,8 +99,8 @@
     },
     {
       "path": "VERSION",
-      "sha256": "a2d5e268fe70979caccd895156b3d33bd61a3cc7e660ab7a5b07066849b3e248",
-      "size": 6
+      "sha256": "6dde16f153f2f29ec2633b7627708716d637b83442844e75c6a2b28ea9c7cb50",
+      "size": 7
     },
     {
       "path": "build/CyberButlerLauncher.cs",
@@ -489,8 +489,8 @@
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "8c32cb94fbfac58444b1551aa82401191a618d71fcdc5c64f59e877744c0b154",
-      "size": 25509
+      "sha256": "a522bcaa85866d2b99d9619a6628f06e16abf28ed0cc41b7a88bbba81e4eabca",
+      "size": 27015
     },
     {
       "path": "installer/lib/launch-guide.json",
@@ -504,8 +504,8 @@
     },
     {
       "path": "installer/lib/totp_material.py",
-      "sha256": "c91643b7f7cfae7877cc0448975b892c6eec0e6938a1a281479f5ba44440f680",
-      "size": 2870
+      "sha256": "b7866090f0e89bd623742518c96f3d1ac50d765b6cc3dfc3cc157181a5c4f29d",
+      "size": 3927
     },
     {
       "path": "installer/profiles/high.json",
