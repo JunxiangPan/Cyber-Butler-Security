@@ -1674,8 +1674,8 @@
     },
     {
       "path": "tools/seed_astrbot_dashboard.py",
-      "sha256": "525c2055818b4a1bedb85a46c2255c60eaabdac09b3b0ca0b8347671501e9df0",
-      "size": 1529
+      "sha256": "68e6eda863635c6ca8295cb8dbb62ac042f417f02ccb3bfac49fb706b72c2878",
+      "size": 1735
     },
     {
       "path": "tools/send_email_stdin.py",
@@ -1804,8 +1804,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "4cb22371c372cd89ee29a732db69b861d56dfe274cfdd9685cccb10de46e2aec",
-      "size": 25448
+      "sha256": "ba746cea2055bd22bf43629aa0a96622f33c3b2fd289a5910497fb34de578074",
+      "size": 26720
     },
     {
       "path": "webui/auth.py",
@@ -1869,8 +1869,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "fec56bdc9038aec8aeae3e2f501a6bcb6d054d3ebda6950f3c5fe7200c17e092",
-      "size": 29586
+      "sha256": "14d9aa0ed62823b6ebf5453559e94895f6cd56e46621df4cc015f13ba38415f5",
+      "size": 32131
     },
     {
       "path": "webui/static/error.js",
@@ -1949,8 +1949,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "5f805cd4e8630a95c407cc5ebbd28265925aa6c67f2cb7312a48d36ae72e185d",
-      "size": 17815
+      "sha256": "84a8fdf64e8aca5e6ebf9588891176d947bc4f373b18a772fa4279788f3ef457",
+      "size": 19429
     },
     {
       "path": "webui/templates/error.html",
