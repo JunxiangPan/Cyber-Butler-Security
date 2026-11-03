@@ -659,8 +659,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "af01ddef26d79f22c1bbc76cef92dfeef694f50751f72242a914c2b4bdb5401e",
-      "size": 54249
+      "sha256": "ac400529e4a184ee0e524128182a8ff22b32db878b15c1613460b8162475e302",
+      "size": 54665
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
