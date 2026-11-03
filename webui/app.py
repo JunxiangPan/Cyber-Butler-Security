@@ -441,11 +441,20 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/security/snowluma-credentials")
     async def snowluma_credentials(session=Depends(require_session)):
-        log_path = Path(settings.project_root) / "SnowLuma" / "logs" / "startup-snowluma.out.log"
+        log_dir = Path(settings.project_root) / "SnowLuma" / "logs"
+        log_paths = [log_dir / "startup-snowluma.out.log", log_dir / "start-snowluma-console.log"]
+        try:
+            log_paths.extend(sorted(log_dir.glob("snowluma-*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:3])
+        except OSError:
+            pass
         username = ""
         password = ""
-        try:
-            if log_path.is_file():
+        used_log = log_paths[0]
+        for log_path in log_paths:
+            try:
+                if not log_path.is_file():
+                    continue
+                used_log = log_path
                 lines = log_path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
                 for line in reversed(lines[-800:]):
                     match = re.search(
@@ -457,14 +466,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
                         username = match.group(1)
                         password = match.group(2)
                         break
-        except OSError as exc:
-            logger.warning("snowluma credential read failed: %s", exc)
+                if password:
+                    break
+            except OSError as exc:
+                logger.warning("snowluma credential read failed: %s", exc)
         return JSONResponse(
             {
                 "ok": True,
                 "username": username,
                 "password": password,
-                "log": str(log_path),
+                "log": str(used_log),
                 "url": "http://127.0.0.1:5099/",
             },
             headers={"Cache-Control": "no-store"},

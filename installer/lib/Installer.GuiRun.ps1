@@ -352,17 +352,27 @@ function Get-CyberButlerAstrBotInitialCredentials {
 
 function Get-CyberButlerSnowLumaInitialCredentials {
     param([Parameter(Mandatory = $true)][string]$InstallPath)
-    $log = Join-Path $InstallPath 'SnowLuma\logs\startup-snowluma.out.log'
-    $result = [pscustomobject]@{ username = 'admin'; password = ''; log = $log }
-    if (-not (Test-Path -LiteralPath $log)) { return $result }
-    try {
-        foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -Encoding UTF8 -ErrorAction Stop)) {
-            if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
-                $result.username = [string]$Matches['user']
-                $result.password = [string]$Matches['pass']
+    $logDir = Join-Path $InstallPath 'SnowLuma\logs'
+    $candidates = @(
+        (Join-Path $logDir 'startup-snowluma.out.log'),
+        (Join-Path $logDir 'start-snowluma-console.log')
+    )
+    $candidates += @(Get-ChildItem -LiteralPath $logDir -Filter 'snowluma-*.log' -File -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 3 -ExpandProperty FullName)
+    $result = [pscustomobject]@{ username = 'admin'; password = ''; log = (Join-Path $logDir 'startup-snowluma.out.log') }
+    foreach ($log in $candidates) {
+        if (-not (Test-Path -LiteralPath $log)) { continue }
+        $result.log = $log
+        try {
+            foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -Encoding UTF8 -ErrorAction Stop)) {
+                if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
+                    $result.username = [string]$Matches['user']
+                    $result.password = [string]$Matches['pass']
+                    return $result
+                }
             }
-        }
-    } catch { }
+        } catch { }
+    }
     return $result
 }
 

@@ -119,7 +119,7 @@ function Get-CyberButlerServiceSpecs {
         [pscustomobject]@{
             name = 'SnowLuma Startup'
             exe = $launcher
-            args = ('--exe "{0}" --workdir "{1}" --args "index.mjs" --hidden --wait --log "{2}"' -f (Join-Path $rootFull 'SnowLuma/node.exe'), (Join-Path $rootFull 'SnowLuma'), (Join-Path $rootFull 'SnowLuma/logs/start-snowluma-console.log'))
+            args = ('--exe "{0}" --workdir "{1}" --args "index.mjs" --hidden --wait --log "{2}"' -f (Join-Path $rootFull 'SnowLuma/node.exe'), (Join-Path $rootFull 'SnowLuma'), (Join-Path $rootFull 'SnowLuma/logs/startup-snowluma.out.log'))
             workdir = (Join-Path $rootFull 'SnowLuma')
             principal = 'desktop'
             trigger = 'AtLogOn'
