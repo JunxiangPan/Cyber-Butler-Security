@@ -1,0 +1,8 @@
+{
+  "version": "1.6.2",
+  "tier": "High",
+  "ports": [6185, 18090, 8765, 8766, 5099],
+  "dynamic_ports": [6199],
+  "wfp_mode": "audit",
+  "notes": "Run as administrator on a clean Windows 10/11 x64 VM. 6199 is dynamic and is not required before the OneBot adapter is configured."
+}
