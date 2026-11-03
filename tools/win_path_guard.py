@@ -83,7 +83,7 @@ class TargetSnapshot:
 
     @classmethod
     def _open_posix(cls, path: Path, *, write: bool) -> "TargetSnapshot":
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        flags = (os.O_RDWR if write else os.O_RDONLY) | getattr(os, "O_NOFOLLOW", 0)
         try:
             fd = os.open(str(path), flags)
         except OSError as exc:
