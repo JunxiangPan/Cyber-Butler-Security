@@ -49,6 +49,34 @@ ode.exe` while the running
 - This fix is in the worktree but NOT in the signed v1.6.2 package; current host
   retry must stop processes manually or use a rebuilt package.
 
+### 3c. AstrBot import fails with Deprecated 3.0.0 on Python 3.10
+
+- Observed after Core pip install:
+  `SyntaxError: invalid syntax` at
+  `deprecated/classic.py: type WarningAction = Literal[...]`.
+- `type` statement syntax requires Python 3.12/3.13; the host uses bundled
+  `.python` 3.10.8 and `.venv` Python 3.10.
+- AstrBot requirements only say `deprecated>=1.2.18`; pip installed
+  `Deprecated 3.0.0`, which is incompatible with 3.10.
+- Impact: Core `import astrbot.core` fails, rollback runs, and the installer
+  reports a truncated `Traceback (most recent call last):`.
+- Required: pin `deprecated<3` in installer/AstrBot requirements or force
+  Python 3.13; add an import-smoke regression test.
+
+### 3d. GUI status can show stale failed report and false TOTP state
+
+- Observed after a new run: GUI showed `报告状态: failed` from the previous
+  report and `TOTP material ready`, while the current run was still copying or
+  had already failed.
+- The signal directory contained no `totp-ready.json`; TOTP was not actually
+  ready.
+- Root cause: status/completion timers parse the shared report path without
+  checking its run id/timestamp, and TOTP status is inferred from progress
+  percentage instead of signal files.
+- Required: clear/rotate the report at run start; compare generated_at/run_id
+  with the current GUI run; derive TOTP state only from `totp-ready.json`; stop
+  the timer and disable TOTP controls on a failed report.
+
 ### 3b. Localized PowerShell errors were mojibake in report/manual recovery
 
 - Observed report/manual-recovery text:
