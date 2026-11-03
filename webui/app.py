@@ -437,6 +437,37 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             headers={"Cache-Control": "no-store"},
         )
 
+    @app.get("/api/security/snowluma-credentials")
+    async def snowluma_credentials(session=Depends(require_session)):
+        log_path = Path(settings.project_root) / "SnowLuma" / "logs" / "startup-snowluma.out.log"
+        username = ""
+        password = ""
+        try:
+            if log_path.is_file():
+                lines = log_path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
+                for line in reversed(lines[-800:]):
+                    match = re.search(
+                        r"initial credentials:\s*user=(\S+)\s+password=(\S+)",
+                        line,
+                        re.IGNORECASE,
+                    )
+                    if match:
+                        username = match.group(1)
+                        password = match.group(2)
+                        break
+        except OSError as exc:
+            logger.warning("snowluma credential read failed: %s", exc)
+        return JSONResponse(
+            {
+                "ok": True,
+                "username": username,
+                "password": password,
+                "log": str(log_path),
+                "url": "http://127.0.0.1:5099/",
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
     @app.post("/api/config/admin-email")
     async def save_admin_email(body: AdminEmailUpdate, request: Request, session=Depends(require_session)):
         provided = request.headers.get("X-CSRF-Token", "")

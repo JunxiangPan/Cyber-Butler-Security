@@ -269,6 +269,63 @@
     }
   };
 
+  const snowState = { password: "", revealed: false, timer: null };
+
+  const maskSnow = () => {
+    const el = $("snowLumaPassword");
+    if (el) el.textContent = snowState.password ? "••••••••••••" : "未捕获";
+    const btn = $("snowLumaReveal");
+    if (btn) btn.textContent = "显示";
+    snowState.revealed = false;
+    if (snowState.timer) { clearTimeout(snowState.timer); snowState.timer = null; }
+  };
+
+  const renderSnow = (data) => {
+    snowState.password = String((data && data.password) || "");
+    const user = $("snowLumaUser");
+    if (user) user.textContent = (data && data.username) || "—";
+    const url = $("snowLumaUrl");
+    if (url && data && data.url) url.textContent = data.url;
+    const status = $("snowLumaStatus");
+    if (status) {
+      status.textContent = snowState.password
+        ? "密码来自 SnowLuma 首次启动日志；登录后请尽快修改。"
+        : "没有从首次启动日志捕获密码；请查看 SnowLuma\logs\startup-snowluma.out.log。";
+      status.style.color = snowState.password ? "#15803d" : "#b91c1c";
+    }
+    const copy = $("snowLumaCopy");
+    if (copy) copy.disabled = !snowState.password;
+    maskSnow();
+  };
+
+  const loadSnow = async () => {
+    if (!csrf) return;
+    const data = await getJson("/api/security/snowluma-credentials");
+    if (data && data.ok) renderSnow(data);
+  };
+
+  const revealSnow = () => {
+    const el = $("snowLumaPassword");
+    const btn = $("snowLumaReveal");
+    if (!el || !snowState.password) return;
+    snowState.revealed = !snowState.revealed;
+    el.textContent = snowState.revealed ? snowState.password : "••••••••••••";
+    if (btn) btn.textContent = snowState.revealed ? "隐藏" : "显示";
+    if (snowState.timer) clearTimeout(snowState.timer);
+    if (snowState.revealed) snowState.timer = setTimeout(maskSnow, 15000);
+  };
+
+  const copySnow = async () => {
+    const status = $("snowLumaStatus");
+    if (!snowState.password) return;
+    try {
+      await navigator.clipboard.writeText(snowState.password);
+      if (status) { status.textContent = "已复制 SnowLuma 初始密码。"; status.style.color = "#15803d"; }
+    } catch {
+      if (status) { status.textContent = "复制失败；点“显示”手动复制。"; status.style.color = "#b91c1c"; }
+    }
+  };
+
   const saveAdminEmail = async () => {
     if (!csrf || !adminEmailInput) return;
     if (emailSaveStatus) emailSaveStatus.textContent = "保存中… / Saving…";
@@ -703,6 +760,8 @@
     $("networkRefresh")?.addEventListener("click", loadNetworkPolicy);
     $("oneBotReveal")?.addEventListener("click", revealOneBot);
     $("oneBotCopy")?.addEventListener("click", copyOneBot);
+    $("snowLumaReveal")?.addEventListener("click", revealSnow);
+    $("snowLumaCopy")?.addEventListener("click", copySnow);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });
@@ -723,6 +782,7 @@
         loadEmailStatus();
         loadNetworkPolicy();
         loadOneBotToken();
+        loadSnow();
         setInterval(loadNetworkGuard, 10000);
       })
       .catch(() => {});

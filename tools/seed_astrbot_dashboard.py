@@ -34,6 +34,9 @@ def main() -> int:
     dashboard["password_change_required"] = False
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+    password_file = root / "AstrBot" / "data" / "logs" / "initial-admin-password.txt"
+    password_file.parent.mkdir(parents=True, exist_ok=True)
+    password_file.write_text(password, encoding="utf-8")
     marker = root / "AstrBot" / "data" / ".cbs-dashboard-password-configured"
     marker.write_text("configured", encoding="ascii")
     return 0

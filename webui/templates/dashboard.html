@@ -166,6 +166,38 @@
     </section>
 
 
+    <section id="snowLumaPanel" class="onebot-panel">
+      <div class="onebot-head">
+        <div>
+          <span class="network-eyebrow">SNOWLUMA LOGIN</span>
+          <h2>SnowLuma 登录凭据</h2>
+          <p class="network-lead">这是 SnowLuma 自己 WebUI 的用户名和首次启动密码，不是 OneBot Token，也不是 QQ 密码。</p>
+        </div>
+        <span class="network-badge">密码来自首次启动日志</span>
+      </div>
+      <div class="onebot-grid">
+        <div class="onebot-field">
+          <span class="onebot-label">SnowLuma WebUI</span>
+          <code id="snowLumaUrl">http://127.0.0.1:5099/</code>
+        </div>
+        <div class="onebot-field">
+          <span class="onebot-label">用户名</span>
+          <code id="snowLumaUser">—</code>
+        </div>
+        <div class="onebot-field">
+          <span class="onebot-label">初始密码</span>
+          <div class="onebot-token-row">
+            <code id="snowLumaPassword" class="onebot-token">••••••••••••</code>
+            <button id="snowLumaReveal" class="ghost-button" type="button">显示</button>
+            <button id="snowLumaCopy" class="primary" type="button">复制</button>
+          </div>
+        </div>
+      </div>
+      <p id="snowLumaStatus" class="network-status" role="status"></p>
+      <p class="network-help-text">如果这里为空，说明 SnowLuma 没有把首次密码写进日志；可查看 <code>SnowLuma\logs\startup-snowluma.out.log</code>，或在 SnowLuma 内重置。CBS 不会伪造密码。</p>
+    </section>
+
+
     <section class="welcome">
       <p class="eyebrow" data-i18n="dash.eyebrow"></p>
       <h1 data-i18n="dash.hero"></h1>
