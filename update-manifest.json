@@ -1399,8 +1399,8 @@
     },
     {
       "path": "tools/dashboard_core.ps1",
-      "sha256": "f20762b84ab41b0e780d64ba79acde564f71a9f507d5b9c473c63764fa9f3b7f",
-      "size": 6531
+      "sha256": "a5bc8549bab9590981a652a4d12b5fc2936145f06dfad2e3c40328825a3fa1be",
+      "size": 6504
     },
     {
       "path": "tools/dashboard_errors.ps1",
@@ -1409,8 +1409,8 @@
     },
     {
       "path": "tools/dashboard_game.ps1",
-      "sha256": "29000717864518d596a64a5b8aa0329000d334fda2ca5aca4356e02303c5a069",
-      "size": 11057
+      "sha256": "fc2db274016d51d21a8dbc879d8666f03a43864bc22962558efda17dcab2bcb3",
+      "size": 11030
     },
     {
       "path": "tools/dashboard_i18n.json",
@@ -1514,13 +1514,13 @@
     },
     {
       "path": "tools/game-mode-watchdog.ps1",
-      "sha256": "041c06db7392fb224929d20cd2167282b11438d3d214e5a58dce7a2863f7461f",
-      "size": 2364
+      "sha256": "ea27ad2ecc81aa7ea39d293d2ef79fe82aaa2c2a26b9f1a64ff7054cde4d2ff5",
+      "size": 2407
     },
     {
       "path": "tools/game-mode.ps1",
-      "sha256": "76e18aa0fa9d89986309b00b69a622668df21b53b8d32d159758c7dcfe765ab3",
-      "size": 45530
+      "sha256": "467941e2dc3c13db36f92fcda4cce58690ea2e4e16f6de9fae121eff4b4531c2",
+      "size": 45520
     },
     {
       "path": "tools/game-mode.ps1.router-20261030",
@@ -1809,8 +1809,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "ba746cea2055bd22bf43629aa0a96622f33c3b2fd289a5910497fb34de578074",
-      "size": 26720
+      "sha256": "e3dc58f089aae61a7e527ac5ab84ef74c6b1b67ee9f68795d38420d6e71298d5",
+      "size": 28875
     },
     {
       "path": "webui/auth.py",
@@ -1874,8 +1874,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "14d9aa0ed62823b6ebf5453559e94895f6cd56e46621df4cc015f13ba38415f5",
-      "size": 32131
+      "sha256": "e564b60100897d8d6d9b575ad2b34da17ca5adb615f72ef456bdbeb9a905fbae",
+      "size": 33222
     },
     {
       "path": "webui/static/error.js",
@@ -1954,8 +1954,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "84a8fdf64e8aca5e6ebf9588891176d947bc4f373b18a772fa4279788f3ef457",
-      "size": 19429
+      "sha256": "17aeae3444bb381b0490b8f9ddf1d6844b9bd6a15a2ed106bb527bf88138cfc9",
+      "size": 19670
     },
     {
       "path": "webui/templates/error.html",
