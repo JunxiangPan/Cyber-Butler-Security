@@ -704,12 +704,12 @@
     },
     {
       "path": "installer/service/CyberButlerAstrBotService.cs",
-      "sha256": "07bc260428e4fd1e8fa7f25bb058ca10c4d44a2db5e4e8e2d1daac3fd4c6760b",
-      "size": 8658
+      "sha256": "951046c70da3c1a7fd1f23c4fb4f6a784b88bf8d9022a186ac776ae1ad40262c",
+      "size": 8661
     },
     {
       "path": "installer/service/CyberButlerAstrBotService.exe",
-      "sha256": "ef5a82cc66882a0777dcbbe03e58ccdb3fe39cee346fff32183a32b036583c98",
+      "sha256": "383c02519ef50669679175e28dd5476671918d8bf661dfcad6df4da483bf37c9",
       "size": 10240
     },
     {
