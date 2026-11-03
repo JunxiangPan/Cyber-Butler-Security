@@ -1363,6 +1363,34 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
     }
     & $report 12 '计划任务已停止 / Scheduled tasks stopped'
 
+    # The AstrBot SCM service is not a scheduled task. Stop and delete it
+    # before touching its binary; otherwise SCM keeps the image open and the
+    # exe reports access denied even after every visible process is gone.
+    $serviceName = 'CyberButlerAstrBot'
+    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($service) {
+        & $report 14 '停止 AstrBot SCM 服务 / Stopping AstrBot SCM service'
+        try { Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue } catch { }
+        try { $service.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(20)) } catch { }
+        $svcInfo = Get-CimInstance Win32_Service -Filter "Name='$serviceName'" -ErrorAction SilentlyContinue
+        if ($svcInfo -and $svcInfo.ProcessId) {
+            try { Wait-Process -Id $svcInfo.ProcessId -Timeout 10 -ErrorAction SilentlyContinue } catch { }
+            try { Stop-Process -Id $svcInfo.ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+        }
+        Get-Process -Name 'CyberButlerAstrBotService' -ErrorAction SilentlyContinue |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        & sc.exe delete $serviceName | Out-Null
+        for ($i = 0; $i -lt 20; $i++) {
+            if (-not (Get-Service -Name $serviceName -ErrorAction SilentlyContinue)) { break }
+            Start-Sleep -Seconds 1
+        }
+        if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            throw ('AstrBot SCM service still exists after sc delete: ' + $serviceName + '. Reboot, then retry uninstall.')
+        }
+        & $report 16 'AstrBot SCM 服务已删除 / AstrBot SCM service deleted'
+    }
+
     # Stop every process whose executable or command line belongs to this
     # install, including AstrBot, OTP Mailer, Broker, WebUI, SnowLuma and its
     # guardian. Port checks alone missed SnowLuma (5099/3000/3001) and 8766.
