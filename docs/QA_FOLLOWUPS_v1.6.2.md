@@ -65,6 +65,18 @@ ode.exe` while the running
 - Source fix added: installer appends `deprecated<3` to the extracted AstrBot
   requirements before pip; this is NOT in the signed v1.6.2 package.
 
+### 3c-2. greenlet native extension missing on Python 3.10
+
+- After pinning Deprecated, import failed with
+  `ModuleNotFoundError: No module named 'greenlet._greenlet'`.
+- The venv contains `greenlet 3.5.6` source files but no compiled `_greenlet`
+  extension; the host has Python 3.10 and no usable build toolchain.
+- AstrBot requirements only say `sqlalchemy[asyncio]>=2.0.41`; pip selected a
+  greenlet build that did not provide the binary wheel.
+- Required: install a wheel-backed greenlet compatible with 3.10 (e.g. `greenlet<3.2`
+  with `--only-binary=:all:`) or use Python 3.13; pin this in the installer and
+  add an import-smoke regression test.
+
 ### 3d. GUI status can show stale failed report and false TOTP state
 
 - Observed after a new run: GUI showed `报告状态: failed` from the previous
