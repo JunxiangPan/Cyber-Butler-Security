@@ -41,6 +41,27 @@ def _reject_unsafe_path_text(raw_path: str) -> Path:
     return path
 
 
+def _reject_reparse_ancestors(path: Path) -> None:
+    """Reject a symlink or Windows junction anywhere in the path chain.
+
+    OPEN_REPARSE_POINT stops the *final* component from being followed, but a
+    junction in a parent directory can silently redirect a workspace path to
+    System32 or another protected location. Check existing components with
+    no-follow semantics before the handle is opened.
+    """
+    candidates = [path, *path.parents]
+    for candidate in candidates:
+        try:
+            info = os.stat(str(candidate), follow_symlinks=False)
+        except OSError:
+            continue
+        if os.name == "nt":
+            if int(getattr(info, "st_file_attributes", 0)) & 0x00000400:
+                raise TargetGuardError(f"reparse point in path chain is not allowed: {candidate}")
+        elif stat.S_ISLNK(info.st_mode):
+            raise TargetGuardError(f"symlink in path chain is not allowed: {candidate}")
+
+
 def _hash_fd(fd: int) -> str:
     digest = hashlib.sha256()
     os.lseek(fd, 0, os.SEEK_SET)
@@ -77,6 +98,7 @@ class TargetSnapshot:
     @classmethod
     def open(cls, raw_path: str, *, write: bool = False, delete: bool = False) -> "TargetSnapshot":
         path = _reject_unsafe_path_text(str(raw_path))
+        _reject_reparse_ancestors(path)
         if os.name == "nt":
             return cls._open_windows(path, write=write, delete=delete)
         return cls._open_posix(path, write=write)
