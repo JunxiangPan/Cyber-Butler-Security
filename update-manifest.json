@@ -3,9 +3,14 @@
   "version": "1.6.2",
   "files": [
     {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "sha256": "0aadc9df7630192ff6144dad1b79c0f350ed09cc59ff591b072b057b8db466cd",
+      "size": 1210
+    },
+    {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "547a73ee5ff29d40f3be2f841a0432e0d9c02cc5f8832e698d7f28c6d6f7b3ff",
-      "size": 776
+      "sha256": "f3a73705e08ee046ae1b4bdb47e244d8a26fb996a0e6104eeaa273c4f201c21d",
+      "size": 884
     },
     {
       "path": ".gitignore",
@@ -14,8 +19,8 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "sha256": "c4309bc66af81773829e18995927550e99f34f74ba1286f6c741970b9762136c",
-      "size": 4080
+      "sha256": "765349a100660e9e5032c14848d6047edf2f32429e8cd9bb950598443a178856",
+      "size": 5160
     },
     {
       "path": "DEPLOYMENT.md",
@@ -79,8 +84,8 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "67064758d3fb0ce7a99c72bbb78a022a6eb009b0b75d95d046af06322d9188c3",
-      "size": 9305
+      "sha256": "de7395dc52f474d98cfd5d6fd8bd1f7cead7794ca1f728243e4a1b2f7f0c1185",
+      "size": 9875
     },
     {
       "path": "SECURITY.md",
@@ -198,6 +203,71 @@
       "size": 2876
     },
     {
+      "path": "docs/40-history/archive/legacy-readmes/README.md",
+      "sha256": "fc7d12546d9613e71dcaf8bdb4f5d574495c1520b3e3ed11a16d9f0a3318880d",
+      "size": 42719
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_de.md",
+      "sha256": "3c02f2e85b4a9ff9588ede01f1b3ad316f2dfeb5cc7a88f08485f89d264a863b",
+      "size": 18364
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_en.md",
+      "sha256": "0504bbbca319a55f2c45c15f66f19f4407b791ebd0efd51ae1aa3e2004e1a74b",
+      "size": 41931
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_es.md",
+      "sha256": "86cf4a1b7b9c993702050ba2bb32367bf0e389f1f315dfcfdeff85eb8c3b1282",
+      "size": 18334
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_fr.md",
+      "sha256": "9070bdbc84fa7547fc546a1be3d5fe0e3709d63d7d3fff7d0a86366a645067f5",
+      "size": 19160
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_ja.md",
+      "sha256": "75ba1e433e716f208351c6adfd95f68109d965fb716bef9c8e0447783792f7cc",
+      "size": 21562
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_ko.md",
+      "sha256": "f915879ea2adf414ddfa84e97e8a46dcaaf8e65919d98d838792f8d6f91577f7",
+      "size": 18901
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_ru.md",
+      "sha256": "a58f4a2f266bda8a89a9665530073eff3fb9a10f97e28bdb8fb35c33bcd3f889",
+      "size": 26945
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/README_zh.md",
+      "sha256": "c3e435ff2f68eb106ecabfd23acec597468d9ec91d7cc69ece29eb5c9026e70e",
+      "size": 38500
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/SECURITY.md",
+      "sha256": "2f26369af8188dcbc681b1248b67640d4746041850704b671c88ee9331349ed2",
+      "size": 44071
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/STATUS_v1.6.1.md",
+      "sha256": "5e687ee04e21b9c491c8879d036e2ae52ee5b016202a477c161476969395505e",
+      "size": 7797
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md",
+      "sha256": "34690f6ab9aa18765bedbe015f785b7f0e2c5667f70b0ecf4248588bac48c07e",
+      "size": 22446
+    },
+    {
+      "path": "docs/40-history/archive/legacy-readmes/使用说明.md",
+      "sha256": "ced0ea5ca752a17ba1491237f03b2caa00ad7eec0a9267a466ca758ed5311d5c",
+      "size": 86980
+    },
+    {
       "path": "docs/40-history/incidents/acl-self-lock.md",
       "sha256": "0a2ffe41d785b036aae0b09081386d1b7e544d9b3046ada5202f179b3526ca0b",
       "size": 1034
@@ -223,74 +293,9 @@
       "size": 897
     },
     {
-      "path": "docs/40-history/legacy-readmes/README.md",
-      "sha256": "cbeda4cf2dd3ee1fe6d731e9c54c66a2bea7d742782a6b8c0b78da8cc10f1ff7",
-      "size": 42621
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_de.md",
-      "sha256": "6a0f908aed5ddfd1c88b6839758cf44b9702c184c1908c32defc945b1f3e5e81",
-      "size": 18266
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_en.md",
-      "sha256": "da5d624737172ee264c5d6c686a6271fc0c6c52c83c2ca9a92d702ea0308dc76",
-      "size": 41833
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_es.md",
-      "sha256": "1809fc1dfbb78a0aac8a04012d043d8e54f86d42cdeb8d5ee9b8ae116440102d",
-      "size": 18236
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_fr.md",
-      "sha256": "b41f635282d6010870f87f366e90b15c834d4171406a07ee2ffd44290ed5edd1",
-      "size": 19062
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_ja.md",
-      "sha256": "42c78f681747554bc626a609d181c312d5630035d830abcf4565c2df29a398a7",
-      "size": 21464
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_ko.md",
-      "sha256": "42bb18449400a814080ff7059c00d933734ca5fef6425ba21093c01e75d5c238",
-      "size": 18803
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_ru.md",
-      "sha256": "c71c3fd1519970d649733cf14e3b8744a0c14ecd4b556f8d22d94c2e89bec275",
-      "size": 26847
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/README_zh.md",
-      "sha256": "1cd7f7e1c02972521a0ffc9b035f22e78faa2961c4ce2881f4fb54e9a89b24b9",
-      "size": 38402
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/SECURITY.md",
-      "sha256": "33a7a59ef700eb83ef8c729ac94ff87e702e8503b1db26f6dbb697a123b879be",
-      "size": 43973
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/STATUS_v1.6.1.md",
-      "sha256": "701d01e2feb3e1948f338de3d28418a707849bb1c8855006a1182409f23b2621",
-      "size": 7699
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/TROUBLESHOOTING.md",
-      "sha256": "1b8159b52b9656e58ff8675c5da16fce53c0ca41470371e4b3634df452339374",
-      "size": 22348
-    },
-    {
-      "path": "docs/40-history/legacy-readmes/使用说明.md",
-      "sha256": "05105d32808c143795cedb1383c1967c0ebf2539bcb23d1fb30618e7c86df597",
-      "size": 86882
-    },
-    {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
-      "sha256": "967b83a0edb44efe7ec20786c018e9806a8249a584197a97242e7eb5471c1a7c",
-      "size": 5825
+      "sha256": "97b49c86f0c25e19c210e47b8ed6b197649df316937091944e40c5a557f59da6",
+      "size": 6655
     },
     {
       "path": "docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md",
@@ -309,23 +314,23 @@
     },
     {
       "path": "docs/DASHBOARD_BACKGROUND.md",
-      "sha256": "1746d9724e77723c53ab89a89d3683ca7e8b9f69b7c96349c7463d42469dd2f4",
-      "size": 5048
+      "sha256": "94d0f39ca0a6af8dc7f0acf855e623f1ea4d7f78f4953666ebcebd64c7479056",
+      "size": 5064
     },
     {
       "path": "docs/DST_GUARD.md",
-      "sha256": "4e127bdf32f6e9259857aa546d7cc75fda0c716fb8d14020320f299faf98e34a",
-      "size": 8969
+      "sha256": "e73cbcf4495f093b418a3479b16e6a2e7212705919f4ff28a772bd4c0080ce0c",
+      "size": 8985
     },
     {
       "path": "docs/HARDWARE_TROUBLESHOOTING.md",
-      "sha256": "6fdb65b88b8956fa8155157c6169cceb670d70a61f123bc01c9dc3aa9f29d309",
-      "size": 4771
+      "sha256": "bd9a385b23fb9d42d788d96293b6c0aef03b458121fe405bbe83227f07560e89",
+      "size": 4787
     },
     {
       "path": "docs/PLUGIN_ECOSYSTEM.md",
-      "sha256": "52671a8807dceacc87b76e546e3dffcef695f59fb905f254e0f670e87999c30b",
-      "size": 12491
+      "sha256": "7f9c077f74c93e6696992c5e7f348e347f3bec9c2f93fa00b88065d235b95726",
+      "size": 12523
     },
     {
       "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
@@ -334,8 +339,8 @@
     },
     {
       "path": "docs/RAG-知识库指南.md",
-      "sha256": "d89519f75fa91f96c04082c94ca8684b2cbb8cf8ed3e4c6d7d2ca63e7b258c5d",
-      "size": 3401
+      "sha256": "ebf6c142a9d22f9dacc7aa3bd485e7790624a787afe096e30833160bbc8811fc",
+      "size": 3417
     },
     {
       "path": "docs/README.md",
@@ -349,8 +354,8 @@
     },
     {
       "path": "docs/TAILSCALE_WEBUI.md",
-      "sha256": "fdb421c03e35d223b1c0b284246623517779799ecbcc706dbab0c863df8c17db",
-      "size": 7700
+      "sha256": "98db0a5b04a534256ea264cd47247493dc44758ea1e1dc84ee178824dbf61940",
+      "size": 7716
     },
     {
       "path": "docs/TEST_MATRIX.md",
@@ -359,8 +364,8 @@
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
-      "sha256": "e4353efd12f338ae9572fe200caaa093e99717de9dfe02bdb1f205df6ab093cd",
-      "size": 274
+      "sha256": "1e709e0b7ec8f3c7162ea9bd1228b6cdd676e72c93f7d098a4d9d5868df5c0a6",
+      "size": 290
     },
     {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
@@ -1143,6 +1148,11 @@
       "size": 1583
     },
     {
+      "path": "tests/test_docs_consistency.py",
+      "sha256": "3359279e831fd8fd683eb70f4eb3cc65414386719e6d88eb41bf56048b9efeac",
+      "size": 3437
+    },
+    {
       "path": "tests/test_email_approval.py",
       "sha256": "3f6eabbe47d2b6d9c70f98f8d43d636dd4bf43e539c156af26122bc30dbc017f",
       "size": 907
@@ -1754,8 +1764,8 @@
     },
     {
       "path": "tools/wfp_guard.py",
-      "sha256": "af3734515d772475c790df6d182f055297d642ba03215daf3c24491e6156c18a",
-      "size": 8081
+      "sha256": "119a1a1a448150664d81d57e4b2f6a8261bc87417016dd282ea999f10aa0de7c",
+      "size": 8269
     },
     {
       "path": "tools/wfp_policy.py",
