@@ -1298,6 +1298,11 @@
       "size": 8192
     },
     {
+      "path": "tools/Test-CyberButlerInstall.ps1",
+      "sha256": "ebd1a0719161688018ecbcb10bc94204087a1beaaf5e5d6829b94f2e4972d5ab",
+      "size": 4033
+    },
+    {
       "path": "tools/Test-WfpTripwire.ps1",
       "sha256": "d5379be828303d06b4a2d6b996096b73662515f2e17b95f2b7751afb094034f4",
       "size": 1750
@@ -1864,8 +1869,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "d38f61879421dc5b2bf869afe7c6823ce92e5d2ec48d1c831866c66f3ccd8dff",
-      "size": 26086
+      "sha256": "64bebb1f477cc38e4717c6fa7e776b44dae10730461d61047f9e53e05fdecf5c",
+      "size": 26919
     },
     {
       "path": "webui/static/error.js",
@@ -1924,8 +1929,8 @@
     },
     {
       "path": "webui/static/theme-phase2-extra.css",
-      "sha256": "429871a5443f57330ff152865d55b1bbc941869e108c5518f8addad7c85622fb",
-      "size": 6624
+      "sha256": "c63b6385966c471a5be4f6bc80d66c21e94cbc556637ac7dff11dad10557eead",
+      "size": 10896
     },
     {
       "path": "webui/static/theme-phase2.css",
@@ -1944,8 +1949,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "3a428db9cd61df583810f4da81abc26907d74d7353b847169162efc7aca571c2",
-      "size": 12783
+      "sha256": "8e27ab1ecadd0713c2522d1d383e374db96d36ece7e9cb6be9daf9d41b6be647",
+      "size": 16364
     },
     {
       "path": "webui/templates/error.html",
