@@ -634,8 +634,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "38bda371a944c8baff237066dbb4ccb3814889fd9a03dbb76e455c2a53251be7",
-      "size": 36809
+      "sha256": "7be0d1b635022a37d5fbcd9d445f97a2895fa078c05460bbb094e6ffd4529fdd",
+      "size": 37329
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
@@ -674,8 +674,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "04b67ccedbfbc3c7d16e69441bcf4e06e8e692bcc9b83e0947260f3f2f320b34",
-      "size": 56406
+      "sha256": "56e348a8e4d9df5b6bc8e49ffc6046864fdde58e91f92381ff0a1df52b0195bd",
+      "size": 56404
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -1824,8 +1824,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "08f335ffb6ecc2c022810d4556c79bef7499f5931330c2e1758203bd2322beeb",
-      "size": 26751
+      "sha256": "acaca50974d3f67d9adda814fadadd4667a97760b32e162f0a9b747b16305a7d",
+      "size": 27212
     },
     {
       "path": "webui/auth.py",
