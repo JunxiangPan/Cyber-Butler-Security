@@ -1,4 +1,4 @@
-# Clean-VM acceptance — v1.6.2-final17
+﻿# Clean-VM acceptance — v1.6.2
 
 Run on a clean Windows 10/11 x64 VM, logged in as the desktop account that will own the install.
 

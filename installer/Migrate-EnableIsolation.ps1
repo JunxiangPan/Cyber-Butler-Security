@@ -422,7 +422,7 @@ if ($failure) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 
-$migrationVersion = '1.6.0'
+$migrationVersion = '1.6.2'
 try {
     $releaseVersionPath = Join-Path (Split-Path -Parent $migrationRoot) 'VERSION'
     if (Test-Path -LiteralPath $releaseVersionPath) {
