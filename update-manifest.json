@@ -44,48 +44,48 @@
     },
     {
       "path": "README.md",
-      "sha256": "f7ed0dded283373408207e3b63643b656b28f66a9eeb38a6bb2c28556f36e080",
-      "size": 1769
+      "sha256": "3b302d7bf1af0ddd820059571656c6f030fb1797e8b648d9d333eef950ee2fe8",
+      "size": 1806
     },
     {
       "path": "README_de.md",
-      "sha256": "2cd7e2fd57d6a8cf229cd48ef21cef4371b2c497290ecd9bd0fb557e5baa9253",
-      "size": 2820
+      "sha256": "bfa5e05bc36fd816f64144549b9f13fc158f74f31f893725612f266e49259ee4",
+      "size": 2925
     },
     {
       "path": "README_en.md",
-      "sha256": "a14a6c655c1f1f111aab7741f4ca59c6b0f2d7280823e34e7c2b0f8716fa0caa",
-      "size": 2751
+      "sha256": "0c21edf74a72f84f04f6e2c711403c2bc0421f40fc35c9aecf385508206e96e6",
+      "size": 2818
     },
     {
       "path": "README_es.md",
-      "sha256": "ce350ce2f1bda37da99c6af12cb9f59a5502ef434c252e13dbbea223274f0350",
-      "size": 2847
+      "sha256": "9047999c80af23366e99b966887e8b7cde651e50955530f5b7545ee40de7a452",
+      "size": 2944
     },
     {
       "path": "README_fr.md",
-      "sha256": "bd303cb063360ae6b6f7bfa4b79b2713c9cdfceaf7c9a4fa7263475c8f832439",
-      "size": 2858
+      "sha256": "45bd0b76bb0ae3669778318a74c6a85d88b495b13431586aa5e9bd11695ae593",
+      "size": 2972
     },
     {
       "path": "README_ja.md",
-      "sha256": "4012b1bd3544b1baa9d015f5d056c1dfce25f2bdda99f1bd026a3c91a3ffa6b4",
-      "size": 3039
+      "sha256": "0c73c399dc56d4490ccedc4c21ceeb22e575bedd8400ddf09b273bdc7f67f331",
+      "size": 3165
     },
     {
       "path": "README_ko.md",
-      "sha256": "804ecd08afd8d964e1547ccfe2db2ac4779314236519f8fc75f409269b8ab7a2",
-      "size": 2903
+      "sha256": "897468b6620141505243dd9aeb1b94b75480595bad170782e2ad4f5eca1a17d8",
+      "size": 2994
     },
     {
       "path": "README_ru.md",
-      "sha256": "13201d3676e182bf92175d362decd16e13a40ada377e18aee203c46423da3a7a",
-      "size": 3361
+      "sha256": "7697ee58c7e571e5ec931e8d351b2627827f22e7efde61e400ea542f3acf52d4",
+      "size": 3499
     },
     {
       "path": "README_zh.md",
-      "sha256": "a764cccba3cb5cd209c22a9657c9412cc8e6f043d1639842c449ea3842608ed2",
-      "size": 2664
+      "sha256": "166de39328f2a122f0dcb5ef7375defc40d592ff23406ab76eddac1b57886615",
+      "size": 2714
     },
     {
       "path": "ROADMAP.md",
@@ -169,8 +169,8 @@
     },
     {
       "path": "docs/00-overview/quickstart.md",
-      "sha256": "ecbee94711343a625a4d0a1feb617b0e7583069dda5257ffeb07a41e87301b4f",
-      "size": 1038
+      "sha256": "d0bf3a8c9ad0bdd93aeb9054654dac4236aedbfbb6c29537110e3c8783ad5ad9",
+      "size": 1045
     },
     {
       "path": "docs/00-overview/why-not-faq.md",
@@ -184,8 +184,8 @@
     },
     {
       "path": "docs/10-security/known-limitations.md",
-      "sha256": "8b2fdd53b4505454116b7b5c0e54f1f0089acfaa32071a6b4f743b766ed7f930",
-      "size": 2227
+      "sha256": "80e5b5a1b9224a553d4e08cd69876ef9185d61ce75d5cb9490cdb834dda1ca6c",
+      "size": 2273
     },
     {
       "path": "docs/10-security/scm-service-hardening.md",
@@ -388,14 +388,19 @@
       "size": 282
     },
     {
+      "path": "docs/_data/status-v1.6.2.json",
+      "sha256": "4ac8a5544111a01fb812dfda2e661dd9bcf1f7a18d280000baebac14c4d9a0f8",
+      "size": 1495
+    },
+    {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
       "sha256": "819fc7825e5a53bdd323cfce430d64ade0401b868aa6c8d1cf2f5d9f0995a23d",
       "size": 4977
     },
     {
       "path": "docs/releases/GITHUB_RELEASE_v1.6.2.md",
-      "sha256": "64ecb7d1606574569c3e2fa5777ac18243181f8097219d8315c9a20eba8c4894",
-      "size": 6329
+      "sha256": "405fb6f082cb62c058fc5699dc24f2cf3a97aa95712ae9a36909288bc0bbc89f",
+      "size": 6371
     },
     {
       "path": "docs/releases/README.md",
