@@ -77,6 +77,18 @@ ode.exe` while the running
   with `--only-binary=:all:`) or use Python 3.13; pin this in the installer and
   add an import-smoke regression test.
 
+### 3e. Installer log path text is still mojibake in GUI
+
+- Observed during the High install while waiting for approval:
+  `d:\qq锟斤拷锟斤拷源...strbot\.venv...`.
+- The log is written as UTF-8 (pip/Python output), but several GUI reads use
+  `Get-Content` without `-Encoding UTF8`, so paths are decoded as ANSI/GBK.
+- Affected: status `last 12 log lines`, progress tail, and possibly log viewer.
+- Required: pass `-Encoding UTF8` to every `Get-Content` that reads
+  `installer.out.log` / `installer.err.log`, and set `PYTHONIOENCODING=utf-8`
+  for the child process.
+- Note: this affects display only; it does not change the install result.
+
 ### 3d. GUI status can show stale failed report and false TOTP state
 
 - Observed after a new run: GUI showed `报告状态: failed` from the previous
