@@ -2,6 +2,8 @@
 
 # v1.6.2 — Advanced Protection
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > Release candidate notes. Native WFP filter and full audit-chain replacement
 > remain tracked in `docs/TEST_MATRIX.md`; this file does not upgrade them to
 > completed claims.

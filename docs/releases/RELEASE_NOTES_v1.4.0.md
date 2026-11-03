@@ -1,5 +1,7 @@
 # v1.4.0 — Web UI Phase 2: read-only monitor + fixed-recipient chat
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - Independent FastAPI sidecar under `webui/` with its own virtual environment

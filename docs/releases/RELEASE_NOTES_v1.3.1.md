@@ -1,5 +1,7 @@
 # v1.3.1 — Eight-language dashboard
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `dashboard_i18n.json` now carries **eight complete dictionaries** for all

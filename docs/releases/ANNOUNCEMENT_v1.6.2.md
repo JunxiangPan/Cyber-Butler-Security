@@ -2,6 +2,8 @@
 
 # ⚠️ v1.6.2 Experimental Preview — DO NOT USE FOR NORMAL INSTALLATION
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > 这是一份先导版/实验版，不是稳定版，不是生产版，也不是给普通用户直接使用的版本。
 >
 > **如果你只是想让 Cyber-Butler 正常工作，请下载 v1.6.1，不要从这个 v1.6.2 包开始。**

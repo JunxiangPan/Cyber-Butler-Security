@@ -1,5 +1,7 @@
 # v1.5.2 - Router Activation / Companion Stability / Web UI Autostart
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Description / 描述
 
 v1.5.2 activates the local-first router, hardens the private companion against

@@ -1,5 +1,7 @@
 # v1.0.9 — Dashboard and Security Hardening
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `tools/cyber_butler_dashboard.ps1`: read-only WPF dashboard with four tabs.

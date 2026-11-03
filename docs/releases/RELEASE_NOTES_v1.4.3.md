@@ -1,5 +1,7 @@
 # v1.4.3 — Tailscale remote access and dynamic Secure cookie
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - Detailed, step-by-step Tailscale guide for Windows + iPhone/Android in

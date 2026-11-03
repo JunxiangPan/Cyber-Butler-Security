@@ -1,5 +1,7 @@
 # v1.3.2 — Security hardening: signed updates, email approval, fail-closed dashboard modules
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Phase 1 — trust boundary and release integrity
 
 - **Broker approval binding.** `delete` / `overwrite` prompts now include the

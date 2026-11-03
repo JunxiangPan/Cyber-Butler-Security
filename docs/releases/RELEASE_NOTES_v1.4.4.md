@@ -1,5 +1,7 @@
 # v1.4.4 — Complete Web UI i18n (8 languages)
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - Eight local locale packs, matching the README and the WPF dictionary exactly:

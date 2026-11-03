@@ -1,5 +1,7 @@
 # v1.5.0 - Router Architecture / Dual Ollama / Capacity Policy
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Description / 描述
 
 This release introduces the router signal/gate architecture, a dedicated

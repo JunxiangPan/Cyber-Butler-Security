@@ -1,5 +1,7 @@
 # v1.3.3 — Approval-channel switch and start-ollama log fix
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - The Settings dialog now has a **Security** section with an

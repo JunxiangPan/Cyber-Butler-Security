@@ -1,5 +1,7 @@
 # v1.2.1 — CI privacy scan fix
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Repack fixes (this build)
 
 - `hello_world`: the click handler now captures `$moduleContext` with

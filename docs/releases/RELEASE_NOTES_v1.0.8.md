@@ -1,5 +1,7 @@
 # v1.0.8 — Desktop Update GUI
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `tools/update_gui.ps1`: WPF desktop update window.

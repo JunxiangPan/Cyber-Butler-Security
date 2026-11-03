@@ -1,5 +1,7 @@
 # v1.2.0 — Plugin Ecosystem
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 ### AstrBot Hub (`tools/plugin_hub.ps1`)

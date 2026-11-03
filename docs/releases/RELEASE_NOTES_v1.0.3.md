@@ -1,5 +1,7 @@
 # v1.0.3 — Media Egress, Manifest and Backoff Hardening
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 **Release date:** 2026-10-29  
 **License:** AGPL-3.0  
 **Scope:** emergency white-box audit response

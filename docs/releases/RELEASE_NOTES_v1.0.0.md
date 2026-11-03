@@ -1,5 +1,7 @@
 # v1.0.0 — Security-Hardened Public Release
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 **Release date:** 2026-10-29  
 **License:** GNU AGPL-3.0  
 **Documentation presentation update:** V1.1 (project structure, full release notes, threat-model residual-risk update)

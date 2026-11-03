@@ -1,5 +1,7 @@
 # v1.4.2 — Read-only hardware, usage, backups, alerts and file sandbox
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - Hardware dashboard: live CPU/GPU temperature + VRAM cards and a lightweight

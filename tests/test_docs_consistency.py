@@ -88,3 +88,17 @@ def test_documentation_issue_form_exists():
     form = (ROOT / ".github/ISSUE_TEMPLATE/documentation.yml").read_text(encoding="utf-8")
     assert "Documentation" in form
     assert "labels:" in form
+
+
+def test_contributors_acknowledged_everywhere():
+    contributors = (ROOT / "CONTRIBUTORS.md").read_text(encoding="utf-8")
+    for name in [
+        "Practical-Craft4967", "QuanTradin", "Reid Marlow", "Auten",
+        "mp3sss", "More-Ad7285", "HeartMaleficent35", "rikulauttia",
+        "Sandy", "程序员阿江", "牧羊人AILab", "若宸", "墨莘子凌",
+    ]:
+        assert name in contributors, name
+    assert "CBS 的架构不是由作者一个人闭门造车想出来的，而是全球开源社区共同打磨的结晶。" in contributors
+    assert "CONTRIBUTORS.md" in (ROOT / "README.md").read_text(encoding="utf-8")
+    for path in (ROOT / "docs/releases").glob("*.md"):
+        assert "CONTRIBUTORS.md" in path.read_text(encoding="utf-8"), str(path)

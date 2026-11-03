@@ -71,6 +71,8 @@ not a complete security product.
 
 # Complete v1.6.1 Feature Inventory
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 This section is the release engineering checklist for v1.6.1. The authoritative
 shipped/incomplete/non-guaranteed list is
 [docs/STATUS_v1.6.1.md](../STATUS_v1.6.1.md).

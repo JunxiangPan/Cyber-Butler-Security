@@ -1,5 +1,7 @@
 # v1.0.5 — Technical Debt Cleanup
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Cleanup
 
 - Removed unused `time` import from `overlay/astrbot/core/tools/message_tools.py`.

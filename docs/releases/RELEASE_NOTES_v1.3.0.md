@@ -1,5 +1,7 @@
 # v1.3.0 — Commercial polish: i18n, error viewer, persona manager, service links
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Module 1 — Bilingual sweep
 
 - All v1.3.0 surfaces are translated through `dashboard_i18n.json`: the new

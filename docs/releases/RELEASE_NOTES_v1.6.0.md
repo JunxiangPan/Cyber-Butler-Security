@@ -1,5 +1,7 @@
 # Cyber-Butler v1.6.0
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## 中文
 
 ### 一键部署

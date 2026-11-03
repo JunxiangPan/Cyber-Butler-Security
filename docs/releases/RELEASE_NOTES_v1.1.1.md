@@ -1,5 +1,7 @@
 # v1.1.1 — Layered Dashboard Backgrounds
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `tools/dashboard_background.ps1`: layered background engine.

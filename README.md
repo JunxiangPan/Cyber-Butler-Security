@@ -25,6 +25,11 @@ Defensive control plane for self-hosted LLM agents. This file is the language se
 - [한국어](README_ko.md)
 - [Русский](README_ru.md)
 
+
+## Community acknowledgements
+
+CBS's architecture is not a solo invention: it was shaped by the global open-source community. See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full list of red-team critics, product reviewers, and community supporters.
+
 ## Documentation
 
 - [Documentation index](docs/README.md)

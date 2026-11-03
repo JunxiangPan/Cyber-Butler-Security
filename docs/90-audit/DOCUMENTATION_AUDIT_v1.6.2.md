@@ -138,3 +138,10 @@ Checks: active links 0 broken; active code fences balanced; 8/8 language README 
 - ROADMAP.md now requires a seven-round documentation audit before every major release.
 - Obsolete documents are moved to `docs/40-history/archive/` and marked `[ARCHIVED - 已废弃]`.
 - Added `.github/ISSUE_TEMPLATE/documentation.yml` for broken links, typos, misleading text, missing steps, and translation inconsistencies.
+
+## Round 9: community contributor recognition
+
+- Added `CONTRIBUTORS.md` with the international Reddit and China Bilibili/QQ contributors, preserving their handles and exact contribution themes.
+- Added the acknowledgement link to `README.md` and every file under `docs/releases/` (35 release notes/announcement/index files).
+- Added a CI assertion that the contributor list, the required statement, the README link, and every release-note link exist.
+- No eight-language CONTRIBUTORS variant is generated; the project keeps a single English contributor record, as requested.

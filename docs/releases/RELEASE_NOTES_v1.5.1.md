@@ -1,5 +1,7 @@
 # v1.5.1 - Router Skeleton / Telemetry / Overlay Packaging
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Description / 描述
 
 v1.5.1 completes provider telemetry for plugin calls, keeps the router

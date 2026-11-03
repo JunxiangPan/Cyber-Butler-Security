@@ -2,6 +2,8 @@
 
 # v1.6.2-beta — 实机验证包（未签名）
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > **Beta only.** This is not a formal signed release. Do not publish it as
 > v1.6.2 final until the native WFP filter path and Light real-machine gates are
 > complete.

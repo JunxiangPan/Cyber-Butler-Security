@@ -1,5 +1,7 @@
 # Release notes / 发布说明
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > **Current status**: v1.6.2 SCM service release. WFP is audit-only. Completed/incomplete facts: [../_data/status-v1.6.2.json](../_data/status-v1.6.2.json). Historical release notes below are not a security warranty.
 
 

@@ -1,5 +1,7 @@
 # v1.0.4 — UTF-8 QQ Notifications and Self-Healing
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Encoding fix
 
 The previous manual OneBot HTTP test used a shell `curl` payload that was decoded as GBK, producing mojibake on QQ.

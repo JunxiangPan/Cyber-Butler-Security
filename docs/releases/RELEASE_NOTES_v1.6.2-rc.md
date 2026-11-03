@@ -2,6 +2,8 @@
 
 # v1.6.2-rc — Release Candidate (unsigned)
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > **RC only.** Not a formal signed release. Native WFP filter and full audit
 > chain replacement remain blockers; see below.
 

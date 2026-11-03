@@ -1,5 +1,7 @@
 # v1.0.7 — Safe Upgrade Pipeline
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `tools/check_update.ps1`: read-only GitHub latest-release check, no admin required.

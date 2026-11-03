@@ -1,5 +1,7 @@
 # v1.5.3 - Fail-Closed Router / Owner-Only Ops Bridge / Web UI Exposure Warning
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Description / 描述
 
 v1.5.3 hardens the router's failure semantics, adds an owner-only read-only

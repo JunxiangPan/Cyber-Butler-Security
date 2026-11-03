@@ -1,5 +1,7 @@
 # v1.0.2 — Manifest-Bound TOTP and Runtime Hardening
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 **Release date:** 2026-10-29  
 **License:** AGPL-3.0  
 **Scope:** emergency security release for the public-release branch

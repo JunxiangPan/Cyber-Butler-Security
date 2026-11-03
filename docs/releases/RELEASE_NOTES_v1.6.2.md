@@ -1,5 +1,7 @@
 # v1.6.2 — SCM Service Release
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 > This is the current v1.6.2 release note. Earlier `v1.6.2-preview`, `v1.6.2-beta`, and `v1.6.2-rc` files are historical and superseded.
 
 ## Contents

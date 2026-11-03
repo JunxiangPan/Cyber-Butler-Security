@@ -1,5 +1,7 @@
 # v1.2.2 — Unified install tree
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Changed
 
 - `create_dashboard_shortcut.ps1` now always targets

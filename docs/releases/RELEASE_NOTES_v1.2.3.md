@@ -1,5 +1,7 @@
 # v1.2.3 — LibreHardwareMonitor watchdog
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Added
 
 - `tools/lhm-watchdog.ps1`: checks `http://127.0.0.1:18085/data.json`.

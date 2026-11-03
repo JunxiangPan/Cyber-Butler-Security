@@ -1,5 +1,7 @@
 # v1.0.6 — Egress Approval Repair and Event-Loop Hardening
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## P0 — URL / outside-shared sends are approval-capable
 
 The overlay already classified remote URLs and files outside the shared folder as risky and called the TOTP broker. The broker then rejected the same manifest with `403`, making the approval impossible.

@@ -1,5 +1,7 @@
 # v1.4.1 — Correct inbound chat semantics (no Bot impersonation)
 
+> Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
+
 ## Fixed
 
 - The previous `POST /api/chat/send` called AstrBot's outbound
