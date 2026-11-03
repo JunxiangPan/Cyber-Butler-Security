@@ -600,7 +600,7 @@ function Start-CyberButlerGuiInstall {
                     if ($text -match 'Using cached|Installing collected|Successfully installed|Requirement already satisfied') { $target = 35 }
                     if ($text -match 'CORE completed') { $target = 45 }
                     if ($text -match 'ACL') { $target = 55 }
-                    if ($text -match 'TOTP') { $target = 65 }
+                    if ($text -match 'TOTP' -and $script:cbGuiSignalDir -and (Test-Path -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-ready.json'))) { $target = 65 }
                     if ($text -match 'SERVICE registering') { $target = 80 }
                     if ($text -match 'INSTALLER_OK|Install completed') { $target = 100 }
                     if ($target -gt $script:cbGuiPercent) { $script:cbGuiPercent = $target }

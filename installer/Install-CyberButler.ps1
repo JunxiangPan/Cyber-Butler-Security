@@ -95,6 +95,10 @@ $ErrorActionPreference = 'Stop'
 $utf8NoBom = New-Object Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8NoBom
 $OutputEncoding = $utf8NoBom
+$installerMutex = New-Object System.Threading.Mutex($false, 'Local\CyberButlerInstaller')
+if (-not $installerMutex.WaitOne(0)) {
+    throw 'Another Cyber-Butler installer instance is already running on this machine.'
+}
 if (-not $Resume -and $ReportDirectory -and (Test-Path -LiteralPath (Join-Path $ReportDirectory 'install-report.json'))) {
     $previousReport = Join-Path $ReportDirectory ('install-report.previous-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.json')
     try { Move-Item -LiteralPath (Join-Path $ReportDirectory 'install-report.json') -Destination $previousReport -Force } catch { }

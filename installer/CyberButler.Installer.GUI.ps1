@@ -1146,6 +1146,7 @@ function Show-GuiCompletionIfReady {
     } elseif ($status -eq 'failed') {
         $script:GuiCompletionShown = $true
         if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
+        if ($script:cbGuiTimer) { $script:cbGuiTimer.Stop() }
         Set-GuiBusy $false
         $message = "Installation failed.`n`nReport: $reportPath"
         if ($failure) { $message += "`n`nFailure: $failure" }

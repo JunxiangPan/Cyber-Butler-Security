@@ -417,7 +417,7 @@ function Test-CyberButlerCoreImportSmoke {
     $astrbot = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'AstrBot'
     Push-Location $astrbot
     try {
-        $output = @(& $PythonPath -c 'import astrbot.core' 2>&1)
+        $output = @((& $PythonPath -c 'import astrbot.core' 2>&1 | Out-String))
         $code = [int]$LASTEXITCODE
     } finally {
         Pop-Location
@@ -715,8 +715,11 @@ function Invoke-CyberButlerCoreDeploy {
                 $reqText = [IO.File]::ReadAllText($requirements)
                 if ($reqText -notmatch '(?im)^\s*deprecated\s*<') {
                     $reqText = $reqText.TrimEnd() + [Environment]::NewLine + 'deprecated<3' + [Environment]::NewLine
-                    [IO.File]::WriteAllText($requirements, $reqText, (New-Object Text.UTF8Encoding($false)))
                 }
+                if ([string]$PythonVersion -match 'Python\s+3\.(10|11)' -and $reqText -notmatch '(?im)^\s*greenlet\s*<') {
+                    $reqText = $reqText.TrimEnd() + [Environment]::NewLine + 'greenlet<3.2' + [Environment]::NewLine
+                }
+                [IO.File]::WriteAllText($requirements, $reqText, (New-Object Text.UTF8Encoding($false)))
                 $pipLog = if ($PipLogPath) { $PipLogPath } else { Join-Path $root 'installer-report\pip-install.log' }
                 Write-Host 'CORE installing dependencies (this may take several minutes)...'
                 Write-Host ('CORE pip log: ' + $pipLog)
