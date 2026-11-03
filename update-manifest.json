@@ -568,6 +568,11 @@
       "size": 24163
     },
     {
+      "path": "installer/Repair-AstrBotACL.ps1",
+      "sha256": "35f4ccfe28ab868c4c936f1436fa2930e8072da5d89f5f8eca28784684cc2235",
+      "size": 5766
+    },
+    {
       "path": "installer/core-sources.json",
       "sha256": "52db0943d4675530d10fdef34124e9e73e0bcde9660758c7f4906ca2c1f23c7d",
       "size": 768
@@ -659,8 +664,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "afe8955a01f93568f1b39c684e58f2d6626cdf94718585d2c88f8ea7d760c6f1",
-      "size": 55936
+      "sha256": "04b67ccedbfbc3c7d16e69441bcf4e06e8e692bcc9b83e0947260f3f2f320b34",
+      "size": 56406
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
