@@ -764,6 +764,16 @@ function Invoke-CyberButlerCoreDeploy {
             }
         }
     } catch {
+        $rawError = [string]$_.Exception.Message
+        $safeError = $rawError
+        $lockedPath = ''
+        $pathMatch = [regex]::Match($rawError, '([A-Za-z]:\[^"
+]+)')
+        if ($pathMatch.Success) { $lockedPath = $pathMatch.Groups[1].Value }
+        if ($rawError -match '(?i)(node\.exe|being used by another process|另一个进程|正由另一进程|使用中|锁定)' -or $rawError -match '[�ʹʺ]') {
+            $safeError = 'CORE file is in use. Stop AstrBot, SnowLuma, WebUI and Broker, then retry.'
+            if ($lockedPath) { $safeError += ' Path: ' + $lockedPath }
+        }
         Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
         if ($ExistingState -eq 'None') {
             $paths = @($createdDirs)
@@ -774,8 +784,8 @@ function Invoke-CyberButlerCoreDeploy {
             }
         }
         if ($null -ne $Journal -and $stepStarted) {
-            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $_.Exception.Message }) | Out-Null
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $safeError }) | Out-Null
         }
-        return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = $_.Exception.Message; reason = $_.Exception.Message; created_dirs = $createdDirs.ToArray() }
+        return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = $safeError; reason = $safeError; created_dirs = $createdDirs.ToArray() }
     }
 }

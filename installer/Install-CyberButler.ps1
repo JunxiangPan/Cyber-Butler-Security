@@ -92,6 +92,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$utf8NoBom = New-Object Text.UTF8Encoding($false)
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
 $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
@@ -487,6 +490,18 @@ if ($coreNeedsDeploy) {
         }
         Write-Output ('PYTHON system ' + $pythonPath)
     }
+}
+
+# Existing installs must be stopped before Core replaces locked binaries.
+if (-not $failure -and $coreNeedsDeploy -and [string]$preflight.install_path.existing_state -ne 'None') {
+    Write-Output ('STOP existing services before core: ' + [string]$preflight.install_path.existing_state)
+    foreach ($taskName in @('AstrBot Service','AstrBot TOTP Broker','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','SnowLuma Startup','Cyber-Butler WFP Guard','Cyber-Butler Broker Watchdog')) {
+        $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($task) { Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null }
+    }
+    $stoppedBeforeCore = @(Stop-CyberButlerInstallProcesses -Root $InstallPath -Ports @(6185,18090,8765,8766,6199,5099,3000,3001))
+    Write-Output ('STOP core-lock processes: ' + (($stoppedBeforeCore | ForEach-Object { [string]$_ }) -join ','))
+    Start-Sleep -Seconds 3
 }
 
 # Core deploy: real download/verify/extract/venv/overlay.
