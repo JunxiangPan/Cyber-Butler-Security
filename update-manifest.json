@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
-      "sha256": "bda6eefd85ea718074f46e0c0fc49e7207da6223e546992823f33dbcd1e15a57",
-      "size": 10844
+      "sha256": "75b98d49a28df85be80008dc059c8cc938d1c85ec3d6d90cfee93ef6afdde266",
+      "size": 11694
     },
     {
       "path": "docs/RAG-知识库指南.md",
@@ -369,8 +369,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "46325d32aa0f2108d36181ef68248535c5651746d37b2878adaedb500a0adc3e",
-      "size": 139146
+      "sha256": "fced3a574f10b7c8862d42cdcb803e5437c6de6d46dce318b42e8888454afeab",
+      "size": 140399
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -409,8 +409,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "8983d9cdc65ed43e5b567f76eadbc7b0c1c4f598fcda182d12324758c7d1561d",
-      "size": 16376
+      "sha256": "c408e8fd7c7b3999d3b0709ad04e1bdb1cd715bf0b40b5d38fa18359d5ed0901",
+      "size": 17141
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
@@ -419,8 +419,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "6212a473755d023d59468f9d27f3b077dba96c2353fe558993ee33e2fd31c48b",
-      "size": 43378
+      "sha256": "146c4b93326c2dd53a61698375b99584fc52f538c72146d619b28bf7b2b2c11a",
+      "size": 44193
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -439,8 +439,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "c0d2971ceaa53ecc5cbb7573e354e263075476fb0e435bb05a462af1d9ff9297",
-      "size": 36764
+      "sha256": "38bda371a944c8baff237066dbb4ccb3814889fd9a03dbb76e455c2a53251be7",
+      "size": 36809
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
