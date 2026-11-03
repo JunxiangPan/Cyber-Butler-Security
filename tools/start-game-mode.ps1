@@ -2,7 +2,7 @@
 # The scheduled task can then end successfully (LastTaskResult=0) without
 # keeping a long-running PowerShell process inside the task instance.
 $ErrorActionPreference = 'Stop'
-$runtime = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹'
+$runtime = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
 $log = Join-Path $runtime 'start-game-mode.log'
 $monitor = Join-Path $PSScriptRoot 'game-mode.ps1'
 

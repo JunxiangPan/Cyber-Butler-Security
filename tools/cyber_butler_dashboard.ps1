@@ -539,7 +539,7 @@ $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 $actionScript = $script:ActionScript
 $gameModeScript = Join-Path $script:ProjectRoot 'tools\game-mode.ps1'
 if (-not (Test-Path -LiteralPath $gameModeScript)) { $gameModeScript = Join-Path $toolsRoot 'game-mode.ps1' }
-$bigFishDataDir = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+$bigFishDataDir = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
 New-Item -ItemType Directory -Path $bigFishDataDir -Force -ErrorAction SilentlyContinue | Out-Null
 $manualGameFile = Join-Path $bigFishDataDir 'game-list.txt'
 

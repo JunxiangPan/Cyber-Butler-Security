@@ -1483,6 +1483,12 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
             throw ('Could not remove ' + $full + ' after stopping processes. Close QQ/SnowLuma, then retry. Last error: ' + $lastError.Exception.Message)
         }
     }
+    & $report 92 '清理本地游戏模式状态 / Cleaning LocalAppData game-mode state'
+    $gameModeDir = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
+    if (Test-Path -LiteralPath $gameModeDir) {
+        Remove-Item -LiteralPath $gameModeDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
     & $report 92 '清理 ProgramData / Cleaning ProgramData'
     $programData = Join-Path $env:ProgramData 'CyberButler'
     if (Test-Path -LiteralPath $programData) {

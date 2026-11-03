@@ -290,7 +290,7 @@
     if (status) {
       status.textContent = snowState.password
         ? "密码来自 SnowLuma 首次启动日志；登录后请尽快修改。"
-        : "没有从首次启动日志捕获密码；请查看 SnowLuma\logs\startup-snowluma.out.log。";
+        : "未捕获初始密码。请前往 http://127.0.0.1:5099 登录 SnowLuma 后台修改，或在 SnowLuma 配置目录手动重置。CBS 只读取日志，不越权写入。";
       status.style.color = snowState.password ? "#15803d" : "#b91c1c";
     }
     const copy = $("snowLumaCopy");
@@ -323,26 +323,6 @@
       if (status) { status.textContent = "已复制 SnowLuma 初始密码。"; status.style.color = "#15803d"; }
     } catch {
       if (status) { status.textContent = "复制失败；点“显示”手动复制。"; status.style.color = "#b91c1c"; }
-    }
-  };
-
-  const resetSnow = async () => {
-    const status = $("snowLumaResetStatus");
-    if (!csrf) return;
-    if (status) { status.textContent = "正在重置…"; status.style.color = "#64748b"; }
-    try {
-      const response = await fetch("/api/security/snowluma-reset-password", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "X-CSRF-Token": csrf },
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok) throw new Error(data.message || "重置失败");
-      renderSnow({ username: data.username || "admin", password: data.password || "" });
-      if (snowState.password) { snowState.revealed = false; revealSnow(); }
-      if (status) { status.textContent = "已重置；请重启 SnowLuma 后使用新密码。"; status.style.color = "#15803d"; }
-    } catch (e) {
-      if (status) { status.textContent = "重置失败：" + (e && e.message ? e.message : "未知错误"); status.style.color = "#b91c1c"; }
     }
   };
 
@@ -782,7 +762,6 @@
     $("oneBotCopy")?.addEventListener("click", copyOneBot);
     $("snowLumaReveal")?.addEventListener("click", revealSnow);
     $("snowLumaCopy")?.addEventListener("click", copySnow);
-    $("snowLumaReset")?.addEventListener("click", resetSnow);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });

@@ -1,4 +1,4 @@
-"""SnowLuma watchdog and PC temperature/memory guard.
+﻿"""SnowLuma watchdog and PC temperature/memory guard.
 
 Checks the SnowLuma WebUI/OneBot port, restarts SnowLuma with its bundled
 node.exe when it is down, and sends a short notification through AstrBot's
@@ -30,8 +30,8 @@ import requests
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "tools" / "snowluma_guard.json"
-LOG_PATH = Path.home() / "Desktop" / "大肥鱼专用文件夹" / "snowluma_guard.log"
-LOCK_PATH = Path.home() / "Desktop" / "大肥鱼专用文件夹" / "snowluma_guard.lock"
+LOG_PATH = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "CyberButler" / "logs" / "snowluma_guard.log"
+LOCK_PATH = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "CyberButler" / "logs" / "snowluma_guard.lock"
 RESTART_LOG = BASE_DIR / "SnowLuma" / "logs" / "guardian-restart.log"
 
 DEFAULT_CONFIG = {
