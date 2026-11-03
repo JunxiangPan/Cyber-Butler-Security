@@ -369,8 +369,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "fced3a574f10b7c8862d42cdcb803e5437c6de6d46dce318b42e8888454afeab",
-      "size": 140399
+      "sha256": "088cbf4903232de2d73485009a53cac14c001ba12a0c57445bd7f2987dd56eaf",
+      "size": 141410
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -394,8 +394,8 @@
     },
     {
       "path": "installer/lib/Add-DefenderExclusion.ps1",
-      "sha256": "35e00fc3efcf5786bf190f05303a904f6b169dd81dfe5870b8919d73d7d2e4f5",
-      "size": 1110
+      "sha256": "088de47cce4a38f9750d2cd3af7e08cd7cebbe5a700cf72d005972718af00106",
+      "size": 1962
     },
     {
       "path": "installer/lib/CyberButlerLsaRights.cs",
