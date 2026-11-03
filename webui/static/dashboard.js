@@ -210,6 +210,65 @@
     if (response.ok && data.ok) await loadNetworkGuard();
   };
 
+  const oneBotState = { token: "", revealed: false, timer: null };
+
+  const maskOneBot = () => {
+    const el = $("oneBotToken");
+    if (el) el.textContent = oneBotState.token ? "••••••••••••" : "未生成";
+    const btn = $("oneBotReveal");
+    if (btn) btn.textContent = "显示";
+    oneBotState.revealed = false;
+    if (oneBotState.timer) { clearTimeout(oneBotState.timer); oneBotState.timer = null; }
+  };
+
+  const renderOneBot = (data) => {
+    oneBotState.token = String((data && data.access_token) || "");
+    const url = $("oneBotUrl");
+    if (url && data && data.url) url.textContent = data.url;
+    const file = $("oneBotTokenFile");
+    if (file && data && data.token_file) file.textContent = data.token_file;
+    const status = $("oneBotStatus");
+    if (status) {
+      status.textContent = oneBotState.token
+        ? "凭据已加载。点“显示”查看，点“复制”复制到剪贴板。"
+        : "还没有生成 OneBot Token；先在 AstrBot 中添加 OneBot 平台，或重新运行安装器。";
+      status.style.color = oneBotState.token ? "#15803d" : "#b91c1c";
+    }
+    const copy = $("oneBotCopy");
+    if (copy) copy.disabled = !oneBotState.token;
+    maskOneBot();
+  };
+
+  const loadOneBotToken = async () => {
+    if (!csrf) return;
+    const data = await getJson("/api/security/onebot-token");
+    if (data && data.ok) renderOneBot(data);
+  };
+
+  const revealOneBot = () => {
+    const el = $("oneBotToken");
+    const btn = $("oneBotReveal");
+    if (!el || !oneBotState.token) return;
+    oneBotState.revealed = !oneBotState.revealed;
+    el.textContent = oneBotState.revealed ? oneBotState.token : "••••••••••••";
+    if (btn) btn.textContent = oneBotState.revealed ? "隐藏" : "显示";
+    if (oneBotState.timer) clearTimeout(oneBotState.timer);
+    if (oneBotState.revealed) {
+      oneBotState.timer = setTimeout(maskOneBot, 15000);
+    }
+  };
+
+  const copyOneBot = async () => {
+    const status = $("oneBotStatus");
+    if (!oneBotState.token) return;
+    try {
+      await navigator.clipboard.writeText(oneBotState.token);
+      if (status) { status.textContent = "已复制 Access Token。粘贴到 AstrBot OneBot 平台和 SnowLuma WebSocket 客户端。"; status.style.color = "#15803d"; }
+    } catch {
+      if (status) { status.textContent = "复制失败；点“显示”手动选择复制。"; status.style.color = "#b91c1c"; }
+    }
+  };
+
   const saveAdminEmail = async () => {
     if (!csrf || !adminEmailInput) return;
     if (emailSaveStatus) emailSaveStatus.textContent = "保存中… / Saving…";
@@ -642,6 +701,8 @@
     $("adminEmailSave")?.addEventListener("click", saveAdminEmail);
     $("networkSave")?.addEventListener("click", saveNetworkPolicy);
     $("networkRefresh")?.addEventListener("click", loadNetworkPolicy);
+    $("oneBotReveal")?.addEventListener("click", revealOneBot);
+    $("oneBotCopy")?.addEventListener("click", copyOneBot);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });
@@ -661,6 +722,7 @@
         refreshAll();
         loadEmailStatus();
         loadNetworkPolicy();
+        loadOneBotToken();
         setInterval(loadNetworkGuard, 10000);
       })
       .catch(() => {});

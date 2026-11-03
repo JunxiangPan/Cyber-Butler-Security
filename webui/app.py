@@ -416,6 +416,27 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return JSONResponse({"ok": False, "code": "network.save_failed", "message": "cannot write network-policy.json"}, status_code=500)
         return {"ok": True, "policy": policy}
 
+    @app.get("/api/security/onebot-token")
+    async def onebot_token(session=Depends(require_session)):
+        token_path = Path(settings.project_root) / "data" / "onebot-reverse-token.txt"
+        token = ""
+        try:
+            if token_path.is_file():
+                token = token_path.read_text(encoding="utf-8-sig").strip()
+        except OSError as exc:
+            logger.warning("onebot token read failed: %s", exc)
+        return JSONResponse(
+            {
+                "ok": True,
+                "url": "ws://127.0.0.1:6199/ws",
+                "access_token": token,
+                "token_file": str(token_path),
+                "snowluma_url": "http://127.0.0.1:5099/",
+                "astrbot_url": "http://127.0.0.1:6185/",
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
     @app.post("/api/config/admin-email")
     async def save_admin_email(body: AdminEmailUpdate, request: Request, session=Depends(require_session)):
         provided = request.headers.get("X-CSRF-Token", "")

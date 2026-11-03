@@ -138,6 +138,34 @@
       </details>
     </section>
 
+    <section id="oneBotPanel" class="onebot-panel">
+      <div class="onebot-head">
+        <div>
+          <span class="network-eyebrow">ONEBOT / SNOWLUMA</span>
+          <h2>QQ 连接凭据</h2>
+          <p class="network-lead">这里显示 SnowLuma 和 AstrBot 要互相对上的 Access Token。它不是 SnowLuma 登录密码，也不是你 QQ 的密码。</p>
+        </div>
+        <span class="network-badge">仅本机控制台可见</span>
+      </div>
+      <div class="onebot-grid">
+        <div class="onebot-field">
+          <span class="onebot-label">反向 WebSocket 地址</span>
+          <code id="oneBotUrl">ws://127.0.0.1:6199/ws</code>
+        </div>
+        <div class="onebot-field">
+          <span class="onebot-label">Access Token</span>
+          <div class="onebot-token-row">
+            <code id="oneBotToken" class="onebot-token">••••••••••••</code>
+            <button id="oneBotReveal" class="ghost-button" type="button">显示</button>
+            <button id="oneBotCopy" class="primary" type="button">复制</button>
+          </div>
+        </div>
+      </div>
+      <p class="network-help-text">把这同一个 Token 粘贴到 AstrBot 的 OneBot 平台和 SnowLuma 的 WebSocket 客户端。Token 文件：<code id="oneBotTokenFile">data\onebot-reverse-token.txt</code></p>
+      <p id="oneBotStatus" class="network-status" role="status"></p>
+    </section>
+
+
     <section class="welcome">
       <p class="eyebrow" data-i18n="dash.eyebrow"></p>
       <h1 data-i18n="dash.hero"></h1>
