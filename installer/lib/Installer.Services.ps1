@@ -415,6 +415,21 @@ function Set-CyberButlerServiceTasks {
             }
         } catch { }
     }
+    # WFP Guard needs an explicit audit policy before its first start; without
+    # this file it exits before writing webui\data\wfp-guard-status.json.
+    $networkDataDir = Join-Path $Root 'webui\data'
+    New-Item -ItemType Directory -Force -Path $networkDataDir -ErrorAction SilentlyContinue | Out-Null
+    $networkPolicyPath = Join-Path $networkDataDir 'network-policy.json'
+    if (-not (Test-Path -LiteralPath $networkPolicyPath)) {
+        [ordered]@{
+            schema = 1
+            mode = 'audit'
+            service_account = $ServiceAccount
+            allow = @([ordered]@{ kind = 'loopback'; port = 18090 })
+            block_unknown = $true
+        } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $networkPolicyPath -Encoding UTF8
+    }
+
     $ports = @($specs | Where-Object { [int]$_.port -gt 0 } | ForEach-Object { [int]$_.port })
     $dataDir = Join-Path $Root 'data'
     New-Item -ItemType Directory -Path $dataDir -Force | Out-Null

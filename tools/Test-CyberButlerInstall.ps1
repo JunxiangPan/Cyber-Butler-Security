@@ -67,6 +67,20 @@ if ($InstallPath) {
     } else {
         $result.problems += 'service-astrbot.log missing'
     }
+    $wfpPolicy = Join-Path $InstallPath 'webui\data
+etwork-policy.json'
+    if (Test-Path -LiteralPath $wfpPolicy) {
+        $result.wfp_policy = Get-Content -LiteralPath $wfpPolicy -Raw -Encoding UTF8 | ConvertFrom-Json
+    } else {
+        $result.problems += 'network-policy.json missing (WFP Guard cannot start)'
+    }
+    $wfpLog = Join-Path $InstallPath 'tools\logs\wfp-startup.log'
+    if (Test-Path -LiteralPath $wfpLog) {
+        $result.logs.wfp_tail = Get-Content -LiteralPath $wfpLog -Tail 20 -Encoding UTF8 -ErrorAction SilentlyContinue
+    }
+    $wfpTask = Get-ScheduledTask -TaskName 'Cyber-Butler WFP Guard' -ErrorAction SilentlyContinue
+    if (-not $wfpTask) { $result.problems += 'Cyber-Butler WFP Guard task missing' }
+
     $wfpStatus = Join-Path $InstallPath 'webui\data\wfp-guard-status.json'
     if (Test-Path -LiteralPath $wfpStatus) {
         $result.wfp = Get-Content -LiteralPath $wfpStatus -Raw -Encoding UTF8 | ConvertFrom-Json
