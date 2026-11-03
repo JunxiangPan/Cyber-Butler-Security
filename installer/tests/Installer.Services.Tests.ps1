@@ -9,14 +9,14 @@ Describe 'Installer services safety' {
         $desktop = [Security.Principal.WindowsIdentity]::GetCurrent().Name
         $service = 'CyberButlerSvc'
         $mediumSpecs = @(Get-CyberButlerServiceSpecs -Root 'C:\CyberButler' -ServiceAccount $service -DesktopAccount $desktop -Isolation $false)
-        ($mediumSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).principal | Should Be 'desktop'
+        ($mediumSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).principal | Should Be 'SYSTEM'
         $highSpecs = @(Get-CyberButlerServiceSpecs -Root 'C:\CyberButler' -ServiceAccount $service -DesktopAccount $desktop -Isolation $true)
-        ($highSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).principal | Should Be 'service'
+        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Web UI Services' }).principal | Should Be 'desktop'
 
         $mediumPrincipal = Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'desktop' -DesktopAccount $desktop
         $mediumPrincipal.user_id | Should Be $desktop
         $mediumPrincipal.logon_type | Should Be 'Interactive'
-        ($highSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).kind | Should Be 'service'
+        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).kind | Should Be 'task'
         { Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'service' -ServiceAccount $service } | Should Throw
     }
 

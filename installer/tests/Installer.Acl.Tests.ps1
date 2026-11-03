@@ -131,14 +131,14 @@ Describe 'Installer ACL safety' {
 
     It 'lists only core outputs and excludes the later TOTP vault' {
         $targets = @(Get-CyberButlerAclTargets -InstallPath 'C:\CyberButler')
-        $targets.Count | Should Be 5
-        ($targets -join ';') | Should Match 'AstrBot'
-        ($targets -contains (Join-Path 'C:\CyberButler' 'AstrBot\.venv')) | Should Be $true
-        ($targets -join ';') | Should Match 'SnowLuma'
+        $targets.Count | Should Be 4
+        ($targets -join ';') | Should Not Match 'AstrBot'
+        ($targets -join ';') | Should Not Match 'SnowLuma'
+        ($targets -join ';') | Should Match 'tools'
+        ($targets -join ';') | Should Match 'webui'
         ($targets -join ';') | Should Match 'data'
         ($targets -join ';') | Should Match 'workspace'
         ($targets -join ';') | Should Not Match 'totp-vault'
-        ($targets -join ';') | Should Not Match 'tools'
     }
 
     It 'reports the missing ACL target path explicitly' {

@@ -372,34 +372,19 @@ function Test-CyberButlerCoreDeploy {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.test' -Context ([pscustomobject]@{ InstallPath = $InstallPath }))
     }
     $root = [IO.Path]::GetFullPath($InstallPath)
-    $astrbot = Join-Path $root 'AstrBot'
-    $venvPython = Join-Path $astrbot '.venv\Scripts\python.exe'
-    $overlayProbe = Join-Path $astrbot 'astrbot\core\tools\message_tools.py'
     $missing = New-Object System.Collections.Generic.List[string]
-    if (-not (Test-Path -LiteralPath (Join-Path $astrbot 'main.py'))) { $missing.Add('AstrBot/main.py') }
-    if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('AstrBot/.venv/Scripts/python.exe') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'SnowLuma\index.mjs'))) { $missing.Add('SnowLuma/index.mjs') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools'))) { $missing.Add('tools') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools\broker.py'))) { $missing.Add('tools/broker.py') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'tools\email_approval.py'))) { $missing.Add('tools/email_approval.py') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\run.py'))) { $missing.Add('webui/run.py') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'webui\.venv\Scripts\python.exe'))) { $missing.Add('webui/.venv/Scripts/python.exe') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot\data'))) { $missing.Add('AstrBot/data') }
-    foreach ($cbsName in @('astrbot_plugin_at_gate','astrbot_plugin_cloud_fallback','astrbot_plugin_dsh_bridge','astrbot_plugin_dst_guard','astrbot_plugin_mcp_readonly','astrbot_plugin_router','astrbot_plugin_security_gate','astrbot_plugin_totp_broker','astrbot_plugin_weather_tools','astrbot_plugin_webui_bridge')) {
-        $cbsMain = Join-Path (Join-Path (Join-Path $astrbot 'data') 'plugins') ($cbsName + '\main.py')
-        if (-not (Test-Path -LiteralPath $cbsMain)) { $missing.Add('AstrBot/data/plugins/' + $cbsName) }
+    foreach ($rel in @('tools/broker.py','tools\email_approval.py','tools\wfp_guard.py','webui/run.py','webui/requirements.txt','workspace','data')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $root $rel))) { $missing.Add($rel) }
     }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'workspace'))) { $missing.Add('workspace') }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'data'))) { $missing.Add('data') }
-    if (-not (Test-Path -LiteralPath $overlayProbe)) { $missing.Add('overlay probe') }
+    $venvPython = Join-Path $root 'webui\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('webui/.venv/Scripts/python.exe') }
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'VERSION'))) { $missing.Add('VERSION') }
     $satisfied = $missing.Count -eq 0
     return [pscustomobject]@{
         satisfied = [bool]$satisfied
         install_path = $root
-        astrbot = $astrbot
-        venv_python = $venvPython
         missing = $missing.ToArray()
-        reason = if ($satisfied) { 'core tree present' } else { 'core tree incomplete: ' + ($missing -join ', ') }
+        reason = if ($satisfied) { 'CBS core tree present' } else { 'CBS core incomplete: ' + ($missing -join ', ') }
     }
 }
 
@@ -462,352 +447,88 @@ function Invoke-CyberButlerCoreDeploy {
     )
 
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy') {
-        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy' -Context ([pscustomobject]@{
-            Root = $InstallPath; ExistingState = $ExistingState; Tier = $Tier
-        }))
+        return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy' -Context ([pscustomobject]@{ Root = $InstallPath; ExistingState = $ExistingState; Tier = $Tier }))
     }
 
     $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
-    $packageVersionFile = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'VERSION'
-    $installedVersionFile = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'VERSION'
-    if ($test.satisfied -and (Test-Path -LiteralPath $packageVersionFile) -and (Test-Path -LiteralPath $installedVersionFile)) {
-        $wantedVersion = (Get-Content -LiteralPath $packageVersionFile -Raw -Encoding UTF8).Trim()
-        $installedVersion = (Get-Content -LiteralPath $installedVersionFile -Raw -Encoding UTF8).Trim()
-        if ($wantedVersion -ne $installedVersion) {
-            Write-Host ('CORE version differs: installed=' + $installedVersion + ' package=' + $wantedVersion + '; forcing deploy')
-            $test.satisfied = $false
-            $test.reason = 'version-mismatch'
-        }
+    $root = [IO.Path]::GetFullPath($InstallPath)
+    $paths = [pscustomobject]@{
+        tools = Join-Path $root 'tools'
+        webui = Join-Path $root 'webui'
+        workspace = Join-Path $root 'workspace'
+        data = Join-Path $root 'data'
     }
     if ($test.satisfied) {
-        $reason = 'core deployment already satisfied: ' + [string]$test.reason
-        return [pscustomobject]@{
-            status = 'skipped'; changed = $false; exit_code = 0; test = $test
-            reason = $reason; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion
-            paths = [pscustomobject]@{
-                astrbot = Join-Path $test.install_path 'AstrBot'
-                snowluma = Join-Path $test.install_path 'SnowLuma'
-                tools = Join-Path $test.install_path 'tools'
-                workspace = Join-Path $test.install_path 'workspace'
-                data = Join-Path $test.install_path 'data'
-            }
-        }
+        return [pscustomobject]@{ status = 'skipped'; changed = $false; exit_code = 0; test = $test; reason = 'CBS core already present'; paths = $paths }
     }
 
-    $root = [IO.Path]::GetFullPath($InstallPath)
-    $createdDirs = New-Object System.Collections.Generic.List[string]
-    $staging = Join-Path $root ('.installer-staging-' + [guid]::NewGuid().ToString('N'))
+    $releaseRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     $stepStarted = $false
     if ($null -ne $Journal) {
         Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status in_progress | Out-Null
         $stepStarted = $true
-        New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $staging -AllowedRoot $root | Out-Null
-    } else {
-        New-Item -ItemType Directory -Path $staging -Force | Out-Null
     }
-    $createdDirs.Add($staging)
-
     try {
-        $config = Get-CyberButlerCoreSourceConfig -CoreSourcesPath $CoreSourcesPath
-        $astrbotSource = Resolve-CyberButlerCoreSource -Name 'astrbot' -PackagePath $AstrBotPackage -Sha256 $AstrBotSha256 -Config $config
-        $snowSource = Resolve-CyberButlerCoreSource -Name 'snowluma' -PackagePath $SnowLumaPackage -Sha256 $SnowLumaSha256 -Config $config
-
-        $astrbotArchive = Join-Path $staging 'astrbot.zip'
-        $snowArchive = Join-Path $staging 'snowluma.zip'
-        $astrbotSize = if ($astrbotSource.size_bytes -gt 0) { '{0:N1} MB' -f ($astrbotSource.size_bytes / 1MB) } else { 'unknown size' }
-        $snowSize = if ($snowSource.size_bytes -gt 0) { '{0:N1} MB' -f ($snowSource.size_bytes / 1MB) } else { 'unknown size' }
-        Write-Host ('CORE downloading ' + $astrbotSource.name + ' ' + $astrbotSource.version + ' (' + $astrbotSize + ')...')
-        Invoke-CyberButlerCoreDownload -Source $astrbotSource -Destination $astrbotArchive -TimeoutSeconds $DownloadTimeoutSeconds -RetryCount $DownloadRetryCount -Resume:$ResumeDownload | Out-Null
-        Write-Host ('CORE downloaded ' + $astrbotSource.name + '.')
-        Write-Host ('CORE downloading ' + $snowSource.name + ' ' + $snowSource.version + ' (' + $snowSize + ')...')
-        Invoke-CyberButlerCoreDownload -Source $snowSource -Destination $snowArchive -TimeoutSeconds $DownloadTimeoutSeconds -RetryCount $DownloadRetryCount -Resume:$ResumeDownload | Out-Null
-        Write-Host ('CORE downloaded ' + $snowSource.name + '.')
-        Write-Host 'CORE extracting AstrBot archive...'
-        $rawAstrbot = Expand-CyberButlerCoreArchive -Archive $astrbotArchive -Destination (Join-Path $staging 'astrbot-raw')
-        Write-Host 'CORE extracting SnowLuma archive...'
-        $rawSnow = Expand-CyberButlerCoreArchive -Archive $snowArchive -Destination (Join-Path $staging 'snow-raw')
-        Write-Host 'CORE archives extracted.'
-        $astrbotRoot = Find-CyberButlerCoreRoot -Path $rawAstrbot -Marker 'main.py'
-        $snowRoot = Find-CyberButlerCoreRoot -Path $rawSnow -Marker 'index.mjs'
-        if (-not $astrbotRoot) { throw 'AstrBot archive does not contain main.py.' }
-        if (-not $snowRoot) { throw 'SnowLuma archive does not contain index.mjs.' }
-
-        Write-Host 'CORE creating target directories...'
-        $astrbotTarget = Join-Path $root 'AstrBot'
-        $snowTarget = Join-Path $root 'SnowLuma'
-        $toolsTarget = Join-Path $root 'tools'
-        $workspaceTarget = Join-Path $root 'workspace'
-        $dataTarget = Join-Path $root 'data'
-        $webTarget = Join-Path $root 'webui'
-        $astrbotDataTarget = Join-Path $astrbotTarget 'data'
-
-        foreach ($path in @($astrbotTarget, $snowTarget, $toolsTarget, $workspaceTarget, $dataTarget, $webTarget, $astrbotDataTarget)) {
-            if (-not (Test-Path -LiteralPath $path)) {
+        foreach ($dir in @($root, $paths.tools, $paths.webui, $paths.workspace, $paths.data)) {
+            if (-not (Test-Path -LiteralPath $dir)) {
                 if ($null -ne $Journal) {
-                    New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $path -AllowedRoot $root | Out-Null
+                    New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $dir -AllowedRoot $root | Out-Null
                 } else {
-                    New-Item -ItemType Directory -Path $path -Force | Out-Null
+                    New-Item -ItemType Directory -Path $dir -Force | Out-Null
                 }
-                $createdDirs.Add($path)
             }
         }
-
-        Copy-CyberButlerCoreTree -Source $astrbotRoot -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep -ExcludeTop @('data', '.venv') -Label 'AstrBot'
-        Copy-CyberButlerCoreTree -Source $snowRoot -Destination $snowTarget -AllowedRoot $snowTarget -Journal $Journal -JournalStep $JournalStep -ExcludeTop @('data', 'config', 'logs') -Label 'SnowLuma'
-
-        $overlay = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'overlay'
-        if (Test-Path -LiteralPath $overlay) {
-            $astrbotVersion = [string]$config.astrbot.version
-            if ($astrbotVersion) {
-                Set-Content -LiteralPath (Join-Path $astrbotTarget 'VERSION') -Value $astrbotVersion -Encoding ASCII
-            }
-            if (-not $SkipOverlayManifest) {
-                Write-Host 'CORE validating overlay manifest...'
-                $overlayCheck = Test-CyberButlerOverlayManifest -AstrBotPath $astrbotTarget -OverlayPath $overlay
-                Write-Host ('CORE overlay manifest ok for AstrBot ' + $overlayCheck.version)
-            }
-            Write-Host 'CORE applying overlay...'
-            Copy-CyberButlerCoreTree -Source $overlay -Destination $astrbotTarget -AllowedRoot $astrbotTarget -Journal $Journal -JournalStep $JournalStep `
-                -ExcludePatterns @('overlay-manifest.json') -Label 'overlay'
-            Write-Host 'CORE overlay applied.'
-        } else {
-            throw "Overlay tree missing: $overlay"
-        }
-
-        $releaseRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-        $toolsSource = Join-Path $releaseRoot 'tools'
-        $webSource = Join-Path $releaseRoot 'webui'
-        if (-not (Test-Path -LiteralPath $toolsSource)) { throw "Tools tree missing: $toolsSource" }
-        if (-not (Test-Path -LiteralPath $webSource)) { throw "Web UI tree missing: $webSource" }
-        Copy-CyberButlerCoreTree -Source $toolsSource -Destination $toolsTarget -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
+        if (-not (Test-Path -LiteralPath (Join-Path $releaseRoot 'tools'))) { throw ('Tools tree missing: ' + (Join-Path $releaseRoot 'tools')) }
+        if (-not (Test-Path -LiteralPath (Join-Path $releaseRoot 'webui'))) { throw ('Web UI tree missing: ' + (Join-Path $releaseRoot 'webui')) }
+        Copy-CyberButlerCoreTree -Source (Join-Path $releaseRoot 'tools') -Destination $paths.tools -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
             -ExcludeTop @('__pycache__') -ExcludePatterns @('__pycache__\*','*.pyc','*.log','tmp-*','*.dpapi','broker_token.txt','totp_recovery.json') -Label 'tools'
-        Copy-CyberButlerCoreTree -Source $webSource -Destination $webTarget -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
+        Copy-CyberButlerCoreTree -Source (Join-Path $releaseRoot 'webui') -Destination $paths.webui -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
             -ExcludeTop @('.venv', 'data', 'tests', '__pycache__') -ExcludePatterns @('.venv\*','data\*','tests\*','__pycache__\*','tmp-*','*.pyc','config.json') -Label 'webui'
+        Set-Content -LiteralPath (Join-Path $root 'VERSION') -Value ((Get-Content -LiteralPath (Join-Path $releaseRoot 'VERSION') -Raw -Encoding UTF8).Trim()) -Encoding ASCII
 
-        $releasePlugins = Join-Path $releaseRoot 'plugins'
-        Write-Host 'CORE installing CBS security plugins...'
-        $cbsResult = Copy-CyberButlerCbsPlugins -AstrBotPath $astrbotTarget -ReleasePluginsPath $releasePlugins -Journal $Journal -JournalStep $JournalStep
-        Write-Host ('CORE CBS plugins: ' + $cbsResult.status + ' (' + @($cbsResult.plugins).Count + ')')
-        try {
-            $personalResult = Copy-CyberButlerPersonalPlugins -AstrBotPath $astrbotTarget -PersonalPluginsPath $PersonalPluginsPath -Repair:$Repair -Journal $Journal -JournalStep $JournalStep
-            Write-Host ('CORE personal plugins: ' + $personalResult.status)
-        } catch {
-            $personalResult = [pscustomobject]@{ status = 'failed'; path = ''; plugins = @(); reason = $_.Exception.Message }
-            Write-Host ('CORE personal plugins: failed - ' + $_.Exception.Message)
-        }
-
-        $toolReplacements = [ordered]@{
-            'YOUR_PROJECT_PATH' = $root
-            'YOUR_USER_PATH' = $env:USERPROFILE
-            'YOUR_USER_NAME' = $env:USERNAME
-            'YOUR_QQ_ID' = $OwnerQQ
-            'YOUR_SERVICE_USER' = $ToolServiceAccount
-        }
-        # Plugins are copied by Copy-CyberButlerCbsPlugins before this point.
-        # They are not under tools/, so they need the same placeholder pass.
-        $pluginRoot = Join-Path $astrbotTarget 'data\plugins'
-        foreach ($pluginFile in @(Get-ChildItem -LiteralPath $pluginRoot -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.py', '.yaml', '.yml', '.json') })) {
-            $pluginText = [IO.File]::ReadAllText($pluginFile.FullName)
-            $pluginChanged = $false
-            foreach ($key in $toolReplacements.Keys) {
-                $value = [string]$toolReplacements[$key]
-                if ($value -and $pluginText.Contains($key)) {
-                    $pluginText = $pluginText.Replace($key, $value)
-                    $pluginChanged = $true
-                }
-            }
-            if ($pluginChanged) { [IO.File]::WriteAllText($pluginFile.FullName, $pluginText, (New-Object Text.UTF8Encoding($false))) }
-        }
-        foreach ($toolFile in @(Get-ChildItem -LiteralPath $toolsTarget -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in @('.ps1', '.py', '.json', '.psm1', '.cmd', '.bat') })) {
-            $relativeTool = $toolFile.FullName.Substring($toolsTarget.Length).TrimStart([char]92)
-            # The dashboard and its official modules use YOUR_QQ_ID as an
-            # overlay JSON property name, not as an installer placeholder.
-            # Rewriting them changes the source text and breaks the official
-            # module SHA-256 trust check.
-            if ($relativeTool -eq 'cyber_butler_dashboard.ps1' -or $relativeTool -like 'dashboard_plugins\*') {
-                continue
-            }
-            $toolText = [IO.File]::ReadAllText($toolFile.FullName)
-            $changed = $false
-            foreach ($key in $toolReplacements.Keys) {
-                $value = [string]$toolReplacements[$key]
-                if ($value -and $toolText.Contains($key)) {
-                    $toolText = $toolText.Replace($key, $value)
-                    $changed = $true
-                }
-            }
-            if ($changed) { [IO.File]::WriteAllText($toolFile.FullName, $toolText, (New-Object Text.UTF8Encoding($false))) }
-        }
-
-        # The dashboard is a large PowerShell script. A stale or hand-edited
-        # copy can leave the shortcut opening a parser error instead of the UI.
-        $dashboardScript = Join-Path $toolsTarget 'cyber_butler_dashboard.ps1'
-        if (Test-Path -LiteralPath $dashboardScript) {
-            $parseTokens = $null
-            $parseErrors = $null
-            [System.Management.Automation.Language.Parser]::ParseFile(
-                $dashboardScript,
-                [ref]$parseTokens,
-                [ref]$parseErrors
-            ) | Out-Null
-            if ($parseErrors -and $parseErrors.Count -gt 0) {
-                $first = $parseErrors[0]
-                throw ('dashboard syntax error at line ' + $first.Extent.StartLineNumber + ': ' + $first.Message)
-            }
-        }
-
-        $webConfigPath = Join-Path $webTarget 'config.json'
-        $desktopRoot = [Environment]::GetFolderPath('Desktop')
-        if ([string]::IsNullOrWhiteSpace($desktopRoot)) {
-            $desktopRoot = Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Desktop'
-        }
-        $bigFishRoot = Join-Path $desktopRoot '大肥鱼专用文件夹'
-        New-Item -ItemType Directory -Path $bigFishRoot -Force | Out-Null
+        $webConfigPath = Join-Path $paths.webui 'config.json'
         if (-not (Test-Path -LiteralPath $webConfigPath)) {
-            $templatePath = Join-Path $webTarget 'example-config.json'
+            $templatePath = Join-Path $paths.webui 'example-config.json'
             if (Test-Path -LiteralPath $templatePath) {
                 $webConfig = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $webConfig.admin_email = $WebUIAdminEmail
                 $webConfig.project_root = $root
-                $webConfig.file_root = $bigFishRoot
+                $webConfig.file_root = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
                 Write-InstallerJson -Path $webConfigPath -Value $webConfig
             }
-        } else {
-            try {
-                $webConfig = Get-Content -LiteralPath $webConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
-                if ([string]::IsNullOrWhiteSpace([string]$webConfig.file_root)) {
-                    $webConfig.file_root = $bigFishRoot
-                    Write-InstallerJson -Path $webConfigPath -Value $webConfig
-                }
-            } catch { }
         }
-
-        $brokerConfigPath = Join-Path $toolsTarget 'broker_config.json'
-        try {
-            if (Test-Path -LiteralPath $brokerConfigPath) {
-                $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            } else {
-                $brokerConfig = [pscustomobject]@{
-                    approval_channel = 'qq'
-                    admin_email = ''
-                }
-                Write-Host 'CORE broker_config: creating first-run configuration'
-            }
-            $brokerConfig | Add-Member -NotePropertyName admin_email -NotePropertyValue $WebUIAdminEmail -Force
-            if ($WebUIAdminEmail) { $brokerConfig | Add-Member -NotePropertyName approval_channel -NotePropertyValue 'email' -Force }
-            Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
-        } catch {
-            throw ('CORE broker_config initialization failed: ' + $_.Exception.Message)
+        $brokerConfigPath = Join-Path $paths.tools 'broker_config.json'
+        $brokerConfig = [pscustomobject]@{ approval_channel = 'qq'; admin_email = '' }
+        if (Test-Path -LiteralPath $brokerConfigPath) {
+            try { $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
         }
+        $brokerConfig | Add-Member -NotePropertyName admin_email -NotePropertyValue $WebUIAdminEmail -Force
+        Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
 
+        $webVenv = Join-Path $paths.webui '.venv'
         if (-not $SkipDependencyInstall) {
             $python = Get-CyberButlerCorePython -PreferredPath $PythonPath -ServiceRoot $root -Isolation:($Tier -eq 'High')
-            Write-Host ('CORE creating virtual environment with ' + $python + '...')
-            $venvDir = Join-Path $astrbotTarget '.venv'
-            & $python -m venv $venvDir
-            if ($LASTEXITCODE -ne 0) { throw 'python -m venv failed.' }
-            $venvPython = Join-Path $venvDir 'Scripts\python.exe'
-            $webVenv = Join-Path $webTarget '.venv'
             & $python -m venv $webVenv
             if ($LASTEXITCODE -ne 0) { throw 'webui python -m venv failed.' }
-            $webRequirements = Join-Path $webTarget 'requirements.txt'
-            if ((Test-Path -LiteralPath $webRequirements) -and (Get-Item -LiteralPath $webRequirements).Length -gt 0) {
-                $webPipLog = Join-Path $root 'installer-report\webui-pip-install.log'
-                Write-Host 'CORE installing Web UI dependencies (this may take several minutes)...'
-                Write-Host ('CORE Web UI pip log: ' + $webPipLog)
-                $webPipRun = Invoke-CyberButlerPipInstall -PythonPath (Join-Path $webVenv 'Scripts\python.exe') -Requirements $webRequirements -LogPath $webPipLog -SitePackagesPath (Join-Path $webVenv 'Lib\site-packages')
-                if ($webPipRun.exit_code -ne 0) { throw ("Web UI pip install failed. pip log: " + $webPipLog) }
-                Write-Host 'CORE Web UI dependencies installed.'
-            }
-            $requirements = Join-Path $astrbotTarget 'requirements.txt'
-            if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
-                # Deprecated 3.0.0 uses PEP 695 ``type`` syntax and fails on
-                # Python 3.10, which is the bundled runtime on existing installs.
-                $reqText = [IO.File]::ReadAllText($requirements)
-                if ($reqText -notmatch '(?im)^\s*deprecated\s*<') {
-                    $reqText = $reqText.TrimEnd() + [Environment]::NewLine + 'deprecated<3' + [Environment]::NewLine
-                }
-                if ([string]$PythonVersion -match 'Python\s+3\.(10|11)' -and $reqText -notmatch '(?im)^\s*greenlet\s*<') {
-                    $reqText = $reqText.TrimEnd() + [Environment]::NewLine + 'greenlet<3.2' + [Environment]::NewLine
-                }
-                [IO.File]::WriteAllText($requirements, $reqText, (New-Object Text.UTF8Encoding($false)))
-                $pipLog = if ($PipLogPath) { $PipLogPath } else { Join-Path $root 'installer-report\pip-install.log' }
-                Write-Host 'CORE installing dependencies (this may take several minutes)...'
-                Write-Host ('CORE pip log: ' + $pipLog)
-                $pipRun = Invoke-CyberButlerPipInstall -PythonPath $venvPython -Requirements $requirements -LogPath $pipLog -SitePackagesPath (Join-Path $venvDir 'Lib\site-packages')
-                if ($pipRun.exit_code -ne 0) {
-                    $pipOutput = ($pipRun.output -join "`n")
-                    $excerpt = (($pipRun.output | Select-Object -Last 12) -join "`n")
-                    if ($pipOutput -match 'Requires-Python|No matching distribution|Could not find a version') {
-                        throw ("pip dependency resolution failed. AstrBot supports Python 3.10-3.13; Python 3.14+ is not supported by faiss-cpu. Install Python 3.13 and retry. pip log: " + $pipLog + ". Tail: " + $excerpt)
-                    }
-                    throw ("pip install -r requirements.txt failed. pip log: " + $pipLog + ". Tail: " + $excerpt)
-                }
-                Write-Host 'CORE dependencies installed.'
-            }
-            if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
-                Write-Host 'CORE import smoke: astrbot.core'
-                $smoke = Test-CyberButlerCoreImportSmoke -InstallPath $root -PythonPath $venvPython -Handlers $Handlers
-                if (-not $smoke.ok) {
-                    throw ('AstrBot import smoke failed (exit ' + $smoke.exit_code + '): ' + ((@($smoke.output) | Select-Object -Last 8) -join ' | '))
-                }
-                Write-Host 'CORE import smoke: ok'
-            }
+            $webRequirements = Join-Path $paths.webui 'requirements.txt'
+            $webPipLog = Join-Path $root 'installer-report\webui-pip-install.log'
+            $webPipRun = Invoke-CyberButlerPipInstall -PythonPath (Join-Path $webVenv 'Scripts\python.exe') -Requirements $webRequirements -LogPath $webPipLog -SitePackagesPath (Join-Path $webVenv 'Lib\site-packages')
+            if ($webPipRun.exit_code -ne 0) { throw ('CBS Web UI pip install failed. pip log: ' + $webPipLog) }
         } else {
-            New-Item -ItemType Directory -Path (Join-Path $astrbotTarget '.venv\Scripts') -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $astrbotTarget '.venv\Scripts\python.exe') -Value '' -Encoding ASCII
-            New-Item -ItemType Directory -Path (Join-Path $webTarget '.venv\Scripts') -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $webTarget '.venv\Scripts\python.exe') -Value '' -Encoding ASCII
+            New-Item -ItemType Directory -Path (Join-Path $webVenv 'Scripts') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $webVenv 'Scripts\python.exe') -Value '' -Encoding ASCII
         }
 
         $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Handlers $Handlers
-        if (-not $asserted.satisfied) { throw ('Core deployment assertion failed: ' + ($asserted.missing -join ', ')) }
-        if (-not (Test-Path -LiteralPath $workspaceTarget)) { throw 'workspace directory missing.' }
-        if (-not (Test-Path -LiteralPath $dataTarget)) { throw 'data directory missing.' }
-
-        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+        if (-not $asserted.satisfied) { throw ('CBS core assertion failed: ' + ($asserted.missing -join ', ')) }
         if ($null -ne $Journal -and $stepStarted) {
-            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'core deployment completed'; existing_state = $ExistingState; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion; cbs_plugins_status = [string]$cbsResult.status; cbs_plugins = @($cbsResult.plugins); personal_plugins_path = [string]$PersonalPluginsPath; personal_plugins_status = [string]$personalResult.status; personal_plugins_error = [string]$personalResult.reason; personal_plugins = @($personalResult.plugins) }) | Out-Null
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'independent CBS core deployed'; existing_state = $ExistingState }) | Out-Null
         }
-        return [pscustomobject]@{
-            status = 'completed'; changed = $true; exit_code = 0; test = $asserted; existing_state = $ExistingState
-            reason = 'core deployment completed'; python_source = $PythonSource; python_path = $PythonPath; python_version = $PythonVersion
-            cbs_plugins_status = [string]$cbsResult.status; cbs_plugins = @($cbsResult.plugins)
-            personal_plugins_path = [string]$PersonalPluginsPath; personal_plugins_status = [string]$personalResult.status; personal_plugins_error = [string]$personalResult.reason; personal_plugins = @($personalResult.plugins)
-            paths = [pscustomobject]@{
-                astrbot = $astrbotTarget
-                snowluma = $snowTarget
-                tools = $toolsTarget
-                webui = $webTarget
-                workspace = $workspaceTarget
-                data = $dataTarget
-                astrbot_data = $astrbotDataTarget
-            }
-        }
+        return [pscustomobject]@{ status = 'completed'; changed = $true; exit_code = 0; test = $asserted; reason = 'independent CBS core deployed'; paths = $paths }
     } catch {
-        $rawError = [string]$_.Exception.Message
-        $safeError = $rawError
-        $lockedPath = ''
-        $pathMatch = [regex]::Match($rawError, '([A-Za-z]:\[^"
-
-]+)')
-        if ($pathMatch.Success) { $lockedPath = $pathMatch.Groups[1].Value }
-        if ($rawError -match '(?i)(node\.exe|being used by another process|另一个进程|正由另一进程|使用中|锁定)' -or $rawError -match '[�ʹʺ]') {
-            $safeError = 'CORE file is in use. Stop AstrBot, SnowLuma, WebUI and Broker, then retry.'
-            if ($lockedPath) { $safeError += ' Path: ' + $lockedPath }
-        }
-        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
-        if ($ExistingState -eq 'None') {
-            $paths = @($createdDirs)
-            [array]::Reverse($paths)
-            foreach ($path in $paths) {
-                if ($path -eq $staging) { continue }
-                if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
-            }
-        }
         if ($null -ne $Journal -and $stepStarted) {
-            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $safeError }) | Out-Null
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = [string]$_.Exception.Message }) | Out-Null
         }
-        return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = $safeError; reason = $safeError; created_dirs = $createdDirs.ToArray() }
+        return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = [string]$_.Exception.Message; reason = [string]$_.Exception.Message; paths = $paths }
     }
 }

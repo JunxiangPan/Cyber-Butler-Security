@@ -503,11 +503,11 @@ if ($coreNeedsDeploy) {
 # Existing installs must be stopped before Core replaces locked binaries.
 if (-not $failure -and $coreNeedsDeploy -and [string]$preflight.install_path.existing_state -ne 'None') {
     Write-Output ('STOP existing services before core: ' + [string]$preflight.install_path.existing_state)
-    foreach ($taskName in @('AstrBot Service','AstrBot TOTP Broker','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','SnowLuma Startup','Cyber-Butler WFP Guard','Cyber-Butler Broker Watchdog')) {
+    foreach ($taskName in @('Cyber-Butler Broker','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','Cyber-Butler WFP Guard','Cyber-Butler Broker Watchdog')) {
         $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
         if ($task) { Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null }
     }
-    $stoppedBeforeCore = @(Stop-CyberButlerInstallProcesses -Root $InstallPath -Ports @(6185,18090,8765,8766,6199,5099,3000,3001))
+    $stoppedBeforeCore = @(Stop-CyberButlerInstallProcesses -Root $InstallPath -Ports @(18090,8765,8766,6199,3000,3001))
     Write-Output ('STOP core-lock processes: ' + (($stoppedBeforeCore | ForEach-Object { [string]$_ }) -join ','))
     Start-Sleep -Seconds 3
 }
@@ -637,15 +637,6 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
                 if ([string]$result.status -notin @('completed', 'skipped')) {
                     $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL RW: ' + [string]$result.status + ' ' + [string]$result.message) }
                     break
-                }
-            }
-            if (-not $failure) {
-                $dataRoot = Join-Path ([string]$coreResult.paths.astrbot) 'data'
-                Add-MainJournalStep -Journal $journal -Name 'acl_data' -Status 'in_progress'
-                $dataAcl = Set-CyberButlerDataAcl -DataRoot $dataRoot -ServiceAccount $aclIdentity -DesktopAccount $DesktopAccount -Journal $journal -Handlers $Handlers
-                Add-MainJournalStep -Journal $journal -Name 'acl_data' -Status ([string]$dataAcl.status) -Reason ([string]$dataAcl.reason)
-                if ([string]$dataAcl.status -notin @('completed', 'skipped')) {
-                    $failure = [pscustomobject]@{ step = 'acl_data'; message = ('data ACL: ' + [string]$dataAcl.status + ' ' + [string]$dataAcl.message) }
                 }
             }
         }
@@ -842,6 +833,21 @@ if ($failure) {
     Write-Output ('MANUAL ' + $manualPath)
     if ($rollbackResult.status -eq 'rollback_failed') { exit (Get-InstallerExitCode -Name RollbackFailed) }
     exit (Get-InstallerExitCode -Name ValidationFailed)
+}
+
+# External Agent detection: CBS never installs or manages AstrBot/SnowLuma.
+$detectedAgents = @()
+foreach ($agentPort in @(6185, 5099)) {
+    if (Get-NetTCPConnection -State Listen -LocalPort $agentPort -ErrorAction SilentlyContinue) {
+        $detectedAgents += $agentPort
+    }
+}
+if ($detectedAgents.Count -gt 0) {
+    Write-InstallerLine ('检测到外部 Agent 正在运行（端口 ' + ($detectedAgents -join ', ') + '）。请参考 docs/API_SPEC.md 进行标准接入。') -Level INFO
+    Write-Output ('EXTERNAL_AGENT detected=' + ($detectedAgents -join ','))
+} else {
+    Write-InstallerLine 'CBS 核心已就绪。请自行安装你喜欢的 Agent 框架（如 AstrBot/DSH），并接入 18090 端口。' -Level INFO
+    Write-Output 'EXTERNAL_AGENT none'
 }
 
 # Diagnostics

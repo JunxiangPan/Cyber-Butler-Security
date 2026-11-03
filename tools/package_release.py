@@ -27,6 +27,7 @@ import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig"}
+PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/")
 FORBIDDEN_PAYLOAD_PREFIXES = ("astrbot/", "snowluma/")
 
 
@@ -70,6 +71,8 @@ def main() -> int:
     manifest_files: list[dict] = []
     for rel in tracked_files():
         if rel == "update-manifest.json" or rel in PACKAGE_EXCLUDE:
+            continue
+        if any(rel.replace("\\", "/").startswith(prefix) for prefix in PACKAGE_EXCLUDE_PREFIXES):
             continue
         if is_forbidden_payload(rel):
             raise SystemExit(f"forbidden third-party payload in CBS package: {rel}")

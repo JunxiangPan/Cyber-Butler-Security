@@ -82,10 +82,9 @@ function Get-CyberButlerServiceSpecs {
 
     $rootFull = [IO.Path]::GetFullPath($Root)
     if (-not $DesktopAccount) { $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name }
-    $python = Join-Path $rootFull 'AstrBot\.venv\Scripts\python.exe'
-    $pythonw = Join-Path $rootFull 'AstrBot\.venv\Scripts\pythonw.exe'
-    if (-not (Test-Path -LiteralPath $pythonw)) { $pythonw = $python }
-    $webPython = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
+    $python = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
+    $pythonw = $python
+    $webPython = $python
     $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     $launcher = Join-Path $rootFull 'tools\CyberButlerLauncher.exe'
@@ -111,20 +110,10 @@ function Get-CyberButlerServiceSpecs {
     $webArgs = '--exe "powershell.exe" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
 
     return @(
-        [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); kind = $(if ($Isolation) { 'service' } else { 'task' }); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
-        [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
+        [pscustomobject]@{ name = 'Cyber-Butler Broker'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); kind = 'task'; principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
         [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "wfp_guard.py --watch --policy {2}" --hidden --wait --log "{3}"' -f $webPython, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'webui/data/network-policy.json'), (Join-Path $rootFull 'tools/logs/wfp-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
         [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
         [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $webPythonw; args = 'otp_mailer.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 },
-        [pscustomobject]@{
-            name = 'SnowLuma Startup'
-            exe = $launcher
-            args = ('--exe "{0}" --workdir "{1}" --args "index.mjs" --hidden --wait --log "{2}"' -f (Join-Path $rootFull 'SnowLuma/node.exe'), (Join-Path $rootFull 'SnowLuma'), (Join-Path $rootFull 'SnowLuma/logs/startup-snowluma.out.log'))
-            workdir = (Join-Path $rootFull 'SnowLuma')
-            principal = 'desktop'
-            trigger = 'AtLogOn'
-            port = 0
-        },
         [pscustomobject]@{
             name = 'Game Mode Startup'
             exe = $launcher
@@ -185,14 +174,6 @@ function Test-CyberButlerServices {
     if (-not $result.supported) {
         $result.reason = 'scheduled-task-module-unavailable'
         return [pscustomobject]$result
-    }
-
-    # Repair the AstrBot data ACL before registering/starting the SCM service.
-    # takeown + inheritance reset + explicit RX/W is required because copied
-    # plugin/template files can carry stale Deny or non-inheriting ACEs.
-    $aclRepair = Join-Path $PSScriptRoot '..\Repair-AstrBotACL.ps1'
-    if (Test-Path -LiteralPath $aclRepair) {
-        & $aclRepair -Root $Root -ServiceAccount $ServiceAccount -ServiceAccountPassword $ServiceAccountPassword
     }
 
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
@@ -720,7 +701,7 @@ function Save-CyberButlerServicesDiagnostics {
     $logDir = Join-Path $dir 'logs'
     New-Item -ItemType Directory -Path $taskDir, $portDir, $logDir -Force | Out-Null
 
-    $taskNames = @('AstrBot Service','AstrBot TOTP Broker','Cyber-Butler Web UI Services')
+    $taskNames = @('Cyber-Butler Broker','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','Cyber-Butler WFP Guard')
     $info = New-Object System.Collections.Generic.List[string]
     foreach ($name in $taskNames) {
         $task = Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue

@@ -1,4 +1,4 @@
-# ACL lifecycle for the Cyber-Butler installer.
+﻿# ACL lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerAclTargets {
@@ -8,9 +8,8 @@ function Get-CyberButlerAclTargets {
     )
     $root = [IO.Path]::GetFullPath($InstallPath)
     return @(
-        (Join-Path $root 'AstrBot'),
-        (Join-Path $root 'AstrBot\.venv'),
-        (Join-Path $root 'SnowLuma'),
+        (Join-Path $root 'tools'),
+        (Join-Path $root 'webui'),
         (Join-Path $root 'data'),
         (Join-Path $root 'workspace')
     )
