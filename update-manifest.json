@@ -29,53 +29,53 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "12a6bb1ca28f6da98a87b6dddb5a8fd25509be0077c99ff926667ac1c23ae2af",
-      "size": 14847
+      "sha256": "294d2bfa29792ba283925753bc476165b511948f092e79f0da917aa1d741dbdc",
+      "size": 16438
     },
     {
       "path": "README.md",
-      "sha256": "21e77ea4e34c6a857c23576c936851a3e17068a42711003f1dee6679f171cba8",
-      "size": 1054
+      "sha256": "d3dcebdb1fcd5af356a35189013dd8ccb5ffd3e78401f0ebf22a2e5dc3b73d8b",
+      "size": 1513
     },
     {
       "path": "README_de.md",
-      "sha256": "36addfa9e25c35ebaf3a6d5cbd63ad053cc9a973db98bf93d3e30b0c5a986384",
-      "size": 2343
+      "sha256": "2cd7e2fd57d6a8cf229cd48ef21cef4371b2c497290ecd9bd0fb557e5baa9253",
+      "size": 2820
     },
     {
       "path": "README_en.md",
-      "sha256": "95e8e0406bd75bb617b23bd3692e266c196e10dd1d425e0bb2842f38cadf7237",
-      "size": 2292
+      "sha256": "a14a6c655c1f1f111aab7741f4ca59c6b0f2d7280823e34e7c2b0f8716fa0caa",
+      "size": 2751
     },
     {
       "path": "README_es.md",
-      "sha256": "fcef85878f17728d72baceaad1d1c422f06861de5194966a3beb9959e03149bc",
-      "size": 2357
+      "sha256": "ce350ce2f1bda37da99c6af12cb9f59a5502ef434c252e13dbbea223274f0350",
+      "size": 2847
     },
     {
       "path": "README_fr.md",
-      "sha256": "c7cc4bc3ade1fdb40283810138fdb9d376ba1bac1341871f91cc4cf54de129c4",
-      "size": 2363
+      "sha256": "bd303cb063360ae6b6f7bfa4b79b2713c9cdfceaf7c9a4fa7263475c8f832439",
+      "size": 2858
     },
     {
       "path": "README_ja.md",
-      "sha256": "f32ce115cf1103b2017cefbde77cf4c83a3338f4a737106977dc9af00e774ac1",
-      "size": 2537
+      "sha256": "4012b1bd3544b1baa9d015f5d056c1dfce25f2bdda99f1bd026a3c91a3ffa6b4",
+      "size": 3039
     },
     {
       "path": "README_ko.md",
-      "sha256": "c2b696e826d72f56f71476662b56f3faa209594bfa10c00b1fd2a25d06b4243f",
-      "size": 2419
+      "sha256": "804ecd08afd8d964e1547ccfe2db2ac4779314236519f8fc75f409269b8ab7a2",
+      "size": 2903
     },
     {
       "path": "README_ru.md",
-      "sha256": "c45be0899ac548256012a243a5ec1864394b52077517e6ac88ada0f932eb329b",
-      "size": 2711
+      "sha256": "13201d3676e182bf92175d362decd16e13a40ada377e18aee203c46423da3a7a",
+      "size": 3361
     },
     {
       "path": "README_zh.md",
-      "sha256": "9756066ac0c14f9e5546f760b564f2ee8fd6dc5e4afab0bd2896c1ce376f67ee",
-      "size": 2230
+      "sha256": "a764cccba3cb5cd209c22a9657c9412cc8e6f043d1639842c449ea3842608ed2",
+      "size": 2664
     },
     {
       "path": "ROADMAP.md",
@@ -144,23 +144,28 @@
     },
     {
       "path": "docs/00-overview/architecture-scm.md",
-      "sha256": "21f260144c3a17a33673341064c64c8b49cf2e59bc692146a13c030e4ac7eb49",
-      "size": 1772
+      "sha256": "71b234d8a7bf064735fb9ef25faf594e1908b9018bc9746bed2e404962df8f7a",
+      "size": 2011
     },
     {
       "path": "docs/00-overview/glossary.md",
-      "sha256": "4d02f7d7c15c19087fc126e61750ebca840c452d3aebc465dd0f475805c9d843",
-      "size": 568
+      "sha256": "aec0d1d648f311002697ca45a38757dca012197bcfd1e8ed3da507f6417d1d6d",
+      "size": 1085
     },
     {
       "path": "docs/00-overview/project-overview.md",
-      "sha256": "a73d525865044b40c27ff3421660595252efaf4d11cb728564dfa8ccb7e47392",
-      "size": 910
+      "sha256": "ce7e478e445b4e609444ec8b25aefae6e29b73c66f00aa81e4ab970ae98ba99d",
+      "size": 1014
     },
     {
       "path": "docs/00-overview/quickstart.md",
-      "sha256": "ad8ba3f6428e777bd0e4f9f0e1bc974c0bdf46225ab7c242a2186714b5851eca",
-      "size": 648
+      "sha256": "ecbee94711343a625a4d0a1feb617b0e7583069dda5257ffeb07a41e87301b4f",
+      "size": 1038
+    },
+    {
+      "path": "docs/00-overview/why-not-faq.md",
+      "sha256": "446b7d2fbc1ad88bba0a422c2f60e267e8531146b80928598f85fde2002b7926",
+      "size": 1149
     },
     {
       "path": "docs/10-security/defense-layers.md",
@@ -169,53 +174,53 @@
     },
     {
       "path": "docs/10-security/known-limitations.md",
-      "sha256": "6a3d02a5062c848549d357437e86dca776ed461dc1a488e5dcd1259def4f1949",
-      "size": 1546
+      "sha256": "8511488026fff84b8b14139cde70676e97d240ecfeb79ec61e25781033075da6",
+      "size": 1855
     },
     {
       "path": "docs/10-security/scm-service-hardening.md",
-      "sha256": "41e0fdd02bbd40a88ae2e9a8cd9515895429d2aaded6259b8124d83a143760e1",
-      "size": 796
+      "sha256": "1fb58c6d1febe59f27a71c450f7bc6e3f0ddac8a334448a6ab74b879237dc29f",
+      "size": 962
     },
     {
       "path": "docs/10-security/wfp-network-policy.md",
-      "sha256": "ec5bacdd06050b8b6b6f57b776d3632a04828e01de62f3e2671ddf354f2746cb",
-      "size": 810
+      "sha256": "2e2c7da031314c73c444332db912a9c84dfca1a8d8a87ac8965d7e00437e436b",
+      "size": 962
     },
     {
       "path": "docs/20-operations/ports-and-adapters.md",
-      "sha256": "862332c7cd5dd485c5de6590e617dc45f6be8c536649e324bf2b986a59553382",
-      "size": 873
+      "sha256": "242147a031b52736ac01965ee867a6f9dce17fe3d4f3caf632951c8a82e99467",
+      "size": 988
     },
     {
       "path": "docs/20-operations/troubleshooting.md",
-      "sha256": "a99112c3d73f762c8e8dbed57f7a9af92d1ce13d569a199f28f5ce908493b05b",
-      "size": 1302
+      "sha256": "e8f0d5f0c63170b7f25a7ea53d8ce395343b65bc551636896ff83cd39d3b2c97",
+      "size": 2876
     },
     {
       "path": "docs/40-history/incidents/acl-self-lock.md",
-      "sha256": "1d5634fdec01f78304b28c3cbf44e17105944fc758ecf81eea7fea2d7b0769cb",
-      "size": 865
+      "sha256": "0a2ffe41d785b036aae0b09081386d1b7e544d9b3046ada5202f179b3526ca0b",
+      "size": 1034
     },
     {
       "path": "docs/40-history/incidents/s4u-retirement.md",
-      "sha256": "df8b4c165dcc36e32155c7c0495694d78296149b1e12bc31fd90756351c13fb1",
-      "size": 945
+      "sha256": "9c4c98fc983cf09b51f9439274c4eefdfeb151dcfeb2a75f31050ffbab2091d0",
+      "size": 1095
     },
     {
       "path": "docs/40-history/incidents/sqlite-readonly.md",
-      "sha256": "47a9fcacec816cf53dc211565cab0b18804329cb989f65cdf88fe9a339505d79",
-      "size": 1184
+      "sha256": "ee9df2660dc02e6efd06059e6a458a565cc3282c2d0f9d0ec016643968ee63ba",
+      "size": 1377
     },
     {
       "path": "docs/40-history/incidents/task-rollback.md",
-      "sha256": "0faa745d23514e46dff7d623d650faabacbfe638d331dadd2c33c38f0b2974d0",
-      "size": 756
+      "sha256": "6a23d0b8c0ea3c5b5db6d19859fa641eba3c0459f509ccda7806c0ea93c83835",
+      "size": 925
     },
     {
       "path": "docs/40-history/incidents/wfp-empty-rules.md",
-      "sha256": "f030d86e5a9138b345f46ca27abda81df5b0f2359ce70c5e9edf39cef3b795d3",
-      "size": 728
+      "sha256": "ccaf69f95abd18350ba43802868293bf3670322c740aebfee0b357db950c90a0",
+      "size": 897
     },
     {
       "path": "docs/40-history/legacy-readmes/README.md",
@@ -284,73 +289,73 @@
     },
     {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
-      "sha256": "bad58261ec96089a2fb388f3e01c64efcdbac8977357a0eae5d22cd44a56fda9",
-      "size": 4615
+      "sha256": "967b83a0edb44efe7ec20786c018e9806a8249a584197a97242e7eb5471c1a7c",
+      "size": 5825
     },
     {
       "path": "docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md",
-      "sha256": "ea85464837da1be355c52c068c03dc31124948a1fcf228440bcc5e1e69838d09",
-      "size": 2374
+      "sha256": "1def710c57d6e5a00bf5b1c5af652dc16ec8e92eb6be10577dde10009f89f357",
+      "size": 2625
     },
     {
       "path": "docs/90-audit/QA_FOLLOWUPS_v1.6.2.md",
-      "sha256": "75b98d49a28df85be80008dc059c8cc938d1c85ec3d6d90cfee93ef6afdde266",
-      "size": 11694
+      "sha256": "f5d9c1688ba2f92af9af221c0fe4cfc600f975ff187526532621faf03a600165",
+      "size": 12065
     },
     {
       "path": "docs/90-audit/S4U_AUDIT_v1.6.2.md",
-      "sha256": "ce52b55748fc8d17a0921cd1772a4e64a5f928acece05175ee497daf05f8b6b0",
-      "size": 2198
+      "sha256": "d72fe92414833a23cafb0d4e7e02e26c976bfe8f365f28a508b1d2f4a70e50d7",
+      "size": 2447
     },
     {
       "path": "docs/DASHBOARD_BACKGROUND.md",
-      "sha256": "a6daeeec791a7f080a2f8a1c79f3e145bfa8bd89a1a7814200181c1c3300b125",
-      "size": 4793
+      "sha256": "1746d9724e77723c53ab89a89d3683ca7e8b9f69b7c96349c7463d42469dd2f4",
+      "size": 5048
     },
     {
       "path": "docs/DST_GUARD.md",
-      "sha256": "4e475e7903d9c85721af1a4929affadae0c0c5f809f33f7d3bc536ee0ae59623",
-      "size": 8682
+      "sha256": "4e127bdf32f6e9259857aa546d7cc75fda0c716fb8d14020320f299faf98e34a",
+      "size": 8969
     },
     {
       "path": "docs/HARDWARE_TROUBLESHOOTING.md",
-      "sha256": "4908be0752525b4a462e1804d883af16c5a401ea78991bdfe2d0ddbffe2b3d00",
-      "size": 4218
+      "sha256": "6fdb65b88b8956fa8155157c6169cceb670d70a61f123bc01c9dc3aa9f29d309",
+      "size": 4771
     },
     {
       "path": "docs/PLUGIN_ECOSYSTEM.md",
-      "sha256": "7202fc76026d40093c1c857fa1c4638e8c81a0182ef8017c2ab65b9f352e4db5",
-      "size": 12159
+      "sha256": "52671a8807dceacc87b76e546e3dffcef695f59fb905f254e0f670e87999c30b",
+      "size": 12491
     },
     {
       "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
-      "sha256": "75b98d49a28df85be80008dc059c8cc938d1c85ec3d6d90cfee93ef6afdde266",
-      "size": 11694
+      "sha256": "f5d9c1688ba2f92af9af221c0fe4cfc600f975ff187526532621faf03a600165",
+      "size": 12065
     },
     {
       "path": "docs/RAG-知识库指南.md",
-      "sha256": "74ff68e3b6a9872f8607f000253e9a1ed07fb96427cc8157100cadd18039819f",
-      "size": 3156
+      "sha256": "d89519f75fa91f96c04082c94ca8684b2cbb8cf8ed3e4c6d7d2ca63e7b258c5d",
+      "size": 3401
     },
     {
       "path": "docs/README.md",
-      "sha256": "a5bcb26ef314a8a9f2ea3ef71b30a90438226a118c39806bf8290a9fc9ba1fb2",
-      "size": 1169
+      "sha256": "8fc3d302407e52d3b9bfa4430cf3e2ea696a35b29415df3728d67565b1d8eabb",
+      "size": 1381
     },
     {
       "path": "docs/S4U_AUDIT_v1.6.2.md",
-      "sha256": "ce52b55748fc8d17a0921cd1772a4e64a5f928acece05175ee497daf05f8b6b0",
-      "size": 2198
+      "sha256": "d72fe92414833a23cafb0d4e7e02e26c976bfe8f365f28a508b1d2f4a70e50d7",
+      "size": 2447
     },
     {
       "path": "docs/TAILSCALE_WEBUI.md",
-      "sha256": "8d50291288ca0dc82412977d0441c7cae65a8d1dd47bfa50a2a3d3056649ba2a",
-      "size": 7184
+      "sha256": "fdb421c03e35d223b1c0b284246623517779799ecbcc706dbab0c863df8c17db",
+      "size": 7700
     },
     {
       "path": "docs/TEST_MATRIX.md",
-      "sha256": "e4c14d7fed0be696a98b2525d2c09aaa69a3802642536a806b03b8d1e545a3dc",
-      "size": 4873
+      "sha256": "e72296ac7fcccc5eca878fc67e15d9745d03a9816287e254c251db03ad112114",
+      "size": 5275
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
@@ -529,8 +534,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2.md",
-      "sha256": "31c041989a7368874e9a5308b9bbb5dd3a934c798026daaaaf84602ce77ebadf",
-      "size": 4455
+      "sha256": "0bf17ab49014c9f19fe683e2469ad184599be6974d396690e46180cf276c74fe",
+      "size": 4929
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
