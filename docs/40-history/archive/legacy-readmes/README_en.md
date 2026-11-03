@@ -1,3 +1,5 @@
+[ARCHIVED - 已废弃] This document is retained for history only; see the current docs index.
+
 ﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
 ## ✅ Test Coverage / 测试覆盖声明
@@ -23,37 +25,6 @@ This v1.6.1 build has a detached RSA-3072 manifest signature; verify the signatu
 Download `public-release-v<version>.zip`, `update-manifest.json`, and
 `update-manifest.sig`. Verify the manifest and signature before applying an
 update; never mix a new manifest with a signature produced by the retired key.
-
-## 🔐 Verify the release signature
-
-Download **three assets** from the release page:
-
-```text
-public-release-v<version>.zip
-update-manifest.json
-update-manifest.sig
-tools/update_pubkey.pem   (inside the zip, or from the repository)
-```
-
-Then, from the extracted release tree:
-
-```powershell
-python tools/verify_release.py `
-  --manifest update-manifest.json `
-  --signature update-manifest.sig `
-  --pubkey tools/update_pubkey.pem
-```
-
-Expected output:
-
-```text
-VALID
-```
-
-If `update-manifest.sig` is absent, the build is unsigned. If the result is
-`INVALID`, `signature missing`, or the manifest version does not match the zip,
-**do not install**. A valid signature proves possession of the
-pinned private key; it does not prove the absence of malware.
 
 📚 [ROADMAP](ROADMAP.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md) · [THREAT_MODEL](THREAT_MODEL.md) · [TEST_MATRIX](docs/TEST_MATRIX.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 

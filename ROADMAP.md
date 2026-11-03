@@ -206,3 +206,9 @@ a claim of third-party security certification
 fighting Microsoft MXC at the kernel boundary
 making the SDK a second security boundary
 ```
+
+## Documentation lifecycle gate
+
+Every major release (for example v1.6.x to v1.7.x) must complete a seven-round documentation audit before packaging. The audit covers structure, deduplication, eight-language consistency, Markdown/link checks, known limitations, GitHub-facing cleanup, and UX readability.
+
+Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED - 已废弃]` at the top. They are never deleted. The canonical status source is `docs/_data/status-v1.6.2.json`; CI runs `tests/test_docs_consistency.py` on every pull request.

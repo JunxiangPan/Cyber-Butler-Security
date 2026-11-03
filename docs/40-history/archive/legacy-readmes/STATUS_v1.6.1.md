@@ -1,3 +1,5 @@
+[ARCHIVED - 已废弃] This document is retained for history only; see the current docs index.
+
 ﻿# CBS v1.6.1 — Status, Incomplete Work, and Non-Guarantees
 
 ## 故障排查

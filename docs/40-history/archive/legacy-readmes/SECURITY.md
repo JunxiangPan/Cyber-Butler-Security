@@ -1,3 +1,5 @@
+[ARCHIVED - 已废弃] This document is retained for history only; see the current docs index.
+
 ﻿# SECURITY.md — Security Architecture & Threat Model
 
 > **Early Beta.** This project has not received a third-party security audit,

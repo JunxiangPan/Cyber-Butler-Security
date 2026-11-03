@@ -87,7 +87,7 @@ README_ru.md
 
 - Active canonical docs and eight READMEs: code fences balanced.
 - Active canonical links: checked; the active tree has no broken links.
-- Archived `40-history/legacy-readmes/` and historical `40-history/releases/` retain old relative links by design; they are archive material, not current guidance.
+- Archived `40-history/archive/legacy-readmes/` and historical `40-history/releases/` retain old relative links by design; they are archive material, not current guidance.
 - Historical S4U mentions remain only as retired/historical explanations. There is no instruction to configure or register S4U.
 - Terminology normalized: SCM service, WFP audit-only, dynamic 6199, Session 0, Job Object, known limitations.
 
@@ -129,3 +129,12 @@ The documentation audit is complete; the v1.6.2 package is rebuilt and signed af
 - Linked the FAQ from the root and eight language READMEs.
 
 Checks: active links 0 broken; active code fences balanced; 8/8 language README checks passed.
+
+## Round 8: documentation lifecycle governance
+
+- CONTRIBUTING.md now requires documentation updates in the same PR for API, install, service, ACL, network, or architecture changes; PRs without docs are not merged.
+- `tests/test_docs_consistency.py` checks the status JSON, eight language READMEs, WFP audit-only truth, 6199 ownership, active links/fences, and archive markers.
+- `.github/workflows/security-tests.yml` runs the documentation consistency test on push and pull request.
+- ROADMAP.md now requires a seven-round documentation audit before every major release.
+- Obsolete documents are moved to `docs/40-history/archive/` and marked `[ARCHIVED - 已废弃]`.
+- Added `.github/ISSUE_TEMPLATE/documentation.yml` for broken links, typos, misleading text, missing steps, and translation inconsistencies.

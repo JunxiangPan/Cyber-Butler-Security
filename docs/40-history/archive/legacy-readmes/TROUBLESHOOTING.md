@@ -1,3 +1,5 @@
+[ARCHIVED - 已废弃] This document is retained for history only; see the current docs index.
+
 # v1.6.1 Troubleshooting / 常见故障排查
 
 > Applies to the v1.6.1 package. If a page disagrees, this troubleshooting

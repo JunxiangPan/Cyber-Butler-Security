@@ -1,0 +1,41 @@
+name: Documentation / 文档纠错
+description: Report a broken link, typo, misleading statement, or outdated documentation.
+title: "[Docs] "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for improving the documentation. Do not include secrets, tokens, QQ IDs, or private paths.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong?
+      options:
+        - Broken link
+        - Typo / grammar
+        - Misleading or outdated statement
+        - Missing step
+        - Translation inconsistency
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: Document / URL
+      description: Link or file path (for example docs/10-security/known-limitations.md)
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What did you find?
+      description: Quote the problematic text and explain why it is wrong or confusing.
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix
+      description: Optional wording, link, or correction.

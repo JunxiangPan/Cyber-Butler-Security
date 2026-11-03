@@ -1,3 +1,5 @@
+[ARCHIVED - 已废弃] This document is retained for history only; see the current docs index.
+
 ﻿[中文](README_zh.md) | [English](README.md) | [日本語](README_ja.md) | [한국어](README_ko.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
 
 ## ✅ テスト範囲 / Test Coverage

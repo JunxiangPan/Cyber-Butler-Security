@@ -10,7 +10,7 @@
 - [5. 测试](#5-测试)
 - [Standalone plugin installation](#standalone-plugin-installation)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
 
 
 这份文档描述 `astrbot_plugin_private_companion` 中的 DST（Dialogue-State Tracking）防复读补丁。它不是一份完整插件源码，而是一套可审查、可移植的运行时设计；完整插件仍由使用者在自己的 AstrBot 数据目录中维护。

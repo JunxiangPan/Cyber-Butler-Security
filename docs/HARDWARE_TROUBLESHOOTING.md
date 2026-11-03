@@ -12,7 +12,7 @@
 - [8. 如果仍然复现](#8-如果仍然复现)
 - [9. 本次事件与 Bot 的关系](#9-本次事件与-bot-的关系)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
 
 
 > 适用症状：关闭显示器后电脑突然重启、黑屏后自动开机、事件日志出现 `nvlddmkm` 错误和 `BugCheck 0x116`。  

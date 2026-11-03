@@ -112,3 +112,16 @@ Do not open a public issue for a suspected vulnerability. Follow
 [`SECURITY.md`](SECURITY.md) § Reporting a Vulnerability. Include the exact
 `VERSION`, tier, Windows build, reproduction command, and the smallest log
 excerpt. Never include live TOTP codes, scoped tokens, or SMTP credentials.
+
+## Documentation lifecycle (mandatory)
+
+Any pull request that changes an API, installation flow, service identity, ACL, SCM/service behavior, network policy, or other architecture behavior **must update the related documentation in the same pull request**. A pull request without the required documentation update is not merged.
+
+### Documentation rules
+
+- Canonical technical docs live under `docs/`; the eight language README files are entry points, not independent sources of truth.
+- `docs/_data/status-v1.6.2.json` is the single source for completed/not-completed features and port ownership.
+- Add or update a `## Contents` TOC in long docs.
+- Use the archive policy: move obsolete documents to `docs/40-history/archive/` and add `[ARCHIVED - 已废弃]` at the top. Never delete historical docs.
+- Run `python -m pytest -q tests/test_docs_consistency.py` before opening a PR.
+- Documentation fixes are welcome; use the Documentation issue form.

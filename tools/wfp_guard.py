@@ -22,6 +22,10 @@ from wfp_policy import PolicyError, resolve_domains, validate
 
 RULE_PREFIX = "CBS-Agent-Egress"
 
+# This flag is intentionally mirrored in docs/_data/status-v1.6.2.json.
+# Do not set it to True without implementing and validating the native WFP filter.
+ENFORCE_IMPLEMENTED = False
+
 
 class WfpError(RuntimeError):
     pass

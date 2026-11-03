@@ -11,7 +11,7 @@
 - [6. 安全边界](#6-安全边界)
 - [7. 排障](#7-排障)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
 
 
 目标：手机在公司/外面用蜂窝网络访问家里的 Cyber-Butler Web 面板和“大肥鱼文件”，
