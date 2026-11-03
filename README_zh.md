@@ -706,3 +706,5 @@ AstrBot、SnowLuma、Ollama 等依赖项目仍归各自作者所有，使用前�
 
 从 v1.6.2 起，High 档的 AstrBot 改为原生 Windows 服务，不再使用 S4U 计划任务。本地非域 Windows 上 Task Scheduler 可能拒绝本地账户的 S4U 注册；若用 SYSTEM 启动器绕过，会引入提权面。现在 AstrBot 由 SCM 以 `CyberButlerAstrBot` 服务运行，账户仍为 `CyberButlerSvc`。服务二进制 ACL 为 `CyberButlerSvc:RX`、`SYSTEM:F`、`Administrators:F`，并恢复 `SeDenyInteractiveLogonRight`。服务使用绝对路径、固定工作目录、Session 0 禁用 GUI、把 stdout/stderr 合并写入 `AstrBot\data\logs\service-astrbot.log`，并用 Job Object 接管整个子进程树。
 
+
+ 6199 不是 Cyber-Butler/AstrBot 的系统服务，而是 AstrBot 配置并启用 OneBot 适配器后动态建立的端口。

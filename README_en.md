@@ -785,3 +785,5 @@ AstrBot, SnowLuma, Ollama, and other dependencies remain the property of their r
 
 Starting with v1.6.2, the High-tier AstrBot runtime is a native Windows service, not an S4U scheduled task. Task Scheduler can reject S4U registration for local non-domain accounts, and a SYSTEM launcher used to bypass that would create a privilege-escalation surface. AstrBot now runs as `CyberButlerAstrBot` under SCM with the `CyberButlerSvc` account. The service binary ACL is `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` is restored. The service uses absolute paths, a fixed working directory, GUI-disabled Session 0 settings, combined stdout/stderr logging in `AstrBot\data\logs\service-astrbot.log`, and a Job Object for the whole child tree.
 
+
+ 6199 is not a Cyber-Butler/AstrBot system service; it is created dynamically by the AstrBot OneBot adapter after that adapter is configured and enabled.

@@ -125,10 +125,12 @@ def _rule_command(sid: str, networks: list[str]) -> str:
 def remove_policy() -> None:
     if os.name != "nt":
         return
+    # An empty pipeline makes Remove-NetFirewallRule fail even though there is
+    # nothing to remove. Only invoke it when matching rules actually exist.
     result = _run([
         "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
-        "Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue",
+        "$r=@(Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue); if($r.Count -gt 0){ $r | Remove-NetFirewallRule -ErrorAction Stop }",
     ])
     if result.returncode != 0:
         raise WfpError((result.stderr or result.stdout or "Remove-NetFirewallRule failed").strip())

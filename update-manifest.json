@@ -34,48 +34,48 @@
     },
     {
       "path": "README.md",
-      "sha256": "487ce2fe759e2d2542fd780913e8492b426911d76d7b4f2fa01a06144d04aa3a",
-      "size": 42464
+      "sha256": "cbeda4cf2dd3ee1fe6d731e9c54c66a2bea7d742782a6b8c0b78da8cc10f1ff7",
+      "size": 42621
     },
     {
       "path": "README_de.md",
-      "sha256": "778ac8e0a4c498cc82c5a1583284593bb505fb9e040475311943df9cbff20ffb",
-      "size": 18100
+      "sha256": "6a0f908aed5ddfd1c88b6839758cf44b9702c184c1908c32defc945b1f3e5e81",
+      "size": 18266
     },
     {
       "path": "README_en.md",
-      "sha256": "99726449f9d6df3a54c675cfe470634b2edc962a43fc44cbec78f93cc1e0e710",
-      "size": 41676
+      "sha256": "da5d624737172ee264c5d6c686a6271fc0c6c52c83c2ca9a92d702ea0308dc76",
+      "size": 41833
     },
     {
       "path": "README_es.md",
-      "sha256": "8c61f5c34f321a603f0f3eae95ad130ea848d6d53dbc79406c19217ec73a28e2",
-      "size": 18080
+      "sha256": "1809fc1dfbb78a0aac8a04012d043d8e54f86d42cdeb8d5ee9b8ae116440102d",
+      "size": 18236
     },
     {
       "path": "README_fr.md",
-      "sha256": "761b48c551d90ec5cfe340a2c6ce9c8517d179d848914f782476156ab77c7fb9",
-      "size": 18896
+      "sha256": "b41f635282d6010870f87f366e90b15c834d4171406a07ee2ffd44290ed5edd1",
+      "size": 19062
     },
     {
       "path": "README_ja.md",
-      "sha256": "f7f9e145c051382855914ad716ed8b3d83b0f4cceb88597b0db8295b712bdfb4",
-      "size": 21271
+      "sha256": "42c78f681747554bc626a609d181c312d5630035d830abcf4565c2df29a398a7",
+      "size": 21464
     },
     {
       "path": "README_ko.md",
-      "sha256": "3681822dcb55a39aa7e1dba6f0db50a8180eb0515d9bb01324f16b64655235ee",
-      "size": 18635
+      "sha256": "42bb18449400a814080ff7059c00d933734ca5fef6425ba21093c01e75d5c238",
+      "size": 18803
     },
     {
       "path": "README_ru.md",
-      "sha256": "66f2d187de4756022330d4a3926f75b8c08c7f556503cf331f48d35557d8676f",
-      "size": 26634
+      "sha256": "c71c3fd1519970d649733cf14e3b8744a0c14ecd4b556f8d22d94c2e89bec275",
+      "size": 26847
     },
     {
       "path": "README_zh.md",
-      "sha256": "9ce1a5bf23ca87b88d4591f3b2f0a74ced022f302e8d8d64d27d2aaea5697d20",
-      "size": 38272
+      "sha256": "1cd7f7e1c02972521a0ffc9b035f22e78faa2961c4ce2881f4fb54e9a89b24b9",
+      "size": 38402
     },
     {
       "path": "ROADMAP.md",
@@ -1579,8 +1579,8 @@
     },
     {
       "path": "tools/wfp_guard.py",
-      "sha256": "bc05c12b363b687039a053c481322f35041929731b7e155a1e9c940eff456a53",
-      "size": 7904
+      "sha256": "af3734515d772475c790df6d182f055297d642ba03215daf3c24491e6156c18a",
+      "size": 8081
     },
     {
       "path": "tools/wfp_policy.py",

@@ -308,3 +308,5 @@ jamais `tools\broker_config.json` ; High garde `tools` en lecture seule.
 
 Depuis v1.6.2, AstrBot en niveau High est un service Windows natif, plus une tâche planifiée S4U. Task Scheduler peut refuser l’inscription S4U des comptes locaux hors domaine ; contourner avec un lanceur SYSTEM créerait une surface d’élévation de privilèges. AstrBot s’exécute désormais comme service `CyberButlerAstrBot` sous SCM avec le compte `CyberButlerSvc`. L’ACL du binaire est `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F` ; `SeDenyInteractiveLogonRight` est rétabli. Le service utilise des chemins absolus, un répertoire de travail fixe, une session 0 sans GUI, des journaux stdout/stderr combinés dans `AstrBot\data\logs\service-astrbot.log` et un Job Object pour tout l’arbre de processus.
 
+
+ 6199 n’est pas un service système Cyber-Butler/AstrBot ; il est créé dynamiquement par l’adaptateur OneBot d’AstrBot après configuration et activation.

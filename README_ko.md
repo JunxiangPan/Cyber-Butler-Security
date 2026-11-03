@@ -303,3 +303,5 @@ CBS WebUI(`http://127.0.0.1:8765`)는 **이메일 OTP**, AstrBot
 
 v1.6.2부터 High 등급의 AstrBot은 S4U 예약 작업이 아니라 네이티브 Windows 서비스로 실행됩니다. 로컬 비도메인 계정에서는 Task Scheduler가 S4U 등록을 거부할 수 있으며, SYSTEM 런처로 우회하면 권한 상승 표면이 생깁니다. AstrBot은 이제 SCM에서 `CyberButlerAstrBot` 서비스로 `CyberButlerSvc` 계정으로 실행됩니다. 바이너리 ACL은 `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`이며 `SeDenyInteractiveLogonRight`가 복원됩니다. 절대 경로, 고정 작업 디렉터리, GUI 없는 Session 0, `AstrBot\data\logs\service-astrbot.log` 통합 stdout/stderr 로그, 전체 자식 프로세스 트리를 위한 Job Object를 사용합니다.
 
+
+ 6199는 Cyber-Butler/AstrBot의 시스템 서비스가 아니며, AstrBot OneBot 어댑터를 구성하고 활성화한 뒤 동적으로 열리는 포트입니다.
