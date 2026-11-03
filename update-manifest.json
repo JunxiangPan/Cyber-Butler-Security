@@ -29,53 +29,53 @@
     },
     {
       "path": "README-INSTALL.md",
-      "sha256": "ac4221a882016954f0d411d7b3700b650a745c0e157e5f816c786e3a23e62757",
-      "size": 14841
+      "sha256": "12a6bb1ca28f6da98a87b6dddb5a8fd25509be0077c99ff926667ac1c23ae2af",
+      "size": 14847
     },
     {
       "path": "README.md",
-      "sha256": "af27e5bab2ef2e59dfb51402f6f99fb6a8efa82c80c5a8dd8b230cdbb8b63ee8",
-      "size": 1058
+      "sha256": "21e77ea4e34c6a857c23576c936851a3e17068a42711003f1dee6679f171cba8",
+      "size": 1054
     },
     {
       "path": "README_de.md",
-      "sha256": "a2e91347dfebc67ced6a3049f950db6d6fc1d9f8a6286aa8c1e937d8dd0d3f9c",
-      "size": 2347
+      "sha256": "36addfa9e25c35ebaf3a6d5cbd63ad053cc9a973db98bf93d3e30b0c5a986384",
+      "size": 2343
     },
     {
       "path": "README_en.md",
-      "sha256": "f15d131f2f31e1ae4960b1742ceafae1f8b066769674d59e22531a2e1d5366c4",
-      "size": 2296
+      "sha256": "95e8e0406bd75bb617b23bd3692e266c196e10dd1d425e0bb2842f38cadf7237",
+      "size": 2292
     },
     {
       "path": "README_es.md",
-      "sha256": "4000345fd45b46c0114c19efaf0990128c45b2833f17270dcf3b187e2cdc7af2",
-      "size": 2361
+      "sha256": "fcef85878f17728d72baceaad1d1c422f06861de5194966a3beb9959e03149bc",
+      "size": 2357
     },
     {
       "path": "README_fr.md",
-      "sha256": "630c68a168927dc6625de1ac9bead6e08eed79330c4e83f4a82c905439e175f2",
-      "size": 2367
+      "sha256": "c7cc4bc3ade1fdb40283810138fdb9d376ba1bac1341871f91cc4cf54de129c4",
+      "size": 2363
     },
     {
       "path": "README_ja.md",
-      "sha256": "1fc5d9b7b28758fc98247f8a1d0fcc8e510d2bab7eaa970740faf9f689703143",
-      "size": 2541
+      "sha256": "f32ce115cf1103b2017cefbde77cf4c83a3338f4a737106977dc9af00e774ac1",
+      "size": 2537
     },
     {
       "path": "README_ko.md",
-      "sha256": "7bd4dd7397ce0a216bb467e62095acee7f2342be9d32bf9115be91bb4404128e",
-      "size": 2423
+      "sha256": "c2b696e826d72f56f71476662b56f3faa209594bfa10c00b1fd2a25d06b4243f",
+      "size": 2419
     },
     {
       "path": "README_ru.md",
-      "sha256": "8647278378b0108b5dca2daefe4ea9cccd8ade3fdc614c1fae73138ab8b9e915",
-      "size": 2715
+      "sha256": "c45be0899ac548256012a243a5ec1864394b52077517e6ac88ada0f932eb329b",
+      "size": 2711
     },
     {
       "path": "README_zh.md",
-      "sha256": "c8843ed0032bf3ff025b1b624db67c94e9fa802f20357d397502b9a61c0f495b",
-      "size": 2234
+      "sha256": "9756066ac0c14f9e5546f760b564f2ee8fd6dc5e4afab0bd2896c1ce376f67ee",
+      "size": 2230
     },
     {
       "path": "ROADMAP.md",
@@ -169,8 +169,8 @@
     },
     {
       "path": "docs/10-security/known-limitations.md",
-      "sha256": "e1355147918e49fcd22c053c8b5ac574e337132799a7d1d951beb2c65fee22db",
-      "size": 1554
+      "sha256": "6a3d02a5062c848549d357437e86dca776ed461dc1a488e5dcd1259def4f1949",
+      "size": 1546
     },
     {
       "path": "docs/10-security/scm-service-hardening.md",
@@ -189,8 +189,8 @@
     },
     {
       "path": "docs/20-operations/troubleshooting.md",
-      "sha256": "df0868ba765c9f6c3bab5668b698eb3ffe6b67dd721c29a0a2686105e42658b6",
-      "size": 1306
+      "sha256": "a99112c3d73f762c8e8dbed57f7a9af92d1ce13d569a199f28f5ce908493b05b",
+      "size": 1302
     },
     {
       "path": "docs/40-history/incidents/acl-self-lock.md",
@@ -284,8 +284,13 @@
     },
     {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
-      "sha256": "97faaa1ff6421623c3e1fdb21ff0bda75fc2de667b3b06929768654a242979fd",
-      "size": 3659
+      "sha256": "bad58261ec96089a2fb388f3e01c64efcdbac8977357a0eae5d22cd44a56fda9",
+      "size": 4615
+    },
+    {
+      "path": "docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md",
+      "sha256": "ea85464837da1be355c52c068c03dc31124948a1fcf228440bcc5e1e69838d09",
+      "size": 2374
     },
     {
       "path": "docs/90-audit/QA_FOLLOWUPS_v1.6.2.md",
@@ -354,13 +359,13 @@
     },
     {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
-      "sha256": "edf3207147f8e80207a0cf3d964efecc5397ce5afb06305611c5fdf68b1ac5e2",
-      "size": 4685
+      "sha256": "caa95d68eaa4b6d0d22ce96186d9d8256a357ffba9a13df9e5fe775746c610b6",
+      "size": 4903
     },
     {
       "path": "docs/releases/README.md",
-      "sha256": "41f3e08bad62063ccc9b7cca2e217d088277de003cdbf97b502b94866e24c1cb",
-      "size": 463
+      "sha256": "03bc78857b8a7e59be21d0b07d84633e721d51ec6ae6d023684529a32ddfe1ea",
+      "size": 543
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.0.md",
@@ -509,18 +514,23 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-beta.md",
-      "sha256": "87ec112165192db0683d504adfc42aef299194cf54584d4ad9a42fd95583a477",
-      "size": 1356
+      "sha256": "7e4841e3c6f3f83735afa42928938b433c3662e8dec157405742789d2464b2db",
+      "size": 1612
+    },
+    {
+      "path": "docs/releases/RELEASE_NOTES_v1.6.2-preview.md",
+      "sha256": "9ae3b6412b5ebc65ddbdfbf259baf0d1da90f05cd507c8f6e50287bdbe8eeff2",
+      "size": 1958
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-rc.md",
-      "sha256": "a45c8786b6755aaaffa90d31a5f9f8e243da88d587add5917b2b50d2949391bb",
-      "size": 1223
+      "sha256": "1b01abcbb94524e39c5967b6d6e7c59ae93113bcff850dd2ace88792e065a8fa",
+      "size": 1476
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2.md",
-      "sha256": "e4da01b614d30a6fff815e64ba0962f75cdd1922c33fe09600333cee68b2ebcf",
-      "size": 1704
+      "sha256": "31c041989a7368874e9a5308b9bbb5dd3a934c798026daaaaf84602ce77ebadf",
+      "size": 4455
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
