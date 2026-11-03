@@ -19,6 +19,7 @@ function ConvertTo-CyberButlerCanonicalPrincipal {
     param([string]$Name)
     if ([string]::IsNullOrWhiteSpace($Name)) { return '' }
     $n = $Name.Trim()
+    if ($n.StartsWith('.')) { $n = $env:COMPUTERNAME + $n.Substring(1) }
     if ($n -notmatch '\\') {
         switch -Regex ($n) {
             '^(?i)SYSTEM$'          { return 'NT AUTHORITY\SYSTEM' }
@@ -111,16 +112,15 @@ function Get-CyberButlerServiceSpecs {
 
     return @(
         [pscustomobject]@{ name = 'AstrBot Service'; exe = $launcher; args = $astrbotArgs; workdir = (Join-Path $rootFull 'AstrBot'); kind = $(if ($Isolation) { 'service' } else { 'task' }); principal = $(if ($Isolation) { 'service' } else { 'desktop' }); trigger = 'AtLogOn'; port = 6185 },
-        [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $pythonw; args = (Join-Path $rootFull 'tools\broker.py'); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
-        [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $webPythonw; args = ('"{0}" --watch --policy "{1}"' -f (Join-Path $rootFull 'tools\wfp_guard.py'), (Join-Path $rootFull 'webui\data
-etwork-policy.json')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
+        [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
+        [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "wfp_guard.py --watch --policy {2}" --hidden --wait --log "{3}"' -f $webPython, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'webui/data/network-policy.json'), (Join-Path $rootFull 'tools/logs/wfp-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
         [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
         [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $webPythonw; args = 'otp_mailer.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 },
         [pscustomobject]@{
             name = 'SnowLuma Startup'
             exe = $launcher
-            args = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools\start-snowluma.ps1'))
-            workdir = (Join-Path $rootFull 'tools')
+            args = ('--exe "{0}" --workdir "{1}" --args "index.mjs" --hidden --wait --log "{2}"' -f (Join-Path $rootFull 'SnowLuma/node.exe'), (Join-Path $rootFull 'SnowLuma'), (Join-Path $rootFull 'SnowLuma/logs/start-snowluma-console.log'))
+            workdir = (Join-Path $rootFull 'SnowLuma')
             principal = 'desktop'
             trigger = 'AtLogOn'
             port = 0
@@ -355,6 +355,14 @@ function Install-CyberButlerAstrBotService {
     $target = Join-Path $targetDir 'CyberButlerAstrBotService.exe'
     New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
     if (-not (Test-Path -LiteralPath $source)) { throw ('Service wrapper missing: ' + $source) }
+    # Stop and remove an existing service BEFORE replacing its locked binary.
+    $existing = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+    if ($existing) {
+        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        & sc.exe delete $svcName | Out-Null
+        Start-Sleep -Seconds 1
+    }
     Copy-Item -LiteralPath $source -Destination $target -Force
     & icacls.exe $targetDir /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' 'BUILTIN\Administrators:(OI)(CI)F' ($ServiceAccount + ':(OI)(CI)RX') 2>&1 | Out-Null
     & icacls.exe $target /inheritance:r /grant:r '*S-1-5-18:F' 'BUILTIN\Administrators:F' ($ServiceAccount + ':RX') 2>&1 | Out-Null
@@ -365,13 +373,6 @@ function Install-CyberButlerAstrBotService {
         Set-LocalUser -Name $ServiceAccount -Password $secure -ErrorAction Stop
     }
     $cred = New-Object System.Management.Automation.PSCredential((Resolve-CyberButlerTaskAccount -Account $ServiceAccount), (ConvertTo-SecureString $password -AsPlainText -Force))
-    $existing = Get-Service -Name $svcName -ErrorAction SilentlyContinue
-    if ($existing) {
-        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 1
-        & sc.exe delete $svcName | Out-Null
-        Start-Sleep -Seconds 1
-    }
     New-Service -Name $svcName -BinaryPathName $target -DisplayName 'Cyber-Butler AstrBot Service' -StartupType Automatic -Credential $cred | Out-Null
     & sc.exe description $svcName 'Runs AstrBot under CyberButlerSvc (SCM-managed High isolation).' | Out-Null
     & sc.exe failure $svcName reset= 86400 actions= restart/5000/restart/15000/restart/60000 | Out-Null
