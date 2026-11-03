@@ -11,7 +11,7 @@
 | WFP 送信ブロック — 監査のみ | ⚠️ | |
 | OTP Mailer 8766 / SnowLuma 5099 | ✅ | |
 | 6199 OneBot アダプター — 手動設定が必要 | ❌ | |
-| Light 段階 — 実機検証なし | ❌ | |
+| Light 段階 — 実機インストール成功、分離は弱い | ✅ | |
 セルフホスト型 LLM エージェント向けの防御的コントロールプレーン。
 
 ## クイックスタート
@@ -41,7 +41,7 @@ AstrBot は `CyberButlerSvc` の下でネイティブ SCM サービス `CyberBut
 | SnowLuma 5099 | listening |
 | WFP | audit-only, enforce not enabled |
 | 6199 | dynamic OneBot adapter port, not a service |
-| Light / clean VM | not accepted yet |
+| Light install / clean VM | ✅ install; clean VM not accepted |
 
 Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.json).
 
@@ -58,7 +58,7 @@ Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.jso
 
 ## 既知の制限
 
-WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Native WFP filtering is not implemented. Light has no real-machine acceptance, and v1.6.2 has no clean-VM acceptance. See [`docs/10-security/known-limitations.md`](docs/10-security/known-limitations.md).
+WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Native WFP filtering is not implemented. Light は実機でインストールに成功しましたが、分離は High より弱いです。v1.6.2 はクリーン VM 検証なしです。 See [`docs/10-security/known-limitations.md`](docs/10-security/known-limitations.md).
 
 ## ドキュメント
 

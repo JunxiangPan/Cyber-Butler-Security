@@ -10,7 +10,7 @@
 | WFP outbound blocking | ⚠️ | audit only |
 | OTP Mailer / SnowLuma | ✅ | 8766 / 5099 |
 | 6199 OneBot adapter | ❌ | configure manually |
-| Light tier | ❌ | no real-machine acceptance |
+| Light tier | ✅ | install passed; reduced isolation |
 
 
 1. Use a clean Windows 10/11 x64 machine with administrator rights.

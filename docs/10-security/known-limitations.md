@@ -21,7 +21,7 @@ This file is the authoritative list of current boundaries. It is linked from eve
 
 ## Light tier
 
-Light has no real-machine acceptance. It is not a substitute for High.
+Light installation passed on a real machine, but its isolation is weaker than High. It is not a substitute for High.
 
 ## Clean VM acceptance
 

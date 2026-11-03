@@ -42,7 +42,7 @@ These boundaries are intentional and must not be read as completed guarantees.
 
 - **WFP is audit-only.** The guard records status and policy but does not install an enforcement filter. `wfp-guard-status.json` reports `mode: "audit"` and `applied: 0`. The native WFP filter API (`FwpmEngineOpen0` / `FwpmFilterAdd0`) is not implemented.
 - **6199 is not a system service.** The AstrBot OneBot adapter opens `6199` dynamically only after the adapter is configured and enabled. CBS does not install or manage it.
-- **Light tier has no real-machine acceptance.** High is the only tier with a dedicated service-account design.
+- **Light installation passed on a real machine.** Its isolation is weaker than High; High remains the only tier with a dedicated service-account design.
 - **Clean-VM acceptance is not claimed by this document alone.** Use the included `tools/clean-vm-acceptance.ps1` and `docs/_data/clean-vm-expected.json` before promoting the release.
 - **SnowLuma password display is read-only.** CBS reads the initial credential from SnowLuma's log. It does not reset SnowLuma's password or write `SnowLuma\config\webui.json` across account boundaries. If the password was not logged, reset it in SnowLuma.
 - **Game Mode releases local-model VRAM only.** It can unload the configured Ollama model; it cannot reduce VRAM already allocated by a running game such as War Thunder.

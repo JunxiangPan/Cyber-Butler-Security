@@ -11,7 +11,7 @@
 | WFP outbound blocking — audit only | ⚠️ | |
 | OTP Mailer 8766 / SnowLuma 5099 | ✅ | |
 | 6199 OneBot adapter — configure manually | ❌ | |
-| Light tier — no real-machine acceptance | ❌ | |
+| Light tier — install passed; reduced isolation | ✅ | |
 A defensive control plane for self-hosted LLM agents.
 
 ## Quick start
@@ -41,7 +41,7 @@ AstrBot runs as the native SCM service `CyberButlerAstrBot` under `CyberButlerSv
 | SnowLuma 5099 | listening |
 | WFP | audit-only, enforce not enabled |
 | 6199 | dynamic OneBot adapter port, not a service |
-| Light / clean VM | not accepted yet |
+| Light install / clean VM | ✅ install; clean VM not accepted |
 
 Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.json).
 
@@ -58,7 +58,7 @@ Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.jso
 
 ## Known limitations
 
-WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Native WFP filtering is not implemented. Light has no real-machine acceptance, and v1.6.2 has no clean-VM acceptance. See [`docs/10-security/known-limitations.md`](docs/10-security/known-limitations.md).
+WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Native WFP filtering is not implemented. Light installation passed on a real machine; isolation is weaker than High. v1.6.2 has no clean-VM acceptance. See [`docs/10-security/known-limitations.md`](docs/10-security/known-limitations.md).
 
 ## Documentation
 
