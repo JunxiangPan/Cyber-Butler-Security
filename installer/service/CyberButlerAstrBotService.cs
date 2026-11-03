@@ -56,7 +56,7 @@ namespace CyberButler
                 RedirectStandardError = true
             };
             psi.EnvironmentVariables["ASTRBOT_SERVICE_MODE"] = "1";
-            psi.EnvironmentVariables["ASTRBOT_ROOT"] = root;
+            psi.EnvironmentVariables["ASTRBOT_ROOT"] = workdir;
             psi.EnvironmentVariables["ASTRBOT_DISABLE_GUI"] = "1";
             psi.EnvironmentVariables["NO_GUI"] = "1";
             psi.EnvironmentVariables["PYTHONUTF8"] = "1";
