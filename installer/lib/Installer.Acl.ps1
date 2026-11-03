@@ -195,7 +195,7 @@ function Set-CyberButlerDataAcl {
         /grant:r '*S-1-5-18:(OI)(CI)F' `
         /grant:r '*S-1-5-32-544:(OI)(CI)F' `
         /grant:r "${ServiceAccount}:(OI)(CI)M" `
-        /grant:r "${DesktopAccount}:(OI)(CI)RX" 2>&1 | Out-Null
+        /grant:r "${DesktopAccount}:(OI)(CI)RX" /T 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'root-acl'; message = ('icacls root failed: ' + $LASTEXITCODE) } }
 
     foreach ($sid in @('*S-1-5-11', '*S-1-5-32-545', '*S-1-1-0')) {
