@@ -659,8 +659,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "ac400529e4a184ee0e524128182a8ff22b32db878b15c1613460b8162475e302",
-      "size": 54665
+      "sha256": "d3ca62244d29d3f5381ce6f80df2357193865d409959da8c2fb31d0a796d5191",
+      "size": 55443
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -1299,8 +1299,8 @@
     },
     {
       "path": "tools/Test-CyberButlerInstall.ps1",
-      "sha256": "ebd1a0719161688018ecbcb10bc94204087a1beaaf5e5d6829b94f2e4972d5ab",
-      "size": 4033
+      "sha256": "37d711615a273395455cdbbc9f0435022d6ea4b1be94022acce12c422a08c355",
+      "size": 4787
     },
     {
       "path": "tools/Test-WfpTripwire.ps1",
@@ -1674,8 +1674,8 @@
     },
     {
       "path": "tools/seed_astrbot_dashboard.py",
-      "sha256": "9f24d4f368faee8fc4b6f1eacc43778b3f398025a735874e16076a5c8ac4e836",
-      "size": 1485
+      "sha256": "525c2055818b4a1bedb85a46c2255c60eaabdac09b3b0ca0b8347671501e9df0",
+      "size": 1529
     },
     {
       "path": "tools/send_email_stdin.py",
@@ -1804,8 +1804,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "8dcc6829f66eeb293eb02a20c913107145ee2ba4e1135c1428ad598f8c591c0e",
-      "size": 24598
+      "sha256": "4cb22371c372cd89ee29a732db69b861d56dfe274cfdd9685cccb10de46e2aec",
+      "size": 25448
     },
     {
       "path": "webui/auth.py",
@@ -1869,8 +1869,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "64bebb1f477cc38e4717c6fa7e776b44dae10730461d61047f9e53e05fdecf5c",
-      "size": 26919
+      "sha256": "fec56bdc9038aec8aeae3e2f501a6bcb6d054d3ebda6950f3c5fe7200c17e092",
+      "size": 29586
     },
     {
       "path": "webui/static/error.js",
@@ -1929,8 +1929,8 @@
     },
     {
       "path": "webui/static/theme-phase2-extra.css",
-      "sha256": "c63b6385966c471a5be4f6bc80d66c21e94cbc556637ac7dff11dad10557eead",
-      "size": 10896
+      "sha256": "0b8c52a2cbfb4d32c14f6973972c94fa0fbf3db3646e1a2733f6dbaf8e7b5c43",
+      "size": 11862
     },
     {
       "path": "webui/static/theme-phase2.css",
@@ -1949,8 +1949,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "8e27ab1ecadd0713c2522d1d383e374db96d36ece7e9cb6be9daf9d41b6be647",
-      "size": 16364
+      "sha256": "5f805cd4e8630a95c407cc5ebbd28265925aa6c67f2cb7312a48d36ae72e185d",
+      "size": 17815
     },
     {
       "path": "webui/templates/error.html",
