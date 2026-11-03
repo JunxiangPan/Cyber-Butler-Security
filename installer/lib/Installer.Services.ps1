@@ -124,6 +124,15 @@ function Get-CyberButlerServiceSpecs {
             principal = 'desktop'
             trigger = 'AtLogOn'
             port = 0
+        },
+        [pscustomobject]@{
+            name = 'Game Mode Startup'
+            exe = $launcher
+            args = ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/start-game-mode.ps1'))
+            workdir = (Join-Path $rootFull 'tools')
+            principal = 'desktop'
+            trigger = 'AtLogOn'
+            port = 0
         }
     )
 }
