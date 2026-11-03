@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  Cyber-Butler v1.6.2 installer.
+  Cyber-Butler v1.6.3 installer.
 
 .DESCRIPTION
   End-to-end installer skeleton. Core deployment is a dry-run placeholder;
@@ -108,6 +108,7 @@ $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Preflight.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Upgrade.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Accounts.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Acl.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Firewall.ps1')
@@ -332,6 +333,34 @@ if (@($preflight.blocking).Count -gt 0) {
         Write-Output ('BLOCKING ' + $block.id + ': ' + $block.message)
         if ($block.action) { Write-Output ('MANUAL ' + $block.action) }
     }
+    exit (Get-InstallerExitCode -Name ValidationFailed)
+}
+$packageVersionPath = Join-Path $installerRoot 'VERSION'
+$packageVersion = if (Test-Path -LiteralPath $packageVersionPath) { (Get-Content -LiteralPath $packageVersionPath -Raw -Encoding UTF8).Trim() } else { '0.0.0' }
+$installedVersion = Get-CyberButlerInstalledVersion -InstallPath $InstallPath
+$upgradePath = Test-CyberButlerUpgradePath -PackageVersion $packageVersion -InstalledVersion ([string]$installedVersion)
+if ($upgradePath.status -eq 'blocked') {
+    Write-Output ('UPGRADE_BLOCKED ' + $upgradePath.message)
+    Write-InstallerLine ('升级被阻断 / Upgrade blocked: ' + $upgradePath.message) -Level ERROR
+    exit (Get-InstallerExitCode -Name ValidationFailed)
+}
+if ($upgradePath.status -eq 'migration_required') {
+    Write-Output ('UPGRADE_MIGRATION_REQUIRED installed=' + [string]$installedVersion + ' package=' + $packageVersion)
+    $backupScript = Join-Path $installerRoot 'Backup-CyberButler.ps1'
+    $backupDir = Join-Path (Join-Path $env:ProgramData 'CyberButler') 'upgrade-backups'
+    New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+    $backupPath = Join-Path $backupDir ('v1.6.2-preupgrade-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.zip')
+    try {
+        $backup = & $backupScript -InstallPath $InstallPath -OutputPath $backupPath -Force
+        Write-Output ('UPGRADE_BACKUP ' + $backup.path + ' sha256=' + $backup.sha256)
+        Write-InstallerLine ('已自动备份旧数据：' + $backup.path) -Level INFO
+    } catch {
+        Write-Output ('UPGRADE_BACKUP_FAILED ' + $_.Exception.Message)
+        Write-InstallerLine ('旧数据备份失败，升级中止：' + $_.Exception.Message) -Level ERROR
+        exit (Get-InstallerExitCode -Name ValidationFailed)
+    }
+    Write-Output ('UPGRADE_RUN_MIGRATION powershell -File "' + (Join-Path $installerRoot 'Migrate-v1.6.2-to-v1.6.3.ps1') + '" -InstallPath "' + $InstallPath + '"')
+    Write-InstallerLine '请先运行 Migrate-v1.6.2-to-v1.6.3.ps1 完成解耦迁移，再重新运行本安装器。' -Level ERROR
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 $pythonPath = if ($preflight.python_needs_bundle) { $null } else { [string]$preflight.python_resolved_path }
@@ -861,7 +890,7 @@ if (-not (Test-MainStepDone -Journal $journal -Name 'diagnostics')) {
 }
 
 # Report
-$markerVersion = '1.6.2'
+$markerVersion = '1.6.3'
 try {
     $releaseVersionPath = Join-Path (Split-Path -Parent $installerRoot) 'VERSION'
     if (Test-Path -LiteralPath $releaseVersionPath) {

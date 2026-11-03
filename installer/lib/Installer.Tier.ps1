@@ -32,7 +32,7 @@ function Format-CyberButlerPlan {
 
     $p = $Resolution.Profile
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add('Cyber-Butler installer plan (v1.6.2)')
+    $lines.Add('Cyber-Butler installer plan (v1.6.3)')
     $lines.Add('Mode: PlanOnly - no files will be changed.')
     $lines.Add(('Tier: {0}' -f $Resolution.Tier))
     $lines.Add(('Effective: {0}' -f $Resolution.EffectiveLabel))

@@ -8,6 +8,57 @@ Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.m
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
 
+## Cross-version upgrade and migration policy
+
+**Hard rule:** a direct overwrite from v1.6.2 to v1.7.0 is forbidden.
+
+The only supported upgrade path is:
+
+```text
+v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
+```
+
+### v1.6.2 -> v1.6.3
+
+- The v1.6.3 installer must detect a v1.6.2 installation before changing files.
+- The migration entry point is `installer/Migrate-v1.6.2-to-v1.6.3.ps1`.
+- It must create a timestamped, integrity-checked backup of the user data
+  before stopping or deleting anything.
+- It must guide the operator to remove the old AstrBot SCM service and reinstall
+  AstrBot as an independently managed application. CBS never performs that
+  third-party installation.
+- Data backup includes, when present: `AstrBot\data`, `SnowLuma\config`,
+  `SnowLuma\data`, `SnowLuma\logs`, `tools	otp-vault`, `webui\data`,
+  `data`, Broker configuration, and audit logs.
+- The backup is not encrypted by default; it is ACL-restricted and must be
+  moved to offline media by the operator. Never place the signing private key
+  in a backup.
+
+### v1.7.0 and later
+
+- The installer must block upgrades from v1.6.2 or earlier with this message:
+
+```text
+Please upgrade to v1.6.3 first to complete the architecture decoupling,
+then upgrade to v1.7.0.
+```
+
+- A v1.7.0 installer may proceed only when the installed VERSION is at least
+  `1.6.3`.
+- The version gate is fail-closed: if the installed version cannot be read, the
+  installer stops instead of guessing.
+
+### Backup and rollback
+
+- Every cross-version upgrade must offer
+  `installer/Backup-CyberButler.ps1` and
+  `installer/Restore-CyberButler.ps1`.
+- A backup contains a manifest with SHA-256 for every payload file.
+- Restore must validate the manifest before writing, stop CBS processes first,
+  and offer a dry-run.
+- No upgrade is complete until the operator has a successful backup and a
+  tested restore path.
+
 ## v1.6.2 — WFP, anti-blind approval, and tamper evidence
 
 **Goal:** make the network and runtime boundary enforceable at the OS layer,
