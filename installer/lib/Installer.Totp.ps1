@@ -1,4 +1,4 @@
-﻿# TOTP material and vault lifecycle for the Cyber-Butler installer.
+# TOTP material and vault lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerTotpMaterialPaths {
@@ -188,9 +188,35 @@ function Show-CyberButlerTotpEnrollment {
     )
 
     $paths = Get-CyberButlerTotpMaterialPaths -VaultPath $VaultPath
-    $existing = (Test-CyberButlerPathExists -Path $paths.secret -AssumeExistsOnError) -or
-        (Test-CyberButlerPathExists -Path $paths.recovery -AssumeExistsOnError) -or
-        (Test-CyberButlerPathExists -Path $paths.qr -AssumeExistsOnError)
+    $hasSecret = Test-CyberButlerPathExists -Path $paths.secret -AssumeExistsOnError
+    $hasRecovery = Test-CyberButlerPathExists -Path $paths.recovery -AssumeExistsOnError
+    $hasQr = Test-CyberButlerPathExists -Path $paths.qr -AssumeExistsOnError
+
+    # Repair an incomplete existing enrollment instead of treating "any file
+    # exists" as complete. This is what produced a white QR box in the GUI:
+    # secret/recovery were present but totp_qr.png had never been written.
+    if ($hasSecret -and -not $hasRecovery) {
+        throw 'Existing TOTP secret found without recovery codes; refusing to regenerate the secret. Restore recovery_codes.txt or reset the TOTP vault manually.'
+    }
+    if ($hasSecret -and -not $hasQr) {
+        $python = Join-Path $Root 'AstrBot\.venv\Scripts\python.exe'
+        if (-not (Test-Path -LiteralPath $python)) {
+            $command = Get-Command python.exe -ErrorAction SilentlyContinue
+            if ($command) { $python = [string]$command.Source }
+        }
+        if (-not (Test-Path -LiteralPath $python)) {
+            throw 'Existing TOTP secret found but QR is missing, and Python is unavailable to rebuild the QR.'
+        }
+        $helper = Join-Path $PSScriptRoot 'totp_material.py'
+        & $python $helper --vault $paths.vault --secret $paths.secret --qr $paths.qr --issuer $Issuer --account $Account --qr-from-secret 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $paths.qr)) {
+            throw 'Existing TOTP secret found but the QR image could not be rebuilt.'
+        }
+        $hasQr = $true
+        Write-Host 'TOTP QR image rebuilt from the existing DPAPI secret.'
+    }
+
+    $existing = $hasSecret -and $hasRecovery -and $hasQr
 
     $material = $null
     if (-not $existing) {
