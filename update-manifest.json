@@ -1824,8 +1824,8 @@
     },
     {
       "path": "tools/win_path_guard.py",
-      "sha256": "0c8e2fa3748924f9fe8a596af7e0ef8cbdebe1e20e0fcd230a6e018d107afa88",
-      "size": 15000
+      "sha256": "f95affa9eed25f0d17d31570ff8aa3b48cde88d8c7ecebd39d0c8a85dbd8ed74",
+      "size": 15026
     },
     {
       "path": "tools/write_memory_metadata.py",
