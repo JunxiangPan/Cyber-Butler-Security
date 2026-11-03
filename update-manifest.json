@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
-      "sha256": "42eba7bbbdc042298365122046b990c0ddd687441017a48e62a998cbdff1fba4",
-      "size": 10181
+      "sha256": "bda6eefd85ea718074f46e0c0fc49e7207da6223e546992823f33dbcd1e15a57",
+      "size": 10844
     },
     {
       "path": "docs/RAG-知识库指南.md",
@@ -409,8 +409,8 @@
     },
     {
       "path": "installer/lib/Installer.Acl.ps1",
-      "sha256": "66493be640d369ab471b496413bc76af8b3524608fd6b3a63b3b709f07397bb9",
-      "size": 16336
+      "sha256": "8983d9cdc65ed43e5b567f76eadbc7b0c1c4f598fcda182d12324758c7d1561d",
+      "size": 16376
     },
     {
       "path": "installer/lib/Installer.Common.ps1",
