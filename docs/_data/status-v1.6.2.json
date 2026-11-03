@@ -1,0 +1,37 @@
+{
+  "version": "1.6.2",
+  "generated_for": "v1.6.2",
+  "completed": [
+    "AstrBot runs as native Windows SCM service CyberButlerAstrBot",
+    "AstrBot 6185 listening; SQLite write probe succeeded",
+    "Job Object KILL_ON_JOB_CLOSE covers the child tree",
+    "TOTP Broker 18090 listening",
+    "Cyber-Butler Web UI 8765 listening",
+    "OTP Mailer 8766 listening",
+    "SnowLuma 5099 listening",
+    "WFP Guard runs as SYSTEM in audit mode; wfp-guard-status.json ok=true",
+    "High/Medium/Light tiers installed on real machines"
+  ],
+  "not_completed": [
+    "WFP enforce mode is not enabled; applied=0 in audit mode",
+    "Native WFP filter API (FwpmEngineOpen0/FwpmFilterAdd0) is not implemented",
+    "No clean-VM full install/uninstall acceptance for v1.6.2",
+    "Credential Proxy is not fully installer/service integrated",
+    "Full audit-chain replacement of legacy AUDIT writes is incomplete"
+  ],
+  "ports": {
+    "6185": "AstrBot SCM service (CyberButlerAstrBot)",
+    "18090": "TOTP Broker (SYSTEM task)",
+    "8765": "WebUI (desktop task)",
+    "8766": "OTP Mailer (desktop task)",
+    "5099": "SnowLuma (desktop task)",
+    "6199": "Dynamic AstrBot OneBot adapter port, not a system service"
+  },
+  "service": {
+    "name": "CyberButlerAstrBot",
+    "account": "CyberButlerSvc",
+    "binary_acl": "CyberButlerSvc:RX, SYSTEM:F, Administrators:F",
+    "interactive_logon": "denied",
+    "log": "AstrBot\\data\\logs\\service-astrbot.log"
+  }
+}
