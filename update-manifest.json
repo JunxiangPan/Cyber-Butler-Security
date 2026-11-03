@@ -299,13 +299,18 @@
     },
     {
       "path": "docs/90-audit/CLEAN_VM_ACCEPTANCE_v1.6.2.md",
-      "sha256": "7a8ae418dfa0c1ab344af3c87510b0ee3dfdc7858f2a1837df48a2e3748996d0",
-      "size": 1891
+      "sha256": "71dfb5ac26af4d2ceb3dfdff002518616f42b8ff7b8385b1e42e19333125b9ba",
+      "size": 1963
     },
     {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
       "sha256": "6963bf2091e0a281b97d752b24aa54912f639ba47a3dd4ddfdd1096d18e49af4",
       "size": 7239
+    },
+    {
+      "path": "docs/90-audit/GITHUB_RELEASE_CHECKLIST_v1.6.2.md",
+      "sha256": "1341b0a922cc633e0fbe76bce1b3f17a3a70e0dba8d36a2772fd8ac6f0b13503",
+      "size": 2014
     },
     {
       "path": "docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md",
@@ -386,6 +391,11 @@
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
       "sha256": "819fc7825e5a53bdd323cfce430d64ade0401b868aa6c8d1cf2f5d9f0995a23d",
       "size": 4977
+    },
+    {
+      "path": "docs/releases/GITHUB_RELEASE_v1.6.2.md",
+      "sha256": "ab08b482634d17ec349bc8fd166030842ab111a8708f8e4f428c29d420f34b98",
+      "size": 5381
     },
     {
       "path": "docs/releases/README.md",
@@ -564,13 +574,13 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "92f2c9d04534f6ec5f499fc55c00f41bc4af7a1bf7d0745a3c2290ebe9b5fe4f",
+      "sha256": "b1aea691f4f4ec25ff2acf80b22370823e29bf0f8a6cac58e4d4ec20ff458266",
       "size": 50525
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
-      "sha256": "517a9d382c974f449ace43e729bcfb40812aa81cbfbd56a120d0728928b2bf51",
-      "size": 22359
+      "sha256": "3cdabacb2229f57d369e1bf77382127feee9527fc6a58af675243408d25da6e9",
+      "size": 22800
     },
     {
       "path": "installer/README.md",
@@ -679,7 +689,7 @@
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
-      "sha256": "76770da31aa3fbec440fc1de588e8c30a76293e217f765d654abfe20855649f4",
+      "sha256": "cc1e2e6f861e11987b35aed046cfff6ea393a26f3de2ea8e454fe58b3b64520e",
       "size": 9480
     },
     {
