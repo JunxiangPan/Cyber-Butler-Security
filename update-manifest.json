@@ -163,6 +163,11 @@
       "size": 12055
     },
     {
+      "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
+      "sha256": "42eba7bbbdc042298365122046b990c0ddd687441017a48e62a998cbdff1fba4",
+      "size": 10181
+    },
+    {
       "path": "docs/RAG-知识库指南.md",
       "sha256": "d995596274d210eb05fa1d5dcb27ef9f0c1d27e46044777e4512ce7986d172e8",
       "size": 3104
@@ -186,6 +191,11 @@
       "path": "docs/TROUBLESHOOTING.md",
       "sha256": "b27a8e41f2507684c63643613bbb4b977eab9b42097697831ee86de828cc01df",
       "size": 22648
+    },
+    {
+      "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
+      "sha256": "edf3207147f8e80207a0cf3d964efecc5397ce5afb06305611c5fdf68b1ac5e2",
+      "size": 4685
     },
     {
       "path": "docs/releases/README.md",
@@ -359,13 +369,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "434a0f08a0225c5364ee3614e0d7bbc0e48bd65e480e623016b19a09f3552025",
-      "size": 139053
+      "sha256": "46325d32aa0f2108d36181ef68248535c5651746d37b2878adaedb500a0adc3e",
+      "size": 139146
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "22482c3018715e3362c84e53e5b007f683a3eefb3f4e1f8cadd5f80a0fdfc857",
-      "size": 48821
+      "sha256": "92f2c9d04534f6ec5f499fc55c00f41bc4af7a1bf7d0745a3c2290ebe9b5fe4f",
+      "size": 50525
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -409,8 +419,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "4b08ccda6eec911d896120e4d2f036b4ca6b1767cc2f9fbc92b22ca9d0325c52",
-      "size": 41982
+      "sha256": "6212a473755d023d59468f9d27f3b077dba96c2353fe558993ee33e2fd31c48b",
+      "size": 43378
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -429,8 +439,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "cae6de69b0b5945744513fd1e2e709b6c5c7583cb8f0da60a84065204347e859",
-      "size": 36653
+      "sha256": "c0d2971ceaa53ecc5cbb7573e354e263075476fb0e435bb05a462af1d9ff9297",
+      "size": 36764
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
