@@ -222,11 +222,13 @@ function Set-CyberButlerDataAcl {
         $path = Join-Path $DataRoot $name
         # Protect the child from the root's Modify inheritance: explicit RX
         # alone would still combine with the inherited root Modify grant.
+        # /T is required: existing plugin files may have an empty or stale
+        # DACL; inherited ACEs alone do not repair already-existing children.
         & icacls.exe $path /inheritance:r `
             /grant:r '*S-1-5-18:(OI)(CI)F' `
             /grant:r '*S-1-5-32-544:(OI)(CI)F' `
             /grant:r "${ServiceAccount}:(OI)(CI)RX" `
-            /grant:r "${DesktopAccount}:(OI)(CI)RX" 2>&1 | Out-Null
+            /grant:r "${DesktopAccount}:(OI)(CI)RX" /T 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'read-acl'; message = $path } }
     }
 
