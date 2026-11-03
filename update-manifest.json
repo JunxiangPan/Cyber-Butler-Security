@@ -298,6 +298,11 @@
       "size": 897
     },
     {
+      "path": "docs/90-audit/CLEAN_VM_ACCEPTANCE_v1.6.2.md",
+      "sha256": "7a8ae418dfa0c1ab344af3c87510b0ee3dfdc7858f2a1837df48a2e3748996d0",
+      "size": 1891
+    },
+    {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
       "sha256": "6963bf2091e0a281b97d752b24aa54912f639ba47a3dd4ddfdd1096d18e49af4",
       "size": 7239
@@ -371,6 +376,11 @@
       "path": "docs/TROUBLESHOOTING.md",
       "sha256": "1e709e0b7ec8f3c7162ea9bd1228b6cdd676e72c93f7d098a4d9d5868df5c0a6",
       "size": 290
+    },
+    {
+      "path": "docs/_data/clean-vm-expected.json",
+      "sha256": "3acfb9fae0ea061c79f562315ce7190eab6092db550a58383cb47458a2f8efa0",
+      "size": 282
     },
     {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
@@ -549,8 +559,8 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "e4530ac8557118e5cb9cfe3387bef97dbd08e59c099b39006df7f2f558076ebf",
-      "size": 143146
+      "sha256": "704f71c8cb69ca30b043445425635fb9ef8f2d2b92a62877ec22c6cafa101d7b",
+      "size": 143459
     },
     {
       "path": "installer/Install-CyberButler.ps1",
@@ -1353,6 +1363,11 @@
       "size": 4212
     },
     {
+      "path": "tools/clean-vm-acceptance.ps1",
+      "sha256": "1d0904b8aceb7faad00fa8c9649194164bd372513067ebe6ffc24e95f6b1d767",
+      "size": 3945
+    },
+    {
       "path": "tools/create_dashboard_shortcut.ps1",
       "sha256": "061f0fde5bd3f722c04b25b3fb9b07db6f9da23b7a656bf5af1064f152462c33",
       "size": 2001
@@ -1374,8 +1389,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "dd3afa7e36f8a1c4c071755aaf647821c9f9dda6ffb3a813321c01e084f7f690",
-      "size": 85482
+      "sha256": "a9a9733699d991fbf96770e5729e551c98c2dc6dedd9456bc22860055d324320",
+      "size": 85455
     },
     {
       "path": "tools/daily_audit.py",
@@ -1704,8 +1719,8 @@
     },
     {
       "path": "tools/snowluma_guard.py",
-      "sha256": "af4b47b53320afd3f2b0a577e9c296c718fc96aa24c7b5fee74578d7198d6f95",
-      "size": 27706
+      "sha256": "607a89cf997889be5c80a8f4c775703ab7b01e03d668f9627f888f34c4a76a28",
+      "size": 27763
     },
     {
       "path": "tools/start-astrbot.ps1",
@@ -1719,8 +1734,8 @@
     },
     {
       "path": "tools/start-game-mode.ps1",
-      "sha256": "3ac5dfd069a3c3d6ed5ebd0f06eda4c0a7e3025a07a66c3fbe50a1f8475c7a63",
-      "size": 1854
+      "sha256": "9ba84cf955fcaa2dac1bafec6d28d0cc2ea077198ed8fadbcee37adfbcf36de7",
+      "size": 1893
     },
     {
       "path": "tools/start-ollama.ps1",
@@ -1774,8 +1789,8 @@
     },
     {
       "path": "tools/weekly-selfheal.ps1",
-      "sha256": "ef1b016e8c84f8087220c8f967ef865ad7becceb882d0df7e8481f2f2b122b2f",
-      "size": 9713
+      "sha256": "b1b852e1526ada4bc9eb2e0988bc5efd03882e9b45cfc99315270377773993a1",
+      "size": 9703
     },
     {
       "path": "tools/wfp_guard.py",
@@ -1809,8 +1824,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "e3dc58f089aae61a7e527ac5ab84ef74c6b1b67ee9f68795d38420d6e71298d5",
-      "size": 28875
+      "sha256": "08f335ffb6ecc2c022810d4556c79bef7499f5931330c2e1758203bd2322beeb",
+      "size": 26751
     },
     {
       "path": "webui/auth.py",
@@ -1874,8 +1889,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "e564b60100897d8d6d9b575ad2b34da17ca5adb615f72ef456bdbeb9a905fbae",
-      "size": 33222
+      "sha256": "62efecf1062f7228008136d8905d2d906e0446831654831d51d18fdd349502b1",
+      "size": 32208
     },
     {
       "path": "webui/static/error.js",
@@ -1954,8 +1969,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "17aeae3444bb381b0490b8f9ddf1d6844b9bd6a15a2ed106bb527bf88138cfc9",
-      "size": 19670
+      "sha256": "6da91bd580ecd061d4d882ac9bacf3ce7282972f7e0781bc92e81fabd0b08d7d",
+      "size": 19460
     },
     {
       "path": "webui/templates/error.html",
