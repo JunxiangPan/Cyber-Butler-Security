@@ -34,48 +34,48 @@
     },
     {
       "path": "README.md",
-      "sha256": "57564ffd1504ac797fa76c47949b2bc5149a792e499f43793dae99389182b618",
-      "size": 41641
+      "sha256": "487ce2fe759e2d2542fd780913e8492b426911d76d7b4f2fa01a06144d04aa3a",
+      "size": 42464
     },
     {
       "path": "README_de.md",
-      "sha256": "5aae1ad2e410edff879150e5047331db7f66c2b2cc5b818e4a82111b0743c93e",
-      "size": 17317
+      "sha256": "778ac8e0a4c498cc82c5a1583284593bb505fb9e040475311943df9cbff20ffb",
+      "size": 18100
     },
     {
       "path": "README_en.md",
-      "sha256": "80479fe42959d0de0e6d5d1bbb8763ecab8adcfbd4f371b78b3f0751bef2a6a3",
-      "size": 40853
+      "sha256": "99726449f9d6df3a54c675cfe470634b2edc962a43fc44cbec78f93cc1e0e710",
+      "size": 41676
     },
     {
       "path": "README_es.md",
-      "sha256": "62371b1e9b6ac2fd2da73af2b7444dfd213cb4045643f4e58d0dffe8733f7636",
-      "size": 17347
+      "sha256": "8c61f5c34f321a603f0f3eae95ad130ea848d6d53dbc79406c19217ec73a28e2",
+      "size": 18080
     },
     {
       "path": "README_fr.md",
-      "sha256": "09dc7586685f9f89915c753909200df448305d11d893dcf8516d995821ed0d9b",
-      "size": 18117
+      "sha256": "761b48c551d90ec5cfe340a2c6ce9c8517d179d848914f782476156ab77c7fb9",
+      "size": 18896
     },
     {
       "path": "README_ja.md",
-      "sha256": "15cb7391b1497daa763a0715945c6373785962caa7743003c14a1622c51579fc",
-      "size": 20416
+      "sha256": "f7f9e145c051382855914ad716ed8b3d83b0f4cceb88597b0db8295b712bdfb4",
+      "size": 21271
     },
     {
       "path": "README_ko.md",
-      "sha256": "0cffa93af39a9d1aadc9fe31321814672065637c1ca0b9a82b53f58bafc8c732",
-      "size": 17860
+      "sha256": "3681822dcb55a39aa7e1dba6f0db50a8180eb0515d9bb01324f16b64655235ee",
+      "size": 18635
     },
     {
       "path": "README_ru.md",
-      "sha256": "633035c9f18c041b8cb221e94959541857f010d30ea4fd1210de2a1c5e9032ef",
-      "size": 25541
+      "sha256": "66f2d187de4756022330d4a3926f75b8c08c7f556503cf331f48d35557d8676f",
+      "size": 26634
     },
     {
       "path": "README_zh.md",
-      "sha256": "8803c1ab20d1bc404f16c5b3fe9393f95e7d520e1d45e955e0fed57f000aef12",
-      "size": 37464
+      "sha256": "9ce1a5bf23ca87b88d4591f3b2f0a74ced022f302e8d8d64d27d2aaea5697d20",
+      "size": 38272
     },
     {
       "path": "ROADMAP.md",
@@ -84,8 +84,8 @@
     },
     {
       "path": "SECURITY.md",
-      "sha256": "350b0243d1d0539e660698eef538a9c273828eefbea8a3c9f7840bc8f7dcc36b",
-      "size": 43885
+      "sha256": "33a7a59ef700eb83ef8c729ac94ff87e702e8503b1db26f6dbb697a123b879be",
+      "size": 43973
     },
     {
       "path": "START-INSTALLER.exe",
@@ -173,6 +173,11 @@
       "size": 3104
     },
     {
+      "path": "docs/S4U_AUDIT_v1.6.2.md",
+      "sha256": "ce52b55748fc8d17a0921cd1772a4e64a5f928acece05175ee497daf05f8b6b0",
+      "size": 2198
+    },
+    {
       "path": "docs/STATUS_v1.6.1.md",
       "sha256": "701d01e2feb3e1948f338de3d28418a707849bb1c8855006a1182409f23b2621",
       "size": 7699
@@ -189,8 +194,8 @@
     },
     {
       "path": "docs/TROUBLESHOOTING.md",
-      "sha256": "b27a8e41f2507684c63643613bbb4b977eab9b42097697831ee86de828cc01df",
-      "size": 22648
+      "sha256": "1b8159b52b9656e58ff8675c5da16fce53c0ca41470371e4b3634df452339374",
+      "size": 22348
     },
     {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
@@ -344,8 +349,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "19c49d0226aea77f9ca59a1aff0ff5452d0d36637d6eed2df247bd7708672ec0",
-      "size": 28252
+      "sha256": "06716af7324b3ec60761477aac2ffea9c80ea834c081e93f297de1c4d741a3ab",
+      "size": 28329
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-beta.md",
@@ -384,8 +389,8 @@
     },
     {
       "path": "installer/README.md",
-      "sha256": "4051bad760b2a926199126f40f03504f448cac8082b41d0462d95da84cbead20",
-      "size": 24120
+      "sha256": "8f567d8f598b341e2d2a758b05ce19da9da4c0e535bef0b1052aeb73e8c269b3",
+      "size": 24163
     },
     {
       "path": "installer/core-sources.json",
@@ -479,8 +484,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "d614cb339038fa3ee7ade157ec9578f9efe27efe784ebbb51d4380f84ca9f6bb",
-      "size": 51819
+      "sha256": "af01ddef26d79f22c1bbc76cef92dfeef694f50751f72242a914c2b4bdb5401e",
+      "size": 54249
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -521,6 +526,16 @@
       "path": "installer/profiles/medium.json",
       "sha256": "879cb52030f32208fae1e56dfc00c7b15cc102bb539445c9fc01055dd0d539ef",
       "size": 529
+    },
+    {
+      "path": "installer/service/CyberButlerAstrBotService.cs",
+      "sha256": "07bc260428e4fd1e8fa7f25bb058ca10c4d44a2db5e4e8e2d1daac3fd4c6760b",
+      "size": 8658
+    },
+    {
+      "path": "installer/service/CyberButlerAstrBotService.exe",
+      "sha256": "ef5a82cc66882a0777dcbbe03e58ccdb3fe39cee346fff32183a32b036583c98",
+      "size": 10240
     },
     {
       "path": "installer/tests/Installer.Accounts.Tests.ps1",
@@ -604,8 +619,8 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "04c5dc901eeeacb2143cc09d43d029663aac7027589fb791c22724eb69bdcea7",
-      "size": 12685
+      "sha256": "439831cef6c68615681459faa43939f758e8f5afafa714d0e4414b30663221b8",
+      "size": 12649
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",
