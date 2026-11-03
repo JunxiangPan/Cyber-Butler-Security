@@ -1,4 +1,4 @@
-﻿# ACL lifecycle for the Cyber-Butler installer.
+# ACL lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerAclTargets {
@@ -234,7 +234,11 @@ function Set-CyberButlerDataAcl {
 
     $cmdConfig = Join-Path $DataRoot 'cmd_config.json'
     if (Test-Path -LiteralPath $cmdConfig) {
-        & icacls.exe $cmdConfig /grant:r "${ServiceAccount}:(M)" 2>&1 | Out-Null
+        & icacls.exe $cmdConfig /grant:r `
+            '*S-1-5-18:(F)' `
+            '*S-1-5-32-544:(F)' `
+            "${ServiceAccount}:(M)" `
+            "${DesktopAccount}:(RX)" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'config-acl'; message = $cmdConfig } }
     }
 
