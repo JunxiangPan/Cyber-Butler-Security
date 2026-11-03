@@ -116,6 +116,22 @@ ode.exe` while the running
   exact path, instead of the mojibake exception.
 - Needs report/manual-recovery validation on an actual failed run.
 
+### 0. GUI has no explicit Upgrade / Repair / Keep Data choice
+
+- Observed on the host upgrade: the GUI never showed
+  “升级 / 修复 / 保留数据”; it auto-detected `existing=Legacy` and proceeded.
+- This is unsafe UX: a user cannot explicitly choose preservation versus a fresh
+  install, and cannot confirm the existing version/path before Core runs.
+- Required GUI behavior:
+  - detect existing install and show the detected version/path;
+  - default to **Upgrade / Repair (preserve data)**;
+  - require an explicit destructive confirmation for a fresh install;
+  - show what will be preserved (`AstrBot\data`, `SnowLuma\config/data/logs`,
+    `webui\data`, TOTP vault, broker config);
+  - offer Cancel;
+  - pass the selected mode to the child (`Upgrade`/`Repair`/`Fresh`) rather than
+    relying only on auto-detection.
+
 ## P1 — installer/UX and security integration
 
 ### 4. Defender exclusion is hardcoded to C:\CyberButler
