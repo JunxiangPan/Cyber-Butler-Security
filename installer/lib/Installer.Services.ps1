@@ -1,4 +1,4 @@
-﻿# Scheduled-task and service-health lifecycle for the installer.
+# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {
@@ -804,6 +804,7 @@ function Undo-CyberButlerServices {
         [string[]]$CreatedTasks = @(),
         [int[]]$StartedProcessIds = @(),
         [hashtable]$TaskBackups = @{},
+        [switch]$KeepTaskDefinitions,
         $Handlers = @{}
     )
 
@@ -813,6 +814,10 @@ function Undo-CyberButlerServices {
         }))
     }
     foreach ($taskName in @($CreatedTasks)) {
+        # Service assertion failures must preserve AstrBot Service in Task
+        # Scheduler: deleting it makes diagnosis impossible and forces a full
+        # reinstall. Stop processes/ports instead; keep the task definition.
+        if ($KeepTaskDefinitions -and $taskName -eq 'AstrBot Service') { continue }
         if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
             Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
         }
@@ -941,7 +946,7 @@ function Invoke-CyberButlerServices {
         $base.exit_code = Get-InstallerExitCode -Name Success
         return [pscustomobject]$base
     } catch {
-        $undo = Undo-CyberButlerServices -Root $Root -CreatedTasks $createdTasks -StartedProcessIds $startedPids -TaskBackups $taskBackups -Handlers $Handlers
+        $undo = Undo-CyberButlerServices -Root $Root -CreatedTasks $createdTasks -StartedProcessIds $startedPids -TaskBackups $taskBackups -KeepTaskDefinitions -Handlers $Handlers
         $base.status = 'failed'
         $base.message = $_.Exception.Message
         $base.undo = $undo
