@@ -139,23 +139,31 @@
 
   const renderNetworkGuard = (data) => {
     const banner = $("wfpBanner");
-    const detail = $("wfpBannerDetail");
+    const title = $("wfpStatusTitle");
+    const badge = $("wfpStatusBadge");
+    const detail = $("wfpStatusDetail");
     const status = $("networkStatus");
     const guard = (data && data.guard) || {};
     const healthy = Boolean(data && data.ok && guard.healthy === true);
-    if (banner) banner.hidden = Boolean(healthy);
-    if (detail && !healthy) {
-      detail.textContent = guard.error
-        ? ("WFP Guard 错误 / error: " + guard.error)
-        : (guard.ok === true
-          ? "WFP Guard 心跳超过 45 秒未更新；服务可能已停止。"
-          : "WFP Guard 尚未启动或没有心跳；网络策略可能未生效。");
+    if (banner) {
+      banner.hidden = false;
+      banner.classList.toggle("wfp-card-ok", healthy);
+      banner.classList.toggle("wfp-card-warn", !healthy);
+    }
+    if (title) title.textContent = healthy ? "网络门卫在运行（只观察）" : "网络门卫没有运行";
+    if (badge) badge.textContent = healthy ? "AUDIT · 只记录" : "未运行";
+    if (detail) {
+      if (healthy) {
+        detail.textContent = "WFP Guard 正在运行，但 v1.6.2 只有 audit 模式：它会记录，不会强制断网。下面的白名单只是“访客名单”，不是已生效的防火墙。";
+      } else {
+        detail.textContent = guard.error
+          ? ("WFP Guard 没有心跳或启动失败：" + guard.error + " 这不是病毒报警；但下面的白名单不会生效。")
+          : "WFP Guard 没有心跳或尚未启动。这不是病毒报警；但下面的白名单只是草稿，不会生效。";
+      }
     }
     if (status) {
-      status.textContent = healthy
-        ? "WFP Guard 正常 / healthy"
-        : (guard.error || "WFP Guard 异常或未启动 / unavailable");
-      status.style.color = healthy ? "#4ade80" : "#f87171";
+      status.textContent = healthy ? "门卫运行中（audit，只记录）" : "门卫未运行：白名单未生效";
+      status.style.color = healthy ? "#15803d" : "#b91c1c";
       status.style.fontWeight = "700";
     }
   };
@@ -174,33 +182,32 @@
     const policy = data.policy || {};
     const mode = $("networkMode");
     const domains = $("networkDomains");
-    if (mode && policy.mode) mode.value = policy.mode;
+    if (mode) mode.value = "audit";
+    if (policy.mode === "enforce" && mode) mode.value = "audit";
     if (domains) {
       const names = (policy.allow || []).filter((x) => x.kind === "domain").map((x) => x.name);
-      domains.value = names.join("\n");
+      domains.value = names.join(String.fromCharCode(10));
     }
   };
 
   const saveNetworkPolicy = async () => {
     if (!csrf) return;
     const status = $("networkStatus");
-    if (status) status.textContent = "保存中… / Saving…";
+    if (status) status.textContent = "保存中…";
     const response = await fetch("/api/security/network-policy", {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
-      body: JSON.stringify({
-        mode: $("networkMode")?.value || "audit",
-        domains: $("networkDomains")?.value || "",
-        block_unknown: true,
-      }),
+      body: JSON.stringify({ mode: "audit", domains: $("networkDomains")?.value || "", block_unknown: true }),
     });
     const data = await response.json().catch(() => ({}));
     if (status) {
       status.textContent = response.ok && data.ok
-        ? "已保存 / Saved; WFP Guard will reload."
-        : (data.message || "保存失败 / Save failed");
+        ? "已保存（audit 只记录；强制拦截未启用）"
+        : (data.message || "保存失败，请重试");
+      status.style.color = response.ok && data.ok ? "#15803d" : "#b91c1c";
     }
+    if (response.ok && data.ok) await loadNetworkGuard();
   };
 
   const saveAdminEmail = async () => {
@@ -634,6 +641,7 @@
     });
     $("adminEmailSave")?.addEventListener("click", saveAdminEmail);
     $("networkSave")?.addEventListener("click", saveNetworkPolicy);
+    $("networkRefresh")?.addEventListener("click", loadNetworkPolicy);
     adminEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") { event.preventDefault(); saveAdminEmail(); }
     });

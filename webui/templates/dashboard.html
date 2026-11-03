@@ -71,27 +71,71 @@
       </div>
     </section>
 
-    <section id="wfpBanner" class="security-banner" hidden>
-      <div class="security-icon">!</div>
-      <div>
-        <strong>WFP Guard 异常 / WFP Guard is not healthy</strong>
-        <p id="wfpBannerDetail">WFP Guard 状态未知或服务未启动；网络策略可能没有生效。</p>
-        <p>WFP Guard is not healthy. The displayed allowlist may not be enforced.</p>
+    <section id="wfpBanner" class="wfp-card wfp-card-warn">
+      <div class="wfp-icon" aria-hidden="true">!</div>
+      <div class="wfp-content">
+        <div class="wfp-title-row">
+          <strong id="wfpStatusTitle">网络门卫没有运行</strong>
+          <span id="wfpStatusBadge" class="wfp-badge">未运行</span>
+        </div>
+        <p id="wfpStatusDetail" class="wfp-detail">WFP Guard 是 AI 的“网络门卫”。它没有运行，不代表电脑中毒；但下面的白名单只是草稿，不会生效。</p>
+        <p class="wfp-detail wfp-detail-muted">WFP Guard is the network gatekeeper. If it is not running, the allowlist below is only a draft and is not enforced.</p>
+        <details class="wfp-help">
+          <summary>小白怎么看？怎么修？ / What does this mean, and how do I fix it?</summary>
+          <div class="wfp-help-body">
+            <p><strong>它是什么：</strong>一个独立的 Windows 任务，专门看住 AI 的出站网络。它不执行 AI 代码，也不杀进程。</p>
+            <p><strong>它有什么用：</strong>让 AI 只能访问你允许的网站。当前 v1.6.2 还是 <strong>audit（只记录）</strong>，不会真的断网；真正的强制拦截要等后续版本。</p>
+            <p><strong>怎么让它运行：</strong>先重启电脑；仍异常时，在管理员 PowerShell 中运行下面命令，或重新运行安装器选择“修复”。</p>
+            <pre class="wfp-command">Get-ScheduledTask -TaskName 'Cyber-Butler WFP Guard' | Start-ScheduledTask</pre>
+            <p class="wfp-detail-muted">如果任务不存在，说明安装器没有注册成功；请重新运行安装器修复，而不是反复点“保存策略”。</p>
+          </div>
+        </details>
       </div>
     </section>
 
-    <section id="networkPanel" class="panel" style="margin-top:18px">
-      <h2>网络放行白名单 / Network allowlist</h2>
-      <p>写入 webui/data/network-policy.json；WFP Guard 会热加载。audit 模式只观察，enforce 仍需手动确认。</p>
-      <label for="networkMode">模式 / Mode</label>
-      <select id="networkMode">
-        <option value="audit">audit-only</option>
-        <option value="enforce">enforce</option>
-      </select>
-      <label for="networkDomains">域名（每行一个，HTTPS 443） / Domains (one per line)</label>
-      <textarea id="networkDomains" rows="5" style="width:100%;margin:8px 0"></textarea>
-      <button id="networkSave" class="primary" type="button">保存策略 / Save policy</button>
-      <span id="networkStatus" role="status"></span>
+    <section id="networkPanel" class="network-panel">
+      <div class="network-head">
+        <div>
+          <span class="network-eyebrow">NETWORK ALLOWLIST</span>
+          <h2>AI 可以访问哪些网站？</h2>
+          <p class="network-lead">这不是“打开网络”的开关，而是给 AI 列一份访客名单。当前版本只观察，不会强制断网。</p>
+        </div>
+        <span class="network-badge">v1.6.2 · AUDIT ONLY</span>
+      </div>
+
+      <div class="network-steps">
+        <article class="network-step"><span>1</span><div><strong>写域名</strong><p>一行一个，只写域名，不要写 https://，例如 api.deepseek.com。</p></div></article>
+        <article class="network-step"><span>2</span><div><strong>保存</strong><p>点“保存白名单”。保存成功不等于已经拦截，当前只写策略。</p></div></article>
+        <article class="network-step"><span>3</span><div><strong>看状态</strong><p>上面的网络门卫必须显示“运行中”，白名单才有意义。</p></div></article>
+      </div>
+
+      <div class="network-form">
+        <div class="network-field">
+          <label for="networkMode">模式 / Mode</label>
+          <select id="networkMode">
+            <option value="audit">audit · 观察（当前唯一支持）</option>
+            <option value="enforce" disabled>enforce · 强制拦截（本版本未实现）</option>
+          </select>
+          <p class="network-help-text">小白建议保持 audit。enforce 需要后续版本和实机验收，不要在这里假装已经生效。</p>
+        </div>
+        <div class="network-field network-field-grow">
+          <label for="networkDomains">允许 AI 访问的域名</label>
+          <textarea id="networkDomains" rows="6" spellcheck="false" placeholder="api.deepseek.com&#10;api.openai.com&#10;（不知道就留空，不要一次放开整个网络）"></textarea>
+          <p class="network-help-text">留空通常最安全；每行一个域名。这里不是浏览器代理设置，不会影响你正常上网。</p>
+        </div>
+      </div>
+
+      <div class="network-actions">
+        <button id="networkSave" class="primary" type="button">保存白名单 / Save allowlist</button>
+        <button id="networkRefresh" class="ghost-button" type="button">刷新门卫状态 / Refresh guard</button>
+        <span id="networkStatus" role="status" class="network-status"></span>
+      </div>
+
+      <details class="network-help">
+        <summary>还是不懂？看这个例子 / A plain-language example</summary>
+        <p>如果 AI 只需要用 DeepSeek，就只写一行 <code>api.deepseek.com</code>。不要因为“怕不够用”就留空所有域名；当前版本本来也不会真正拦截。</p>
+        <p>真正要强制拦截时，需要后续版本启用 enforce，并完成 WFP 实机验收；当前版本不会给你一个假的“已保护”。</p>
+      </details>
     </section>
 
     <section class="welcome">
