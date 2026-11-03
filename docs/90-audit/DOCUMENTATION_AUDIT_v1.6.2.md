@@ -1,0 +1,98 @@
+# DOCUMENTATION_AUDIT_v1.6.2
+
+## Five-round plan and result
+
+| Round | Work | Result |
+|---|---|---|
+| 1 | Inventory existing docs; design canonical tree | completed |
+| 2 | Move current facts into canonical docs; archive legacy READMEs | completed |
+| 3 | Compare the eight language READMEs against the shared status facts | completed |
+| 4 | Check Markdown fences, active links, terminology, and S4U claims | completed for active docs |
+| 5 | Produce this audit and final directory tree | completed |
+
+## Canonical directory tree
+
+```text
+README.md
+README_en.md / README_zh.md / README_de.md / README_es.md
+README_fr.md / README_ja.md / README_ko.md / README_ru.md
+SECURITY.md
+docs/
+├── README.md
+├── _data/status-v1.6.2.json
+├── 00-overview/
+│   ├── project-overview.md
+│   ├── quickstart.md
+│   ├── architecture-scm.md
+│   └── glossary.md
+├── 10-security/
+│   ├── defense-layers.md
+│   ├── scm-service-hardening.md
+│   ├── wfp-network-policy.md
+│   └── known-limitations.md
+├── 20-operations/
+│   ├── ports-and-adapters.md
+│   └── troubleshooting.md
+├── 40-history/
+│   ├── incidents/
+│   │   ├── s4u-retirement.md
+│   │   ├── sqlite-readonly.md
+│   │   ├── wfp-empty-rules.md
+│   │   ├── acl-self-lock.md
+│   │   └── task-rollback.md
+│   ├── legacy-readmes/        # archived originals
+│   └── releases/              # historical release notes
+└── 90-audit/
+    ├── DOCUMENTATION_AUDIT_v1.6.2.md
+    ├── S4U_AUDIT_v1.6.2.md
+    └── QA_FOLLOWUPS_v1.6.2.md
+```
+
+## Round 3: eight-language consistency
+
+All eight localized README files contain:
+
+- `CyberButlerAstrBot` and the SCM service statement
+- `S4U` explicitly marked as retired
+- `6199` explicitly marked as a dynamic OneBot adapter port, not a service
+- the same status facts: 6185/18090/8765/8766/5099 verified; WFP audit-only; Light not accepted
+- a link to `docs/_data/status-v1.6.2.json`
+- a link to `docs/10-security/known-limitations.md`
+
+Files checked:
+
+```text
+README_en.md
+README_zh.md
+README_de.md
+README_es.md
+README_fr.md
+README_ja.md
+README_ko.md
+README_ru.md
+```
+
+## Round 4: checks
+
+- Active canonical docs and eight READMEs: code fences balanced.
+- Active canonical links: checked; the active tree has no broken links.
+- Archived `40-history/legacy-readmes/` and historical `40-history/releases/` retain old relative links by design; they are archive material, not current guidance.
+- Historical S4U mentions remain only as retired/historical explanations. There is no instruction to configure or register S4U.
+- Terminology normalized: SCM service, WFP audit-only, dynamic 6199, Session 0, Job Object, known limitations.
+
+## Honest limitations recorded
+
+- WFP enforce mode is not enabled; current mode is audit, `applied=0`.
+- Native WFP filter API is not implemented.
+- Light tier has no real-machine acceptance.
+- v1.6.2-rc2 has no clean-VM full install/uninstall acceptance.
+- Credential Proxy and full audit-chain replacement remain partial.
+- 6199 is not a system service and is absent until the AstrBot OneBot adapter is configured.
+
+## Final statement
+
+The active documentation is structured, deduplicated, and consistent across the eight language entry points. Historical contradictions are archived rather than presented as current guidance.
+
+## Package
+
+The documentation audit is complete; the v1.6.2-rc2 package must be rebuilt and signed after this audit.

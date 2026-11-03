@@ -1,6 +1,6 @@
 # Plugin ecosystem (v1.2.0)
 
-> **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in [STATUS_v1.6.1.md](STATUS_v1.6.1.md). This document is about the plugin ecosystem, not a security guarantee.
+> **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md). This document is about the plugin ecosystem, not a security guarantee.
 
 
 Three surfaces, one trust boundary: the dashboard can list and toggle AstrBot
@@ -278,4 +278,4 @@ cannot widen that scope.
 - `ops_bash` / `pwsh` are intentionally blocked while the gate is enabled;
   manage services from an external shell.
 - It is not code-signed in this build and is not covered by a third-party audit.
-- Full status: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+- Full status: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).

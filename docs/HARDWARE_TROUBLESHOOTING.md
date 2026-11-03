@@ -1,6 +1,6 @@
 # 硬件故障排查：NVIDIA `VIDEO_TDR_ERROR`（0x116）
 
-> v1.6.1 status, incomplete work, and non-guarantees: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 
 > 适用症状：关闭显示器后电脑突然重启、黑屏后自动开机、事件日志出现 `nvlddmkm` 错误和 `BugCheck 0x116`。  

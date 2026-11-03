@@ -1,6 +1,6 @@
 # 苏瑾言 RAG 知识库填充与调用指南
 
-> v1.6.1 status, incomplete work, and non-guarantees: [STATUS_v1.6.1.md](STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 
 ## 一、上传前准备
