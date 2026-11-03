@@ -1,5 +1,12 @@
 # Incident: task rollback deleted the diagnostic target
 
+## Contents
+
+- [Symptom](#symptom)
+- [Cause](#cause)
+- [Alternatives predicted and abandoned](#alternatives-predicted-and-abandoned)
+- [Resolution](#resolution)
+
 ## Symptom
 
 After a Services assertion failure, `AstrBot Service` disappeared from Task Scheduler, so the failure could not be reproduced or inspected.

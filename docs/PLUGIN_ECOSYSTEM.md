@@ -1,5 +1,13 @@
 # Plugin ecosystem (v1.2.0)
 
+## Contents
+
+- [Module 1 — AstrBot plugin hub](#module-1-astrbot-plugin-hub)
+- [Module 2 — Dashboard modules](#module-2-dashboard-modules)
+- [Module 3 — Market and security review](#module-3-market-and-security-review)
+- [Tests](#tests)
+- [Module 4 — DSH / Cordis bridge (v1.6.1)](#module-4-dsh-cordis-bridge-v161)
+
 > **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md). This document is about the plugin ecosystem, not a security guarantee.
 
 

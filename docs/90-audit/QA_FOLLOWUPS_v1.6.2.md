@@ -1,5 +1,13 @@
 # Cyber-Butler v1.6.2 QA Follow-ups
 
+## Contents
+
+- [P0 — release/security blockers](#p0-releasesecurity-blockers)
+- [P1 — installer/UX and security integration](#p1-installerux-and-security-integration)
+- [P2 — coverage/documentation](#p2-coveragedocumentation)
+- [Fixed already (for reference)](#fixed-already-for-reference)
+- [Release rule after this batch](#release-rule-after-this-batch)
+
 > Status: encountered issues to fix as one batch before the next package/sign.
 > The signed v1.6.2 assets have NOT been uploaded. Any source change requires
 > rebuild + re-sign, and invalidates the current signature.

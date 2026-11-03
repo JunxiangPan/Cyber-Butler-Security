@@ -1,5 +1,14 @@
 # GitHub web update checklist — v1.6.2
 
+## Contents
+
+- [Repository home / README](#repository-home-readme)
+- [Releases page](#releases-page)
+- [Issues](#issues)
+- [Discussions](#discussions)
+- [GitHub Actions](#github-actions)
+- [Profile / social preview](#profile-social-preview)
+
 Generated from the local repository state. Items marked “manual” cannot be verified from local files.
 
 ## Repository home / README

@@ -1,5 +1,11 @@
 # Project overview
 
+## Contents
+
+- [Scope](#scope)
+- [Non-goals](#non-goals)
+- [Canonical status](#canonical-status)
+
 Cyber-Butler Security (CBS) is a defensive control plane for self-hosted LLM agents. It provides installer-driven isolation, TOTP approvals, a local broker, network guard scaffolding, and operational diagnostics.
 
 ## Scope

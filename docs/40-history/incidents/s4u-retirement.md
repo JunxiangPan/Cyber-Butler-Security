@@ -1,5 +1,11 @@
 # Incident: S4U retirement
 
+## Contents
+
+- [Symptom](#symptom)
+- [Alternatives predicted and abandoned](#alternatives-predicted-and-abandoned)
+- [Resolution](#resolution)
+
 ## Symptom
 
 Task Scheduler returned `Access is denied` for S4U registration and `username or password incorrect` for Password registration, even though `runas` opened cmd with the same account.

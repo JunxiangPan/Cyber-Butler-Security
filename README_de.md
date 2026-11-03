@@ -1,5 +1,17 @@
 # Cyber-Butler Security (CBS)
 
+
+## Status auf einen Blick
+
+| Komponente | Status | Hinweis |
+|---|---|---|
+| SCM-Dienst, SQLite Schreiben/Lesen, Job Object | ✅ | |
+| TOTP/Approval-Broker 18090 | ✅ | |
+| WebUI 8765 | ✅ | |
+| WFP-Ausgangsblockierung — nur Audit | ⚠️ | |
+| OTP Mailer 8766 / SnowLuma 5099 | ✅ | |
+| 6199 OneBot-Adapter — manuell konfigurieren | ❌ | |
+| Light-Stufe — keine Realmaschinen-Abnahme | ❌ | |
 Eine defensive Kontrollebene für selbst gehostete LLM-Agenten.
 
 ## Schnellstart
@@ -59,3 +71,5 @@ WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Nati
 6199 ist kein Systemdienst von CBS/AstrBot; der Port wird vom AstrBot-OneBot-Adapter nach Konfiguration und Aktivierung dynamisch geöffnet.
 
 Der S4U-Planungsaufgabenpfad ist stillgelegt; AstrBot darf nicht als Task-Scheduler-Aufgabe registriert werden.
+
+- [FAQ — why not?](docs/00-overview/why-not-faq.md)

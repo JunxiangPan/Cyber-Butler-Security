@@ -1,5 +1,16 @@
 # DOCUMENTATION_AUDIT_v1.6.2
 
+## Contents
+
+- [Five-round plan and result](#five-round-plan-and-result)
+- [Canonical directory tree](#canonical-directory-tree)
+- [Round 3: eight-language consistency](#round-3-eight-language-consistency)
+- [Round 4: checks](#round-4-checks)
+- [Honest limitations recorded](#honest-limitations-recorded)
+- [Final statement](#final-statement)
+- [Package](#package)
+- [Round 6: GitHub-facing cleanup](#round-6-github-facing-cleanup)
+
 ## Five-round plan and result
 
 | Round | Work | Result |
@@ -107,3 +118,14 @@ The documentation audit is complete; the v1.6.2 package is rebuilt and signed af
 - Verified active links after the cleanup; historical archived files are excluded from the active link gate.
 - No “Coming soon” placeholder remains in active docs; S4U appears only as retired/historical context.
 - Compatibility statement: v1.6.1 remains the previous stable release; v1.6.2 preview/beta/rc are superseded by the final v1.6.2 SCM release note.
+
+## Round 7: UX and anti-footgun pass
+
+- Added a traffic-light status matrix to the root README, every language README, and `docs/00-overview/quickstart.md`.
+- Replaced the technical glossary with one-line plain-language cards for SCM, Job Object, WFP, ACL, TOTP, Broker, and OneBot.
+- Put the three highest-frequency failure checks at the top of `docs/20-operations/troubleshooting.md`, with copy-paste commands.
+- Generated `## Contents` anchors for active long documents.
+- Added `docs/00-overview/why-not-faq.md` covering Docker, app-layer blocking, phone TOTP, SYSTEM, WFP audit-only, and 6199.
+- Linked the FAQ from the root and eight language READMEs.
+
+Checks: active links 0 broken; active code fences balanced; 8/8 language README checks passed.

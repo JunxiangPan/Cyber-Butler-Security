@@ -2,6 +2,18 @@
 
 > This is the current v1.6.2 release note. Earlier `v1.6.2-preview`, `v1.6.2-beta`, and `v1.6.2-rc` files are historical and superseded.
 
+## Contents
+
+- [Highlights](#highlights)
+- [Verified on the current host](#verified-on-the-current-host)
+- [Why S4U was retired](#why-s4u-was-retired)
+- [SQLite fix](#sqlite-fix)
+- [WFP status — read this before claiming network isolation](#wfp-status-read-this-before-claiming-network-isolation)
+- [Other known limitations](#other-known-limitations)
+- [Compatibility](#compatibility)
+- [Upgrade / install](#upgrade-install)
+- [Documentation](#documentation)
+
 ## Highlights
 
 - **AstrBot now runs as a native Windows SCM service.** High tier uses `CyberButlerAstrBot` under `CyberButlerSvc`, not an S4U scheduled task.

@@ -1,5 +1,17 @@
 # Cyber-Butler Security (CBS)
 
+
+## 한눈에 보는 상태
+
+| 구성 요소 | 상태 | 비고 |
+|---|---|---|
+| SCM 서비스, SQLite 읽기/쓰기, Job Object | ✅ | |
+| TOTP/승인 브로커 18090 | ✅ | |
+| WebUI 8765 | ✅ | |
+| WFP 아웃바운드 차단 — 감사 전용 | ⚠️ | |
+| OTP Mailer 8766 / SnowLuma 5099 | ✅ | |
+| 6199 OneBot 어댑터 — 수동 구성 필요 | ❌ | |
+| Light 등급 — 실기 검증 없음 | ❌ | |
 자체 호스팅 LLM 에이전트를 위한 방어적 제어 평면입니다.
 
 ## 빠른 시작
@@ -59,3 +71,5 @@ WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Nati
 6199는 CBS/AstrBot의 시스템 서비스가 아니며, AstrBot OneBot 어댑터를 구성하고 활성화한 뒤 동적으로 열립니다.
 
 S4U 예약 작업 경로는 폐기되었습니다. AstrBot을 작업 스케줄러 작업으로 등록하지 마세요.
+
+- [FAQ — why not?](docs/00-overview/why-not-faq.md)

@@ -1,5 +1,12 @@
 # Incident: SQLite readonly under High isolation
 
+## Contents
+
+- [Symptom](#symptom)
+- [Root causes found](#root-causes-found)
+- [Alternatives predicted and abandoned](#alternatives-predicted-and-abandoned)
+- [Resolution](#resolution)
+
 ## Symptom
 
 `sqlite3.OperationalError: attempt to write a readonly database` or `unable to open database file` while AstrBot started under the service account.

@@ -1,5 +1,14 @@
 # Known limitations (v1.6.2)
 
+## Contents
+
+- [WFP enforce mode is not enabled](#wfp-enforce-mode-is-not-enabled)
+- [Light tier](#light-tier)
+- [Clean VM acceptance](#clean-vm-acceptance)
+- [6199 is not a service](#6199-is-not-a-service)
+- [Other partial controls](#other-partial-controls)
+- [What is verified](#what-is-verified)
+
 This file is the authoritative list of current boundaries. It is linked from every language README.
 
 ## WFP enforce mode is not enabled

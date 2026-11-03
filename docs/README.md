@@ -1,5 +1,13 @@
 # Documentation index
 
+## Contents
+
+- [Overview](#overview)
+- [Security](#security)
+- [Operations](#operations)
+- [History and audit](#history-and-audit)
+- [Status](#status)
+
 ## Overview
 
 - [Project overview](00-overview/project-overview.md)
@@ -32,3 +40,5 @@
 ## Status
 
 Canonical facts: [status-v1.6.2.json](_data/status-v1.6.2.json).
+
+- [FAQ — why not?](00-overview/why-not-faq.md)

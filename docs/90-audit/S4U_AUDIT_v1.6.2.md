@@ -1,5 +1,12 @@
 # S4U → Windows SCM service: cross-language audit (v1.6.2)
 
+## Contents
+
+- [Canonical policy](#canonical-policy)
+- [Eight-language README inventory](#eight-language-readme-inventory)
+- [Cross-language checks](#cross-language-checks)
+- [Remaining S4U word occurrences](#remaining-s4u-word-occurrences)
+
 ## Canonical policy
 
 High-tier AstrBot is a native Windows SCM service named `CyberButlerAstrBot`, running as `CyberButlerSvc`. The S4U scheduled-task path is retired. S4U is documented only as a rejected/deprecated historical path, never as a supported deployment mode. The service binary ACL is `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` is restored. The wrapper uses absolute paths, Session 0 GUI-disabled settings, `AstrBot\data\logs\service-astrbot.log`, and a Job Object.

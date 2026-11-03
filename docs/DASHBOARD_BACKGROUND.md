@@ -1,5 +1,14 @@
 # Dashboard background engine
 
+## Contents
+
+- [Supported files](#supported-files)
+- [Why the GIF path is custom](#why-the-gif-path-is-custom)
+- [Limits and fallbacks](#limits-and-fallbacks)
+- [Settings](#settings)
+- [Cache](#cache)
+- [Maintenance checks](#maintenance-checks)
+
 > v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 

@@ -1,5 +1,11 @@
 # SCM service hardening
 
+## Contents
+
+- [Required binary ACL](#required-binary-acl)
+- [Required account rights](#required-account-rights)
+- [Runtime environment](#runtime-environment)
+
 ## Required binary ACL
 
 ```text

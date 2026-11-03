@@ -1,5 +1,25 @@
 ﻿# Cyber-Butler 安装说明 / Installation Guide
 
+## Contents
+
+- [0. 故障排查 / Troubleshooting](#0-故障排查-troubleshooting)
+- [1. 从哪里开始 / Where to start](#1-从哪里开始-where-to-start)
+- [1.1 v1.6.2 安全能力 / v1.6.2 security capabilities](#11-v162-安全能力-v162-security-capabilities)
+- [1.2 v1.6.2 状态与不保证 / Status and non-guarantees](#12-v162-状态与不保证-status-and-non-guarantees)
+- [1.4 WebUI 邮箱 / WebUI email](#14-webui-邮箱-webui-email)
+- [1.6 AstrBot 机器人完整配置 / Complete AstrBot bot setup](#16-astrbot-机器人完整配置-complete-astrbot-bot-setup)
+- [1.7 大肥鱼文件与 SnowLuma / My Big Fish folder and SnowLuma](#17-大肥鱼文件与-snowluma-my-big-fish-folder-and-snowluma)
+- [2. 安装前准备 / Before installing](#2-安装前准备-before-installing)
+- [3. 安装步骤 / Installation steps](#3-安装步骤-installation-steps)
+- [4. 如何判断“还在安装”还是“已经失败” / Running or failed](#4-如何判断还在安装还是已经失败-running-or-failed)
+- [5. 报错时看哪里 / Where to look on failure](#5-报错时看哪里-where-to-look-on-failure)
+- [6. 如何检查服务 / Check services](#6-如何检查服务-check-services)
+- [7. 安装完成后 / After installation](#7-安装完成后-after-installation)
+- [8. 发布包里有什么 / What is in the package](#8-发布包里有什么-what-is-in-the-package)
+- [9. 卸载 / Uninstall](#9-卸载-uninstall)
+- [10. 日志与二维码 / Logs and QR](#10-日志与二维码-logs-and-qr)
+- [11. 安全提醒 / Security](#11-安全提醒-security)
+
 ## 0. 故障排查 / Troubleshooting
 
 常见故障（SnowLuma 未自动注入、6199 未连接、QQ challenge send failed、TOTP 一直 pending、`YOUR_QQ_ID` 未替换、`qq_sujinyan` 平台前缀错误、6185 冲突）见 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。

@@ -1,5 +1,11 @@
 # WFP / Windows Firewall guard
 
+## Contents
+
+- [Current mode](#current-mode)
+- [Why enforcement is not enabled](#why-enforcement-is-not-enabled)
+- [Do not claim](#do-not-claim)
+
 ## Current mode
 
 ```text

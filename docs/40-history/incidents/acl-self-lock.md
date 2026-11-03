@@ -1,5 +1,12 @@
 # Incident: ACL self-lock
 
+## Contents
+
+- [Symptom](#symptom)
+- [Cause](#cause)
+- [Alternatives predicted and abandoned](#alternatives-predicted-and-abandoned)
+- [Resolution](#resolution)
+
 ## Symptom
 
 After hardening, administrators could not read/replace the service task or task binary; `Register-ScheduledTask` returned access denied even after `takeown` of the task file.

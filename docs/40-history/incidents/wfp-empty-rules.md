@@ -1,5 +1,12 @@
 # Incident: WFP empty-rule Remove failure
 
+## Contents
+
+- [Symptom](#symptom)
+- [Cause](#cause)
+- [Alternatives predicted and abandoned](#alternatives-predicted-and-abandoned)
+- [Resolution](#resolution)
+
 ## Symptom
 
 `WFP policy apply failed: Remove-NetFirewallRule failed` on every watch cycle.

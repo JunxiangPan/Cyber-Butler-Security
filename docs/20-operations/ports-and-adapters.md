@@ -1,5 +1,10 @@
 # Ports and adapters
 
+## Contents
+
+- [6199 is not a system service](#6199-is-not-a-system-service)
+- [Verification](#verification)
+
 | Port | Owner | Meaning |
 |---|---|---|
 | 6185 | SCM service `CyberButlerAstrBot` | AstrBot WebUI/API |

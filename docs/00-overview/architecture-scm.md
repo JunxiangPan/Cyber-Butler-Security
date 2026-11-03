@@ -1,5 +1,12 @@
 # High-tier architecture: native Windows SCM service
 
+## Contents
+
+- [Why the SCM service replaced S4U](#why-the-scm-service-replaced-s4u)
+- [Service wrapper properties](#service-wrapper-properties)
+- [Security boundary](#security-boundary)
+- [Operational checks](#operational-checks)
+
 ## Why the SCM service replaced S4U
 
 On this local non-domain Windows host, Task Scheduler rejected both local-account S4U registration and Password registration with `Access is denied` / `username or password incorrect`. A `runas` test proved the account and password were valid. The temporary SYSTEM-launcher workaround was rejected because it creates a SYSTEM parent process and a privilege-escalation surface.

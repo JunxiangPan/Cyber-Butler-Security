@@ -1,5 +1,17 @@
 # 硬件故障排查：NVIDIA `VIDEO_TDR_ERROR`（0x116）
 
+## Contents
+
+- [1. 先确认证据](#1-先确认证据)
+- [2. 驱动彻底清理重装](#2-驱动彻底清理重装)
+- [3. 恢复显卡默认状态](#3-恢复显卡默认状态)
+- [4. 检查 4090 供电](#4-检查-4090-供电)
+- [5. 检查显示器链路](#5-检查显示器链路)
+- [6. PCIe 与电源管理](#6-pcie-与电源管理)
+- [7. 不要用这些“修复”掩盖问题](#7-不要用这些修复掩盖问题)
+- [8. 如果仍然复现](#8-如果仍然复现)
+- [9. 本次事件与 Bot 的关系](#9-本次事件与-bot-的关系)
+
 > v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 

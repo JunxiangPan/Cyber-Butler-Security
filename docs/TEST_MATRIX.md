@@ -1,5 +1,14 @@
 # Test Matrix / 测试矩阵
 
+## Contents
+
+- [1. Acceptance tiers](#1-acceptance-tiers)
+- [2. CI matrix](#2-ci-matrix)
+- [3. Claim-to-test map](#3-claim-to-test-map)
+- [4. Required release gates](#4-required-release-gates)
+- [5. AppContainer boundary](#5-appcontainer-boundary)
+- [6. CI guard for this matrix](#6-ci-guard-for-this-matrix)
+
 > This page maps every public security claim to evidence. A missing test is a
 > known gap, not an implied pass. CI cannot replace a real Windows acceptance
 > run.

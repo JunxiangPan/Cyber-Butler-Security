@@ -1,5 +1,15 @@
 # DST Guard：对话状态感知的防复读架构
 
+## Contents
+
+- [行为矩阵](#行为矩阵)
+- [1. Prompt 层](#1-prompt-层)
+- [2. 插件层](#2-插件层)
+- [3. 部署方式](#3-部署方式)
+- [4. 安全边界](#4-安全边界)
+- [5. 测试](#5-测试)
+- [Standalone plugin installation](#standalone-plugin-installation)
+
 > v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 

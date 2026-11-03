@@ -1,5 +1,13 @@
 # 苏瑾言 RAG 知识库填充与调用指南
 
+## Contents
+
+- [一、上传前准备](#一上传前准备)
+- [二、在 AstrBot WebUI 上传](#二在-astrbot-webui-上传)
+- [三、调用方式](#三调用方式)
+- [四、验收标准](#四验收标准)
+- [五、注意](#五注意)
+
 > v1.6.1 status, incomplete work, and non-guarantees: [40-history/legacy-readmes/STATUS_v1.6.1.md](40-history/legacy-readmes/STATUS_v1.6.1.md).
 
 

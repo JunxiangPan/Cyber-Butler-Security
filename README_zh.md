@@ -1,5 +1,17 @@
 # Cyber-Butler Security（CBS）
 
+
+## 状态红绿灯
+
+| 组件 | 状态 | 说明 |
+|---|---|---|
+| SCM 服务、SQLite 读写、Job Object | ✅ | |
+| TOTP/审批 Broker 18090 | ✅ | |
+| WebUI 8765 | ✅ | |
+| WFP 出站拦截——仅 audit | ⚠️ | |
+| OTP Mailer 8766 / SnowLuma 5099 | ✅ | |
+| 6199 OneBot 适配器——需手动配置 | ❌ | |
+| Light 档——未实机验收 | ❌ | |
 面向自托管 LLM 智能体的防御性安全控制面。
 
 ## 快速开始
@@ -59,3 +71,5 @@ WFP enforce mode is **not enabled**; the guard is audit-only (`applied=0`). Nati
 6199 不是 CBS/AstrBot 的系统服务；它由 AstrBot OneBot 适配器在配置并启用后动态建立。
 
 S4U 计划任务路径已废弃；不要再把 AstrBot 注册为计划任务。
+
+- [FAQ — why not?](docs/00-overview/why-not-faq.md)

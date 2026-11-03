@@ -1,5 +1,18 @@
 # Quick start
 
+## Status at a glance
+
+| Component | Status | Note |
+|---|---|---|
+| SCM service / SQLite / Job Object | ✅ | 6185 verified |
+| TOTP Broker | ✅ | 18090 |
+| WebUI | ✅ | 8765 |
+| WFP outbound blocking | ⚠️ | audit only |
+| OTP Mailer / SnowLuma | ✅ | 8766 / 5099 |
+| 6199 OneBot adapter | ❌ | configure manually |
+| Light tier | ❌ | no real-machine acceptance |
+
+
 1. Use a clean Windows 10/11 x64 machine with administrator rights.
 2. Run `START-INSTALLER.exe` as administrator.
 3. Choose the install path, tier (High recommended for isolation testing), WebUI bind = Loopback, and personal plugin path.
