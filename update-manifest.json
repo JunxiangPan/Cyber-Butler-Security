@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.3",
+  "version": "1.6.2",
   "files": [
     {
       "path": ".github/workflows/security-tests.yml",
@@ -99,7 +99,7 @@
     },
     {
       "path": "VERSION",
-      "sha256": "6dde16f153f2f29ec2633b7627708716d637b83442844e75c6a2b28ea9c7cb50",
+      "sha256": "5e161b64f3dd8b20a291b5368b01a124132bc78229fbdd8da23171f55f966a9c",
       "size": 7
     },
     {
