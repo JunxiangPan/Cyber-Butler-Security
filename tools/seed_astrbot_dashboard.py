@@ -31,7 +31,7 @@ def main() -> int:
     dashboard["pbkdf2_password"] = hash_dashboard_password(password)
     dashboard["password"] = hash_md5_dashboard_password(password)
     dashboard["password_storage_upgraded"] = True
-    dashboard["password_change_required"] = True
+    dashboard["password_change_required"] = False
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
     marker = root / "AstrBot" / "data" / ".cbs-dashboard-password-configured"
