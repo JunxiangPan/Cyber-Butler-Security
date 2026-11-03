@@ -341,7 +341,7 @@ function Get-CyberButlerAstrBotInitialCredentials {
     }
     if (-not (Test-Path -LiteralPath $log)) { return $result }
     try {
-        $lines = @(Get-Content -LiteralPath $log -Tail 400 -ErrorAction Stop)
+        $lines = @(Get-Content -LiteralPath $log -Tail 400 -Encoding UTF8 -ErrorAction Stop)
         foreach ($line in $lines) {
             if ($line -match 'Initial username:\s*(\S+)') { $result.username = [string]$Matches[1] }
             if (-not $result.password -and $line -match 'Initial password:\s*(\S+)') { $result.password = [string]$Matches[1] }
@@ -356,7 +356,7 @@ function Get-CyberButlerSnowLumaInitialCredentials {
     $result = [pscustomobject]@{ username = 'admin'; password = ''; log = $log }
     if (-not (Test-Path -LiteralPath $log)) { return $result }
     try {
-        foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -ErrorAction Stop)) {
+        foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -Encoding UTF8 -ErrorAction Stop)) {
             if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
                 $result.username = [string]$Matches['user']
                 $result.password = [string]$Matches['pass']
@@ -590,7 +590,7 @@ function Start-CyberButlerGuiInstall {
         }
         if ($script:cbGuiOnProgress -and $script:cbGuiLogPath -and (Test-Path -LiteralPath $script:cbGuiLogPath)) {
             try {
-                $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 40 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
+                $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 40 -Encoding UTF8 -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() })
                 if ($tail.Count -gt 0) {
                     $last = Get-CyberButlerSafeLogLine ([string]$tail[$tail.Count - 1])
                     $text = ($tail -join "`n")

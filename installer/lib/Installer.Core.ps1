@@ -468,6 +468,17 @@ function Invoke-CyberButlerCoreDeploy {
     }
 
     $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
+    $packageVersionFile = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'VERSION'
+    $installedVersionFile = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'VERSION'
+    if ($test.satisfied -and (Test-Path -LiteralPath $packageVersionFile) -and (Test-Path -LiteralPath $installedVersionFile)) {
+        $wantedVersion = (Get-Content -LiteralPath $packageVersionFile -Raw -Encoding UTF8).Trim()
+        $installedVersion = (Get-Content -LiteralPath $installedVersionFile -Raw -Encoding UTF8).Trim()
+        if ($wantedVersion -ne $installedVersion) {
+            Write-Host ('CORE version differs: installed=' + $installedVersion + ' package=' + $wantedVersion + '; forcing deploy')
+            $test.satisfied = $false
+            $test.reason = 'version-mismatch'
+        }
+    }
     if ($test.satisfied) {
         $reason = 'core deployment already satisfied: ' + [string]$test.reason
         return [pscustomobject]@{

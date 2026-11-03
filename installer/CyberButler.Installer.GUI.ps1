@@ -996,7 +996,7 @@ function Get-GuiInstallStatusText {
             $last = Get-Item -LiteralPath $script:cbGuiLogPath
             $lastText = $last.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')
             $ageSeconds = [int]((Get-Date) - $last.LastWriteTime).TotalSeconds
-            $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 60 -ErrorAction SilentlyContinue | ForEach-Object { Get-CyberButlerSafeLogLine ([string]$_) } | Select-Object -Last 12)
+            $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 60 -Encoding UTF8 -ErrorAction SilentlyContinue | ForEach-Object { Get-CyberButlerSafeLogLine ([string]$_) } | Select-Object -Last 12)
         } catch { }
     }
     $logText = ($tail -join "`n")
@@ -1478,6 +1478,22 @@ $startButton.Add_Click({
         }
         $tierValue = Get-SelectedComboText $tierBox
         if ([string]::IsNullOrWhiteSpace($tierValue)) { $tierValue = 'Medium' }
+        $existingVersionFile = Join-Path ([string]$installPathBox.Text) 'VERSION'
+        if (Test-Path -LiteralPath $existingVersionFile) {
+            $existingVersion = (Get-Content -LiteralPath $existingVersionFile -Raw -Encoding UTF8).Trim()
+            $upgradeChoice = [System.Windows.MessageBox]::Show(
+                ("检测到已有安装：`n`n路径：$([string]$installPathBox.Text)`n版本：$existingVersion`n`n是否执行【升级 / 修复 / 保留数据】？`n`nYes = 保留现有数据升级`nNo = 取消`n`nDetected an existing installation.`nYes = upgrade/repair and preserve data.`nNo = cancel."),
+                '确认升级方式 / Confirm upgrade mode',
+                [System.Windows.MessageBoxButton]::YesNo,
+                [System.Windows.MessageBoxImage]::Question,
+                [System.Windows.MessageBoxResult]::Yes
+            )
+            if ($upgradeChoice -ne [System.Windows.MessageBoxResult]::Yes) {
+                Write-GuiLog 'USER CANCELLED: existing installation detected; preserve-data upgrade was not confirmed.'
+                return
+            }
+            Write-GuiLog ('UPGRADE MODE: preserve-data upgrade confirmed for version ' + $existingVersion)
+        }
         $physicalCheck = $window.FindName('PhysicalSeparationCheck')
         if (-not $physicalCheck.IsChecked) {
             if ($tierValue -like 'High*' -or $tierValue -eq 'High') {

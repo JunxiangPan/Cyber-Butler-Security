@@ -169,6 +169,17 @@ function Set-CyberButlerDataAcl {
         return [pscustomobject]@{ status = 'failed'; reason = 'data-root-missing'; message = $DataRoot }
     }
 
+    # Idempotent fast path: an upgrade often has thousands of data files.
+    # Re-running /T on every install can take minutes and be interrupted; if
+    # the root and existing DB already carry Modify for the service account,
+    # keep those ACLs and skip the recursive pass.
+    $rootAcl = Test-CyberButlerAcl -Path $DataRoot -Identity $ServiceAccount -Mode 'RW'
+    $dbPath = Join-Path $DataRoot 'data_v4.db'
+    $dbAcl = if (Test-Path -LiteralPath $dbPath) { Test-CyberButlerAcl -Path $dbPath -Identity $ServiceAccount -Mode 'RW' } else { $null }
+    if ($rootAcl.satisfied -and (($null -eq $dbAcl) -or $dbAcl.satisfied)) {
+        return [pscustomobject]@{ status = 'skipped'; reason = 'service-account-acl-already-present'; message = '' }
+    }
+
     $backup = $null
     if ($null -ne $Journal) {
         $backup = Backup-CyberButlerAcl -Journal $Journal -Step 'acl_data' -Path $DataRoot -NoTrack
