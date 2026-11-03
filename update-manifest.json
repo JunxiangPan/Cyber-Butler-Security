@@ -23,6 +23,11 @@
       "size": 5160
     },
     {
+      "path": "CONTRIBUTORS.md",
+      "sha256": "668d7f7fbb496e99e986384d6961ab8d06314a834880c0707a782fe2df55ceaa",
+      "size": 3537
+    },
+    {
       "path": "DEPLOYMENT.md",
       "sha256": "e27d3fc29a4a0aa338426322a66fc5b549a689fefd41cabfb99923fccf7d4c3b",
       "size": 15261
@@ -39,8 +44,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "d3dcebdb1fcd5af356a35189013dd8ccb5ffd3e78401f0ebf22a2e5dc3b73d8b",
-      "size": 1513
+      "sha256": "f7ed0dded283373408207e3b63643b656b28f66a9eeb38a6bb2c28556f36e080",
+      "size": 1769
     },
     {
       "path": "README_de.md",
@@ -294,8 +299,8 @@
     },
     {
       "path": "docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md",
-      "sha256": "97b49c86f0c25e19c210e47b8ed6b197649df316937091944e40c5a557f59da6",
-      "size": 6655
+      "sha256": "6963bf2091e0a281b97d752b24aa54912f639ba47a3dd4ddfdd1096d18e49af4",
+      "size": 7239
     },
     {
       "path": "docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md",
@@ -369,178 +374,178 @@
     },
     {
       "path": "docs/releases/ANNOUNCEMENT_v1.6.2.md",
-      "sha256": "caa95d68eaa4b6d0d22ce96186d9d8256a357ffba9a13df9e5fe775746c610b6",
-      "size": 4903
+      "sha256": "819fc7825e5a53bdd323cfce430d64ade0401b868aa6c8d1cf2f5d9f0995a23d",
+      "size": 4977
     },
     {
       "path": "docs/releases/README.md",
-      "sha256": "03bc78857b8a7e59be21d0b07d84633e721d51ec6ae6d023684529a32ddfe1ea",
-      "size": 543
+      "sha256": "0b534b5b106d4af034f8538721e0fff2ae308f91b33c91fcc6d89672508555d9",
+      "size": 617
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.0.md",
-      "sha256": "17070b18f0cde446227818df9547857e7c1ee5234002477eb5a8aa75ee4692a7",
-      "size": 10238
+      "sha256": "6dbcf1412cf3798ba5eabe23cb6dd6fef0ec9ef7cec64f8ca188ed5cb869f3b5",
+      "size": 10312
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.2.md",
-      "sha256": "06cefc1add5caac8507cedd76b694852c2051ed5dac5ca427b06bc0b4e32d0cb",
-      "size": 6817
+      "sha256": "374cd960e92ed0a76f1ac0f58f0a874515c1e6c314260a23166ae89b572387da",
+      "size": 7059
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.3.md",
-      "sha256": "19cde35bb02cdad734f768ee7a9029b230530949e231fcfa18e25a6a0ef8d112",
-      "size": 7485
+      "sha256": "21937170795f73441888178a417b115b5f6f46b08b6b72d348146465cbb26e7e",
+      "size": 7574
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.4.md",
-      "sha256": "15b7b960cb7048ff443375fced10ffe6513063e67b9c02b367a9e0532847038f",
-      "size": 1936
+      "sha256": "23cc7c14fc2fc998e85328ee1abc28eed8481cf35d40b55dca2fc0061781aa55",
+      "size": 2010
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.5.md",
-      "sha256": "c7be00065ffdfbd3a05853a00ad976c1c4bcea1d97cb193bb3a34424a66a8faa",
-      "size": 1788
+      "sha256": "2a47f5722c6725c7e79c99beac319dbe4a7b75b01dd24e6e220d1b236f5f806e",
+      "size": 1872
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.6.md",
-      "sha256": "049a5f6135b325bff822ad59208f05a7923f650ebe303a77b895792a6705f5de",
-      "size": 2500
+      "sha256": "eb9e7cf271f466779fc0271c803ddb3ef55850be6216e5b0f9ba89af23e77ce4",
+      "size": 2624
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.7.md",
-      "sha256": "c7f3fbdbd2d6ee3c3750c00ae83f491043edabb5cc87584cfdc157500e00883c",
-      "size": 1058
+      "sha256": "0d6c58fb921fbd68598e4798595a578b7dd0d5379affff12c431f524c36a3d29",
+      "size": 1156
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.8.md",
-      "sha256": "63c6885df883ed142e80da65e8ea86f30282ea8d901c6c334a2bd1a44bfae2a3",
-      "size": 1121
+      "sha256": "6c89b96d4e78aa59deb464ff844582f5c257640868c913a6e5e9b6b9f6b07212",
+      "size": 1227
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.0.9.md",
-      "sha256": "f0b09c090749f33806a4d9a22e986ba4d81bd208b36a05e57078ffa02892effc",
-      "size": 2071
+      "sha256": "c2a5f5b4ed2d3f2d6959accb896feeb1aa462640385599509a7509008cb6ecff",
+      "size": 2145
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.1.1.md",
-      "sha256": "a05e223e4551e2c51f3ab6d3f56627a0a37134dbe2f38d62c77e0bbc6ca3da8e",
-      "size": 3252
+      "sha256": "3ebbcd6d9f902705a1e95e4df597c22cadb3cad97051f859016eaa58876c8be1",
+      "size": 3400
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.2.0.md",
-      "sha256": "856cdbda40ef11d06bdd88fc24e2f1a8eb3ff8653ea2fd644ab4d9003fd8f06e",
-      "size": 3504
+      "sha256": "c1ba70dbaf81a8f831f508a77a076f011e3a359b1384d5f9078b10d9e0ba4409",
+      "size": 3653
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.2.1.md",
-      "sha256": "51ff4445e9b9d9793aa0b93f79c3a1548057ac6885deb9048501693cbe9a0ba3",
-      "size": 2387
+      "sha256": "6c35411bc14a27818c45842f7338e4b3886d7428dfb98109ffb28426d11363b1",
+      "size": 2516
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.2.2.md",
-      "sha256": "c22b984335b72081f8aec0e6bf9e4c8b16bd50cecf1bc9a2de17f228debd27d0",
-      "size": 1431
+      "sha256": "f9967fe048a7f483bde0ef57ef103884a7088509c755f9206827f34915dc1705",
+      "size": 1540
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.2.3.md",
-      "sha256": "8688cdb684706b2ffa92a528d1633c81cd6bd38dafc7adad7027b7dfa11dfed6",
-      "size": 1771
+      "sha256": "d9aba880d2952871e62557a668c271fb8897cdf5756e9d25b488f38b18354891",
+      "size": 1889
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.3.0.md",
-      "sha256": "ba8ca570fbbf46f9985ac32e0d4be52aff33ab61b996419fefa478db0e7e50af",
-      "size": 4220
+      "sha256": "4a08431cf5707129d454c570332a4ff5c1c9121513a3490610202cbdbfec004b",
+      "size": 4380
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.3.1.md",
-      "sha256": "6532c640dcecf4c92399ca75ae512a9dcb1436e60d2961298a70d1ec54864dd6",
-      "size": 1643
+      "sha256": "6dfcd82887f9ed0f8435e93152791571476f5c211bf0fbc020a87a33687894c9",
+      "size": 1756
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.3.2.md",
-      "sha256": "599973ab7358366ca46d426cc3b6e905201de1611be37b1f87a10f85bd5fef56",
-      "size": 3755
+      "sha256": "c45dfd77595722de8211c915919bab8864b99a9eff8fa0d9264ae2cff01f7c88",
+      "size": 3907
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.3.3.md",
-      "sha256": "f6c7fd0b73b0516f2eebd07d7e0954ef59c208ba6c55313165ab9df1a0551e0a",
-      "size": 1612
+      "sha256": "6715817c870168ede60e90508fa31cffaaa46136bce2168006bb7e2c119b367f",
+      "size": 1727
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.4.0.md",
-      "sha256": "fb747dd323f42eb3da1ce4c079f335316f648a5dd70735153f426f9d63dc4538",
-      "size": 1596
+      "sha256": "90c49c16962d2ea2cad6b83358b5465720ac570deacdee74ffb73eaf7ac6cf35",
+      "size": 1709
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.4.1.md",
-      "sha256": "393565ee8c1bb5dbe6668d1474af939068eba040f7e41830e72ee6ffbad9e1fc",
-      "size": 1608
+      "sha256": "dae75b18a9fb73f65a471fa009d7de0ea4281e539173d5fee4f97bf7b6c050e5",
+      "size": 1716
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.4.2.md",
-      "sha256": "4582710f85b7bea86cc20309ca4bf521416327bcd5cf788809c12900bd474246",
-      "size": 1979
+      "sha256": "bb18cdd62e5702bf1f25a2ea2b47612caf4cef05a0e5d1bbbba8a5009edf30a7",
+      "size": 2096
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.4.3.md",
-      "sha256": "2d4bd0e7ab25db823cc9259bf8a5c000bba109e55898d653b7bbe2b9bb1170aa",
-      "size": 1593
+      "sha256": "9adb3118f36a0b43759fe107e56b121db58e8994355346fb74fd588aa4addadb",
+      "size": 1706
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.4.4.md",
-      "sha256": "074850f4d0ce3d38623ad38fb7519b949aab64bc3b0d72347fd61dcd9abbd507",
-      "size": 2374
+      "sha256": "579807846c0637bc0f77ca16cc39f5c2f968ad1b5357565602d24e137d6373f7",
+      "size": 2499
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.5.0.md",
-      "sha256": "83ecbd58aca824c939096e5e67732240151bc01a6ec731978cc7ffe5261dfd12",
-      "size": 3282
+      "sha256": "97ba6487e1fcdb8453033ac5c5575b5048ca03334337f516f43d50dc901c980c",
+      "size": 3436
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.5.1.md",
-      "sha256": "6d8ec02ed01b29d1dd87f3ffa7505c3dda483086c22fdc938e25a704c8db5902",
-      "size": 6245
+      "sha256": "47a4384518d069f24c17676e038d8241226da58d7a975e2420fc1bbf7ad3cfd9",
+      "size": 6448
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.5.2.md",
-      "sha256": "fde449944116ec3608ad462548f1e9e219f675feb1dd45e6be94b6dd378f5b9c",
-      "size": 4303
+      "sha256": "d39f1eee93ce8051e694a4b69ffb9a46024e06e6ed2f8315550348d88afd967b",
+      "size": 4462
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.5.3.md",
-      "sha256": "8d961299a4874f951227ae03905e7f193b31444fb9c87493027f903072afd87d",
-      "size": 6908
+      "sha256": "1711adab674a3daf120d1d05c7ab7f57f865832a275d71d4407f82dd08e3286b",
+      "size": 7129
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.0.md",
-      "sha256": "7fa3b642d93715448632a37cdda13cda0f36ba94300f9c2d724c52090c00309a",
-      "size": 8113
+      "sha256": "2e15521afe351c38d277a04c502b0d2246f9595c7b560a81ed76b95586e639b9",
+      "size": 8187
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.1.md",
-      "sha256": "06716af7324b3ec60761477aac2ffea9c80ea834c081e93f297de1c4d741a3ab",
-      "size": 28329
+      "sha256": "cac531e6beab6a393750bfdf43ccabdcaa30ca87d72ebaebb7228af61d420133",
+      "size": 28403
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-beta.md",
-      "sha256": "7e4841e3c6f3f83735afa42928938b433c3662e8dec157405742789d2464b2db",
-      "size": 1612
+      "sha256": "c3fa9f8096134aa888251bb49f14d4963dcab2f16e0d4cd34cd715b395eec3ea",
+      "size": 1686
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-preview.md",
-      "sha256": "9ae3b6412b5ebc65ddbdfbf259baf0d1da90f05cd507c8f6e50287bdbe8eeff2",
-      "size": 1958
+      "sha256": "3c596f481e982a8a822a3152f1324ce2cb1ba2cf9b27a444136212c923ccd80f",
+      "size": 2032
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2-rc.md",
-      "sha256": "1b01abcbb94524e39c5967b6d6e7c59ae93113bcff850dd2ace88792e065a8fa",
-      "size": 1476
+      "sha256": "af6eeeecf3bd0d98ebeda9205ff43ab76d5af6de6b31d1b46a7d672537b6f378",
+      "size": 1550
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.2.md",
-      "sha256": "0bf17ab49014c9f19fe683e2469ad184599be6974d396690e46180cf276c74fe",
-      "size": 4929
+      "sha256": "3f4dc2f904c7a25386928475812025eb43a7b61e1fb84d3a2eb86b2db13098bd",
+      "size": 5003
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
@@ -1149,8 +1154,8 @@
     },
     {
       "path": "tests/test_docs_consistency.py",
-      "sha256": "3359279e831fd8fd683eb70f4eb3cc65414386719e6d88eb41bf56048b9efeac",
-      "size": 3437
+      "sha256": "8961ecfd6d16c002bc203053900a60ca6a18e65ee53b02adb6a8ffaedca9cb4d",
+      "size": 4309
     },
     {
       "path": "tests/test_email_approval.py",
@@ -1724,8 +1729,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "ab77b5be4d4ae5b1a3f720f6cc38181fd454692752ee15810d12ea5d0db4d1be",
-      "size": 11813
+      "sha256": "b72c45e567b9f4acc70319f8a413ba82692f597b174d541a7faee5354bac9ed9",
+      "size": 11837
     },
     {
       "path": "tools/update_gui.ps1",

@@ -46,6 +46,7 @@ ALLOWED_ROOT_FILES = {
     "THREAT_MODEL.md",
     "ROADMAP.md",
     "CONTRIBUTING.md",
+    "CONTRIBUTORS.md",
     "DEPLOYMENT.md",
     "LICENSE",
     ".gitignore",
