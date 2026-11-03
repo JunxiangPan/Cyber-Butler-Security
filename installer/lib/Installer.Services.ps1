@@ -187,6 +187,14 @@ function Test-CyberButlerServices {
         return [pscustomobject]$result
     }
 
+    # Repair the AstrBot data ACL before registering/starting the SCM service.
+    # takeown + inheritance reset + explicit RX/W is required because copied
+    # plugin/template files can carry stale Deny or non-inheriting ACEs.
+    $aclRepair = Join-Path $PSScriptRoot '..\Repair-AstrBotACL.ps1'
+    if (Test-Path -LiteralPath $aclRepair) {
+        & $aclRepair -Root $Root -ServiceAccount $ServiceAccount -ServiceAccountPassword $ServiceAccountPassword
+    }
+
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
     $taskRows = New-Object System.Collections.Generic.List[object]
     foreach ($spec in $specs) {
