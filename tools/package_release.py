@@ -27,6 +27,13 @@ import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig"}
+FORBIDDEN_PAYLOAD_PREFIXES = ("astrbot/", "snowluma/")
+
+
+def is_forbidden_payload(rel_path: str) -> bool:
+    """v1.6.3 CBS is an independent control plane; never bundle third-party runtimes."""
+    normalised = rel_path.replace("\\", "/").lstrip("/").casefold()
+    return any(normalised == prefix.rstrip("/") or normalised.startswith(prefix) for prefix in FORBIDDEN_PAYLOAD_PREFIXES)
 
 
 def load_baseline_core(path: Path):
@@ -64,6 +71,8 @@ def main() -> int:
     for rel in tracked_files():
         if rel == "update-manifest.json" or rel in PACKAGE_EXCLUDE:
             continue
+        if is_forbidden_payload(rel):
+            raise SystemExit(f"forbidden third-party payload in CBS package: {rel}")
         path = ROOT / rel
         if not path.is_file():
             raise SystemExit(f"tracked file missing from worktree: {rel}")

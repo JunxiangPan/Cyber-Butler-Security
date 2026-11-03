@@ -23,7 +23,7 @@
     "v1.6.2 uninstaller removes SCM service before binary"
   ],
   "in_progress": [
-    "PR-00 baseline: branch, status source, frozen release assets, test inventory"
+    "PR-01 packaging split: forbid AstrBot/SnowLuma payloads in the CBS ZIP; installer decoupling follows in PR-02"
   ],
   "planned_modules": {
     "module-01": "Decouple AstrBot and SnowLuma from CBS packaging, service registration, ACL, and configuration",
@@ -95,8 +95,11 @@
   "test_baseline": {
     "pester": "144 passed / 0 failed",
     "docs_consistency": "8 passed / 0 failed",
-    "pytest_full": "local run did not complete within 10 minutes; v1.6.2 CI at ebfa7df was green; investigate in PR-00 follow-up",
+    "pytest_full": "CI security-tests green on release/v1.6.3 (local host lacks pyotp for the full suite)",
     "baseline_commit_ci": "ebfa7df91fcffe55bd9aa3ad840e67b4402986dd"
   },
-  "updated_at": "2026-11-04T00:00:00+08:00"
+  "updated_at": "2026-11-04T00:00:00+08:00",
+  "completed": [
+    "PR-00 baseline: release/v1.6.3 branch, status source, frozen v1.6.2 assets, green CI"
+  ]
 }
