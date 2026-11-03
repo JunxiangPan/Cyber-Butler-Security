@@ -710,6 +710,13 @@ function Invoke-CyberButlerCoreDeploy {
             }
             $requirements = Join-Path $astrbotTarget 'requirements.txt'
             if ((Test-Path -LiteralPath $requirements) -and (Get-Item -LiteralPath $requirements).Length -gt 0) {
+                # Deprecated 3.0.0 uses PEP 695 ``type`` syntax and fails on
+                # Python 3.10, which is the bundled runtime on existing installs.
+                $reqText = [IO.File]::ReadAllText($requirements)
+                if ($reqText -notmatch '(?im)^\s*deprecated\s*<') {
+                    $reqText = $reqText.TrimEnd() + [Environment]::NewLine + 'deprecated<3' + [Environment]::NewLine
+                    [IO.File]::WriteAllText($requirements, $reqText, (New-Object Text.UTF8Encoding($false)))
+                }
                 $pipLog = if ($PipLogPath) { $PipLogPath } else { Join-Path $root 'installer-report\pip-install.log' }
                 Write-Host 'CORE installing dependencies (this may take several minutes)...'
                 Write-Host ('CORE pip log: ' + $pipLog)
@@ -767,7 +774,8 @@ function Invoke-CyberButlerCoreDeploy {
         $rawError = [string]$_.Exception.Message
         $safeError = $rawError
         $lockedPath = ''
-        $pathMatch = [regex]::Match($rawError, '([A-Za-z]:\[^"
+        $pathMatch = [regex]::Match($rawError, '([A-Za-z]:\[^"
+
 ]+)')
         if ($pathMatch.Success) { $lockedPath = $pathMatch.Groups[1].Value }
         if ($rawError -match '(?i)(node\.exe|being used by another process|另一个进程|正由另一进程|使用中|锁定)' -or $rawError -match '[�ʹʺ]') {

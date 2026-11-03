@@ -62,6 +62,8 @@ ode.exe` while the running
   reports a truncated `Traceback (most recent call last):`.
 - Required: pin `deprecated<3` in installer/AstrBot requirements or force
   Python 3.13; add an import-smoke regression test.
+- Source fix added: installer appends `deprecated<3` to the extracted AstrBot
+  requirements before pip; this is NOT in the signed v1.6.2 package.
 
 ### 3d. GUI status can show stale failed report and false TOTP state
 
@@ -76,6 +78,8 @@ ode.exe` while the running
 - Required: clear/rotate the report at run start; compare generated_at/run_id
   with the current GUI run; derive TOTP state only from `totp-ready.json`; stop
   the timer and disable TOTP controls on a failed report.
+- Source fix added: rotate the previous report at startup. Remaining UI work:
+  stop TOTP/status timers on a current-run failure and ignore stale report IDs.
 
 ### 3b. Localized PowerShell errors were mojibake in report/manual recovery
 

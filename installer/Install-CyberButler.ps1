@@ -95,6 +95,10 @@ $ErrorActionPreference = 'Stop'
 $utf8NoBom = New-Object Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8NoBom
 $OutputEncoding = $utf8NoBom
+if (-not $Resume -and $ReportDirectory -and (Test-Path -LiteralPath (Join-Path $ReportDirectory 'install-report.json'))) {
+    $previousReport = Join-Path $ReportDirectory ('install-report.previous-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.json')
+    try { Move-Item -LiteralPath (Join-Path $ReportDirectory 'install-report.json') -Destination $previousReport -Force } catch { }
+}
 $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
