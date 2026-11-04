@@ -301,6 +301,52 @@ function Test-CyberButlerCbsPythonDependencies {
     return [pscustomobject]@{ ok = ($LASTEXITCODE -eq 0); reason = $probe.Trim() }
 }
 
+function Set-CyberButlerCorePlaceholders {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$DesktopAccount = '',
+        [string]$ServiceAccount = 'CyberButlerSvc',
+        [string]$OwnerQQ = ''
+    )
+    $desktop = [Environment]::GetFolderPath('Desktop')
+    $userPath = if ($desktop) { Split-Path -Parent $desktop } else { $env:USERPROFILE }
+    $desktopName = if ($DesktopAccount) { $DesktopAccount } else { $env:USERNAME }
+    $owner = if ($OwnerQQ) { $OwnerQQ } else { 'owner' }
+    $values = [ordered]@{
+        'YOUR_PROJECT_PATH' = $Root
+        'YOUR_USER_PATH' = $userPath
+        'YOUR_SERVICE_USER' = $ServiceAccount
+        'YOUR_USER_NAME' = $desktopName
+        'YOUR_HOST' = $env:COMPUTERNAME
+        'YOUR_QQ_ID' = $owner
+        'YOUR_PLATFORM_ID' = 'QQ'
+    }
+    $skipExt = @('.exe','.dll','.png','.jpg','.jpeg','.gif','.ico','.whl','.pyc','.zip','.pdb','.log')
+    foreach ($tree in @((Join-Path $Root 'tools'), (Join-Path $Root 'webui'))) {
+        if (-not (Test-Path -LiteralPath $tree)) { continue }
+        foreach ($file in @(Get-ChildItem -LiteralPath $tree -Recurse -File -ErrorAction SilentlyContinue)) {
+            if ($file.FullName -match '\\.venv') { continue }
+            if ($skipExt -contains $file.Extension.ToLowerInvariant()) { continue }
+            try {
+                $bytes = [IO.File]::ReadAllBytes($file.FullName)
+                if ($bytes -contains 0) { continue }
+                $text = [Text.Encoding]::UTF8.GetString($bytes)
+                $changed = $false
+                foreach ($key in $values.Keys) {
+                    if ($text.Contains($key)) {
+                        $text = $text.Replace($key, [string]$values[$key])
+                        $changed = $true
+                    }
+                }
+                if ($changed) {
+                    $encoding = if ($file.Extension -ieq '.ps1') { New-Object Text.UTF8Encoding($true) } else { New-Object Text.UTF8Encoding($false) }
+                    [IO.File]::WriteAllText($file.FullName, $text, $encoding)
+                }
+            } catch { }
+        }
+    }
+}
+
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -354,6 +400,10 @@ function Invoke-CyberButlerCoreDeploy {
         data = Join-Path $root 'data'
     }
     if ($test.satisfied) {
+        Set-CyberButlerCorePlaceholders -Root $root -DesktopAccount $ToolDesktopAccount -ServiceAccount $ToolServiceAccount -OwnerQQ $OwnerQQ
+        foreach ($dir in @((Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker	rash_staging'), (Join-Path $paths.webui 'data'))) {
+            New-Item -ItemType Directory -Force -Path $dir -ErrorAction SilentlyContinue | Out-Null
+        }
         return [pscustomobject]@{ status = 'skipped'; changed = $false; exit_code = 0; test = $test; reason = 'CBS core already present'; paths = $paths }
     }
 
@@ -364,7 +414,7 @@ function Invoke-CyberButlerCoreDeploy {
         $stepStarted = $true
     }
     try {
-        foreach ($dir in @($root, $paths.tools, $paths.webui, $paths.workspace, $paths.data)) {
+        foreach ($dir in @($root, $paths.tools, (Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker	rash_staging'), $paths.webui, (Join-Path $paths.webui 'data'), $paths.workspace, $paths.data)) {
             if (-not (Test-Path -LiteralPath $dir)) {
                 if ($null -ne $Journal) {
                     New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $dir -AllowedRoot $root | Out-Null
@@ -380,6 +430,7 @@ function Invoke-CyberButlerCoreDeploy {
         Copy-CyberButlerCoreTree -Source (Join-Path $releaseRoot 'webui') -Destination $paths.webui -AllowedRoot $root -Journal $Journal -JournalStep $JournalStep `
             -ExcludeTop @('.venv', 'data', 'tests', '__pycache__') -ExcludePatterns @('.venv\*','data\*','tests\*','__pycache__\*','tmp-*','*.pyc','config.json') -Label 'webui'
         Set-Content -LiteralPath (Join-Path $root 'VERSION') -Value ((Get-Content -LiteralPath (Join-Path $releaseRoot 'VERSION') -Raw -Encoding UTF8).Trim()) -Encoding ASCII
+        Set-CyberButlerCorePlaceholders -Root $root -DesktopAccount $ToolDesktopAccount -ServiceAccount $ToolServiceAccount -OwnerQQ $OwnerQQ
 
         $webConfigPath = Join-Path $paths.webui 'config.json'
         if (-not (Test-Path -LiteralPath $webConfigPath)) {

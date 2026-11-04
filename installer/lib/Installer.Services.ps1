@@ -376,6 +376,8 @@ function Set-CyberButlerServiceTasks {
     # this file it exits before writing webui\data\wfp-guard-status.json.
     $networkDataDir = Join-Path $Root 'webui\data'
     New-Item -ItemType Directory -Force -Path $networkDataDir -ErrorAction SilentlyContinue | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $Root 'tools\logs') -ErrorAction SilentlyContinue | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $Root 'toolsroker	rash_staging') -ErrorAction SilentlyContinue | Out-Null
     $networkPolicyPath = Join-Path $networkDataDir 'network-policy.json'
     if (-not (Test-Path -LiteralPath $networkPolicyPath)) {
         [ordered]@{
