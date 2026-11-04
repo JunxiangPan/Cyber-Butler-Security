@@ -104,6 +104,9 @@ Path(r'$PurgeOut').write_text('PURGED' if not Path(r'$Entry').exists() else 'NOT
     & icacls.exe $payload /inheritance:r /grant:r '*S-1-5-18:(F)' `
         /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'icacls payload failed' }
+    & icacls.exe $manifestPath /inheritance:r /grant:r '*S-1-5-18:(F)' `
+        /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'icacls manifest failed' }
     & icacls.exe $entry /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)(F)' `
         /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'icacls entry failed' }
