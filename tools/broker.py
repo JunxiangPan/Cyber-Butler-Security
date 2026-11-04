@@ -330,7 +330,7 @@ def _approval_channel() -> str:
     try:
         data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
         channel = str(data.get("approval_channel", "qq")).strip().lower()
-        return channel if channel in {"qq", "email"} else "qq"
+        return channel if channel in {"qq", "email", "webui"} else "qq"
     except (OSError, ValueError):
         return "qq"
 
@@ -801,6 +801,24 @@ def _fail_send_wait(request_id: str) -> None:
     if event:
         _send_results[request_id] = False
         event.set()
+
+
+def _snapshot_summary(snapshot, path_text: str) -> str:
+    """Summarize the already-open target without reopening it.
+
+    The target snapshot holds DELETE access for the later rename. A second
+    path-based open can be denied by Windows sharing rules even though the
+    Broker owns the first handle, so never reopen the target here.
+    """
+    try:
+        if snapshot is not None and not getattr(snapshot, "is_directory", False):
+            return (
+                f"{snapshot.path} | file | {int(snapshot.identity[2])} bytes "
+                f"| sha256={snapshot.sha256}"
+            )
+    except Exception:
+        pass
+    return _path_summary(path_text)
 
 
 def _path_summary(path_text: str) -> str:
@@ -1500,9 +1518,9 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "manifest": manifest,
             "content": payload.get("content"),
             "mode": _target_mode(action, target_text),
-            "target_summary": _path_summary(target_text),
+            "target_summary": _snapshot_summary(target_snapshot, target_text),
             "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
-            "channel": "email" if email_mode else "qq",
+            "channel": "email" if email_mode else ("webui" if channel == "webui" else "qq"),
             "challenge": challenge,
             "approval_only": approval_only,
             "preview": preview,
@@ -1550,6 +1568,23 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "id": request_id,
             "channel": "email",
             "challenge": challenge,
+            "action": action,
+            "target": target_text,
+        }
+
+    if channel == "webui":
+        with _lock:
+            if action != "send":
+                if approval_only:
+                    _set_approval_state(request_id, "pending", approval_only=True)
+                threading.Thread(target=timeout_watch, args=(request_id,), daemon=True).start()
+            log(f"webui challenge ready: {request_id} {action} {target_text}")
+        return 200, {
+            "ok": True,
+            "status": "requires_totp",
+            "id": request_id,
+            "channel": "webui",
+            "challenge": "",
             "action": action,
             "target": target_text,
         }

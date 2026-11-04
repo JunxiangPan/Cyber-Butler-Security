@@ -66,6 +66,11 @@ def _lock_quarantine_acl(entry: Path) -> None:
     if os.name != "nt" or os.environ.get("CBS_DISABLE_ACL") == "1":
         return
     owner = getpass.getuser()
+    # SYSTEM can resolve through getpass as "HYPERPC$"; that computer account
+    # has no local mapping and icacls rejects it. The SYSTEM grant above
+    # already covers the Broker, so omit non-user identities.
+    if owner.casefold() in {"system", r"nt authority\system"} or owner.endswith("$"):
+        owner = ""
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     args = ["icacls", str(entry), "/inheritance:r", "/grant:r", "*S-1-5-18:(F)"]
     for identity in {owner, SERVICE_ACCOUNT}:
