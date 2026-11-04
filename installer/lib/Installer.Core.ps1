@@ -331,6 +331,7 @@ function Set-CyberButlerCorePlaceholders {
                 $bytes = [IO.File]::ReadAllBytes($file.FullName)
                 if ($bytes -contains 0) { continue }
                 $text = [Text.Encoding]::UTF8.GetString($bytes)
+                if ($text.Length -gt 0 -and $text[0] -eq [char]0xFEFF) { $text = $text.Substring(1) }
                 $changed = $false
                 foreach ($key in $values.Keys) {
                     if ($text.Contains($key)) {
