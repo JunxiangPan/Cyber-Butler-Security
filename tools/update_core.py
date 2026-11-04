@@ -45,6 +45,7 @@ ALLOWED_ROOT_FILES = {
     "TROUBLESHOOTING.md",
     "THREAT_MODEL.md",
     "ROADMAP.md",
+    "INTEGRATION.md",
     "CONTRIBUTING.md",
     "CONTRIBUTORS.md",
     "DEPLOYMENT.md",

@@ -1987,6 +1987,8 @@ class Handler(BaseHTTPRequestHandler):
                     "action": action,
                     "channel": str(pending.get("channel", "")),
                     "target_name": target_name,
+                    "target_size": int((pending.get("_snapshot").identity[2] if pending.get("_snapshot") else 0) or 0),
+                    "target_mtime_ns": int((pending.get("_snapshot").identity[3] if pending.get("_snapshot") else 0) or 0),
                     "remaining_seconds": remaining,
                 })
         elif parsed.path == "/trash":

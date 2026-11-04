@@ -571,12 +571,16 @@
       const target = data.target_name
         ? i18n.t("dash.security.target", { target: data.target_name })
         : "";
-      setText("securityDetail", i18n.t("dash.security.detail", {
+      const detail = i18n.t("dash.security.detail", {
         action: actions[data.action] || actions.send,
         target,
         channel: channels[data.channel] || channels.qq,
         seconds: formatNumber(data.remaining_seconds || 0),
-      }));
+      });
+      const meta = data.target_size
+        ? ` · ${i18n.formatSize(data.target_size)} · ${new Date(Number(data.target_mtime_ns) / 1e6).toLocaleString()}`
+        : "";
+      setText("securityDetail", detail + meta);
       banner.hidden = false;
     } else {
       banner.hidden = true;

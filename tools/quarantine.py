@@ -25,7 +25,8 @@ ROOT = Path(os.environ.get("CBS_ROOT", r"C:\CyberButler")).resolve()
 QUARANTINE_ROOT = ROOT / "tools" / "broker" / "quarantine"
 TRASH_STAGING = ROOT / "tools" / "broker" / "trash_staging"
 DELAY_SECONDS = int(os.environ.get("CBS_TRASH_DELAY_SECONDS", "600"))
-MAX_BYTES = int(os.environ.get("CBS_TRASH_MAX_BYTES", str(2 * 1024 * 1024 * 1024)))
+MAX_BYTES = int(os.environ.get("CBS_TRASH_MAX_BYTES", str(500 * 1024 * 1024)))
+MAX_ENTRIES = int(os.environ.get("CBS_TRASH_MAX_ENTRIES", "1000"))
 SERVICE_ACCOUNT = os.environ.get("CBS_SERVICE_ACCOUNT", "CyberButlerSvc")
 _sweep_lock = threading.Lock()
 
@@ -90,7 +91,11 @@ def quarantine_file(
     size = int(snapshot.identity[2])
     if _entry_bytes() + size > MAX_BYTES:
         raise QuarantineCapacityError(
-            f"trash staging capacity exceeded: {MAX_BYTES} bytes"
+            f"trash staging byte quota exceeded: {MAX_BYTES} bytes"
+        )
+    if len(list_pending()) >= MAX_ENTRIES:
+        raise QuarantineCapacityError(
+            f"trash staging entry quota exceeded: {MAX_ENTRIES} entries"
         )
     TRASH_STAGING.mkdir(parents=True, exist_ok=True)
     entry = TRASH_STAGING / _safe_id(request_id)
