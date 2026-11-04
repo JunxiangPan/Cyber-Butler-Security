@@ -1,13 +1,15 @@
 {
-  "generated_at": "2026-11-02T18:45:33+00:00",
+  "generated_at": "2026-11-04T02:58:30+00:00",
   "requirements": [
     "fastapi==0.162.0",
     "uvicorn==0.54.0",
     "jinja2>=3.1",
     "httpx==0.28.1",
-    "pytest>=8.0"
+    "pytest>=8.0",
+    "pyotp==9.0.0",
+    "requests==2.32.5"
   ],
   "schema": 1,
-  "sha256": "aefb3944a25c1389bee9c4b89d164cffff3f6fdaddf71d99acf0aac214056f16",
+  "sha256": "0beb392bf8c31123841b45edeec09eeaf752b04d358930b01aa67069e6b81028",
   "source": "requirements.txt"
 }

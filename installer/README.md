@@ -1,4 +1,4 @@
-# Cyber-Butler Installer (v1.6.1)
+# Cyber-Butler Installer (v1.6.3)
 
 > v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
 

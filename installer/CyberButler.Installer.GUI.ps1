@@ -1,4 +1,4 @@
-﻿# Cyber-Butler v1.6.1 visual installer front-end.
+﻿# Cyber-Butler v1.6.3 visual installer front-end.
 # The actual privileged installation still runs in a visible elevated console so
 # approval tokens and TOTP enrollment remain explicit, auditable user actions.
 
@@ -65,7 +65,7 @@ $xaml = @'
     <StackPanel Grid.Row="0" Margin="0,0,0,22">
       <Border Height="4" CornerRadius="2" Background="#0EA5E9" Margin="0,0,0,14"/>
       <TextBlock x:Name="HeaderTitle" Text="Cyber-Butler Setup" Foreground="#F8FAFC" FontSize="32" FontWeight="SemiBold"/>
-      <TextBlock x:Name="HeaderSubtitle" Text="v1.6.1 · visual installer front-end"
+      <TextBlock x:Name="HeaderSubtitle" Text="v1.6.3 · visual installer front-end"
                  Foreground="#94A3B8" FontSize="13" Margin="0,7,0,0"/>
       <TextBlock x:Name="HeaderWarning" Text="The console handoff keeps approval tokens and TOTP enrollment explicit. Complete those prompts in the elevated window."
                  Foreground="#FBBF24" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0"/>
@@ -322,7 +322,7 @@ $advancedExpander = $window.FindName('AdvancedExpander')
 
 $script:UiText = @{
     zh = @{
-        Title='Cyber-Butler 安装程序'; Subtitle='v1.6.1 · 可视化安装前端'
+        Title='Cyber-Butler 安装程序'; Subtitle='v1.6.3 · 可视化安装前端'
         Warning='只有勾选批准后，GUI 才会提交 approval token；TOTP 在可视化对话框中确认，不再打开第二个命令窗口。'
         InstallPath='安装路径'; Tier='安全档位'; OwnerQQ='主人 QQ'; Bind='WebUI 绑定'
         PersonalPlugins='个人插件路径'; ApiKeyFile='API Key 文件（可选，sk-...）'
@@ -348,7 +348,7 @@ $script:UiText = @{
         LaunchGuideTitle='登录、启动与维护说明'
     }
     en = @{
-        Title='Cyber-Butler Setup'; Subtitle='v1.6.1 · visual installer front-end'
+        Title='Cyber-Butler Setup'; Subtitle='v1.6.3 · visual installer front-end'
         Warning='The GUI supplies approval tokens only after your explicit approval. TOTP is confirmed in a dialog; no second command window is used.'
         InstallPath='Install path'; Tier='Tier'; OwnerQQ='Owner QQ'; Bind='WebUI bind'
         PersonalPlugins='Personal plugins'; ApiKeyFile='API key file (optional, sk-...)'
@@ -374,7 +374,7 @@ $script:UiText = @{
         LaunchGuideTitle='Login, startup and maintenance guide'
     }
     de = @{
-        Title='Cyber-Butler Installationsprogramm'; Subtitle='v1.6.1 · visueller Installer'
+        Title='Cyber-Butler Installationsprogramm'; Subtitle='v1.6.3 · visueller Installer'
         Warning='Die GUI übergibt Freigabetoken erst nach Ihrer ausdrücklichen Bestätigung. TOTP wird in einem Dialog bestätigt.'
         InstallPath='Installationspfad'; Tier='Sicherheitsstufe'; OwnerQQ='Eigentümer-QQ'; Bind='WebUI-Bindung'
         PersonalPlugins='Persönliche Plugins'; ApiKeyFile='API-Key-Datei (optional, sk-...)'
@@ -440,7 +440,7 @@ $script:UiText = @{
         LaunchGuideTitle='Anmeldung, Start und Wartung'
     }
     es = @{
-        Title='Instalador de Cyber-Butler'; Subtitle='v1.6.1 · instalador visual'
+        Title='Instalador de Cyber-Butler'; Subtitle='v1.6.3 · instalador visual'
         Warning='La GUI entrega los tokens solo tras su aprobación explícita. TOTP se confirma en un diálogo.'
         InstallPath='Ruta de instalación'; Tier='Nivel de seguridad'; OwnerQQ='QQ del propietario'; Bind='Enlace WebUI'
         PersonalPlugins='Plugins personales'; ApiKeyFile='Archivo de API Key (opcional, sk-...)'
@@ -506,7 +506,7 @@ $script:UiText = @{
         LaunchGuideTitle='Acceso, inicio y mantenimiento'
     }
     fr = @{
-        Title='Installateur Cyber-Butler'; Subtitle='v1.6.1 · installateur visuel'
+        Title='Installateur Cyber-Butler'; Subtitle='v1.6.3 · installateur visuel'
         Warning='L interface ne transmet les jetons qu après votre approbation explicite. TOTP est confirmé dans une boîte de dialogue.'
         InstallPath='Chemin d installation'; Tier='Niveau de sécurité'; OwnerQQ='QQ propriétaire'; Bind='Liaison WebUI'
         PersonalPlugins='Plugins personnels'; ApiKeyFile='Fichier de clé API (facultatif, sk-...)'
@@ -572,7 +572,7 @@ $script:UiText = @{
         LaunchGuideTitle='Connexion, démarrage et maintenance'
     }
     ja = @{
-        Title='Cyber-Butler インストーラー'; Subtitle='v1.6.1 · ビジュアルインストーラー'
+        Title='Cyber-Butler インストーラー'; Subtitle='v1.6.3 · ビジュアルインストーラー'
         Warning='承認チェック後だけ承認トークンを渡します。TOTP はダイアログで確認します。'
         InstallPath='インストール先'; Tier='セキュリティレベル'; OwnerQQ='オーナー QQ'; Bind='WebUI バインド'
         PersonalPlugins='個人プラグイン'; ApiKeyFile='API Key ファイル（任意、sk-...）'
@@ -638,7 +638,7 @@ $script:UiText = @{
         LaunchGuideTitle='ログイン・起動・保守'
     }
     ko = @{
-        Title='Cyber-Butler 설치 프로그램'; Subtitle='v1.6.1 · 시각적 설치 프로그램'
+        Title='Cyber-Butler 설치 프로그램'; Subtitle='v1.6.3 · 시각적 설치 프로그램'
         Warning='승인 확인 후에만 승인 토큰을 전달합니다. TOTP는 대화상자에서 확인합니다.'
         InstallPath='설치 경로'; Tier='보안 등급'; OwnerQQ='소유자 QQ'; Bind='WebUI 바인딩'
         PersonalPlugins='개인 플러그인'; ApiKeyFile='API Key 파일 (선택, sk-...)'
@@ -704,7 +704,7 @@ $script:UiText = @{
         LaunchGuideTitle='로그인, 시작 및 유지 관리'
     }
     ru = @{
-        Title='Установщик Cyber-Butler'; Subtitle='v1.6.1 · визуальный установщик'
+        Title='Установщик Cyber-Butler'; Subtitle='v1.6.3 · визуальный установщик'
         Warning='GUI передаёт токены только после явного подтверждения. TOTP подтверждается в диалоге.'
         InstallPath='Путь установки'; Tier='Уровень безопасности'; OwnerQQ='QQ владельца'; Bind='Привязка WebUI'
         PersonalPlugins='Личные плагины'; ApiKeyFile='Файл API Key (необязательно, sk-...)'
