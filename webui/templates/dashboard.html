@@ -46,6 +46,16 @@
       </div>
     </section>
 
+    <section id="trashPanel" class="wfp-card" hidden>
+      <div class="wfp-icon" aria-hidden="true">↺</div>
+      <div style="flex:1">
+        <strong>两阶段延迟删除 / Two-stage delayed delete</strong>
+        <p class="muted-line">文件已移入 SYSTEM-only 暂存区。10 分钟内可撤回；到期后安全粉碎。</p>
+        <ul id="trashList" class="plain-list"></ul>
+        <span id="trashStatus" class="network-status" role="status"></span>
+      </div>
+    </section>
+
     <section id="physicalBanner" class="security-banner" hidden>
       <div class="security-icon">!</div>
       <div>

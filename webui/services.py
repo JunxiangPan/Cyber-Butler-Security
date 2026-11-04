@@ -302,6 +302,38 @@ class WebServices:
             })
         return {"ok": True, "available": True, "items": items, "total": total}
 
+    def _broker_token(self) -> str:
+        path = self.settings.project_root / "tools" / "broker_token.txt"
+        if not path.is_file():
+            raise ServiceError("Broker token file is missing")
+        return path.read_text(encoding="utf-8").strip()
+
+    async def security_trash(self) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=4) as client:
+                response = await client.get(
+                    f"http://127.0.0.1:{self.settings.broker_port}/trash",
+                    headers={"X-Broker-Token": self._broker_token()},
+                )
+                response.raise_for_status()
+                data = response.json()
+            return {"ok": True, "available": True, "items": data.get("items", [])}
+        except Exception:
+            return {"ok": True, "available": False, "items": []}
+
+    async def security_trash_undo(self, request_id: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=6) as client:
+                response = await client.post(
+                    f"http://127.0.0.1:{self.settings.broker_port}/trash/undo",
+                    headers={"X-Broker-Token": self._broker_token()},
+                    json={"id": request_id},
+                )
+                response.raise_for_status()
+                return {"ok": True, **response.json()}
+        except Exception as exc:
+            raise ServiceError(f"trash undo failed: {exc}") from exc
+
     async def security_pending(self) -> dict:
         try:
             async with httpx.AsyncClient(timeout=4) as client:

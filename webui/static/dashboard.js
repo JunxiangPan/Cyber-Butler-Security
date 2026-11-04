@@ -514,6 +514,45 @@
     }
   };
 
+  const undoTrash = async (id) => {
+    if (!csrf) return;
+    const response = await fetch("/api/security/trash/undo", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+      body: JSON.stringify({ id }),
+    });
+    const data = await response.json().catch(() => ({}));
+    setStatus("trashStatus", data.ok ? "撤回成功 / Restored" : (data.message || "撤回失败"));
+    await loadTrash();
+  };
+
+  const loadTrash = async () => {
+    if (!csrf) return;
+    const panel = $("trashPanel");
+    const list = $("trashList");
+    if (!panel || !list) return;
+    const data = await getJson("/api/security/trash");
+    if (!data || !data.available || !(data.items || []).length) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+    list.replaceChildren();
+    for (const item of data.items) {
+      const li = document.createElement("li");
+      const label = document.createElement("span");
+      label.textContent = item.original_path || item.id;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ghost-button";
+      button.textContent = "撤回 / Undo";
+      button.addEventListener("click", () => undoTrash(item.id));
+      li.append(label, button);
+      list.append(li);
+    }
+  };
+
   const loadSecurity = async () => {
     if (!csrf) return;
     const data = await getJson("/api/security/pending");
@@ -723,6 +762,7 @@
     loadLogs();
     loadBackups();
     loadSecurity();
+    loadTrash();
     if (!$("filesTab")?.hidden) loadFiles(filePath);
     if (lastFileItem && !$("fileModal")?.hidden) openFile(lastFileItem);
   };
@@ -803,6 +843,7 @@
     setInterval(loadStatus, 5000);
     setInterval(loadTemps, 5000);
     setInterval(loadSecurity, 5000);
+    setInterval(loadTrash, 5000);
     setInterval(loadUsage, 60000);
     setInterval(loadPlugins, 30000);
     setInterval(loadBackups, 60000);

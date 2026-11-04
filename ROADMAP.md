@@ -168,6 +168,18 @@ memory/config/vault/egress always requires fresh TOTP
 a scoped token cannot be replayed outside its directory or after restart
 ```
 
+## Two-Stage Delayed Delete (两阶段延迟删除)
+
+**Goal:** make a high-risk delete recoverable after a blind approval, without
+turning the staging area into a new data-leak path.
+
+- A TOTP-approved `delete` is moved to `tools/broker/trash_staging/<request_id>/`; it is not physically destroyed.
+- The staging entry is ACL-locked to `NT AUTHORITY\SYSTEM:(F)`; the desktop owner and `CyberButlerSvc` receive explicit deny ACEs. The Broker, not Explorer or the agent, performs restore.
+- The owner gets a 10-minute undo window. The WebUI calls a CSRF-protected backend, which calls the authenticated Broker `/trash/undo` endpoint.
+- A SYSTEM-only sweeper purges expired entries. Purge overwrites the file with random bytes for up to three passes, flushes, then unlinks it.
+- Staging capacity is capped at 2 GB. A capacity breach is a fail-closed block on further deletes, with an audit event.
+- The undo API is the only supported restore path. Direct access to the staging directory is not a supported user workflow.
+
 ## v1.7 — Temporal replay and pipeline
 
 **Goal:** let an owner reconstruct and safely replay what an agent did without

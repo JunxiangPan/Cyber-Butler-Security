@@ -42,7 +42,7 @@ except ImportError:  # pragma: no cover - exercised on Linux CI
 ROOT = Path(r"YOUR_PROJECT_PATH")
 os.environ.setdefault("CBS_ROOT", str(ROOT))
 BROKER = ROOT / "tools" / "broker"
-QUARANTINE = BROKER / "quarantine"
+QUARANTINE = BROKER / "trash_staging"
 STAGING = BROKER / "staging"
 TOTP_VAULT = ROOT / "tools" / "totp-vault"
 SECRET_FILE = TOTP_VAULT / "totp_secret.dpapi"
@@ -891,15 +891,25 @@ def execute(request: dict) -> tuple[bool, str]:
 
         if action == "delete":
             if snapshot is not None and not snapshot.is_directory:
-                quarantine.QUARANTINE_ROOT = QUARANTINE
-                entry = quarantine.quarantine_file(
-                    snapshot,
-                    str(request.get("id", "request")),
-                    original_path=str(target),
-                    action="delete",
-                    reason=str(request.get("reason", "")),
-                )
-                return True, f"已把 {target.name} 移到隔离区：{entry.name}"
+                quarantine.TRASH_STAGING = QUARANTINE
+                try:
+                    entry = quarantine.quarantine_file(
+                        snapshot,
+                        str(request.get("id", "request")),
+                        original_path=str(target),
+                        action="delete",
+                        reason=str(request.get("reason", "")),
+                    )
+                except quarantine.QuarantineCapacityError as exc:
+                    return False, ("暂存区容量熔断，删除已拦截；没有移动任何文件。" + str(exc))
+                request["_trash_entry"] = str(entry)
+                try:
+                    manifest = quarantine._read_manifest(entry)
+                    request["_trash_expires_at"] = manifest.get("expires_at", "")
+                    request["_trash_expires_epoch"] = manifest.get("expires_epoch", 0)
+                except Exception:
+                    pass
+                return True, f"文件已移入两阶段暂存回收站，10 分钟内可撤回：{entry.name}"
             if not target.exists():
                 return False, "目标文件不存在。"
             QUARANTINE.mkdir(parents=True, exist_ok=True)
@@ -1794,6 +1804,11 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         }, ensure_ascii=False) + "\n")
     log(f"executed: {request_id} ok={ok} {result}")
     response = {"ok": ok, "id": request_id, "result": result}
+    if ok and request.get("_trash_entry"):
+        response["undo_available"] = True
+        response["trash_id"] = request_id
+        response["undo_expires_at"] = str(request.get("_trash_expires_at", ""))
+        response["undo_expires_epoch"] = float(request.get("_trash_expires_epoch", 0) or 0)
     if bypass:
         response["bypass_token"] = bypass["token"]
         response["bypass_expires_in"] = bypass["expires_in"]
@@ -1845,6 +1860,40 @@ def get_approval_status(challenge_id: str) -> tuple[int, dict]:
         body["scoped_expires_in"] = int(state.get("scoped_expires_in", 0) or 0)
         body["scoped_root"] = str(state.get("scoped_root", ""))
     return 200, body
+
+
+def undo_trash_request(payload: dict) -> tuple[int, dict]:
+    """Undo a two-stage delete; the HTTP layer has already authenticated."""
+    request_id = str(payload.get("id", "") or "").strip()
+    if not request_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" for ch in request_id):
+        return 400, {"ok": False, "error": "invalid trash id"}
+    entry = quarantine.TRASH_STAGING / request_id
+    if not entry.is_dir():
+        return 404, {"ok": False, "error": "trash entry not found or expired"}
+    try:
+        manifest = quarantine._read_manifest(entry)
+        destination = Path(str(manifest.get("original_path", "")))
+        if not destination.is_absolute() or not _allowed_target(destination):
+            return 400, {"ok": False, "error": "original target is not allowed"}
+        restored = quarantine.restore_quarantine(entry, destination)
+    except FileExistsError:
+        return 409, {"ok": False, "error": "original path exists again; refusing to overwrite"}
+    except (OSError, ValueError) as exc:
+        return 409, {"ok": False, "error": "undo failed: " + str(exc)}
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request_id,
+                "action": "trash_undo",
+                "target": str(restored),
+                "ok": True,
+                "result": "two-stage delete restored by owner",
+            }, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
+    return 200, {"ok": True, "restored": str(restored), "id": request_id}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -1940,6 +1989,9 @@ class Handler(BaseHTTPRequestHandler):
                     "target_name": target_name,
                     "remaining_seconds": remaining,
                 })
+        elif parsed.path == "/trash":
+            pending = quarantine.list_pending()
+            self._json(200, {"ok": True, "items": pending})
         else:
             self._json(404, {"ok": False, "error": "not found"})
 
@@ -1974,6 +2026,8 @@ class Handler(BaseHTTPRequestHandler):
                 status, body = record_external_read(payload)
             elif parsed.path == "/verify":
                 status, body = run_verify(payload)
+            elif parsed.path == "/trash/undo":
+                status, body = undo_trash_request(payload)
             else:
                 status, body = 404, {"ok": False, "error": "not found"}
         except Exception as exc:
@@ -2037,6 +2091,7 @@ def main() -> None:
     QUARANTINE.mkdir(parents=True, exist_ok=True)
     STAGING.mkdir(parents=True, exist_ok=True)
     log(f"broker HTTP listening on {HOST}:{PORT}")
+    quarantine.start_sweeper()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     try:
         server.serve_forever()

@@ -23,7 +23,7 @@ def test_toctou_changed_target_is_rejected(tmp_path: Path):
 def test_quarantine_moves_file_and_writes_manifest(tmp_path: Path, monkeypatch):
     import quarantine
 
-    monkeypatch.setattr(quarantine, "QUARANTINE_ROOT", tmp_path / "quarantine")
+    monkeypatch.setattr(quarantine, "TRASH_STAGING", tmp_path / "trash_staging")
     target = tmp_path / "delete-me.txt"
     target.write_text("payload", encoding="utf-8")
     snapshot = TargetSnapshot.open(str(target), delete=True)
