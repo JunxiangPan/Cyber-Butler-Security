@@ -42,7 +42,31 @@
       <div>
         <strong data-i18n="dash.security.pendingTitle"></strong>
         <p id="securityDetail"></p>
+        <div id="securityVerifyRow" hidden style="margin:10px 0">
+          <input id="pendingCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="手机验证码 / Authenticator code"
+                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:220px">
+          <button id="pendingVerify" class="primary" type="button">验证 / Verify</button>
+          <span id="pendingStatus" class="network-status" role="status"></span>
+        </div>
         <p class="security-note" data-i18n="dash.security.pendingNote"></p>
+      </div>
+    </section>
+
+    <section id="totpPanel" class="wfp-card">
+      <div class="wfp-icon" aria-hidden="true">▣</div>
+      <div style="flex:1">
+        <strong>绑定验证器 / Bind authenticator</strong>
+        <p class="muted-line">把此二维码扫描到手机 Authenticator。CBS 不依赖 QQ/邮箱接收 TOTP。</p>
+        <button id="totpBindButton" class="ghost-button" type="button">显示二维码 / Show QR</button>
+        <div id="totpQrWrap" hidden style="margin-top:10px">
+          <img id="totpQr" alt="TOTP QR" style="max-width:220px;background:#fff;padding:8px;border-radius:6px">
+          <p id="totpUri" class="muted-line" style="word-break:break-all"></p>
+          <p class="muted-line">恢复码重置：输入一个一次性恢复码，旧验证器立即失效。</p>
+          <input id="totpRecoveryCode" maxlength="8" placeholder="恢复码 / Recovery code"
+                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:220px">
+          <button id="totpRecoveryReset" class="ghost-button" type="button">恢复码重置 / Reset</button>
+          <span id="totpStatus" class="network-status" role="status"></span>
+        </div>
       </div>
     </section>
 

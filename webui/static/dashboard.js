@@ -62,6 +62,8 @@
     return response.json().catch(() => ({}));
   };
 
+  const setStatus = (id, value) => setText(id, value);
+
   const setText = (id, value) => {
     const node = $(id);
     if (node) node.textContent = value;
@@ -553,6 +555,53 @@
     }
   };
 
+  const verifyPending = async () => {
+    const code = $("pendingCode")?.value.trim();
+    if (!code || !csrf || !pendingId) return;
+    const response = await fetch("/api/security/pending/verify", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+      body: JSON.stringify({ id: pendingId, code }),
+    });
+    const data = await response.json().catch(() => ({}));
+    setStatus("pendingStatus", data.ok ? "验证成功 / Verified" : (data.error || data.message || "验证失败"));
+    if (data.ok) await loadSecurity();
+  };
+
+  const bindTotp = async () => {
+    const wrap = $("totpQrWrap");
+    try {
+      const data = await getJson("/api/security/totp-bind");
+      if (!data || !data.ok) throw new Error(data?.message || "bind failed");
+      $("totpQr").src = `data:image/png;base64,${data.qr_png_base64}`;
+      setText("totpUri", data.otpauth_uri || "");
+      wrap.hidden = false;
+    } catch (error) {
+      setText("totpStatus", String(error.message || error));
+      wrap.hidden = false;
+    }
+  };
+
+  const resetTotp = async () => {
+    const code = $("totpRecoveryCode")?.value.trim();
+    if (!code || !csrf) return;
+    const response = await fetch("/api/security/totp-recovery-reset", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+      body: JSON.stringify({ code }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (data.ok) {
+      $("totpQr").src = `data:image/png;base64,${data.qr_png_base64}`;
+      setText("totpUri", data.otpauth_uri || "");
+      setStatus("totpStatus", "已重置。新恢复码：" + (data.recovery_codes || []).join(" / "));
+    } else {
+      setStatus("totpStatus", data.error || data.message || "重置失败");
+    }
+  };
+
+  let pendingId = "";
+
   const loadSecurity = async () => {
     if (!csrf) return;
     const data = await getJson("/api/security/pending");
@@ -568,6 +617,9 @@
         email: i18n.t("dash.security.channel.email"),
         qq: i18n.t("dash.security.channel.qq"),
       };
+      pendingId = data.id || "";
+      const verifyRow = $("securityVerifyRow");
+      if (verifyRow) verifyRow.hidden = !pendingId;
       const target = data.target_name
         ? i18n.t("dash.security.target", { target: data.target_name })
         : "";
@@ -765,6 +817,9 @@
     loadPlugins();
     loadLogs();
     loadBackups();
+    $("pendingVerify")?.addEventListener("click", verifyPending);
+    $("totpBindButton")?.addEventListener("click", bindTotp);
+    $("totpRecoveryReset")?.addEventListener("click", resetTotp);
     loadSecurity();
     loadTrash();
     if (!$("filesTab")?.hidden) loadFiles(filePath);

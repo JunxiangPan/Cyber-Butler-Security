@@ -54,6 +54,15 @@ class TrashUndoRequest(BaseModel):
     id: str = Field(min_length=1, max_length=80)
 
 
+class PendingVerifyRequest(BaseModel):
+    id: str = Field(min_length=1, max_length=80)
+    code: str = Field(min_length=6, max_length=8)
+
+
+class TotpRecoveryRequest(BaseModel):
+    code: str = Field(min_length=8, max_length=8)
+
+
 class NetworkPolicyUpdate(BaseModel):
     mode: str = Field(default="audit", max_length=16)
     domains: str = Field(default="", max_length=4000)
@@ -375,6 +384,32 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return await services.security_trash_undo(body.id)
         except ServiceError as exc:
             return JSONResponse({"ok": False, "code": "trash.undo_failed", "message": str(exc)}, status_code=502)
+
+
+    @app.post("/api/security/pending/verify")
+    async def security_pending_verify(body: PendingVerifyRequest, request: Request, session=Depends(require_session)):
+        if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
+            raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
+        try:
+            return await services.security_verify(body.id, body.code)
+        except ServiceError as exc:
+            return JSONResponse({"ok": False, "code": "security.verify_failed", "message": str(exc)}, status_code=502)
+
+    @app.get("/api/security/totp-bind")
+    async def security_totp_bind(session=Depends(require_session)):
+        try:
+            return await services.totp_bind()
+        except ServiceError as exc:
+            return JSONResponse({"ok": False, "code": "totp.bind_failed", "message": str(exc)}, status_code=502)
+
+    @app.post("/api/security/totp-recovery-reset")
+    async def security_totp_recovery_reset(body: TotpRecoveryRequest, request: Request, session=Depends(require_session)):
+        if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
+            raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
+        try:
+            return await services.totp_recovery_reset(body.code)
+        except ServiceError as exc:
+            return JSONResponse({"ok": False, "code": "totp.reset_failed", "message": str(exc)}, status_code=502)
 
     def file_error_code(exc: Exception) -> str:
         message = str(exc).lower()

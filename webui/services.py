@@ -338,10 +338,49 @@ class WebServices:
         try:
             async with httpx.AsyncClient(timeout=4) as client:
                 response = await client.get(
-                    f"http://127.0.0.1:{self.settings.broker_port}/pending"
+                    f"http://127.0.0.1:{self.settings.broker_port}/pending/approval",
+                    headers={"X-Broker-Token": self._broker_token()},
                 )
                 response.raise_for_status()
                 data = response.json()
             return {"ok": True, "available": True, **data}
         except Exception:
             return {"ok": True, "available": False, "pending": False}
+
+    async def security_verify(self, request_id: str, code: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                response = await client.post(
+                    f"http://127.0.0.1:{self.settings.broker_port}/verify",
+                    headers={"X-Broker-Token": self._broker_token()},
+                    json={"id": request_id, "code": code},
+                )
+                data = response.json()
+                return {"ok": response.is_success, "status_code": response.status_code, **data}
+        except Exception as exc:
+            raise ServiceError(f"verification failed: {exc}") from exc
+
+    async def totp_bind(self) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                response = await client.get(
+                    f"http://127.0.0.1:{self.settings.broker_port}/totp/bind",
+                    headers={"X-Broker-Token": self._broker_token()},
+                )
+                response.raise_for_status()
+                return {"ok": True, **response.json()}
+        except Exception as exc:
+            raise ServiceError(f"TOTP binding failed: {exc}") from exc
+
+    async def totp_recovery_reset(self, code: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                response = await client.post(
+                    f"http://127.0.0.1:{self.settings.broker_port}/totp/recovery-reset",
+                    headers={"X-Broker-Token": self._broker_token()},
+                    json={"code": code},
+                )
+                data = response.json()
+                return {"ok": response.is_success, **data}
+        except Exception as exc:
+            raise ServiceError(f"TOTP recovery reset failed: {exc}") from exc

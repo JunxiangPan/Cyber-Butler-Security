@@ -7,7 +7,9 @@ used for cross-account TOTP state, which avoids Windows ACL problems.
 
 from __future__ import annotations
 
+import base64
 import ctypes
+import io
 import ctypes.wintypes as wintypes
 import hashlib
 import ipaddress
@@ -25,6 +27,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pyotp
+import qrcode
 import requests
 import email_approval
 import quarantine
@@ -1862,6 +1865,61 @@ def get_approval_status(challenge_id: str) -> tuple[int, dict]:
     return 200, body
 
 
+def _totp_qr(uri: str) -> str:
+    image = qrcode.make(uri)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
+def totp_binding_payload() -> dict:
+    value = secret()
+    uri = pyotp.TOTP(value).provisioning_uri(
+        name="Cyber-Butler owner", issuer_name="Cyber-Butler"
+    )
+    return {
+        "ok": True,
+        "otpauth_uri": uri,
+        "qr_png_base64": _totp_qr(uri),
+        "issuer": "Cyber-Butler",
+        "account": "Cyber-Butler owner",
+    }
+
+
+def reset_totp_with_recovery(code: str) -> tuple[int, dict]:
+    """Consume a recovery code, rotate the secret, and return new enrollment."""
+    code = str(code or "").strip().upper()
+    if verify_code(code) != "recovery":
+        return 403, {"ok": False, "error": "valid recovery code required"}
+    if win32crypt is None:
+        return 503, {"ok": False, "error": "win32crypt is unavailable"}
+    value = pyotp.random_base32()
+    TOTP_VAULT.mkdir(parents=True, exist_ok=True)
+    encrypted = win32crypt.CryptProtectData(
+        value.encode("utf-8"), "Cyber-Butler TOTP", None, None, None, 0x4
+    )
+    SECRET_FILE.write_bytes(encrypted)
+    codes = [
+        "".join(secrets.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(8))
+        for _ in range(3)
+    ]
+    hashes = [hashlib.sha256(item.encode("utf-8")).hexdigest() for item in codes]
+    RECOVERY_FILE.write_text(
+        json.dumps({"sha256": hashes, "used": []}, indent=2), encoding="utf-8"
+    )
+    recovery_text = RECOVERY_FILE.with_name("recovery_codes.txt")
+    recovery_lines = ["Cyber-Butler TOTP recovery codes (one use each)", ""]
+    recovery_lines.extend(f"{i + 1}. {item}" for i, item in enumerate(codes))
+    recovery_lines.append("")
+    recovery_text.write_text(chr(10).join(recovery_lines), encoding="utf-8")
+
+    with _replay_lock:
+        _used_totp.clear()
+    payload = totp_binding_payload()
+    payload["recovery_codes"] = codes
+    return 200, payload
+
+
 def undo_trash_request(payload: dict) -> tuple[int, dict]:
     """Undo a two-stage delete; the HTTP layer has already authenticated."""
     request_id = str(payload.get("id", "") or "").strip()
@@ -1991,6 +2049,34 @@ class Handler(BaseHTTPRequestHandler):
                     "target_mtime_ns": int((pending.get("_snapshot").identity[3] if pending.get("_snapshot") else 0) or 0),
                     "remaining_seconds": remaining,
                 })
+        elif parsed.path == "/pending/approval":
+            if not self._auth():
+                self._json(401, {"ok": False, "error": "unauthorized"})
+                return
+            with _lock:
+                pending = dict(_pending) if _pending else None
+            if not pending:
+                self._json(200, {"ok": True, "pending": False})
+            else:
+                snapshot = pending.get("_snapshot")
+                self._json(200, {
+                    "ok": True,
+                    "pending": True,
+                    "id": str(pending.get("id", "")),
+                    "action": str(pending.get("action", "")),
+                    "target_name": Path(str(pending.get("target", ""))).name,
+                    "target_size": int(snapshot.identity[2] if snapshot else 0),
+                    "target_mtime_ns": int(snapshot.identity[3] if snapshot else 0),
+                    "remaining_seconds": max(0, int(float(pending.get("deadline", 0)) - time.monotonic())),
+                })
+        elif parsed.path == "/totp/bind":
+            if not self._auth():
+                self._json(401, {"ok": False, "error": "unauthorized"})
+                return
+            try:
+                self._json(200, totp_binding_payload())
+            except Exception as exc:
+                self._json(409, {"ok": False, "error": str(exc)})
         elif parsed.path == "/trash":
             pending = quarantine.list_pending()
             self._json(200, {"ok": True, "items": pending})
@@ -2030,6 +2116,8 @@ class Handler(BaseHTTPRequestHandler):
                 status, body = run_verify(payload)
             elif parsed.path == "/trash/undo":
                 status, body = undo_trash_request(payload)
+            elif parsed.path == "/totp/recovery-reset":
+                status, body = reset_totp_with_recovery(str(payload.get("code", "")))
             else:
                 status, body = 404, {"ok": False, "error": "not found"}
         except Exception as exc:
