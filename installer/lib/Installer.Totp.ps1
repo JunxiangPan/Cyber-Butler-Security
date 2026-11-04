@@ -143,12 +143,10 @@ function New-CyberButlerTotpMaterial {
 
     $paths = Get-CyberButlerTotpMaterialPaths -VaultPath $VaultPath
     New-Item -ItemType Directory -Path $paths.vault -Force | Out-Null
-    $python = Join-Path $Root 'ExternalAgent\.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $python)) {
-        $command = Get-Command python.exe -ErrorAction SilentlyContinue
-        if ($command) { $python = [string]$command.Source }
-    }
-    if (-not (Test-Path -LiteralPath $python)) { throw 'Python is required to generate TOTP QR material.' }
+    $python = Join-Path $Root 'webui\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $python)) { throw ('CBS WebUI Python is missing: ' + $python + '. Complete the core dependency installation first.') }
+    & $python -c 'import pyotp, qrcode, win32crypt' 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'TOTP dependencies are missing (pyotp, qrcode, pywin32). Reconnect the network or use an offline wheelhouse; the installer will not fall back to an unverified system Python.' }
     $helper = Join-Path $PSScriptRoot 'totp_material.py'
     if (-not (Test-Path -LiteralPath $helper)) { throw "TOTP helper missing: $helper" }
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T02:58:30+00:00",
+  "generated_at": "2026-11-04T05:14:49+00:00",
   "requirements": [
     "fastapi==0.162.0",
     "uvicorn==0.54.0",
@@ -7,9 +7,12 @@
     "httpx==0.28.1",
     "pytest>=8.0",
     "pyotp==9.0.0",
-    "requests==2.32.5"
+    "requests==2.32.5",
+    "qrcode==8.2",
+    "pywin32==310; sys_platform == \"win32\"",
+    "Pillow==11.3.0"
   ],
   "schema": 1,
-  "sha256": "0beb392bf8c31123841b45edeec09eeaf752b04d358930b01aa67069e6b81028",
+  "sha256": "854a7661e50434dd2e035587d8dfa0da2ec3592da3eb2c9c2b64e1f99e764e4e",
   "source": "requirements.txt"
 }
