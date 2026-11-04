@@ -594,8 +594,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "7d1fe128e851006ad999c3f087fc92d42da33f100c968c387759874622bbad15",
-      "size": 53583
+      "sha256": "eb80f53bf50b7d93ee35bf89e7bbc3f2ac2c6537e5e33a23235772e7792c6bcd",
+      "size": 53563
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -1469,8 +1469,8 @@
     },
     {
       "path": "tools/harden_broker_runtime.ps1",
-      "sha256": "046bc4088e66ee2e97a8bbb257bab3d9af728cf57f821516452293c1e66134d3",
-      "size": 1391
+      "sha256": "a27f22abc6cdbe246844a1bb9a18a47d71a5ddd63e229559f31d204f3ebd367d",
+      "size": 1360
     },
     {
       "path": "tools/injection_audit.py",
