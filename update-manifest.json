@@ -594,8 +594,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "eb80f53bf50b7d93ee35bf89e7bbc3f2ac2c6537e5e33a23235772e7792c6bcd",
-      "size": 53563
+      "sha256": "3ba2db3375ba278b625c5c446ed7b549b1d93c748fb2681130ca86cdd0063a72",
+      "size": 54096
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -649,8 +649,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "1e24f2296ae743e59dfbd75657eeaef383185538b5e83750ddd20cdea0729699",
-      "size": 24396
+      "sha256": "21b762fdb5a731cd22499e091e8274f10ec961c34c3b2435d19152b556a1fbc2",
+      "size": 24399
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -1264,8 +1264,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "29f3ea92a4ea1c2528b69c16d6330d3da7fd0a5eecbbbdeb6ed71eb801350433",
-      "size": 90273
+      "sha256": "7fab12ecab93ee2720d863fade891a0996e7148765536f3e39c0469085e75aed",
+      "size": 91668
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1574,8 +1574,8 @@
     },
     {
       "path": "tools/quarantine.py",
-      "sha256": "f4f3690c859e786264de596c65fa80414653fceede881ee763109eb2e774652f",
-      "size": 9436
+      "sha256": "aa44742b14ba6ea3132f6011f21af611943d73e6a8df3f0d8c1a54c4b844ae7e",
+      "size": 9759
     },
     {
       "path": "tools/red_team_pentest.py",
