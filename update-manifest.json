@@ -649,8 +649,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "ce3c61eb24026a4333cb7542dc21ce73d0f5638fe3a3e7fad6ddbce2963f2bdd",
-      "size": 24293
+      "sha256": "1e24f2296ae743e59dfbd75657eeaef383185538b5e83750ddd20cdea0729699",
+      "size": 24396
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -1714,8 +1714,8 @@
     },
     {
       "path": "tools/verify_broker_acl.ps1",
-      "sha256": "c3c6e6e2e98003410bd233995c4112d5d5ed13e70d5bd2ecd0708670ed7669ab",
-      "size": 3210
+      "sha256": "55c12f2024fe51613f3cecb62dfac276e1f92cc7c12581fa0c34a733efe4a464",
+      "size": 3277
     },
     {
       "path": "tools/verify_release.py",
