@@ -28,7 +28,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     throw 'Run this acceptance probe as administrator.'
 }
 if ([string]::IsNullOrWhiteSpace($Root)) {
-    $Root = Join-Path $env:TEMP ('cbs-trash-accept-' + [guid]::NewGuid().ToString('N'))
+    $Root = Join-Path $env:ProgramData ('CyberButlercl-accept-' + [guid]::NewGuid().ToString('N'))
 }
 $root = [IO.Path]::GetFullPath($Root)
 $entry = Join-Path $root 'trash_staging\acceptance-request'
@@ -134,7 +134,8 @@ Path(r'$PurgeOut').write_text('PURGED' if not Path(r'$Entry').exists() else 'NOT
     if ((Test-Path -LiteralPath $systemRead) -and ((Get-Content -LiteralPath $systemRead -Raw).Trim() -eq 'acceptance-secret')) {
         $result.system_read_ok = $true
     } else {
-        $result.notes += ('system_read: ' + (if (Test-Path -LiteralPath $systemRead) { (Get-Content -LiteralPath $systemRead -Raw) } else { 'missing' }))
+        $readText = if (Test-Path -LiteralPath $systemRead) { (Get-Content -LiteralPath $systemRead -Raw) } else { 'missing' }
+        $result.notes += ('system_read: ' + $readText)
     }
 
     $purgeText = if (Test-Path -LiteralPath $systemPurge) { (Get-Content -LiteralPath $systemPurge -Raw).Trim() } else { '' }
@@ -155,12 +156,17 @@ Path(r'$PurgeOut').write_text('PURGED' if not Path(r'$Entry').exists() else 'NOT
     $result.notes += ('error: ' + $_.Exception.Message)
 } finally {
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    $probeFailed = -not ($result.owner_read_denied -and $result.system_read_ok -and $result.secure_purge_ok)
+    if ($probeFailed) {
+        $result.notes += ('kept_for_diagnostics: ' + $root)
+    } else {
     if (Test-Path -LiteralPath $entry) {
         & takeown.exe /f $entry /a /r /d Y | Out-Null
         & icacls.exe $entry /reset /t /c | Out-Null
         Remove-Item -LiteralPath $entry -Recurse -Force -ErrorAction SilentlyContinue
     }
     Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 $result | ConvertTo-Json -Depth 6
 if (-not ($result.owner_read_denied -and $result.system_read_ok -and $result.secure_purge_ok)) { exit 1 }
