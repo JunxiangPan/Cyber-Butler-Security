@@ -377,7 +377,7 @@ function Set-CyberButlerServiceTasks {
     $networkDataDir = Join-Path $Root 'webui\data'
     New-Item -ItemType Directory -Force -Path $networkDataDir -ErrorAction SilentlyContinue | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $Root 'tools\logs') -ErrorAction SilentlyContinue | Out-Null
-    New-Item -ItemType Directory -Force -Path (Join-Path $Root 'toolsroker	rash_staging') -ErrorAction SilentlyContinue | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $Root 'tools/broker/trash_staging') -ErrorAction SilentlyContinue | Out-Null
     $networkPolicyPath = Join-Path $networkDataDir 'network-policy.json'
     if (-not (Test-Path -LiteralPath $networkPolicyPath)) {
         [ordered]@{

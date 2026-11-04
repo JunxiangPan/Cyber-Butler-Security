@@ -401,7 +401,7 @@ function Invoke-CyberButlerCoreDeploy {
     }
     if ($test.satisfied) {
         Set-CyberButlerCorePlaceholders -Root $root -DesktopAccount $ToolDesktopAccount -ServiceAccount $ToolServiceAccount -OwnerQQ $OwnerQQ
-        foreach ($dir in @((Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker	rash_staging'), (Join-Path $paths.webui 'data'))) {
+        foreach ($dir in @((Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker/trash_staging'), (Join-Path $paths.webui 'data'))) {
             New-Item -ItemType Directory -Force -Path $dir -ErrorAction SilentlyContinue | Out-Null
         }
         return [pscustomobject]@{ status = 'skipped'; changed = $false; exit_code = 0; test = $test; reason = 'CBS core already present'; paths = $paths }
@@ -414,7 +414,7 @@ function Invoke-CyberButlerCoreDeploy {
         $stepStarted = $true
     }
     try {
-        foreach ($dir in @($root, $paths.tools, (Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker	rash_staging'), $paths.webui, (Join-Path $paths.webui 'data'), $paths.workspace, $paths.data)) {
+        foreach ($dir in @($root, $paths.tools, (Join-Path $paths.tools 'logs'), (Join-Path $paths.tools 'broker'), (Join-Path $paths.tools 'broker/trash_staging'), $paths.webui, (Join-Path $paths.webui 'data'), $paths.workspace, $paths.data)) {
             if (-not (Test-Path -LiteralPath $dir)) {
                 if ($null -ne $Journal) {
                     New-CyberButlerTrackedDirectory -Journal $Journal -Step $JournalStep -Path $dir -AllowedRoot $root | Out-Null
