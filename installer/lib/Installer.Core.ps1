@@ -165,7 +165,16 @@ function Invoke-CyberButlerPipInstall {
         }
     }
     $quote = { param($value) '"' + ([string]$value).Replace('"', '""') + '"' }
-    $command = (& $quote $PythonPath) + ' -m pip install --disable-pip-version-check --progress-bar on -r ' + (& $quote $Requirements)
+    $wheelhouse = Join-Path (Split-Path -Parent $PSScriptRoot) 'wheelhouse'
+    $hasWheelhouse = (Test-Path -LiteralPath $wheelhouse) -and @(Get-ChildItem -LiteralPath $wheelhouse -Filter '*.whl' -File -ErrorAction SilentlyContinue).Count -gt 0
+    $command = (& $quote $PythonPath) + ' -m pip install --disable-pip-version-check --progress-bar on'
+    if ($hasWheelhouse) {
+        $command += ' --no-index --find-links ' + (& $quote $wheelhouse)
+        Write-Host ('CORE pip source: offline wheelhouse ' + $wheelhouse)
+    } else {
+        Write-Host 'CORE pip source: PyPI (wheelhouse not present)'
+    }
+    $command += ' -r ' + (& $quote $Requirements)
     $argumentLine = '/d /s /c "' + $command + '"'
     $process = Start-Process -FilePath $env:ComSpec -ArgumentList $argumentLine `
         -RedirectStandardOutput $LogPath -RedirectStandardError $stderrPath `
