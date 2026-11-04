@@ -649,8 +649,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "b76220b4f9e4587e1f83e1592640e01c7c1ab912624b3829518421a27b0e2d88",
-      "size": 24291
+      "sha256": "ce3c61eb24026a4333cb7542dc21ce73d0f5638fe3a3e7fad6ddbce2963f2bdd",
+      "size": 24293
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -709,8 +709,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "b550834dc259dd2ebab9e2856bd7f73fe0efcf6173909529d2f5bd7732b82548",
-      "size": 45586
+      "sha256": "5b1cdd6d961a57281a56cd9235bd32d73f27e8ce96f12ddd9957dbccc9bf10ae",
+      "size": 45588
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
