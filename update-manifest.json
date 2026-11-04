@@ -1239,8 +1239,8 @@
     },
     {
       "path": "tools/Test-TwoStageTrashACL.ps1",
-      "sha256": "00d9b80e6a93a18dc56024efb0e8614a297312e9efb9f53919c6c29e334f00c0",
-      "size": 8641
+      "sha256": "288d45465b1aa40db510458ccbc38ee4c24e5934099e12894c487c6940ef97ae",
+      "size": 8722
     },
     {
       "path": "tools/Test-WfpTripwire.ps1",
