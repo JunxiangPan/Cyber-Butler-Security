@@ -842,9 +842,9 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'services
 }
 
 if (-not $failure -and [string]::IsNullOrWhiteSpace($TestConfigPath)) {
-    $brokerToken = Join-Path $InstallPath 'toolsroker_token.txt'
+    $brokerToken = Join-Path $InstallPath 'tools/broker_token.txt'
     if (Test-Path -LiteralPath $brokerToken) {
-        $tokenReader = if ($DesktopAccount) { $DesktopAccount } else { ($env:USERDOMAIN + '' + $env:USERNAME) }
+        $tokenReader = if ($DesktopAccount) { $DesktopAccount } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
         & icacls.exe $brokerToken /grant "${tokenReader}:(R)" | Out-Null
         if ($LASTEXITCODE -ne 0) {
             Write-InstallerLine ('Broker token desktop ACL warning: ' + $tokenReader) -Level WARN

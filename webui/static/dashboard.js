@@ -156,7 +156,7 @@
     if (badge) badge.textContent = healthy ? "AUDIT · 只记录" : "未运行";
     if (detail) {
       if (healthy) {
-        detail.textContent = "WFP Guard 正在运行，但 v1.6.2 只有 audit 模式：它会记录，不会强制断网。下面的白名单只是“访客名单”，不是已生效的防火墙。";
+        detail.textContent = "WFP Guard 正在运行，但 v1.6.3 只有 audit 模式：它会记录，不会强制断网。下面的白名单只是“访客名单”，不是已生效的防火墙。";
       } else {
         detail.textContent = guard.error
           ? ("WFP Guard 没有心跳或启动失败：" + guard.error + " 这不是病毒报警；但下面的白名单不会生效。")

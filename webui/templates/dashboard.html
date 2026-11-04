@@ -118,7 +118,7 @@
           <summary>小白怎么看？怎么修？ / What does this mean, and how do I fix it?</summary>
           <div class="wfp-help-body">
             <p><strong>它是什么：</strong>一个独立的 Windows 任务，专门看住 AI 的出站网络。它不执行 AI 代码，也不杀进程。</p>
-            <p><strong>它有什么用：</strong>让 AI 只能访问你允许的网站。当前 v1.6.2 还是 <strong>audit（只记录）</strong>，不会真的断网；真正的强制拦截要等后续版本。</p>
+            <p><strong>它有什么用：</strong>让 AI 只能访问你允许的网站。当前 v1.6.3 还是 <strong>audit（只记录）</strong>，不会真的断网；真正的强制拦截要等后续版本。</p>
             <p><strong>怎么让它运行：</strong>先重启电脑；仍异常时，在管理员 PowerShell 中运行下面命令，或重新运行安装器选择“修复”。</p>
             <pre class="wfp-command">Get-ScheduledTask -TaskName 'Cyber-Butler WFP Guard' | Start-ScheduledTask</pre>
             <p class="wfp-detail-muted">如果任务不存在，说明安装器没有注册成功；请重新运行安装器修复，而不是反复点“保存策略”。</p>
@@ -134,7 +134,7 @@
           <h2>AI 可以访问哪些网站？</h2>
           <p class="network-lead">这不是“打开网络”的开关，而是给 AI 列一份访客名单。当前版本只观察，不会强制断网。</p>
         </div>
-        <span class="network-badge">v1.6.2 · AUDIT ONLY</span>
+        <span class="network-badge">v1.6.3 · AUDIT ONLY</span>
       </div>
 
       <div class="network-steps">
