@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "version": "1.6.3",
-  "phase": "development",
+  "phase": "rc",
   "branch": "release/v1.6.3",
   "baseline_commit": "ebfa7df91fcffe55bd9aa3ad840e67b4402986dd",
   "baseline_release": "1.6.2",
@@ -101,5 +101,15 @@
   "updated_at": "2026-11-04T00:00:00+08:00",
   "completed": [
     "PR-00 baseline: release/v1.6.3 branch, status source, frozen v1.6.2 assets, green CI"
-  ]
+  ],
+  "rc": {
+    "candidate": "public-release-v1.6.3.zip",
+    "blocked_until": [
+      "offline clean-VM install",
+      "real phone TOTP approval",
+      "two-stage undo/capacity",
+      "real ACL/SYSTEM/purge probe"
+    ],
+    "zero_dependency": false
+  }
 }

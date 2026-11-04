@@ -1,20 +1,5 @@
 # Roadmap / 路线图
 
-### v1.6.3 follow-up — embedded Python runtime (not shipped in PR-02.1)
-
-The current offline package requires a system CPython 3.13 because its
-wheelhouse is CPython 3.13 / win_amd64. The next packaging step is to evaluate a
-bundled, signed Python 3.13 embeddable runtime:
-
-- license redistribution review;
-- bootstrap pip/venv or vendor a prebuilt venv without `ensurepip`;
-- run the same wheelhouse install and Broker/TOTP smoke test offline;
-- produce SBOM entries for the runtime and its DLLs;
-- do not claim zero-dependency until that test passes.
-
-This is intentionally **not** part of v1.6.3 PR-02.1.
-
-
 > This roadmap describes intended direction, not a delivery promise. Security
 > work is gated on reproducible tests and a signed release; dates are not
 > commitments. The v1.6.1 scope is frozen.
@@ -22,6 +7,20 @@ This is intentionally **not** part of v1.6.3 PR-02.1.
 Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
+
+## Current release candidate — v1.6.3 RC
+
+**Status:** v1.6.3 is a **Release Candidate**, not a final release.
+
+- Candidate package: `public-release-v1.6.3.zip`
+- The package is signed and verifies as `VALID`.
+- **Mandatory acceptance before publication:**
+  1. clean-VM, offline install with a real phone-authenticator TOTP approval;
+  2. WebUI two-stage delete undo + capacity-breaker test;
+  3. `tools/Test-TwoStageTrashACL.ps1` real ACL/SYSTEM/purge verification.
+- Do not mark the GitHub release as Latest until all three pass.
+- The current offline package still requires a system CPython 3.13. It is not
+  zero-dependency.
 
 ## Cross-version upgrade and migration policy
 
@@ -43,7 +42,7 @@ v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
   AstrBot as an independently managed application. CBS never performs that
   third-party installation.
 - Data backup includes, when present: `AstrBot\data`, `SnowLuma\config`,
-  `SnowLuma\data`, `SnowLuma\logs`, `tools	otp-vault`, `webui\data`,
+  `SnowLuma\data`, `SnowLuma\logs`, `tools/totp-vault`, `webui\data`,
   `data`, Broker configuration, and audit logs.
 - The backup is not encrypted by default; it is ACL-restricted and must be
   moved to offline media by the operator. Never place the signing private key
@@ -194,6 +193,22 @@ turning the staging area into a new data-leak path.
 - A SYSTEM-only sweeper purges expired entries. Purge overwrites the file with random bytes for up to three passes, flushes, then unlinks it.
 - Staging capacity is capped at 500 MB or 1000 entries (configurable). A capacity breach is a fail-closed block on further deletes, with an audit event. Overwrite-based erasure is best-effort on SSDs; wear levelling and snapshots can retain physical copies.
 - The undo API is the only supported restore path. Direct access to the staging directory is not a supported user workflow.
+
+## v1.6.4 — Embedded Python runtime (planned)
+
+**Goal:** remove the last external prerequisite for the offline package.
+
+- Evaluate a signed Windows x64 CPython 3.13 embeddable runtime.
+- Resolve redistribution/license, pip/venv bootstrap, DLL loading, and SBOM
+  entries.
+- Run the Wheelhouse install, WebUI start, Broker start, and real TOTP
+  enrollment fully offline.
+- Only after that test passes may documentation use the phrase
+  **zero-dependency**.
+- Until then, every offline statement must say:
+  `Windows x64 + CPython 3.13 + bundled wheelhouse`.
+
+This is **not** part of v1.6.3 RC.
 
 ## v1.7 — Temporal replay, IPC, and MXC (optional backends)
 
