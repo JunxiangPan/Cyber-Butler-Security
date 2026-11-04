@@ -88,7 +88,7 @@ ode.exe` while the running
 ### 3e. Installer log path text is still mojibake in GUI
 
 - Observed during the High install while waiting for approval:
-  `d:\qq锟斤拷锟斤拷源...strbot\.venv...`.
+  `d:\qq锟斤拷锟斤拷源...Astrbot\.venv...`.
 - The log is written as UTF-8 (pip/Python output), but several GUI reads use
   `Get-Content` without `-Encoding UTF8`, so paths are decoded as ANSI/GBK.
 - Affected: status `last 12 log lines`, progress tail, and possibly log viewer.

@@ -275,7 +275,7 @@ function Test-DashboardModuleSafety {
     $hits = New-Object System.Collections.ArrayList
     if ($Module.LogicPath -and (Test-Path -LiteralPath $Module.LogicPath)) {
         $text = Get-Content -LiteralPath $Module.LogicPath -Raw -Encoding UTF8
-        $patterns = @('Remove-Item', 'Format-Volume', 'rm', 'del', 'Invoke-Expression', 'iex',
+        $patterns = @('Remove-Item', 'Format-Volume', '\brm\b', '\bdel\b', 'Invoke-Expression', '\biex\b',
             'Start-Process', '\[System\.IO\.File\]::Delete', 'Set-ExecutionPolicy', 'Add-Type',
             'DownloadString', 'WebClient', 'Reflection')
         foreach ($pattern in $patterns) {

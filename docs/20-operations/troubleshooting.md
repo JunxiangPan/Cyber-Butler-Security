@@ -63,7 +63,7 @@ The log must contain `SERVICE_START`, `SERVICE_DATA_WRITE_OK`, and `SERVICE_CHIL
 ## Broker 18090 does not listen
 
 ```powershell
-Get-Content '<InstallPath>	ools\logsroker-startup.log' -Tail 80 -Encoding UTF8
+Get-Content '<InstallPath>	ools\logsbroker-startup.log' -Tail 80 -Encoding UTF8
 ```
 
 The Broker refuses to run if `tools` is writable by a low-privilege principal. Keep `tools` read-only for pjx20.

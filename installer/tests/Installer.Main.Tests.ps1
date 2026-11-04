@@ -109,8 +109,8 @@ if ($pythonTooNew) {
         param($c)
         @([pscustomobject]@{
             found = $true
-            path = 'C:ake\python.exe'
-            candidate_path = 'C:ake\python.exe'
+            path = 'C:fake\python.exe'
+            candidate_path = 'C:fake\python.exe'
             python_source = 'system'
             version = 'Python 3.15.2'
             version_ok = $false

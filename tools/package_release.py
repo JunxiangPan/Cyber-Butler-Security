@@ -148,6 +148,17 @@ def main() -> int:
             if hashlib.sha256(data).hexdigest() != entry["sha256"]:
                 raise SystemExit(f"packaged hash mismatch: {entry['path']}")
 
+    hygiene = ROOT / "tools" / "audit_text_hygiene.py"
+    if hygiene.is_file():
+        result = subprocess.run(
+            [sys.executable, str(hygiene), str(extracted)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise SystemExit("package text hygiene failed: " + result.stdout + result.stderr)
+        print("text hygiene OK")
+
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     print(f"wrote {output}")
     print(
