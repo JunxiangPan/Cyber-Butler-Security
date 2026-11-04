@@ -26,7 +26,7 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini"}
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "ACCEPTANCE_PROOF.md"}
 PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/", "quality/")
 FORBIDDEN_PAYLOAD_PREFIXES = ("astrbot/", "snowluma/")
 
@@ -67,6 +67,17 @@ def main() -> int:
     if not update_core.VERSION_RE.fullmatch(version):
         raise SystemExit(f"invalid VERSION: {version!r}")
     output = ROOT.parent / f"public-release-v{version}.zip"
+    preflight = ROOT / "quality" / "preflight.py"
+    if preflight.is_file():
+        gate = subprocess.run(
+            [sys.executable, str(preflight)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if gate.returncode != 0:
+            raise SystemExit("packaging gate failed: " + gate.stdout + gate.stderr)
+        print("packaging gates OK")
     entries: list[tuple[str, bytes]] = []
     manifest_files: list[dict] = []
     for rel in tracked_files():

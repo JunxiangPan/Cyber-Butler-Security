@@ -20,6 +20,12 @@ def _require_quality_gate() -> None:
         raise SystemExit("REFUSING TO SIGN: FINAL_QA_REPORT.md is not PASS")
     if "| blocked |" in text or "| failed |" in text or "| error |" in text:
         raise SystemExit("REFUSING TO SIGN: QA matrix contains blocked/failed items")
+    proof = Path(__file__).resolve().parents[1] / "ACCEPTANCE_PROOF.md"
+    if not proof.is_file():
+        raise SystemExit("REFUSING TO SIGN: ACCEPTANCE_PROOF.md is missing")
+    evidence = proof.read_text(encoding="utf-8")
+    if "Overall: PASS" not in evidence:
+        raise SystemExit("REFUSING TO SIGN: ACCEPTANCE_PROOF.md is not PASS")
 
 
 def main() -> int:
