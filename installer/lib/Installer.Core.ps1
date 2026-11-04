@@ -445,7 +445,7 @@ function Invoke-CyberButlerCoreDeploy {
             }
         }
         $brokerConfigPath = Join-Path $paths.tools 'broker_config.json'
-        $brokerConfig = [pscustomobject]@{ approval_channel = 'qq'; admin_email = '' }
+        $brokerConfig = [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' }
         if (Test-Path -LiteralPath $brokerConfigPath) {
             try { $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
         }
