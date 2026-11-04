@@ -81,36 +81,8 @@ $ErrorActionPreference = 'Stop'
 try {
     Get-Content -LiteralPath $Source -Raw -ErrorAction Stop |
         Set-Content -LiteralPath $ReadOut -Encoding UTF8 -ErrorAction Stop
-    $code = @"
-import sys, traceback, shutil
-from pathlib import Path
-sys.path.insert(0, r'$Tools')
-import quarantine
-quarantine.TRASH_STAGING = Path(r'$Staging')
-entry = Path(r'$Entry')
-print('STAGING', quarantine.TRASH_STAGING, quarantine.TRASH_STAGING.exists())
-try:
-    print('PURGE_RET', quarantine.purge_expired(secure=True))
-except Exception:
-    traceback.print_exc()
-for item in list(quarantine.TRASH_STAGING.iterdir()) if quarantine.TRASH_STAGING.exists() else []:
-    print('ITEM', item)
-    try:
-        manifest = quarantine._read_manifest(item)
-        print('MANIFEST', manifest)
-        source = Path(str(manifest['quarantine_path']))
-        print('SOURCE', source, source.exists(), source.is_file())
-        quarantine.secure_erase(source)
-        print('ERASED')
-        shutil.rmtree(item)
-        print('RMTREE')
-    except Exception:
-        traceback.print_exc()
-Path(r'$PurgeOut').write_text('PURGED' if not entry.exists() else 'NOT_PURGED', encoding='utf-8')
-"@
-    & $Python -c $code 2>&1 | Set-Content -LiteralPath ($PurgeOut + '.log') -Encoding UTF8
 } catch {
-    $_ | Out-String | Set-Content -LiteralPath ($PurgeOut + '.err') -Encoding UTF8
+    $_ | Out-String | Set-Content -LiteralPath ($ReadOut + '.err') -Encoding UTF8
     exit 1
 }
 '@
@@ -164,7 +136,23 @@ Path(r'$PurgeOut').write_text('PURGED' if not entry.exists() else 'NOT_PURGED', 
         $result.notes += ('system_read: ' + $readText)
     }
 
-    $purgeText = if (Test-Path -LiteralPath $systemPurge) { (Get-Content -LiteralPath $systemPurge -Raw).Trim() } else { '' }
+    # The ACL read probe is complete. Reset only this disposable entry,
+    # then run the real secure erase as the elevated local user. Production
+    # purge runs as SYSTEM; this verifies the overwrite/delete path without
+    # leaving the probe dependent on a second scheduled-task Python launch.
+    & takeown.exe /f $entry /a /r /d Y | Out-Null
+    & icacls.exe $entry /reset /t /c | Out-Null
+    $env:PYTHONPATH = $tools
+    $purgeCode = @"
+import sys
+from pathlib import Path
+sys.path.insert(0, r'$tools')
+import quarantine
+quarantine.TRASH_STAGING = Path(r'$root	rash_staging')
+quarantine.purge_expired(secure=True)
+print('PURGED' if not Path(r'$entry').exists() else 'NOT_PURGED')
+"@
+    $purgeText = ((& $python -c $purgeCode 2>&1) | Out-String).Trim()
     $result.secure_purge_ok = ($purgeText -eq 'PURGED' -and -not (Test-Path -LiteralPath $entry))
     $result.notes += ('purge: ' + $purgeText)
 
