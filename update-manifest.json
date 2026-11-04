@@ -33,6 +33,11 @@
       "size": 15261
     },
     {
+      "path": "INTEGRATION.md",
+      "sha256": "3bf55497a1204d06c6176d6bee657f6286445b44759ed9e32744a55f9026e633",
+      "size": 2328
+    },
+    {
       "path": "LICENSE",
       "sha256": "853d35c854ff5043fe86ad0a6b8083d532406b18e1bc8a69f24974b3361892c5",
       "size": 35161
@@ -89,13 +94,13 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "de7395dc52f474d98cfd5d6fd8bd1f7cead7794ca1f728243e4a1b2f7f0c1185",
-      "size": 9875
+      "sha256": "0cd8f019fd526442ea56e2ac9816d953a81bd91092b90e19d3e36792d69c3f89",
+      "size": 14445
     },
     {
       "path": "SECURITY.md",
-      "sha256": "fd447b026c9dbe746b38268799c6f39ed93baa42ceeafbd6441b6a53a487e84a",
-      "size": 456
+      "sha256": "6e101e64eec4e79e4b5e5e713eb0b383f5d477ad75bb1d3af46300d1da2ba6b6",
+      "size": 1365
     },
     {
       "path": "START-INSTALLER.exe",
@@ -149,8 +154,8 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "752b2c8b20ae072977a29b8f1f630344b3edb6c0a5a96a2ebd5e339f33574f33",
-      "size": 639
+      "sha256": "aaa319e2f67b01d3d3884f71f3757d6802aa972ec7943d0473e8715f5415deed",
+      "size": 875
     },
     {
       "path": "docs/00-overview/architecture-scm.md",
@@ -578,14 +583,19 @@
       "size": 5003
     },
     {
+      "path": "installer/Backup-CyberButler.ps1",
+      "sha256": "291b9fe84d169ec20548e11e4b3e9eece294e88f6509b37f09fc638bf9092ee0",
+      "size": 5285
+    },
+    {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "e54185f9d4282f375101263c50fc2ec969ea11161a2d6bf22cde9bc685ecc5a8",
+      "sha256": "c3e3cc0347ac55d2c49eb4c4011fc5700bda181f1a7304560ab970cdaec5b32f",
       "size": 140943
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "743b188486a2be26d55987caf55e275ac8a979f2c02b299e96ff52fa358f7fab",
-      "size": 50716
+      "sha256": "7d1fe128e851006ad999c3f087fc92d42da33f100c968c387759874622bbad15",
+      "size": 53583
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -593,14 +603,19 @@
       "size": 22971
     },
     {
+      "path": "installer/Migrate-v1.6.2-to-v1.6.3.ps1",
+      "sha256": "526de1b7f5b43d877b69549be9cbd8aeeea06db133d0e233799b18b779175a9c",
+      "size": 4024
+    },
+    {
       "path": "installer/README.md",
-      "sha256": "8f567d8f598b341e2d2a758b05ce19da9da4c0e535bef0b1052aeb73e8c269b3",
+      "sha256": "dff828c7c67bf6612772e6912dfaa9d48537156924cf0540e845d0d991bac4af",
       "size": 24163
     },
     {
-      "path": "installer/Repair-AstrBotACL.ps1",
-      "sha256": "b96ab7404aff04ffc6b080b66018a2b050b9fc3af0b4b88be91a548062250ca9",
-      "size": 5784
+      "path": "installer/Restore-CyberButler.ps1",
+      "sha256": "a5a22f1e5d0324a7ab6caf00a0c8e43314acebedd7efd418a384b1ed4bbca1ab",
+      "size": 3435
     },
     {
       "path": "installer/core-sources.json",
@@ -634,8 +649,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "e14bd827c57293269883061a26e8db8f941028771b9948ff7f512430e738dba4",
-      "size": 19248
+      "sha256": "018afbc6341f0399870aa32bb2dca34ce40df4f64b9844888a78fb91b39fc149",
+      "size": 21396
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -699,13 +714,18 @@
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
-      "sha256": "5bf4f8330f8fb2ef63a18898e961387103959591e92c0e38c33fb357dc6bdcf6",
+      "sha256": "a7a6efbfa42ba5724a6db78b3912a448bfbb2407af6e447306252979a660e5c9",
       "size": 9532
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "25f8985b8fca4f7ad8d830d507975612590f663c7efa9a74285f8b34022c3262",
-      "size": 27384
+      "sha256": "33d481792bce9d95609d923756d967109d0b0515130d70ed4807e03ed112975f",
+      "size": 27517
+    },
+    {
+      "path": "installer/lib/Installer.Upgrade.ps1",
+      "sha256": "4e4fcc8928778530ef29ac328f1aa63a80a785bab1dd9d1a1cd76a4af8c09a40",
+      "size": 2484
     },
     {
       "path": "installer/lib/launch-guide.json",
@@ -778,6 +798,11 @@
       "size": 10037
     },
     {
+      "path": "installer/tests/Installer.MigrationRuntime.Tests.ps1",
+      "sha256": "47dd75ddeb1bcc7c823f1acaddfa1c773298503668e1b8510297f10796e6712c",
+      "size": 3385
+    },
+    {
       "path": "installer/tests/Installer.Overlay.Tests.ps1",
       "sha256": "3c282f57bc3a572bb271730963448bea2190a5965dd74a6f94841dc476eebdf9",
       "size": 8658
@@ -823,14 +848,159 @@
       "size": 14104
     },
     {
+      "path": "installer/tests/Installer.Upgrade.Tests.ps1",
+      "sha256": "c78cf1aaa58f7cc8d8cd7642638e777f471b1650acab57fc2aebd8c0c31ebe93",
+      "size": 2368
+    },
+    {
+      "path": "installer/tests/Installer.Wheelhouse.Tests.ps1",
+      "sha256": "74bd0aee614505c989fdd83344c0e1e50b50ba77f919fe8dc804f8bb02274659",
+      "size": 2248
+    },
+    {
+      "path": "installer/wheelhouse/annotated_doc-0.0.5-py3-none-any.whl",
+      "sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101",
+      "size": 5302
+    },
+    {
+      "path": "installer/wheelhouse/annotated_types-0.8.0-py3-none-any.whl",
+      "sha256": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0",
+      "size": 13427
+    },
+    {
+      "path": "installer/wheelhouse/anyio-4.16.0-py3-none-any.whl",
+      "sha256": "c66ae634e0b8228396b801741beb3294326d4b6102f7bba4041c0dfb58c29026",
+      "size": 134521
+    },
+    {
+      "path": "installer/wheelhouse/certifi-2026.10.23-py3-none-any.whl",
+      "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "size": 135082
+    },
+    {
+      "path": "installer/wheelhouse/charset_normalizer-3.5.2-cp313-cp313-win_amd64.whl",
+      "sha256": "78456a747de8dc58360ffa581f30a002baf5aa28cb262536545e91f113ed7639",
+      "size": 206489
+    },
+    {
+      "path": "installer/wheelhouse/click-8.5.0-py3-none-any.whl",
+      "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+      "size": 125251
+    },
+    {
+      "path": "installer/wheelhouse/colorama-0.4.6-py2.py3-none-any.whl",
+      "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+      "size": 25335
+    },
+    {
+      "path": "installer/wheelhouse/fastapi-0.162.0-py3-none-any.whl",
+      "sha256": "3785963de305dd09912426cb81f2d230fce98ab3521cdfe97265c8d14983128c",
+      "size": 148912
+    },
+    {
+      "path": "installer/wheelhouse/h11-0.16.0-py3-none-any.whl",
+      "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+      "size": 37515
+    },
+    {
+      "path": "installer/wheelhouse/httpcore-1.0.9-py3-none-any.whl",
+      "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+      "size": 78784
+    },
+    {
+      "path": "installer/wheelhouse/httpx-0.28.1-py3-none-any.whl",
+      "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+      "size": 73517
+    },
+    {
+      "path": "installer/wheelhouse/idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "size": 69583
+    },
+    {
+      "path": "installer/wheelhouse/jinja2-3.1.6-py3-none-any.whl",
+      "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+      "size": 134899
+    },
+    {
+      "path": "installer/wheelhouse/markupsafe-3.0.4-cp313-cp313-win_amd64.whl",
+      "sha256": "1f1f9477e174582b0a1b583d60b66e1f2cf5d3fe12cee985e4aedf44766600e5",
+      "size": 14313
+    },
+    {
+      "path": "installer/wheelhouse/opentelemetry_api-1.45.2-py3-none-any.whl",
+      "sha256": "2cbd737377e710ee740d261c94e93fa0f08e6d037c18f17513cc0a2d94479a34",
+      "size": 60335
+    },
+    {
+      "path": "installer/wheelhouse/pillow-11.3.0-cp313-cp313-win_amd64.whl",
+      "sha256": "0bce5c4fd0921f99d2e858dc4d4d64193407e1b99478bc5cacecba2311abde51",
+      "size": 6978450
+    },
+    {
+      "path": "installer/wheelhouse/pydantic-2.14.2-py3-none-any.whl",
+      "sha256": "7efbf7507b937931cd32a5755acb00ea1cf5ccb1d4e8067a5850d5069e382118",
+      "size": 490403
+    },
+    {
+      "path": "installer/wheelhouse/pydantic_core-2.50.2-cp313-cp313-win_amd64.whl",
+      "sha256": "e5c801bdf3cc92274b8fc2c7023c8751e5ae81260c009ac558ff55ce712a2d45",
+      "size": 2250556
+    },
+    {
+      "path": "installer/wheelhouse/pyotp-2.9.0-py3-none-any.whl",
+      "sha256": "81c2e5865b8ac55e825b0358e496e1d9387c811e85bb40e71a3b29b288963612",
+      "size": 13376
+    },
+    {
+      "path": "installer/wheelhouse/pywin32-310-cp313-cp313-win_amd64.whl",
+      "sha256": "667827eb3a90208ddbdcc9e860c81bde63a135710e21e4cb3348968e4bd5249e",
+      "size": 9503039
+    },
+    {
+      "path": "installer/wheelhouse/qrcode-8.2-py3-none-any.whl",
+      "sha256": "16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f",
+      "size": 45986
+    },
+    {
+      "path": "installer/wheelhouse/requests-2.32.5-py3-none-any.whl",
+      "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+      "size": 64738
+    },
+    {
+      "path": "installer/wheelhouse/starlette-1.10.0-py3-none-any.whl",
+      "sha256": "478c0ab3b4ced6e82719849c118fa406f0278a3499c1a898cd15cd31bdc38ce4",
+      "size": 80571
+    },
+    {
+      "path": "installer/wheelhouse/typing_extensions-4.16.0-py3-none-any.whl",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "size": 45571
+    },
+    {
+      "path": "installer/wheelhouse/typing_inspection-0.4.4-py3-none-any.whl",
+      "sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147",
+      "size": 14750
+    },
+    {
+      "path": "installer/wheelhouse/urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "size": 135717
+    },
+    {
+      "path": "installer/wheelhouse/uvicorn-0.54.0-py3-none-any.whl",
+      "sha256": "505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf",
+      "size": 87427
+    },
+    {
       "path": "pytest.ini",
       "sha256": "4551307f5b1a58adb7ec215d513089ba670b1737b81ada5a5863afe796d67343",
       "size": 52
     },
     {
       "path": "requirements-dev.txt",
-      "sha256": "43817134c3b17783c3e9122556a6218bcff7de3972b60df4f1b16e206f66ca2f",
-      "size": 38
+      "sha256": "8b8b692c852f6635cc01527e968e1d8bbc87956817e676e9de61f46754c11e1d",
+      "size": 109
     },
     {
       "path": "tests/conftest.py",
@@ -906,6 +1076,11 @@
       "path": "tests/test_defense_matrix.py",
       "sha256": "b8bbfbaa3f298906e70ea18fad476966ab8b3d37d40b5eed7a49f200d70423c4",
       "size": 1349
+    },
+    {
+      "path": "tests/test_delayed_delete.py",
+      "sha256": "a9dba4929343f954a136c31eb7eee15518178b14cabe3ea12116f57763a303bb",
+      "size": 2990
     },
     {
       "path": "tests/test_docs_consistency.py",
@@ -999,8 +1174,8 @@
     },
     {
       "path": "tests/test_toctou.py",
-      "sha256": "068f007ad233fd221c1a344ab87c60459dae6dca2ff2428037efa8183fcdcc16",
-      "size": 1406
+      "sha256": "57fdbfb18373c9050060a7f34aca05bc9a304ff9bb893b7d76a52cd4a4b5b0d5",
+      "size": 1407
     },
     {
       "path": "tests/test_toctou_broker.py",
@@ -1049,8 +1224,8 @@
     },
     {
       "path": "tests/test_wfp_tripwire.py",
-      "sha256": "1acf5cb601fe5562f02ebec295eb50cd0f72519fdedec9eb41a5edb269cb61e9",
-      "size": 1069
+      "sha256": "4bcb49a388d166105ff581e125f07fd9584ccc2da75a30d07543abd190f0c12b",
+      "size": 1082
     },
     {
       "path": "tools/CyberButlerLauncher.exe",
@@ -1061,6 +1236,11 @@
       "path": "tools/Test-CyberButlerInstall.ps1",
       "sha256": "37d711615a273395455cdbbc9f0435022d6ea4b1be94022acce12c422a08c355",
       "size": 4787
+    },
+    {
+      "path": "tools/Test-TwoStageTrashACL.ps1",
+      "sha256": "376b92be18c1b8ae21170d84d35b1f948ebb7d9f86f1afeb42325bbb7b6d88b7",
+      "size": 5643
     },
     {
       "path": "tools/Test-WfpTripwire.ps1",
@@ -1084,8 +1264,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "b7d8c5351707759c1773cf50a77ea9bbba7741b6520394cdb5f145a409e6367f",
-      "size": 83411
+      "sha256": "29f3ea92a4ea1c2528b69c16d6330d3da7fd0a5eecbbbdeb6ed71eb801350433",
+      "size": 90273
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1289,8 +1469,8 @@
     },
     {
       "path": "tools/harden_broker_runtime.ps1",
-      "sha256": "6dc544848e3fab180e22dbc77f63e1f2543707ec2b2c1b8de2e517447487edf8",
-      "size": 1393
+      "sha256": "046bc4088e66ee2e97a8bbb257bab3d9af728cf57f821516452293c1e66134d3",
+      "size": 1391
     },
     {
       "path": "tools/injection_audit.py",
@@ -1394,8 +1574,8 @@
     },
     {
       "path": "tools/quarantine.py",
-      "sha256": "0a100f6132d4bc1c563bf6ba28d90be8fae28214f456a34b0a230eaa3c55ae05",
-      "size": 3816
+      "sha256": "f4f3690c859e786264de596c65fa80414653fceede881ee763109eb2e774652f",
+      "size": 9436
     },
     {
       "path": "tools/red_team_pentest.py",
@@ -1509,8 +1689,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "b72c45e567b9f4acc70319f8a413ba82692f597b174d541a7faee5354bac9ed9",
-      "size": 11837
+      "sha256": "941d9525ab336e91fcb38052fc52d8fe9635ce737fea4972d3386ce2e27636f7",
+      "size": 11860
     },
     {
       "path": "tools/update_gui.ps1",
@@ -1579,8 +1759,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "acaca50974d3f67d9adda814fadadd4667a97760b32e162f0a9b747b16305a7d",
-      "size": 27212
+      "sha256": "36a60462882bbebab8346fafb791b8c912c1d5511eabf2367c125a0497e986d5",
+      "size": 29884
     },
     {
       "path": "webui/auth.py",
@@ -1614,13 +1794,13 @@
     },
     {
       "path": "webui/requirements.sbom.json",
-      "sha256": "002ccc0e65a4274d08fbab744833e5e3d57dcef833bd84fda36655017e5a3d6c",
-      "size": 318
+      "sha256": "6157cb55648965247e43ed322356505fe8d38907a52a107106aa07ae038b3f8a",
+      "size": 435
     },
     {
       "path": "webui/requirements.txt",
-      "sha256": "0beb392bf8c31123841b45edeec09eeaf752b04d358930b01aa67069e6b81028",
-      "size": 108
+      "sha256": "36a70d04016a1057b0bae188cb630ddf664403240e7485b7eedac63088fe34e0",
+      "size": 163
     },
     {
       "path": "webui/run.py",
@@ -1629,8 +1809,8 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "e054c15d236ad1d47a8eb345043089d368ad7a17df0ca8611ea437907cdbc1dd",
-      "size": 12409
+      "sha256": "e57d49a3bb2bf2d2ba804b7447ad151647ef21caa8d20803e53112d8441da62f",
+      "size": 15808
     },
     {
       "path": "webui/settings.py",
@@ -1644,8 +1824,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "62efecf1062f7228008136d8905d2d906e0446831654831d51d18fdd349502b1",
-      "size": 32208
+      "sha256": "2b9041253b6433bf3eba50541d3391d4d9949b7d9cb1018fc52f6c80a19baaaf",
+      "size": 36200
     },
     {
       "path": "webui/static/error.js",
@@ -1724,8 +1904,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "6da91bd580ecd061d4d882ac9bacf3ce7282972f7e0781bc92e81fabd0b08d7d",
-      "size": 19460
+      "sha256": "8618904c41a1473a58a2109b7360f5c43f7e930893c611c09096e138d123abda",
+      "size": 21746
     },
     {
       "path": "webui/templates/error.html",
