@@ -14,6 +14,7 @@ Describe 'Installer offline wheelhouse' {
         ($names -join ';') | Should Match 'pywin32-'
         ($names -join ';') | Should Match 'pillow-'
         ($names -join ';') | Should Match 'cp313'
+        ($names -join ';') | Should Not Match 'pytest'
     }
 
     It 'uses --no-index and --find-links when the wheelhouse is present' {
@@ -22,7 +23,7 @@ Describe 'Installer offline wheelhouse' {
         try {
             $argsFile = Join-Path $base 'pip-args.txt'
             $fake = Join-Path $base 'fake-python.cmd'
-            $body = '@echo %* >> "' + $argsFile + '"' + "`r`n" + '@exit /b 0'
+            $body = '@if "%1"=="-c" (echo 3.13 & exit /b 0)' + "`r`n" + '@echo %* >> "' + $argsFile + '"' + "`r`n" + '@exit /b 0'
             Set-Content -LiteralPath $fake -Value $body -Encoding ASCII
             $requirements = Join-Path $base 'requirements.txt'
             Set-Content -LiteralPath $requirements -Value 'fastapi==0.162.0' -Encoding ASCII

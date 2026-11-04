@@ -16,16 +16,15 @@
         "uvicorn==0.54.0",
         "jinja2>=3.1",
         "httpx==0.28.1",
-        "pytest>=8.0",
         "pyotp==2.9.0",
         "requests==2.32.5",
         "qrcode==8.2",
         "pywin32==310; sys_platform == \"win32\"",
         "Pillow==11.3.0"
       ],
-      "sha256": "9892d8554347e431257a99b1e106b74491228ec9b9545d463e64da4ec7483568"
+      "sha256": "36a70d04016a1057b0bae188cb630ddf664403240e7485b7eedac63088fe34e0"
     }
   ],
-  "generated_at": "2026-11-04T06:01:37+00:00",
+  "generated_at": "2026-11-04T06:10:50+00:00",
   "schema": 2
 }

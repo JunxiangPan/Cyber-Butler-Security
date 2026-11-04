@@ -1,5 +1,20 @@
 # Roadmap / 路线图
 
+### v1.6.3 follow-up — embedded Python runtime (not shipped in PR-02.1)
+
+The current offline package requires a system CPython 3.13 because its
+wheelhouse is CPython 3.13 / win_amd64. The next packaging step is to evaluate a
+bundled, signed Python 3.13 embeddable runtime:
+
+- license redistribution review;
+- bootstrap pip/venv or vendor a prebuilt venv without `ensurepip`;
+- run the same wheelhouse install and Broker/TOTP smoke test offline;
+- produce SBOM entries for the runtime and its DLLs;
+- do not claim zero-dependency until that test passes.
+
+This is intentionally **not** part of v1.6.3 PR-02.1.
+
+
 > This roadmap describes intended direction, not a delivery promise. Security
 > work is gated on reproducible tests and a signed release; dates are not
 > commitments. The v1.6.1 scope is frozen.

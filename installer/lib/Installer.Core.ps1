@@ -167,12 +167,20 @@ function Invoke-CyberButlerPipInstall {
     $quote = { param($value) '"' + ([string]$value).Replace('"', '""') + '"' }
     $wheelhouse = Join-Path (Split-Path -Parent $PSScriptRoot) 'wheelhouse'
     $hasWheelhouse = (Test-Path -LiteralPath $wheelhouse) -and @(Get-ChildItem -LiteralPath $wheelhouse -Filter '*.whl' -File -ErrorAction SilentlyContinue).Count -gt 0
+    $pythonVersion = ''
+    if ($hasWheelhouse) {
+        try { $pythonVersion = ((& $PythonPath -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null) | Out-String).Trim() } catch { $pythonVersion = '' }
+        if ($pythonVersion -ne '3.13') {
+            Write-Host ('CORE offline wheelhouse requires Python 3.13; target is ' + $(if ($pythonVersion) { $pythonVersion } else { 'unknown' }) + '. Falling back to PyPI.')
+            $hasWheelhouse = $false
+        }
+    }
     $command = (& $quote $PythonPath) + ' -m pip install --disable-pip-version-check --progress-bar on'
     if ($hasWheelhouse) {
         $command += ' --no-index --find-links ' + (& $quote $wheelhouse)
         Write-Host ('CORE pip source: offline wheelhouse ' + $wheelhouse)
     } else {
-        Write-Host 'CORE pip source: PyPI (wheelhouse not present)'
+        Write-Host 'CORE pip source: PyPI (offline wheelhouse unavailable or incompatible)'
     }
     $command += ' -r ' + (& $quote $Requirements)
     $argumentLine = '/d /s /c "' + $command + '"'
