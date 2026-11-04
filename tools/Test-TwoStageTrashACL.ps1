@@ -99,11 +99,14 @@ Path(r'$PurgeOut').write_text('PURGED' if not Path(r'$Entry').exists() else 'NOT
     Set-Content -LiteralPath $probeScript -Value $probe -Encoding UTF8
 
     $owner = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    & icacls.exe $entry /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)(F)' `
-        /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
+    # Lock the payload first: after the parent deny is applied, the elevated
+    # owner cannot traverse to the child to change its ACL.
     & icacls.exe $payload /inheritance:r /grant:r '*S-1-5-18:(F)' `
         /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'icacls failed' }
+    if ($LASTEXITCODE -ne 0) { throw 'icacls payload failed' }
+    & icacls.exe $entry /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)(F)' `
+        /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'icacls entry failed' }
     $result.service_deny_ace = ((& icacls.exe $entry | Out-String) -match 'CyberButlerSvc')
 
     try {
