@@ -28,7 +28,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     throw 'Run this acceptance probe as administrator.'
 }
 if ([string]::IsNullOrWhiteSpace($Root)) {
-    $Root = Join-Path $env:ProgramData ('CyberButlercl-accept-' + [guid]::NewGuid().ToString('N'))
+    $Root = Join-Path $env:ProgramData ('CyberButler/acl-accept-' + [guid]::NewGuid().ToString('N'))
 }
 $root = [IO.Path]::GetFullPath($Root)
 $entry = Join-Path $root 'trash_staging\acceptance-request'
