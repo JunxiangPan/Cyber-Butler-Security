@@ -82,13 +82,31 @@ try {
     Get-Content -LiteralPath $Source -Raw -ErrorAction Stop |
         Set-Content -LiteralPath $ReadOut -Encoding UTF8 -ErrorAction Stop
     $code = @"
-import sys
+import sys, traceback, shutil
 from pathlib import Path
 sys.path.insert(0, r'$Tools')
 import quarantine
 quarantine.TRASH_STAGING = Path(r'$Staging')
-quarantine.purge_expired(secure=True)
-Path(r'$PurgeOut').write_text('PURGED' if not Path(r'$Entry').exists() else 'NOT_PURGED', encoding='utf-8')
+entry = Path(r'$Entry')
+print('STAGING', quarantine.TRASH_STAGING, quarantine.TRASH_STAGING.exists())
+try:
+    print('PURGE_RET', quarantine.purge_expired(secure=True))
+except Exception:
+    traceback.print_exc()
+for item in list(quarantine.TRASH_STAGING.iterdir()) if quarantine.TRASH_STAGING.exists() else []:
+    print('ITEM', item)
+    try:
+        manifest = quarantine._read_manifest(item)
+        print('MANIFEST', manifest)
+        source = Path(str(manifest['quarantine_path']))
+        print('SOURCE', source, source.exists(), source.is_file())
+        quarantine.secure_erase(source)
+        print('ERASED')
+        shutil.rmtree(item)
+        print('RMTREE')
+    except Exception:
+        traceback.print_exc()
+Path(r'$PurgeOut').write_text('PURGED' if not entry.exists() else 'NOT_PURGED', encoding='utf-8')
 "@
     & $Python -c $code 2>&1 | Set-Content -LiteralPath ($PurgeOut + '.log') -Encoding UTF8
 } catch {
