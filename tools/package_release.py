@@ -26,8 +26,8 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig"}
-PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/")
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini"}
+PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/")
 FORBIDDEN_PAYLOAD_PREFIXES = ("astrbot/", "snowluma/")
 
 

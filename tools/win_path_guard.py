@@ -31,8 +31,10 @@ class TargetGuardError(OSError):
 
 
 def _reject_unsafe_path_text(raw_path: str) -> Path:
-    if not raw_path or "\x00" in raw_path:
+    if not raw_path or chr(0) in raw_path:
         raise TargetGuardError("empty or NUL path")
+    if any(ord(ch) < 32 for ch in raw_path):
+        raise TargetGuardError("control character in path")
     path = Path(raw_path)
     if any(part == ".." for part in path.parts):
         raise TargetGuardError("path traversal segment is not allowed")

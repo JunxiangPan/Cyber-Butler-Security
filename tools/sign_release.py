@@ -11,7 +11,19 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
 
+def _require_quality_gate() -> None:
+    report = Path(__file__).resolve().parents[1] / "FINAL_QA_REPORT.md"
+    if not report.is_file():
+        raise SystemExit("REFUSING TO SIGN: FINAL_QA_REPORT.md is missing")
+    text = report.read_text(encoding="utf-8")
+    if "Overall: **PASS**" not in text and "Overall: PASS" not in text:
+        raise SystemExit("REFUSING TO SIGN: FINAL_QA_REPORT.md is not PASS")
+    if "| blocked |" in text or "| failed |" in text or "| error |" in text:
+        raise SystemExit("REFUSING TO SIGN: QA matrix contains blocked/failed items")
+
+
 def main() -> int:
+    _require_quality_gate()
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--key", required=True)
