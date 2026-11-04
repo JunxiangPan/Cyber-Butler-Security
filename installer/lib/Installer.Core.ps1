@@ -272,6 +272,13 @@ function Test-CyberButlerCoreDeploy {
     }
 }
 
+function Test-CyberButlerCbsPythonDependencies {
+    param([Parameter(Mandatory = $true)][string]$PythonPath)
+    if (-not (Test-Path -LiteralPath $PythonPath)) { return [pscustomobject]@{ ok = $false; reason = 'python missing' } }
+    $probe = & $PythonPath -c 'import fastapi, uvicorn, httpx, pyotp, qrcode, win32crypt' 2>&1 | Out-String
+    return [pscustomobject]@{ ok = ($LASTEXITCODE -eq 0); reason = $probe.Trim() }
+}
+
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -309,6 +316,14 @@ function Invoke-CyberButlerCoreDeploy {
     }
 
     $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
+    if ($test.satisfied -and -not $SkipDependencyInstall) {
+        $dependencyProbe = Test-CyberButlerCbsPythonDependencies -PythonPath (Join-Path $InstallPath 'webui\.venv\Scripts\python.exe')
+        if (-not $dependencyProbe.ok) {
+            $test.satisfied = $false
+            $test.reason = 'CBS Python dependencies missing: ' + $dependencyProbe.reason
+            Write-Host ('CORE dependency probe failed: ' + $dependencyProbe.reason)
+        }
+    }
     $root = [IO.Path]::GetFullPath($InstallPath)
     $paths = [pscustomobject]@{
         tools = Join-Path $root 'tools'
