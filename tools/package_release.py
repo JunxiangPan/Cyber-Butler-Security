@@ -53,6 +53,11 @@ def tracked_files() -> list[str]:
 
 
 def main() -> int:
+    import os
+    token_file = ROOT / "quality" / ".release-pipeline-token"
+    expected = os.environ.get("CBS_RELEASE_PIPELINE_TOKEN", "")
+    if not expected or not token_file.is_file() or token_file.read_text(encoding="utf-8").strip() != expected:
+        raise SystemExit("REFUSING DIRECT PACKAGING: use tools/Run-ReleasePipeline.ps1")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--baseline-core",
