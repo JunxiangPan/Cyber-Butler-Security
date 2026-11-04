@@ -594,8 +594,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "ecd591859366177b318b8dfef7b31518c6be96f8fa11324a29d103c9fcf9a204",
-      "size": 54114
+      "sha256": "1c59613d4a836516ec069bb1e241735f777cd37c08a2fc3d9ce2ce849129fc20",
+      "size": 54412
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
