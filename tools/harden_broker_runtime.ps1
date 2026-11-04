@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $paths = @(
     (Join-Path $root 'tools'),
-    (Join-Path $root 'AstrBot\.venv')
+    (Join-Path $root 'webui\.venv')
 )
 
 foreach ($path in $paths) {
