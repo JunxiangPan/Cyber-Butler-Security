@@ -117,10 +117,10 @@ adopt MXC correctly.
 **Backlog entry**
 
 ```text
-[ ] Generate MXC Policy (v1.6.2+)
-[ ] Export a user-reviewable JSON file; no silent apply
-[ ] Schema validation and round-trip tests
-[ ] Map CBS controls to MXC capabilities
+[ ] Generate MXC Policy (v1.7.0, optional backend)
+[ ] Export a user-reviewable JSON file; no silent apply (v1.7.0)
+[ ] Schema validation and round-trip tests (v1.7.0)
+[ ] Map CBS controls to MXC capabilities (v1.7.0)
 ```
 
 ## v1.6.3 — Tiered authorization, not one approval for everything
@@ -179,6 +179,23 @@ turning the staging area into a new data-leak path.
 - A SYSTEM-only sweeper purges expired entries. Purge overwrites the file with random bytes for up to three passes, flushes, then unlinks it.
 - Staging capacity is capped at 500 MB or 1000 entries (configurable). A capacity breach is a fail-closed block on further deletes, with an audit event. Overwrite-based erasure is best-effort on SSDs; wear levelling and snapshots can retain physical copies.
 - The undo API is the only supported restore path. Direct access to the staging directory is not a supported user workflow.
+
+## v1.7 — Temporal replay, IPC, and MXC (optional backends)
+
+**Version boundary:** v1.6.3 is a mandatory bridge release. A v1.6.2 host must
+complete `v1.6.2 -> v1.6.3` before any v1.7.0 installation. There is no direct
+v1.6.2 -> v1.7.0 path.
+
+The v1.7.0 line will add IPC and Microsoft MXC compatibility only as
+**detectable, optional backends**:
+
+- IPC and MXC are capability-detected, not assumed.
+- They are off by default; no silent enablement and no automatic policy apply.
+- Unsupported capabilities must return a typed, fail-closed result.
+- CBS must not claim kernel-level containment or non-bypassability because an
+  optional IPC/MXC backend is present.
+- The v1.6.3 approval gateway, ACL boundary, and migration contract remain the
+  supported base.
 
 ## v1.7 — Temporal replay and pipeline
 
