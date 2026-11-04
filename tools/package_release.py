@@ -78,6 +78,21 @@ def main() -> int:
         if gate.returncode != 0:
             raise SystemExit("packaging gate failed: " + gate.stdout + gate.stderr)
         print("packaging gates OK")
+    for gate_name, gate_script in (
+        ("code comments", ROOT / "tools" / "audit_code_comments.py"),
+        ("docs consistency", ROOT / "tools" / "audit_docs_consistency.py"),
+    ):
+        if not gate_script.is_file():
+            raise SystemExit(f"packaging gate missing: {gate_name}")
+        gate = subprocess.run(
+            [sys.executable, str(gate_script)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if gate.returncode != 0:
+            raise SystemExit(gate_name + " gate failed: " + gate.stdout + gate.stderr)
+        print(gate_name + " gate OK")
     entries: list[tuple[str, bytes]] = []
     manifest_files: list[dict] = []
     for rel in tracked_files():

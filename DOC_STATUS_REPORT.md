@@ -1,0 +1,261 @@
+# DOC_STATUS_REPORT
+
+- Version: 1.6.3
+- README languages: 8
+- Feature routes extracted: 0
+- Status: FAIL
+
+## Feature routes (source of truth)
+
+- none
+
+## Localized README structure
+
+| Language | File | Headings | H1 | H2 | H3 | Missing vs README.md |
+|---|---|---:|---:|---:|---:|---|
+| en | README_en.md | 8 | 1 | 7 | 0 | none |
+| zh | README_zh.md | 8 | 1 | 7 | 0 | none |
+| de | README_de.md | 8 | 1 | 7 | 0 | none |
+| es | README_es.md | 8 | 1 | 7 | 0 | none |
+| fr | README_fr.md | 8 | 1 | 7 | 0 | none |
+| ja | README_ja.md | 8 | 1 | 7 | 0 | none |
+| ko | README_ko.md | 8 | 1 | 7 | 0 | none |
+| ru | README_ru.md | 8 | 1 | 7 | 0 | none |
+
+## Deprecated term findings
+
+- README_en.md:73: deprecated term S4U
+- README_en.md:73: deprecated term Task Scheduler
+- README_de.md:73: deprecated term S4U
+- README_es.md:73: deprecated term S4U
+- README_fr.md:73: deprecated term S4U
+- README_ja.md:73: deprecated term S4U
+- README_ko.md:73: deprecated term S4U
+- README_ru.md:73: deprecated term S4U
+- docs/00-overview/architecture-scm.md:5: deprecated term S4U
+- docs/00-overview/architecture-scm.md:10: deprecated term S4U
+- docs/00-overview/architecture-scm.md:12: deprecated term S4U
+- docs/00-overview/architecture-scm.md:12: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README.md:163: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README.md:445: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:514: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:642: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:643: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:819: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README.md:819: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_de.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_de.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_en.md:132: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_en.md:414: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:483: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:611: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:612: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:788: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_en.md:788: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_es.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_es.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_fr.md:311: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_fr.md:311: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ja.md:318: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ja.md:318: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ko.md:306: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ko.md:306: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ru.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ru.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_zh.md:91: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:97: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:124: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:201: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:586: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:590: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/SECURITY.md:39: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/SECURITY.md:39: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/SECURITY.md:98: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/SECURITY.md:524: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/SECURITY.md:690: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/STATUS_v1.6.1.md:45: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:160: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:239: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:310: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:316: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:349: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:383: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:383: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:491: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:530: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:106: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:213: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:213: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:214: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:214: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:260: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:260: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:308: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:460: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:460: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:621: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:664: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:709: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:720: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:766: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:767: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:767: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:768: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:774: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:774: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:786: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:786: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:824: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:827: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/使用说明.md:827: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:834: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:839: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:895: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:907: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:933: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1286: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1303: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1325: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1327: deprecated term 计划任务
+- docs/40-history/incidents/acl-self-lock.md:26: deprecated term AstrBot Service
+- docs/40-history/incidents/s4u-retirement.md:1: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:11: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:11: deprecated term Task Scheduler
+- docs/40-history/incidents/s4u-retirement.md:15: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:15: deprecated term Task Scheduler
+- docs/40-history/incidents/s4u-retirement.md:16: deprecated term Task Scheduler
+- docs/40-history/incidents/sqlite-readonly.md:18: deprecated term Task Scheduler
+- docs/40-history/incidents/task-rollback.md:12: deprecated term Task Scheduler
+- docs/40-history/incidents/task-rollback.md:12: deprecated term AstrBot Service
+- docs/40-history/incidents/task-rollback.md:26: deprecated term AstrBot Service
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:21: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:49: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:58: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:67: deprecated term S4U
+- docs/90-audit/GITHUB_RELEASE_CHECKLIST_v1.6.2.md:50: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:19: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:33: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:34: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:34: deprecated term Task Scheduler
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:42: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:48: deprecated term S4U
+- docs/README.md:37: deprecated term S4U
+
+## Problems
+
+- README_en.md:73: deprecated term S4U
+- README_en.md:73: deprecated term Task Scheduler
+- README_de.md:73: deprecated term S4U
+- README_es.md:73: deprecated term S4U
+- README_fr.md:73: deprecated term S4U
+- README_ja.md:73: deprecated term S4U
+- README_ko.md:73: deprecated term S4U
+- README_ru.md:73: deprecated term S4U
+- docs/00-overview/architecture-scm.md:5: deprecated term S4U
+- docs/00-overview/architecture-scm.md:10: deprecated term S4U
+- docs/00-overview/architecture-scm.md:12: deprecated term S4U
+- docs/00-overview/architecture-scm.md:12: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README.md:163: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README.md:445: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:514: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:642: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:643: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README.md:819: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README.md:819: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_de.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_de.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_en.md:132: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_en.md:414: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:483: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:611: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:612: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/README_en.md:788: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_en.md:788: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_es.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_es.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_fr.md:311: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_fr.md:311: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ja.md:318: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ja.md:318: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ko.md:306: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ko.md:306: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_ru.md:309: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/README_ru.md:309: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/README_zh.md:91: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:97: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:124: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:201: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:586: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/README_zh.md:590: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/SECURITY.md:39: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/SECURITY.md:39: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/SECURITY.md:98: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/SECURITY.md:524: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/SECURITY.md:690: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/STATUS_v1.6.1.md:45: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:160: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:239: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:310: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:316: deprecated term S4U
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:349: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:383: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:383: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:491: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/TROUBLESHOOTING.md:530: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:106: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:213: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:213: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:214: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:214: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:260: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:260: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:308: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:460: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:460: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:621: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:664: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:709: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:720: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:766: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:767: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:767: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:768: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:774: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:774: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:786: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:786: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:824: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:827: deprecated term Task Scheduler
+- docs/40-history/archive/legacy-readmes/使用说明.md:827: deprecated term AstrBot Service
+- docs/40-history/archive/legacy-readmes/使用说明.md:834: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:839: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:895: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:907: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:933: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1286: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1303: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1325: deprecated term 计划任务
+- docs/40-history/archive/legacy-readmes/使用说明.md:1327: deprecated term 计划任务
+- docs/40-history/incidents/acl-self-lock.md:26: deprecated term AstrBot Service
+- docs/40-history/incidents/s4u-retirement.md:1: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:11: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:11: deprecated term Task Scheduler
+- docs/40-history/incidents/s4u-retirement.md:15: deprecated term S4U
+- docs/40-history/incidents/s4u-retirement.md:15: deprecated term Task Scheduler
+- docs/40-history/incidents/s4u-retirement.md:16: deprecated term Task Scheduler
+- docs/40-history/incidents/sqlite-readonly.md:18: deprecated term Task Scheduler
+- docs/40-history/incidents/task-rollback.md:12: deprecated term Task Scheduler
+- docs/40-history/incidents/task-rollback.md:12: deprecated term AstrBot Service
+- docs/40-history/incidents/task-rollback.md:26: deprecated term AstrBot Service
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:21: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:49: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:58: deprecated term S4U
+- docs/90-audit/DOCUMENTATION_AUDIT_v1.6.2.md:67: deprecated term S4U
+- docs/90-audit/GITHUB_RELEASE_CHECKLIST_v1.6.2.md:50: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:19: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:33: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:34: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:34: deprecated term Task Scheduler
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:42: deprecated term S4U
+- docs/90-audit/GITHUB_WEB_UPDATE_CHECKLIST_v1.6.2.md:48: deprecated term S4U
+- docs/README.md:37: deprecated term S4U
