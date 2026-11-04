@@ -692,11 +692,11 @@ if (-not $failure) {
         $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $ExternalAgentAccount -DesktopUser $DesktopAccount -Handlers $Handlers
         Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status ([string]$brokerAcl.status) -Reason ([string]$brokerAcl.reason)
         if ([string]$brokerAcl.status -eq 'failed') {
-            $failure = [pscustomobject]@{ step = 'broker_acl'; message = ('broker ACL: ' + [string]$brokerAcl.message) }
+            Write-InstallerLine ('Broker ACL 加固警告，继续安装：' + [string]$brokerAcl.message) -Level WARN
         }
     } catch {
-        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status 'failed' -Reason $_.Exception.Message
-        $failure = [pscustomobject]@{ step = 'broker_acl'; message = ('broker ACL hardening failed: ' + $_.Exception.Message) }
+        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status 'warning' -Reason $_.Exception.Message
+        Write-InstallerLine ('Broker ACL 加固失败，继续安装：' + $_.Exception.Message) -Level WARN
     }
 }
 

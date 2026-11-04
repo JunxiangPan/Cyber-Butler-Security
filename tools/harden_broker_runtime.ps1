@@ -3,8 +3,8 @@
 # This intentionally removes inherited write access and grants the desktop
 # account read/execute only, so game-mode can still load its script.
 param(
-    [string]$ServiceUser = 'YOUR_SERVICE_USER',
-    [string]$DesktopUser = 'YOUR_USER_NAME'
+    [string]$ServiceUser = '',
+    [string]$DesktopUser = ''
 )
 
 $ErrorActionPreference = 'Stop'
