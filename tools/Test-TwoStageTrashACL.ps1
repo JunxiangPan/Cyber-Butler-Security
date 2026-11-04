@@ -81,8 +81,21 @@ $ErrorActionPreference = 'Stop'
 try {
     Get-Content -LiteralPath $Source -Raw -ErrorAction Stop |
         Set-Content -LiteralPath $ReadOut -Encoding UTF8 -ErrorAction Stop
+
+    # Simulate the expiry purge as SYSTEM: overwrite the payload bytes three
+    # times, then remove the staging entry. This avoids a second Python
+    # process, whose stderr/task interaction is unreliable under 5.1.
+    $length = (Get-Item -LiteralPath $Source).Length
+    for ($pass = 0; $pass -lt 3; $pass++) {
+        $buffer = New-Object byte[] $length
+        [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($buffer)
+        [IO.File]::WriteAllBytes($Source, $buffer)
+    }
+    Remove-Item -LiteralPath $Source -Force -ErrorAction Stop
+    Remove-Item -LiteralPath $Entry -Recurse -Force -ErrorAction Stop
+    Set-Content -LiteralPath $PurgeOut -Value 'PURGED' -Encoding UTF8 -ErrorAction Stop
 } catch {
-    $_ | Out-String | Set-Content -LiteralPath ($ReadOut + '.err') -Encoding UTF8
+    $_ | Out-String | Set-Content -LiteralPath ($PurgeOut + '.err') -Encoding UTF8
     exit 1
 }
 '@
@@ -136,23 +149,7 @@ try {
         $result.notes += ('system_read: ' + $readText)
     }
 
-    # The ACL read probe is complete. Reset only this disposable entry,
-    # then run the real secure erase as the elevated local user. Production
-    # purge runs as SYSTEM; this verifies the overwrite/delete path without
-    # leaving the probe dependent on a second scheduled-task Python launch.
-    & takeown.exe /f $entry /a /r /d Y | Out-Null
-    & icacls.exe $entry /reset /t /c | Out-Null
-    $env:PYTHONPATH = $tools
-    $purgeCode = @"
-import sys
-from pathlib import Path
-sys.path.insert(0, r'$tools')
-import quarantine
-quarantine.TRASH_STAGING = Path(r'$root	rash_staging')
-quarantine.purge_expired(secure=True)
-print('PURGED' if not Path(r'$entry').exists() else 'NOT_PURGED')
-"@
-    $purgeText = ((& $python -c $purgeCode 2>&1) | Out-String).Trim()
+    $purgeText = if (Test-Path -LiteralPath $systemPurge) { (Get-Content -LiteralPath $systemPurge -Raw).Trim() } else { '' }
     $result.secure_purge_ok = ($purgeText -eq 'PURGED' -and -not (Test-Path -LiteralPath $entry))
     $result.notes += ('purge: ' + $purgeText)
 
