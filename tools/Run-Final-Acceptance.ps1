@@ -18,6 +18,7 @@ param(
     [string]$SharedRoot = '',
     [string]$ProofPath = '',
     [string]$TotpCode = '',
+    [string]$Nonce = '',
     [switch]$SkipCapacity
 )
 
@@ -31,6 +32,11 @@ if ([string]::IsNullOrWhiteSpace($SharedRoot)) {
 New-Item -ItemType Directory -Path $SharedRoot -Force | Out-Null
 
 $proof = New-Object System.Collections.Generic.List[string]
+$scriptPath = $PSCommandPath
+$scriptHashStart = (Get-FileHash -LiteralPath $scriptPath -Algorithm SHA256).Hash
+Set-ItemProperty -LiteralPath $scriptPath -Name IsReadOnly -Value $true
+if ([string]::IsNullOrWhiteSpace($Nonce)) { $Nonce = Read-Host 'Enter a random nonce for this run' }
+if ([string]::IsNullOrWhiteSpace($Nonce)) { throw 'A random nonce is required' }
 $checks = [ordered]@{}
 function Add-Proof([string]$text) {
     $proof.Add($text)
@@ -84,6 +90,8 @@ Add-Proof ('# ACCEPTANCE_PROOF')
 Add-Proof ('')
 Add-Proof ('- Executed: ' + (Get-Date).ToUniversalTime().ToString('o'))
 Add-Proof ('- Host: ' + $env:COMPUTERNAME)
+Add-Proof ('- Nonce: ' + $Nonce)
+Add-Proof ('- Acceptance script SHA256 (start): ' + $scriptHashStart)
 $macs = @(Get-NetAdapter | Select-Object -ExpandProperty MacAddress)
 Add-Proof ('- MAC: ' + ($macs -join ', '))
 $version = (Get-Content (Join-Path $InstallRoot 'VERSION') -Raw).Trim()
@@ -144,6 +152,12 @@ if (-not $negId) { Record 'negative_setup' $false } else {
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $negVerify.raw + [Environment]::NewLine + '```')
     Record 'negative_403' ($negVerify.status -eq '403' -and $negVerify.body -match 'invalid verification code')
     Record 'safe_after_negative' ((Restart-BrokerTask) -eq $true)
+
+# Wrong-path negative test: must be denied, never 200.
+$badJson = '{"action":"delete","target":"C:\Windows\System32\drivers\etc\hosts","reason":"negative path"}'
+$bad = Invoke-CurlJson 'http://127.0.0.1:18090/request' 'POST' $badJson
+Add-Proof ('WRONG_PATH RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $bad.raw + [Environment]::NewLine + '```')
+Record 'negative_path' ($bad.status -ne '200' -and $bad.body -notmatch '"ok"\s*:\s*true')
 }
 
 # 4. Positive TOTP + undo.
@@ -201,7 +215,12 @@ if (-not $SkipCapacity) {
     }
 }
 
-# 7. Overall only after real evidence.
+# 7. Validate this script was not modified while running.
+$scriptHashEnd = (Get-FileHash -LiteralPath $scriptPath -Algorithm SHA256).Hash
+Record 'script_immutable' ($scriptHashStart -eq $scriptHashEnd)
+Add-Proof ('- Acceptance script SHA256 (end): ' + $scriptHashEnd)
+
+# 8. Overall only after real evidence.
 $overall = $true
 foreach ($key in $checks.Keys) { if (-not $checks[$key]) { $overall = $false } }
 Add-Proof ''

@@ -26,6 +26,17 @@ def _require_quality_gate() -> None:
     evidence = proof.read_text(encoding="utf-8")
     if "Overall: PASS" not in evidence:
         raise SystemExit("REFUSING TO SIGN: ACCEPTANCE_PROOF.md is not PASS")
+    required_evidence = (
+        "- Nonce:",
+        "- Acceptance script SHA256 (start):",
+        "- Acceptance script SHA256 (end):",
+        "negative_403=True",
+        "negative_path=True",
+        "script_immutable=True",
+    )
+    for marker in required_evidence:
+        if marker not in evidence:
+            raise SystemExit("REFUSING TO SIGN: acceptance evidence missing: " + marker)
 
 
 def main() -> int:

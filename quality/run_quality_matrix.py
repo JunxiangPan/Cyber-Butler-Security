@@ -6,8 +6,10 @@ or FAIL, and the signing gate refuses to sign unless every item is PASS.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
+import secrets
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -74,6 +76,10 @@ def run_pytest() -> dict[str, str]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nonce", default="")
+    args = parser.parse_args()
+    nonce = args.nonce or secrets.token_hex(16)
     matrix = json.loads(MATRIX.read_text(encoding="utf-8"))
     statuses = run_pytest()
     rows = []
@@ -89,6 +95,7 @@ def main() -> int:
         "# FINAL QA REPORT",
         "",
         f"- Version: {matrix['version']}",
+        f"- Nonce: {nonce}",
         f"- Generated: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
         f"- Matrix: {total} items",
         f"- Passed: {passed}",

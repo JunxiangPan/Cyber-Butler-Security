@@ -32,3 +32,18 @@ jobs:
 
       - name: Run security tests
         run: python -m pytest -q
+
+  quality-gates-windows:
+    name: quality gates (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Packaging preflight (text / placeholders / dry-run / wheelhouse)
+        run: python quality/preflight.py
+      - name: 25-item quality matrix (no fake PASS)
+        run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
