@@ -562,6 +562,20 @@ if (-not $failure -and $coreNeedsDeploy) {
         $coreReason = if ($coreResult.reason) { [string]$coreResult.reason } elseif ([string]$coreResult.status -eq 'skipped') { 'core deployment already satisfied' } else { 'core deployment completed' }
         Add-MainJournalStep -Journal $journal -Name 'core' -Status $(if ([string]$coreResult.status -eq 'skipped') { 'skipped' } else { 'completed' }) -Reason $coreReason
     }
+    if (-not $failure -and -not $SkipDependencyInstall) {
+        $webPython = Join-Path $InstallPath 'webui\.venv\Scripts\python.exe'
+        if (Test-Path -LiteralPath $webPython) {
+            $depProbe = Test-CyberButlerCbsPythonDependencies -PythonPath $webPython
+            if (-not $depProbe.ok) {
+                $failure = [pscustomobject]@{
+                    step = 'core_dependencies'
+                    message = ('CBS Python 依赖未安装完成，已中止，未进入 TOTP：' + [string]$depProbe.reason)
+                    kind = 'configuration'
+                }
+                Write-Output 'CORE_DEPENDENCIES missing; stopping before TOTP'
+            }
+        }
+    }
     if ($coreResult -and [string]$coreResult.personal_plugins_status -eq 'failed') {
         Add-MainJournalStep -Journal $journal -Name 'personal_plugins' -Status 'failed' -Reason ([string]$coreResult.personal_plugins_error)
         Write-Output ('PERSONAL plugins failed: ' + [string]$coreResult.personal_plugins_error)

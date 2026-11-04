@@ -238,8 +238,13 @@ function Invoke-CyberButlerPipInstall {
         }
     }
     Remove-Item -LiteralPath $stderrPath -Force -ErrorAction SilentlyContinue
+    $exitCode = [int]$process.ExitCode
+    $combinedText = (@($lines) | Out-String)
+    if ($exitCode -eq 0 -and $combinedText -match '(?im)^\s*ERROR:\s') {
+        $exitCode = 1
+    }
     return [pscustomobject]@{
-        exit_code = [int]$process.ExitCode
+        exit_code = $exitCode
         output = $lines.ToArray()
         log_path = $LogPath
         heartbeats = $heartbeats
