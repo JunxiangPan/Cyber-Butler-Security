@@ -45,6 +45,28 @@ $result = [ordered]@{
 try {
     New-Item -ItemType Directory -Path $entry -Force | Out-Null
     Set-Content -LiteralPath $payload -Value 'acceptance-secret' -Encoding UTF8
+    $manifest = [ordered]@{
+        request_id = 'acceptance-request'
+        original_path = $payload
+        quarantine_path = $payload
+        state = 'pending_delete'
+        expires_epoch = 0
+        expires_at = 'expired-for-acceptance'
+        size = (Get-Item -LiteralPath $payload).Length
+    }
+    $manifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $entry 'manifest.json') -Encoding UTF8
+    $probeScript = Join-Path $root 'system-read-probe.ps1'
+    @'
+param([string]$Source, [string]$Output)
+try {
+    Get-Content -LiteralPath $Source -Raw -ErrorAction Stop |
+        Set-Content -LiteralPath $Output -Encoding UTF8 -ErrorAction Stop
+    exit 0
+} catch {
+    $_ | Out-String | Set-Content -LiteralPath ($Output + '.err') -Encoding UTF8
+    exit 1
+}
+'@ | Set-Content -LiteralPath $probeScript -Encoding UTF8
     $owner = [Security.Principal.WindowsIdentity]::GetCurrent().Name
     & icacls.exe $entry /inheritance:r /grant:r '*S-1-5-18:(F)' `
         /deny "${owner}:(R,W,D)" /deny 'CyberButlerSvc:(R,W,D)' | Out-Null
@@ -64,7 +86,7 @@ try {
     }
 
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument (
-        '-NoProfile -Command "Get-Content -LiteralPath ''' + $payload + ''' -Raw | Set-Content -LiteralPath ''' + $systemOut + ''' -Encoding UTF8"'
+        '-NoProfile -ExecutionPolicy Bypass -File "' + $probeScript + '" -Source "' + $payload + '" -Output "' + $systemOut + '"'
     )
     $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
     Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Force | Out-Null
@@ -105,7 +127,7 @@ print("PURGED" if not entry.exists() else "NOT_PURGED")
     & icacls.exe $entry /reset /t /c | Out-Null
     $env:PYTHONPATH = (Join-Path (Split-Path -Parent $PSScriptRoot) 'tools')
     $purgeOutput = & $python $purgeScript $root 2>&1
-    $result.secure_purge_ok = (($purgeOutput -join ' ') -match 'PURGED')
+    $result.secure_purge_ok = ((($purgeOutput -join ' ') -replace '\s+', ' ').Trim() -eq 'PURGED')
     $result.notes += ('purge: ' + (($purgeOutput -join ' ') -replace '\s+', ' '))
 } finally {
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
