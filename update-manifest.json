@@ -594,8 +594,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "3ba2db3375ba278b625c5c446ed7b549b1d93c748fb2681130ca86cdd0063a72",
-      "size": 54096
+      "sha256": "ecd591859366177b318b8dfef7b31518c6be96f8fa11324a29d103c9fcf9a204",
+      "size": 54114
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -1824,7 +1824,7 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "2b9041253b6433bf3eba50541d3391d4d9949b7d9cb1018fc52f6c80a19baaaf",
+      "sha256": "217e4d691903933711ee04997e20fb1435f2a5a78d05908c75035db68af9f398",
       "size": 36200
     },
     {
@@ -1904,7 +1904,7 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "8618904c41a1473a58a2109b7360f5c43f7e930893c611c09096e138d123abda",
+      "sha256": "72099ee3ee613195848888a5dffc7f37ba1083f7128adf49ee07d42d602e20cd",
       "size": 21746
     },
     {
