@@ -86,8 +86,10 @@ def summarize(items: list[dict], statuses: dict[str, str], profile: str) -> dict
     for item in items:
         item_id = str(item["id"])
         raw = statuses.get(item_id, "blocked")
-        if raw == "skipped":
-            raw = "skipped-by-design" if profile == "ci" and item["class"] != "ci" else "blocked"
+        if profile == "ci" and item["class"] != "ci":
+            raw = "skipped-by-design"
+        elif raw == "skipped":
+            raw = "blocked"
         if raw in {"failed", "error"}:
             raw = "failed"
         rows.append({**item, "status": raw})
