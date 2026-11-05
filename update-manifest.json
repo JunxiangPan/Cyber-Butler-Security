@@ -94,8 +94,8 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "cf1d919483ddb3681a6768c347d1f41ea84b56f8f56c44df42c3fdac73325426",
-      "size": 15597
+      "sha256": "71f28e8d40705d2fb7498c2e5810efad03f3f6ef279e4216889ea5fc4c665f8d",
+      "size": 15922
     },
     {
       "path": "SECURITY.md",
@@ -104,8 +104,8 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "bebb6e931a5e620e5a5b93080694899698b3d7c9310eec2418b9207d5f05ed04",
-      "size": 35102368
+      "sha256": "e598340cbc717305c1e8567272f894170cd53e578a4b225f6c0e201bbcfbf5fc",
+      "size": 35102914
     },
     {
       "path": "THREAT_MODEL.md",
@@ -129,8 +129,8 @@
     },
     {
       "path": "build/StartInstaller.cs",
-      "sha256": "1e8922104f2e9a39cc7feddd4aa8cd4eda94fd32cfb22136faa5ef277fa56376",
-      "size": 2017
+      "sha256": "b8206f3f8cbfe6d4ceffa6d9ec8e1b6caa39478e68a9cae0a006f6fef7ab2751",
+      "size": 2989
     },
     {
       "path": "build/StartInstaller.csproj",
@@ -296,6 +296,11 @@
       "path": "docs/QA_FOLLOWUPS_v1.6.2.md",
       "sha256": "1716cf59e2794a42065f3151c11f2e5a16854f332ac94c6074d98ed46499f7cc",
       "size": 12129
+    },
+    {
+      "path": "docs/QA_FOLLOWUPS_v1.6.3.md",
+      "sha256": "6c55757d1c582d5427efe34799f2226039321a2a3c37669eb14ccf105d424968",
+      "size": 978
     },
     {
       "path": "docs/RAG-知识库指南.md",
@@ -629,8 +634,8 @@
     },
     {
       "path": "installer/lib/Installer.GuiRun.ps1",
-      "sha256": "6938c85a99d8af43871cbdb2f28e1b9bbf56d1a47d4ab84447d271aec97fecf7",
-      "size": 32670
+      "sha256": "be89f310848fe7f284be9c16002431e990d0175bb1a8f2acbd3e0e6679d1d73f",
+      "size": 33032
     },
     {
       "path": "installer/lib/Installer.Journal.ps1",
