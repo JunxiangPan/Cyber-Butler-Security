@@ -14,8 +14,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "bc789bbb0d4eb44a2e97226658397910bdf0ed3e9849d8181034a8ec61a698f2",
-      "size": 1825
+      "sha256": "0159afca0623ecf07c8cba3afef787dc4acd0a023f5541e7547c2ec7dea2e27a",
+      "size": 1845
     },
     {
       "path": "CONTRIBUTING.md",
@@ -1184,8 +1184,8 @@
     },
     {
       "path": "tests/test_wfp_tripwire.py",
-      "sha256": "f6707fa0106e21807cadaa83d00b6fffe4f864ae60eaa09cd6dba375fd6acc44",
-      "size": 1094
+      "sha256": "191c8c332784766f0e18d06f521d8669927ccfd4932f5fd32a8dfb8db66d5839",
+      "size": 1098
     },
     {
       "path": "tools/Audit-Package.ps1",
@@ -1269,8 +1269,8 @@
     },
     {
       "path": "tools/audit_text_hygiene.py",
-      "sha256": "c6600bdfa3a89153163b6c392788630d37931ec46efeffe9f7893aa334fc85e0",
-      "size": 3599
+      "sha256": "f99a8b8b3acb8cafbad06eddfc9849c5ac77064b61ce8897bb6b847315347cf3",
+      "size": 3624
     },
     {
       "path": "tools/boot-selfcheck.ps1",
@@ -1714,8 +1714,8 @@
     },
     {
       "path": "tools/wfp_tripwire.py",
-      "sha256": "ec462bf6342c2cc8ee1e386511f1108cb1acc655aebec71586153723b5d7f2eb",
-      "size": 4418
+      "sha256": "a2f9397a36175242c2c3e523f36555652deac8643deb85f3c5c91bb41726c9d2",
+      "size": 5322
     },
     {
       "path": "tools/win_path_guard.py",
