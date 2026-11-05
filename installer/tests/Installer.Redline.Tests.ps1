@@ -14,7 +14,7 @@ Describe 'CBS release red lines' {
     }
 
     It 'critical integrity is scoped under the CBS root' {
-        $source = Get-Content -LiteralPath (Join-Path $root 'tools\broker.py') -Raw
+        $source = Get-Content -LiteralPath (Join-Path $root 'tools/broker_policy.py') -Raw
         $source | Should Match 'path\.relative_to\(root\)'
     }
 
