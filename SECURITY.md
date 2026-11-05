@@ -28,3 +28,20 @@ CBS tests use synthetic external agents, not real third-party applications as fi
 Use GitHub Security Advisories: <https://github.com/JunxiangPan/Cyber-Butler-Security/security/advisories/new>. Do not file a public issue for an unfixed vulnerability.
 
 This release implements network **audit** only; it does not claim OS-level or IPv6 firewall enforcement.
+
+## Disclosure SLA
+
+- Acknowledgement: within 3 business days.
+- Initial triage and severity: within 7 business days.
+- Critical fix or documented mitigation: target 30 days.
+- High: target 60 days.
+- Medium/Low: next scheduled release.
+- We will coordinate disclosure with the reporter and credit them unless they prefer to remain anonymous.
+
+## Disclaimer
+
+CBS is a defense-in-depth deployment wrapper and approval broker. It is not a
+kernel sandbox, does not claim OS-level network enforcement, and cannot make an
+untrusted Agent safe by itself. The operator is responsible for account
+separation, backups, and not deploying the product as the sole control for
+high-value secrets.

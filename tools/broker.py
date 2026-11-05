@@ -31,6 +31,7 @@ import qrcode
 import requests
 import email_approval
 import quarantine
+import approval_i18n
 import approval_preview
 import port_guard
 import audit_chain
@@ -1276,10 +1277,10 @@ def _manifest_prompt(manifest: list[dict]) -> str:
     Returns:
         Function result, or None when no value is returned.
     """
-    lines = [f"哥，瑾言想发送 {len(manifest)} 个文件，请输入动态验证码。完整清单："]
+    lines = [approval_i18n.t("manifest", count=len(manifest))]
     for index, item in enumerate(manifest, 1):
         if item["kind"] == "url":
-            lines.append(f"{index}. URL: {item['path']} [OUTSIDE SHARED]")
+            lines.append(f"{index}. {approval_i18n.t('url')}: {item['path']} [OUTSIDE SHARED]")
         else:
             path = Path(item["path"])
             marker = "" if inside_shared(path) else " [OUTSIDE SHARED]"
@@ -1462,7 +1463,7 @@ def timeout_watch(request_id: str) -> None:
     if expired:
         if approval_only:
             _set_approval_state(request_id, "expired", approval_only=True)
-        send_qq("哥，验证码超时了，这次操作没有执行。")
+        send_qq(approval_i18n.t("timeout"))
         log(f"timeout: {request_id}")
 
 
@@ -2197,7 +2198,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 _pending = None
         if approved and send_ok:
             return 200, {"ok": True, "approved": True, "id": request_id}
-        send_qq("哥，验证码超时了，这次发送没有执行。")
+        send_qq(approval_i18n.t("timeout"))
         return 408, {"ok": False, "approved": False, "error": "verification timed out"}
 
     response = {
@@ -2351,7 +2352,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     scoped_minutes,
                 )
             _set_approval_state(request_id, "approved", approval_only=True, scoped=scoped)
-            _notify_async("已批准 DSH 请求；本次只放行，不执行文件操作。")
+            _notify_async(approval_i18n.t("approved"))
             with AUDIT.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps({
                     "at": datetime.now().isoformat(timespec="seconds"),

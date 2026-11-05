@@ -10,6 +10,8 @@ from __future__ import annotations
 import difflib
 import hashlib
 import os
+
+import approval_i18n
 import re
 from pathlib import Path
 from typing import Any
@@ -255,7 +257,7 @@ def build_preview(
 
 def format_preview(preview: dict[str, Any], request_id: str = "") -> str:
     """Render the owner-facing prompt; never includes the AI reason field."""
-    lines = ["哥，以下是底层真实参数，未经 Agent 转述。"]
+    lines = [approval_i18n.t("header")]
     if preview.get("script_warning"):
         lines.append("扩展名属于脚本类型")
     if preview.get("magic_warning"):
@@ -265,29 +267,26 @@ def format_preview(preview: dict[str, Any], request_id: str = "") -> str:
         lines.insert(0, "⚠️ INTENT MISMATCH: Agent claims [" + str(preview.get("intent_reason", ""))[:300] + "], but targets [" + str(preview.get("target", ""))[:300] + "]")
     if preview.get("external_read_warning"):
         lines.append(str(preview["external_read_warning"]))
-    lines.append(f"动作：{preview.get('action')}")
-    lines.append(f"目标：{preview.get('target')}")
+    lines.append(f"{approval_i18n.t('action')}: {preview.get('action')}")
+    lines.append(f"{approval_i18n.t('target')}: {preview.get('target')}")
     if preview.get("kind") == "delete":
         before = preview.get("before") or {}
-        lines.append(f"文件大小：{before.get('size')} bytes")
-        lines.append(f"修改时间：{before.get('mtime')}")
-        lines.append(f"sha256：{before.get('sha256')}")
+        lines.append(f"{approval_i18n.t('size')}: {before.get('size')}")
+        lines.append(f"{approval_i18n.t('mtime')}: {before.get('mtime')}")
+        lines.append(f"{approval_i18n.t('sha256')}: {before.get('sha256')}")
     else:
         before = preview.get("before") or {}
-        lines.append(f"原大小：{before.get('size', 0)} bytes")
-        lines.append(f"新大小：{preview.get('after_size', 0)} bytes")
+        lines.append(f"{approval_i18n.t('old_size')}: {before.get('size', 0)}")
+        lines.append(f"{approval_i18n.t('new_size')}: {preview.get('after_size', 0)}")
         if preview.get("source"):
             src = preview["source"]
-            lines.append(f"来源：{src.get('size')} bytes | sha256={src.get('sha256')}")
+            lines.append(f"{approval_i18n.t('source')}: {src.get('size')} bytes | sha256={src.get('sha256')}")
         if preview.get("diff"):
-            lines.append("Diff：")
+            lines.append(approval_i18n.t("diff") + ":")
             lines.append(preview["diff"])
-            lines.append("[Diff 已截断]" if preview.get("diff_truncated") else "[Diff 结束]")
+            lines.append(approval_i18n.t("truncated") if preview.get("diff_truncated") else approval_i18n.t("end"))
         elif preview.get("binary"):
-            lines.append("[二进制或超大文件，Diff 已省略]")
-    lines.append("仅本次：<6 位动态码>")
-    lines.append("同一目录同动作 30 秒：<6 位动态码> BYPASS 30")
-    lines.append("当前草稿目录 30 分钟：<6 位动态码> SCOPED 30")
-    if request_id:
-        lines.append(f"请求号：{request_id}")
+            lines.append(approval_i18n.t("binary"))
+    lines.append(approval_i18n.t("only_once"))
+
     return "\n".join(lines)

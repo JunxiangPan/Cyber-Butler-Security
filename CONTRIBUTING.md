@@ -125,3 +125,7 @@ Any pull request that changes an API, installation flow, service identity, ACL, 
 - Use the archive policy: move obsolete documents to `docs/40-history/archive/` and add `[ARCHIVED - 已废弃]` at the top. Never delete historical docs.
 - Run `python -m pytest -q tests/test_docs_consistency.py` before opening a PR.
 - Documentation fixes are welcome; use the Documentation issue form.
+
+## Release discipline
+
+Read [docs/RELEASE_DISCIPLINE.md](docs/RELEASE_DISCIPLINE.md). A fix that is not committed and pushed is not released, and must not be claimed in release notes.
