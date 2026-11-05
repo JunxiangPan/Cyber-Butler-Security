@@ -21,6 +21,16 @@ MAX_SOURCE = 300
 
 
 def record(kind: str, source: str, summary: str = "") -> dict:
+    """Record.
+    
+    Args:
+        kind: caller-supplied value.
+        source: caller-supplied value.
+        summary: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     kind = str(kind or "").strip().lower()
     if kind not in {"web", "file", "tool"}:
         raise ValueError("kind must be web, file or tool")
@@ -43,6 +53,14 @@ def record(kind: str, source: str, summary: str = "") -> dict:
 
 
 def recent(minutes: int = 10) -> list[dict]:
+    """Recent.
+    
+    Args:
+        minutes: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not EVENT_FILE.exists():
         return []
     cutoff = time.time() - max(1, int(minutes)) * 60
@@ -63,4 +81,12 @@ def recent(minutes: int = 10) -> list[dict]:
 
 
 def warning(minutes: int = 10) -> str:
+    """Warning.
+    
+    Args:
+        minutes: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return WARNING if recent(minutes) else ""

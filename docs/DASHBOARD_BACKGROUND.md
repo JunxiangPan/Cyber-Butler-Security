@@ -9,7 +9,6 @@
 - [Cache](#cache)
 - [Maintenance checks](#maintenance-checks)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
 
 
 The dashboard window is built from three layers:
@@ -100,13 +99,13 @@ safe to delete.
 
 ```powershell
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qq苏瑾言大肥鱼 -SmokeTest
+  -ProjectRoot D:\qqlocal agentshared -SmokeTest
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qq苏瑾言大肥鱼 -SmokeSettings
+  -ProjectRoot D:\qqlocal agentshared -SmokeSettings
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qq苏瑾言大肥鱼 -SmokeSettingsDialog -SmokeSettingsShot shot.png
+  -ProjectRoot D:\qqlocal agentshared -SmokeSettingsDialog -SmokeSettingsShot shot.png
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qq苏瑾言大肥鱼 -SmokeBackground -SmokeAssetDir C:\path\to\media
+  -ProjectRoot D:\qqlocal agentshared -SmokeBackground -SmokeAssetDir C:\path\to\media
 ```
 
 `-SmokeBackground` prints a JSON report: format, element kind, frame count,

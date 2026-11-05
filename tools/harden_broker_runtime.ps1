@@ -3,15 +3,15 @@
 # This intentionally removes inherited write access and grants the desktop
 # account read/execute only, so game-mode can still load its script.
 param(
-    [string]$ServiceUser = 'YOUR_SERVICE_USER',
-    [string]$DesktopUser = 'YOUR_USER_NAME'
+    [string]$ServiceUser = '',
+    [string]$DesktopUser = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $paths = @(
     (Join-Path $root 'tools'),
-    (Join-Path $root 'AstrBot\.venv')
+    (Join-Path $root 'webui\.venv')
 )
 
 foreach ($path in $paths) {

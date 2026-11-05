@@ -6,7 +6,7 @@
 
 - Hardware dashboard: live CPU/GPU temperature + VRAM cards and a lightweight
   SVG trend drawn from `/api/temps` (last 30 samples in the page only).
-- Today's token usage from AstrBot's provider stats. Cost is estimated only
+- Today's token usage from AgentRuntime's provider stats. Cost is estimated only
   when `token_pricing` contains a blended USD-per-million rate; otherwise the
   UI says "未配置" rather than showing a false zero.
 - Safe fixed shortcuts: weather, voice request and model-status message. These

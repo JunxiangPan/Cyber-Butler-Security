@@ -14,7 +14,7 @@
 
 Phase 1/2 includes read-only monitoring and the first interactive actions:
 
-- status cards for AstrBot (6185), Broker (18090), SnowLuma (5099);
+- status cards for AgentRuntime (6185), Broker (18090), AuxRuntime (5099);
 - GPU memory bar;
 - configured provider display;
 - last ten TOTP audit records;
@@ -26,7 +26,7 @@ Phase 1/2 includes read-only monitoring and the first interactive actions:
 ## Security fixes
 
 - TOTP setup now aborts when `icacls` fails and creates explicit Deny Read for
-  `AstrBot_User` on the DPAPI secret and recovery store.
+  `AgentRuntime_User` on the DPAPI secret and recovery store.
 - `verify_broker_acl.ps1` verifies those explicit denies and the Broker refuses
   to start when they are absent.
 - QQ network I/O moved outside the Broker pending-state lock.
@@ -35,7 +35,7 @@ Phase 1/2 includes read-only monitoring and the first interactive actions:
 
 ## Security
 
-- No AstrBot plugin and no LLM tool registration.
+- No AgentRuntime plugin and no LLM tool registration.
 - No write operations in Phase 1.
 - API key is never rendered; only its configured/not-configured state is shown.
 - The dashboard can be run from the release tree with `-ProjectRoot` so it
@@ -50,7 +50,7 @@ PowerShell scripts parse with UTF-8 BOM
 
 ## Merge update safety fix
 
-`update_merge.ps1` now stops AstrBot and Broker before hashing data, waits for
+`update_merge.ps1` now stops AgentRuntime and Broker before hashing data, waits for
 file handles to release, hashes only core `.db` files, skips locked files with
 a warning, and applies code only after the pre-update fingerprint and backup
 are complete. A post-apply mismatch rolls back code and restarts services.

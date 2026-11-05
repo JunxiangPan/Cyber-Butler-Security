@@ -5,6 +5,12 @@ $installerRoot = Split-Path -Parent $here
 $mainScript = Join-Path $installerRoot 'Install-CyberButler.ps1'
 $psExe = Join-Path $PSHOME 'powershell.exe'
 
+<#
+.SYNOPSIS
+    New-MainTestConfig performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-MainTestConfig {
     param(
         [Parameter(Mandatory = $true)]
@@ -37,7 +43,7 @@ New-Item -ItemType File -Path $totpAcl -Force | Out-Null
 New-Item -ItemType File -Path $secretAcl -Force | Out-Null
 
 $handlers = @{
-    'core.deploy' = { param($c) Set-Content -LiteralPath (Join-Path $global:cbMainBase 'core.marker') -Value 'called'; [pscustomobject]@{ status = 'completed'; mode = 'test' } }
+    'core.deploy' = { param($c) Set-Content -LiteralPath (Join-Path $global:cbMainBase 'core.marker') -Value 'called'; $root = $c.Root; foreach ($d in @('tools','webui','data','workspace','webui\.venv\Scripts')) { New-Item -ItemType Directory -Path (Join-Path $root $d) -Force | Out-Null }; [pscustomobject]@{ status = 'completed'; mode = 'test'; paths = [pscustomobject]@{ tools = (Join-Path $root 'tools'); webui = (Join-Path $root 'webui'); data = (Join-Path $root 'data'); workspace = (Join-Path $root 'workspace') } } }
     'accounts.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true; exists = $false } }
     'accounts.create' = { param($c) [pscustomobject]@{ created = $true } }
     'accounts.assert' = { param($c) $true }
@@ -76,7 +82,7 @@ $handlers = @{
     'secrets.assert' = { param($c) $global:cbFailStep -ne 'secrets' }
     'secrets.undo' = { param($c) [pscustomobject]@{ action = 'removed' } }
     'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
-    'services.apply' = { param($c) [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @(4242) } }
+    'services.apply' = { param($c) [pscustomobject]@{ created = @('AgentRuntime Service'); started_process_ids = @(4242) } }
     'services.assert' = { param($c) $true }
     'services.undo' = { param($c) [pscustomobject]@{ action = 'removed' } }
     'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
@@ -109,8 +115,8 @@ if ($pythonTooNew) {
         param($c)
         @([pscustomobject]@{
             found = $true
-            path = 'C:ake\python.exe'
-            candidate_path = 'C:ake\python.exe'
+            path = 'C:fake\python.exe'
+            candidate_path = 'C:fake\python.exe'
             python_source = 'system'
             version = 'Python 3.15.2'
             version_ok = $false
@@ -204,8 +210,8 @@ Describe 'Installer main pipeline' {
     It 'prints a secure API key prompt when a value is missing' {
         $reader = { ConvertTo-SecureString 'test-api-key' -AsPlainText -Force }
         $global:cbPromptValue = $null
-        $output = & { $global:cbPromptValue = Read-CyberButlerSecureSecret -Prompt 'API Key is required for AstrBot. Please enter your DeepSeek API Key:' -Reader $reader } 6>&1 | Out-String
-        $output | Should Match 'API Key is required for AstrBot'
+        $output = & { $global:cbPromptValue = Read-CyberButlerSecureSecret -Prompt 'API Key is required for AgentRuntime. Please enter your DeepSeek API Key:' -Reader $reader } 6>&1 | Out-String
+        $output | Should Match 'API Key is required for AgentRuntime'
         $global:cbPromptValue.Length | Should Be 12
     }
 

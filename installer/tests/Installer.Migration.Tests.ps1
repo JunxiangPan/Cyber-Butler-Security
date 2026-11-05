@@ -3,6 +3,12 @@ $installerRoot = Split-Path -Parent $here
 $migrationScript = Join-Path $installerRoot 'Migrate-EnableIsolation.ps1'
 $psExe = Join-Path $PSHOME 'powershell.exe'
 
+<#
+.SYNOPSIS
+    New-MigrationTestConfig performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-MigrationTestConfig {
     param(
         [string]$Base,
@@ -16,24 +22,24 @@ $global:cbMigrationBase = '__BASE__'
 $global:cbMigrationVerify = '__VERIFY__' -eq 'true'
 $global:cbMigrationSatisfied = '__SATISFIED__' -eq 'true'
 $global:cbMigrationFailStep = '__FAIL__'
-$global:cbMigrationCalls = @{ account = 0; stop = 0; tasks = 0; undo = 0; snowluma = 0; broker = 0 }
+$global:cbMigrationCalls = @{ account = 0; stop = 0; tasks = 0; undo = 0; auxruntime = 0; broker = 0 }
 
 $handlers = @{
     'migration.test' = {
         param($c)
-        [pscustomobject]@{ satisfied = $global:cbMigrationSatisfied; account_exists = $false; astrbot_principal = 'desktop'; webui_principal = 'desktop'; snowluma = 'unchanged'; broker = 'unchanged' }
+        [pscustomobject]@{ satisfied = $global:cbMigrationSatisfied; account_exists = $false; agentruntime_principal = 'desktop'; webui_principal = 'desktop'; auxruntime = 'unchanged'; broker = 'unchanged' }
     }
     'migration.preflight' = { param($c) [pscustomobject]@{ install_path = [pscustomobject]@{ existing_state = 'Installed' } } }
     'migration.snapshot' = { param($c) [pscustomobject]@{ status = 'completed' } }
     'migration.account' = { param($c) $global:cbMigrationCalls.account++; [pscustomobject]@{ created = $true } }
     'migration.acl' = { param($c) [pscustomobject]@{ status = 'completed' } }
     'migration.dpapi' = { param($c) [pscustomobject]@{ status = 'completed' } }
-    'migration.stop' = { param($c) $global:cbMigrationCalls.stop++; [pscustomobject]@{ status = 'completed'; snowluma = 'unchanged'; broker = 'unchanged' } }
+    'migration.stop' = { param($c) $global:cbMigrationCalls.stop++; [pscustomobject]@{ status = 'completed'; auxruntime = 'unchanged'; broker = 'unchanged' } }
     'migration.tasks' = { param($c) $global:cbMigrationCalls.tasks++; [pscustomobject]@{ status = 'completed' } }
     'migration.start' = { param($c) [pscustomobject]@{ status = 'completed' } }
     'migration.verify' = { param($c) $global:cbMigrationVerify }
     'migration.undo' = { param($c) $global:cbMigrationCalls.undo++; [pscustomobject]@{ status = 'rolled_back'; executed = @(); errors = @() } }
-    'migration.snowluma' = { param($c) $global:cbMigrationCalls.snowluma++; $null }
+    'migration.auxruntime' = { param($c) $global:cbMigrationCalls.auxruntime++; $null }
     'migration.broker' = { param($c) $global:cbMigrationCalls.broker++; $null }
 }
 
@@ -65,7 +71,7 @@ function Invoke-Migration {
     $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $migrationScript, $Mode,
         '-Tier', 'Medium', '-InstallPath', (Join-Path $Base 'install'),
         '-ServiceAccountName', 'FakeSvc', '-DesktopAccount', 'DESKTOP\Owner',
-        '-AstrBotAccount', 'DESKTOP\Owner', '-JournalRoot', (Join-Path $Base 'state'),
+        '-AgentRuntimeAccount', 'DESKTOP\Owner', '-JournalRoot', (Join-Path $Base 'state'),
         '-ReportDirectory', (Join-Path $Base 'report'), '-TestConfigPath', $Config)
     if ($Mode -eq '-Apply' -or $Mode -eq '-PlanOnly' -or $Mode -eq '-Verify') { $args += '-NonInteractive' }
     if ($StatePath) { $args += @('-StatePath', $StatePath) }
@@ -73,7 +79,7 @@ function Invoke-Migration {
 }
 
 Describe 'Isolation migration' {
-    It 'plans without changing state and documents SnowLuma/Broker' {
+    It 'plans without changing state and documents AuxRuntimeApplication/Broker' {
         $base = Join-Path $env:TEMP ('cb-migrate-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
@@ -82,7 +88,7 @@ Describe 'Isolation migration' {
             $LASTEXITCODE | Should Be 0
             $text = $out -join "`n"
             ($text -match 'Downtime estimate') | Should Be $true
-            ($text -match 'SnowLuma: unchanged') | Should Be $true
+            ($text -match 'AuxRuntimeApplication: unchanged') | Should Be $true
             ($text -match 'Broker: unchanged') | Should Be $true
             (Test-Path -LiteralPath (Join-Path $base 'report\migration-report.json')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $base 'state')) | Should Be $false
@@ -102,7 +108,7 @@ Describe 'Isolation migration' {
             $reportPath = Join-Path $base 'report\migration-report.json'
             $report = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
             $report.status | Should Be 'success'
-            $report.snowluma | Should Be 'unchanged'
+            $report.auxruntime | Should Be 'unchanged'
             $report.broker | Should Be 'unchanged'
             $report.downtime_estimate | Should Not BeNullOrEmpty
             $reportText = Get-Content -LiteralPath $reportPath -Raw

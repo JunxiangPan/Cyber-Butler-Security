@@ -36,7 +36,7 @@ v1.5.3 收紧 router 的失败语义，新增只给 owner 使用的只读 `/dsh`
 
 ### Owner-only `/dsh` read-only bridge / 只读运维桥
 
-New plugin: `astrbot_plugin_dsh_bridge`.
+New plugin: `agentruntime_plugin_dsh_bridge`.
 
 - Owner private chat only; group messages and non-owner senders are denied
   without revealing whether the command exists.
@@ -57,7 +57,7 @@ New plugin: `astrbot_plugin_dsh_bridge`.
 - Every command appends one JSONL record to
   `C:\ProgramData\CyberButler\audit\ops.jsonl` with only
   `ts`, `command`, `result`.
-- 新增 `astrbot_plugin_dsh_bridge`：只允许 owner 私聊，固定三条只读命令；
+- 新增 `agentruntime_plugin_dsh_bridge`：只允许 owner 私聊，固定三条只读命令；
   不重启、不重载、不调 LLM、不执行 shell。
 - `status` 进程内读取 provider 与 `router_state`，只输出
   `id / type / enabled / model`。
@@ -110,8 +110,8 @@ New plugin: `astrbot_plugin_dsh_bridge`.
 ## ✅ Verification / 验证
 
 ```text
-astrbot_plugin_dsh_bridge tests             24 passed
-AstrBot router tests                        47 passed
+agentruntime_plugin_dsh_bridge tests             24 passed
+AgentRuntime router tests                        47 passed
 Cyber-Butler root tests                     47 passed, 4 skipped
 public-release tests                        51 passed
 Web UI tests                                23 passed

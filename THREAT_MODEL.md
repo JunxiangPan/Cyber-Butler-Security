@@ -97,3 +97,14 @@ explicit "not implemented / not guaranteed"
 ```
 
 The mapping is maintained in [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
+
+## Boundary Statement
+
+CBS is a generic local Agent approval and evidence layer.
+It does not own, support, certify, or endorse any specific third-party QQ client or unofficial ecosystem.
+
+CBS provides only a generic external Agent boundary.
+Whether a third-party application uses CBS, how it integrates, and whether it is compliant, is the sole responsibility of the user.
+
+CBS tests use synthetic external agents, not real third-party applications as fixtures.
+

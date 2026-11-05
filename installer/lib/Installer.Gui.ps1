@@ -1,10 +1,16 @@
-# Helpers for the Cyber-Butler WPF installer front-end.
+﻿# Helpers for the Cyber-Butler WPF installer front-end.
 
 function ConvertTo-CyberButlerPowerShellLiteral {
     param([AllowEmptyString()][string]$Value)
     return "'" + ($Value -replace "'", "''") + "'"
 }
 
+<#
+.SYNOPSIS
+    New-CyberButlerInteractiveInstallCommand performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CyberButlerInteractiveInstallCommand {
     param(
         [Parameter(Mandatory = $true)][string]$InstallerPath,

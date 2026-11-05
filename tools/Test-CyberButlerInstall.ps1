@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$InstallPath = ''
 )
 
@@ -18,7 +18,7 @@ $result = [ordered]@{
     problems = @()
 }
 
-$svc = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" -ErrorAction SilentlyContinue
+$svc = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" -ErrorAction SilentlyContinue
 if ($svc) {
     $result.service = [ordered]@{
         name = $svc.Name
@@ -31,7 +31,7 @@ if ($svc) {
         $InstallPath = Split-Path (Split-Path (Split-Path $svc.PathName -Parent) -Parent) -Parent
     }
 } else {
-    $result.problems += 'CyberButlerAstrBot service missing'
+    $result.problems += 'CyberButlerAgentRuntime service missing'
 }
 if ($InstallPath) {
     $result.install_path = $InstallPath
@@ -45,7 +45,7 @@ foreach ($port in @(6185, 18090, 8765, 8766, 5099, 6199)) {
     if ($port -ne 6199 -and $listen.Count -eq 0) { $result.problems += "port $port not listening" }
 }
 
-foreach ($name in @('AstrBot TOTP Broker','Cyber-Butler WFP Guard','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','SnowLuma Startup')) {
+foreach ($name in @('AgentRuntime TOTP Broker','Cyber-Butler WFP Guard','Cyber-Butler Web UI Services','Cyber-Butler OTP Mailer','AuxRuntime Startup')) {
     $t = Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
     $info = if ($t) { Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue } else { $null }
     $result.tasks += [ordered]@{
@@ -57,7 +57,7 @@ foreach ($name in @('AstrBot TOTP Broker','Cyber-Butler WFP Guard','Cyber-Butler
 }
 
 if ($InstallPath) {
-    $serviceLog = Join-Path $InstallPath 'AstrBot\data\logs\service-astrbot.log'
+    $serviceLog = Join-Path $InstallPath 'AgentRuntime\data\logs\service-agentruntime.log'
     if (Test-Path -LiteralPath $serviceLog) {
         $head = Get-Content -LiteralPath $serviceLog -Head 8 -Encoding UTF8 -ErrorAction SilentlyContinue
         $result.logs.service_head = $head
@@ -65,7 +65,7 @@ if ($InstallPath) {
             if (-not ($head -match [regex]::Escape($needle))) { $result.problems += "service log missing: $needle" }
         }
     } else {
-        $result.problems += 'service-astrbot.log missing'
+        $result.problems += 'service-agentruntime.log missing'
     }
     $wfpPolicy = Join-Path $InstallPath 'webui\data
 etwork-policy.json'

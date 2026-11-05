@@ -4,11 +4,11 @@
 
 ## Encoding fix
 
-The previous manual OneBot HTTP test used a shell `curl` payload that was decoded as GBK, producing mojibake on QQ.
+The previous manual AgentProtocol HTTP test used a shell `curl` payload that was decoded as GBK, producing mojibake on QQ.
 
 All project-owned QQ notification paths now send explicit UTF-8:
 
-- `tools/snowluma_guard.py::notify`
+- `tools/auxruntime_guard.py::notify`
   - `json.dumps(..., ensure_ascii=False).encode("utf-8")`
   - `Content-Type: application/json; charset=utf-8`
 - `tools/boot-selfcheck.ps1::Notify-Owner`
@@ -24,14 +24,14 @@ Verified live:
 ## Self-healing retained
 
 - `wallpaperui` / `wallpaperengine` / `wallpaper engine` ignored by game-mode.
-- Boot self-check warms `sujinyan-chat-24k`, checks Ollama/AstrBot/SnowLuma, restores `local_qwen36`.
-- SnowLuma guard detects an inbound `MsgPush` without a corresponding `[Event]` for five minutes and restarts SnowLuma.
+- Boot self-check warms `sujinyan-chat-24k`, checks Ollama/AgentRuntime/AuxRuntime, restores `local_qwen36`.
+- AuxRuntime guard detects an inbound `MsgPush` without a corresponding `[Event]` for five minutes and restarts AuxRuntime.
 - `cloud_fallback` keeps the 90-second startup grace and UTF-8 BOM-tolerant config read.
 
 ## Verification
 
 - 17 tests passed.
-- UTF-8 notification delivered and SnowLuma log displays correct Chinese.
+- UTF-8 notification delivered and AuxRuntime log displays correct Chinese.
 - Boot self-check script parsed successfully.
 
 ## Boot SelfCheck scheduled task
@@ -53,7 +53,7 @@ Manual test log:
 [2026-10-29 09:21:48] boot self-check started
 [2026-10-29 09:21:48] local model already resident
 [2026-10-29 09:21:48] provider restore: ok
-[2026-10-29 09:21:48] boot self-check finished: {"ollama":true,"astrbot":true,"snowluma":true}
+[2026-10-29 09:21:48] boot self-check finished: {"ollama":true,"agentruntime":true,"auxruntime":true}
 ```
 
 The temporary Startup VBS fallback was removed after the scheduled task was verified.

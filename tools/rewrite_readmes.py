@@ -13,16 +13,16 @@ for f in ['README.md','README_en.md','README_zh.md','README_de.md','README_es.md
 
 | Port | Owner | Meaning |
 |---|---|---|
-| 6185 | SCM service `CyberButlerAstrBot` | AstrBot WebUI/API |
-| 18090 | SYSTEM task `AstrBot TOTP Broker` | local approval/TOTP broker |
+| 6185 | SCM service `CyberButlerAgentRuntime` | AgentRuntime WebUI/API |
+| 18090 | SYSTEM task `AgentRuntime TOTP Broker` | local approval/TOTP broker |
 | 8765 | desktop task `Cyber-Butler Web UI Services` | CBS dashboard |
 | 8766 | desktop task `Cyber-Butler OTP Mailer` | email OTP delivery |
-| 5099 | desktop task `SnowLuma Startup` | SnowLuma WebUI |
-| 6199 | AstrBot OneBot adapter | **dynamic**, only after adapter configuration |
+| 5099 | desktop task `AuxRuntime Startup` | AuxRuntime WebUI |
+| 6199 | AgentRuntime AgentProtocol adapter | **dynamic**, only after adapter configuration |
 
 ## 6199 is not a system service
 
-`6199` is created dynamically by AstrBot's OneBot adapter after the adapter is configured and enabled. It is not installed by CBS and must not be expected to listen before that configuration.
+`6199` is created dynamically by AgentRuntime's AgentProtocol adapter after the adapter is configured and enabled. It is not installed by CBS and must not be expected to listen before that configuration.
 
 ## Verification
 
@@ -62,10 +62,18 @@ Get-NetTCPConnection -State Listen |
 
 ## Current release
 
-v1.6.2-rc2: AstrBot is a native SCM service (`CyberButlerAstrBot`) under `CyberButlerSvc`; 6185/18090/8765/8766/5099 are verified on the host. WFP remains audit-only; 6199 is a dynamic OneBot adapter port; Light has no real-machine acceptance.
+v1.6.2-rc2: AgentRuntime is a native SCM service (`CyberButlerAgentRuntime`) under `CyberButlerSvc`; 6185/18090/8765/8766/5099 are verified on the host. WFP remains audit-only; 6199 is a dynamic AgentProtocol adapter port; Light has no real-machine acceptance.
 """, encoding='utf-8')
 
 def section(lang):
+    """Section.
+    
+    Args:
+        lang: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return {
       'en': ('# Cyber-Butler Security (CBS)', 'A defensive control plane for self-hosted LLM agents.'),
       'zh': ('# Cyber-Butler Security（CBS）', '面向自托管 LLM 智能体的防御性安全控制面。'),
@@ -89,14 +97,14 @@ labels = {
 }
 
 summary = {
- 'en':'AstrBot runs as the native SCM service `CyberButlerAstrBot` under `CyberButlerSvc`. The service binary is ACL-locked, interactive logon is denied, and a Job Object owns the child tree.',
- 'zh':'AstrBot 以 `CyberButlerSvc` 运行原生 SCM 服务 `CyberButlerAstrBot`。服务二进制 ACL 已锁定，禁止交互登录，并用 Job Object 接管子进程树。',
- 'de':'AstrBot läuft als nativer SCM-Dienst `CyberButlerAstrBot` unter `CyberButlerSvc`. Die Binärdatei ist ACL-geschützt, interaktive Anmeldung ist gesperrt und ein Job Object steuert den Prozessbaum.',
- 'es':'AstrBot se ejecuta como servicio SCM nativo `CyberButlerAstrBot` con `CyberButlerSvc`. El binario está protegido por ACL, el inicio de sesión interactivo está denegado y un Job Object controla el árbol de procesos.',
- 'fr':'AstrBot s’exécute comme service SCM natif `CyberButlerAstrBot` sous `CyberButlerSvc`. Le binaire est protégé par ACL, la connexion interactive est refusée et un Job Object gère l’arbre de processus.',
- 'ja':'AstrBot は `CyberButlerSvc` の下でネイティブ SCM サービス `CyberButlerAstrBot` として実行されます。バイナリは ACL で保護され、対話ログオンは拒否され、Job Object が子プロセス ツリーを管理します。',
- 'ko':'AstrBot은 `CyberButlerSvc` 아래에서 네이티브 SCM 서비스 `CyberButlerAstrBot`으로 실행됩니다. 바이너리는 ACL로 보호되고 대화형 로그온은 거부되며 Job Object가 자식 프로세스 트리를 관리합니다.',
- 'ru':'AstrBot работает как собственная служба SCM `CyberButlerAstrBot` под `CyberButlerSvc`. Бинарный файл защищён ACL, интерактивный вход запрещён, а Job Object управляет деревом процессов.'
+ 'en':'AgentRuntime runs as the native SCM service `CyberButlerAgentRuntime` under `CyberButlerSvc`. The service binary is ACL-locked, interactive logon is denied, and a Job Object owns the child tree.',
+ 'zh':'AgentRuntime 以 `CyberButlerSvc` 运行原生 SCM 服务 `CyberButlerAgentRuntime`。服务二进制 ACL 已锁定，禁止交互登录，并用 Job Object 接管子进程树。',
+ 'de':'AgentRuntime läuft als nativer SCM-Dienst `CyberButlerAgentRuntime` unter `CyberButlerSvc`. Die Binärdatei ist ACL-geschützt, interaktive Anmeldung ist gesperrt und ein Job Object steuert den Prozessbaum.',
+ 'es':'AgentRuntime se ejecuta como servicio SCM nativo `CyberButlerAgentRuntime` con `CyberButlerSvc`. El binario está protegido por ACL, el inicio de sesión interactivo está denegado y un Job Object controla el árbol de procesos.',
+ 'fr':'AgentRuntime s’exécute comme service SCM natif `CyberButlerAgentRuntime` sous `CyberButlerSvc`. Le binaire est protégé par ACL, la connexion interactive est refusée et un Job Object gère l’arbre de processus.',
+ 'ja':'AgentRuntime は `CyberButlerSvc` の下でネイティブ SCM サービス `CyberButlerAgentRuntime` として実行されます。バイナリは ACL で保護され、対話ログオンは拒否され、Job Object が子プロセス ツリーを管理します。',
+ 'ko':'AgentRuntime은 `CyberButlerSvc` 아래에서 네이티브 SCM 서비스 `CyberButlerAgentRuntime`으로 실행됩니다. 바이너리는 ACL로 보호되고 대화형 로그온은 거부되며 Job Object가 자식 프로세스 트리를 관리합니다.',
+ 'ru':'AgentRuntime работает как собственная служба SCM `CyberButlerAgentRuntime` под `CyberButlerSvc`. Бинарный файл защищён ACL, интерактивный вход запрещён, а Job Object управляет деревом процессов.'
 }
 for lang in labels:
     title, desc = section(lang)
@@ -111,7 +119,7 @@ for lang in labels:
 - Windows 10/11 x64, administrator rights.
 - Run `START-INSTALLER.exe`; choose High, Loopback, and the personal plugin path.
 - Scan the TOTP QR and store recovery codes offline.
-- Verify: `Get-Service CyberButlerAstrBot`; port 6185 must listen.
+- Verify: `Get-Service CyberButlerAgentRuntime`; port 6185 must listen.
 
 ## {l['arch']}
 
@@ -119,7 +127,7 @@ for lang in labels:
 
 - Service binary ACL: `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`.
 - `SeDenyInteractiveLogonRight` is restored.
-- Log: `AstrBot\\data\\logs\\service-astrbot.log`.
+- Log: `AgentRuntime\\data\\logs\\service-agentruntime.log`.
 - Job Object: `KILL_ON_JOB_CLOSE`.
 
 ## {l['state']}
@@ -130,9 +138,9 @@ for lang in labels:
 | SQLite write probe | passed |
 | Broker 18090 | listening |
 | WebUI 8765 / OTP 8766 | listening |
-| SnowLuma 5099 | listening |
+| AuxRuntime 5099 | listening |
 | WFP | audit-only, enforce not enabled |
-| 6199 | dynamic OneBot adapter port, not a service |
+| 6199 | dynamic AgentProtocol adapter port, not a service |
 | Light / clean VM | not accepted yet |
 
 Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.json).
@@ -140,12 +148,12 @@ Canonical source: [`docs/_data/status-v1.6.2.json`](docs/_data/status-v1.6.2.jso
 ## {l['ports']}
 
 ```text
-6185  AstrBot SCM service
+6185  AgentRuntime SCM service
 18090 TOTP Broker
 8765  WebUI
 8766  OTP Mailer
-5099  SnowLuma
-6199  AstrBot OneBot adapter (dynamic; not a CBS service)
+5099  AuxRuntime
+6199  AgentRuntime AgentProtocol adapter (dynamic; not a CBS service)
 ```
 
 ## {l['limits']}

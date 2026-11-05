@@ -2,22 +2,22 @@
 
 ## Contents
 
-- [Module 1 — AstrBot plugin hub](#module-1-astrbot-plugin-hub)
+- [Module 1 — AgentRuntime plugin hub](#module-1-agentruntime-plugin-hub)
 - [Module 2 — Dashboard modules](#module-2-dashboard-modules)
 - [Module 3 — Market and security review](#module-3-market-and-security-review)
 - [Tests](#tests)
 - [Module 4 — DSH / Cordis bridge (v1.6.1)](#module-4-dsh-cordis-bridge-v161)
 
-> **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md). This document is about the plugin ecosystem, not a security guarantee.
+> **v1.6.1 status**: completed, incomplete, and non-guaranteed work is in archived v1.6.1 status (removed). This document is about the plugin ecosystem, not a security guarantee.
 
 
-Three surfaces, one trust boundary: the dashboard can list and toggle AstrBot
+Three surfaces, one trust boundary: the dashboard can list and toggle AgentRuntime
 plugins, load local console modules, and install marketplace plugins **only
 after** a static security review and a compatibility check.
 
 ```text
 tools/
-├── plugin_hub.ps1              AstrBot plugin list / enable / disable / recycle bin
+├── plugin_hub.ps1              AgentRuntime plugin list / enable / disable / recycle bin
 ├── plugin_market.ps1           official + GitHub search, download, extract, install
 ├── plugin_security_scanner.ps1 static .py review + version compatibility
 ├── dashboard_modules.ps1       console module loader and isolation
@@ -26,15 +26,15 @@ tools/
     └── hello_world/            reference module (manifest.json + ui.xaml + logic.ps1)
 ```
 
-## Module 1 — AstrBot plugin hub
+## Module 1 — AgentRuntime plugin hub
 
 ### Read path
 
 1. `GET http://127.0.0.1:6185/api/plugin/get` with the dashboard token from
-   `.astrbot_token`. This is the authoritative list and includes `activated`,
-   `reserved`, `root_dir_name`, `astrbot_version` and `installed_at`.
-2. If AstrBot is offline, the list falls back to parsing
-   `AstrBot/data/plugins/*/metadata.yaml`; the UI marks the state as unknown.
+   `.agentruntime_token`. This is the authoritative list and includes `activated`,
+   `reserved`, `root_dir_name`, `agentruntime_version` and `installed_at`.
+2. If AgentRuntime is offline, the list falls back to parsing
+   `AgentRuntime/data/plugins/*/metadata.yaml`; the UI marks the state as unknown.
 
 The dashboard token is a JWT issued for the local dashboard user. Responses are
 decoded as UTF-8 explicitly because PowerShell 5.1 mis-reads UTF-8 JSON when the
@@ -50,24 +50,24 @@ server omits a charset parameter (this corrupted Chinese display names).
 | Delete | disable → move directory → `reload` |
 | Restore defaults | backup + delete `<root_dir>_config.json` → enable/reload |
 
-AstrBot persists the disabled set in `data/shared_preferences.json`
+AgentRuntime persists the disabled set in `data/shared_preferences.json`
 (`inactivated_plugins`) and terminates the plugin instance, so no full restart
 is required.
 
-Deletion is intentionally **softer than AstrBot's uninstall**:
+Deletion is intentionally **softer than AgentRuntime's uninstall**:
 
 ```text
-AstrBot/data/plugins/<dir>
+AgentRuntime/data/plugins/<dir>
         ↓
 backups/deleted_plugins/<dir>-<yyyyMMdd-HHmmss>
 ```
 
 A `deleted.log` records the move. Restoring is a directory move back plus a
-reload. Reserved plugins (`reserved: true`, for example AstrBot built-ins) are
+reload. Reserved plugins (`reserved: true`, for example AgentRuntime built-ins) are
 refused.
 
 `恢复默认配置` means: copy the plugin config to
-`backups/plugin-config-defaults/`, delete it so AstrBot regenerates schema
+`backups/plugin-config-defaults/`, delete it so AgentRuntime regenerates schema
 defaults on reload, then enable the plugin. It never touches plugin data.
 
 ## Module 2 — Dashboard modules
@@ -156,7 +156,7 @@ third-party modules.
 
 **Trust warning:** console modules are local PowerShell with the dashboard
 user's privileges. Only enable modules you have reviewed. The marketplace in
-v1.2.0 installs AstrBot plugins only; dashboard modules are installed manually
+v1.2.0 installs AgentRuntime plugins only; dashboard modules are installed manually
 into `tools/dashboard_plugins/`.
 
 ## Module 3 — Market and security review
@@ -165,12 +165,12 @@ into `tools/dashboard_plugins/`.
 
 | Source | Endpoint | Notes |
 | --- | --- | --- |
-| AstrBot official | `https://api.soulter.top/astrbot/plugins` | 2 MB registry, cached 1 hour in `%LOCALAPPDATA%\CyberButler\market-cache.json` |
-| Fallback | `AstrBotDevs/AstrBot_Plugins_Collection` `plugin_cache_original.json` | used when the S3 API fails |
-| GitHub | `GET /search/repositories?q=<terms> astrbot_plugin in:name,description` | unauthenticated rate limit applies |
+| AgentRuntime official | `https://api.soulter.top/agentruntime/plugins` | 2 MB registry, cached 1 hour in `%LOCALAPPDATA%\CyberButler\market-cache.json` |
+| Fallback | `AgentRuntimeDevs/AgentRuntime_Plugins_Collection` `plugin_cache_original.json` | used when the S3 API fails |
+| GitHub | `GET /search/repositories?q=<terms> agentruntime_plugin in:name,description` | unauthenticated rate limit applies |
 
 Each result carries `name`, `display_name`, `version`, `author`, `desc`,
-`repo`, `download_url`, `astrbot_version`, `stars`, `download_count`.
+`repo`, `download_url`, `agentruntime_version`, `stars`, `download_count`.
 GitHub downloads use `https://codeload.github.com/<repo>/zip/refs/heads/<branch>`.
 
 ### Download and extraction guards
@@ -203,10 +203,10 @@ risk.
 
 ### Version compatibility
 
-`metadata.yaml` → `astrbot_version` (for example `>=4.24,<5`). The local version
-comes from `AstrBot/astrbot/__init__.py`. Supported operators: `>= > <= < == !=`
+`metadata.yaml` → `agentruntime_version` (for example `>=4.24,<5`). The local version
+comes from `AgentRuntime/agentruntime/__init__.py`. Supported operators: `>= > <= < == !=`
 and comma-separated clauses. A mismatch is shown as `版本不兼容` and requires the
-same explicit override. Missing `astrbot_version` is treated as compatible but
+same explicit override. Missing `agentruntime_version` is treated as compatible but
 noted.
 
 ### Install
@@ -214,19 +214,19 @@ noted.
 After approval:
 
 ```text
-temp package → AstrBot/data/plugins/<metadata.name>   (agent plugins)
+temp package → AgentRuntime/data/plugins/<metadata.name>   (agent plugins)
              → tools/dashboard_plugins/<manifest.id> (dashboard modules)
 ```
 
 Existing targets are never overwritten. A failed install removes nothing from
 disk. After a copy, the dashboard calls `POST /api/plugin/reload` (`{}`) to load
-the new plugin without restarting AstrBot; a reload failure is reported without
+the new plugin without restarting AgentRuntime; a reload failure is reported without
 rolling back the files.
 
 ### LLM audit — deliberately deferred
 
 The configured DeepSeek key is a **machine-scoped DPAPI blob whose ACL grants
-only SYSTEM, Administrators and `AstrBot_User`**. The dashboard runs as the
+only SYSTEM, Administrators and `AgentRuntime_User`**. The dashboard runs as the
 interactive user and cannot decrypt it without a privileged broker, and sending
 third-party source code to an external model has privacy implications that
 deserve an explicit opt-in design. v1.2.0 therefore ships the deterministic
@@ -246,7 +246,7 @@ UI smoke screenshots: -SmokeUi
 
 ## Module 4 — DSH / Cordis bridge (v1.6.1)
 
-`dsh-cbs-gate` is a separate TypeScript/Cordis bundle, not an AstrBot plugin and
+`dsh-cbs-gate` is a separate TypeScript/Cordis bundle, not an AgentRuntime plugin and
 not bundled into the CBS installer. It is the bridge for DSH-style agents.
 
 ### Contract
@@ -286,4 +286,4 @@ cannot widen that scope.
 - `ops_bash` / `pwsh` are intentionally blocked while the gate is enabled;
   manage services from an external shell.
 - It is not code-signed in this build and is not covered by a third-party audit.
-- Full status: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
+- Full status: archived v1.6.1 status (removed).

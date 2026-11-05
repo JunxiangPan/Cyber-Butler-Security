@@ -85,7 +85,7 @@ Describe 'Installer PlanOnly' {
     It 'plans an existing install path as upgrade or repair' {
         $target = Join-Path $env:TEMP ('cb-installer-existing-' + [guid]::NewGuid().ToString('N'))
         try {
-            New-Item -ItemType Directory -Path (Join-Path $target 'AstrBot') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $target 'AgentRuntime') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $target 'VERSION') -Value '1.6.0' -Encoding ASCII
             $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -Tier Medium -InstallPath $target 2>&1
             $LASTEXITCODE | Should Be 0

@@ -7,7 +7,9 @@ used for cross-account TOTP state, which avoids Windows ACL problems.
 
 from __future__ import annotations
 
+import base64
 import ctypes
+import io
 import ctypes.wintypes as wintypes
 import hashlib
 import ipaddress
@@ -17,6 +19,8 @@ import secrets
 import shutil
 import random
 import subprocess
+import sys
+import tempfile
 import threading
 import time
 from datetime import datetime
@@ -25,9 +29,11 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pyotp
+import qrcode
 import requests
 import email_approval
 import quarantine
+import approval_i18n
 import approval_preview
 import port_guard
 import audit_chain
@@ -39,10 +45,12 @@ try:
 except ImportError:  # pragma: no cover - exercised on Linux CI
     win32crypt = None
 
-ROOT = Path(r"YOUR_PROJECT_PATH")
+TEST_MODE = os.environ.get("CBS_TEST_MODE") == "1"
+_SOURCE_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("CBS_TEST_ROOT", str(_SOURCE_ROOT))) if TEST_MODE else Path(os.environ.get("CBS_ROOT", str(_SOURCE_ROOT)))
 os.environ.setdefault("CBS_ROOT", str(ROOT))
 BROKER = ROOT / "tools" / "broker"
-QUARANTINE = BROKER / "quarantine"
+QUARANTINE = BROKER / "trash_staging"
 STAGING = BROKER / "staging"
 TOTP_VAULT = ROOT / "tools" / "totp-vault"
 SECRET_FILE = TOTP_VAULT / "totp_secret.dpapi"
@@ -50,13 +58,66 @@ RECOVERY_FILE = TOTP_VAULT / "recovery_hashes.json"
 LEGACY_SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
 LEGACY_RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
 TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
-LOG = ROOT / "tools" / "totp_broker.log"
+LOG = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker.log") if TEST_MODE else (ROOT / "tools" / "totp_broker.log")
 AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
-SHARED = Path(r"YOUR_USER_PATH\Desktop\大肥鱼专用文件夹")
-UMO = "QQ:FriendMessage:YOUR_QQ_ID"
+BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
+
+
+def _resolve_shared() -> Path:
+    """Resolve the broker workspace from env, config, then the CBS default."""
+    if TEST_MODE:
+        return Path(os.environ.get("CBS_TEST_SHARED", str(ROOT / "workspace")))
+    env_value = str(os.environ.get("CBS_WORKSPACE", "") or "").strip()
+    if env_value:
+        return Path(env_value)
+    try:
+        data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
+        for key in ("workspace_path", "workspace_root"):
+            value = str(data.get(key, "") or "").strip()
+            if value:
+                return Path(value)
+        shared = data.get("shared_roots", [])
+        if isinstance(shared, str):
+            shared = [shared]
+        if isinstance(shared, (list, tuple)):
+            for item in shared:
+                text = str(item or "").strip()
+                if text:
+                    return Path(text)
+    except Exception as exc:
+        print("workspace resolver warning: " + str(exc), file=sys.stderr)
+    if "YOUR_" in str(ROOT):
+        return Path(r"C:\CyberButler\workspace")
+    return ROOT / "workspace"
+
+
+SHARED = _resolve_shared()
+def _resolve_umo() -> str:
+    """Resolve the owner UMO from env/config; never hardcode a QQ number."""
+    if TEST_MODE:
+        return "QQ:FriendMessage:" + os.environ.get("CBS_TEST_QQ_ID", "10000")
+    direct = str(os.environ.get("CBS_UMO", "") or "").strip()
+    if direct:
+        return direct
+    try:
+        data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
+        direct = str(data.get("umo", "") or "").strip()
+        if direct:
+            return direct
+        qq_id = str(data.get("qq_id", "") or data.get("owner_qq", "") or "").strip()
+        if qq_id:
+            return "QQ:FriendMessage:" + qq_id
+    except Exception as exc:
+        print("UMO resolver warning: " + str(exc), file=sys.stderr)
+    qq_id = str(os.environ.get("CBS_QQ_ID", "") or "").strip()
+    return ("QQ:FriendMessage:" + qq_id) if qq_id else ""
+
+
+UMO = _resolve_umo()
 PLATFORM_IDS = ("QQ", "qq", "qq_sujinyan", "default")
 HOST = "127.0.0.1"
-PORT = 18090
+PORT = int(os.environ.get("CBS_TEST_PORT", "18090")) if TEST_MODE else 18090
+ALLOWED_HOSTS = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"}
 TIMEOUT_SECONDS = 300
 REQUEST_RATE_LIMIT_SECONDS = 1.0
 REQUEST_BURST = 3
@@ -73,9 +134,9 @@ DENY_JITTER_MAX = 0.25
 # job; when the last job handle closes (including a broker crash), Windows
 # terminates the whole tree.
 #
-# This protects processes spawned by the broker. AstrBot is started by a
+# This protects processes spawned by the broker. AgentRuntime is started by a
 # separate scheduled task, so it is NOT automatically in this job; see the
-# caveat in SECURITY.md before claiming that AstrBot's children are covered.
+# caveat in SECURITY.md before claiming that AgentRuntime's children are covered.
 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
 JOB_OBJECT_LIMIT_PROCESS_TIME = 0x00000002
 JOB_OBJECT_LIMIT_JOB_TIME = 0x00000004
@@ -87,6 +148,7 @@ _job_handle = None
 
 
 class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
+    """_JOBOBJECT_BASIC_LIMIT_INFORMATION helper/type."""
     _fields_ = [
         ("PerProcessUserTimeLimit", ctypes.c_longlong),
         ("PerJobUserTimeLimit", ctypes.c_longlong),
@@ -101,6 +163,7 @@ class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
 
 
 class _IO_COUNTERS(ctypes.Structure):
+    """_IO_COUNTERS helper/type."""
     _fields_ = [
         ("ReadOperationCount", ctypes.c_ulonglong),
         ("WriteOperationCount", ctypes.c_ulonglong),
@@ -112,6 +175,7 @@ class _IO_COUNTERS(ctypes.Structure):
 
 
 class _JOBOBJECT_EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
+    """_JOBOBJECT_EXTENDED_LIMIT_INFORMATION helper/type."""
     _fields_ = [
         ("BasicLimitInformation", _JOBOBJECT_BASIC_LIMIT_INFORMATION),
         ("IoInfo", _IO_COUNTERS),
@@ -125,6 +189,17 @@ class _JOBOBJECT_EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
 def _job_limit_environment() -> dict[str, int]:
     """Read bounded resource limits for the Broker Job Object."""
     def _int(name: str, default: int, minimum: int, maximum: int) -> int:
+        """Int.
+        
+        Args:
+            name: caller-supplied value.
+            default: caller-supplied value.
+            minimum: caller-supplied value.
+            maximum: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             value = int(os.environ.get(name, str(default)))
         except (TypeError, ValueError):
@@ -142,6 +217,14 @@ def _job_limit_environment() -> dict[str, int]:
 
 
 def _job_limit_flags() -> tuple[int, dict[str, int]]:
+    """Job limit flags.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     limits = _job_limit_environment()
     flags = (
         JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
@@ -282,12 +365,33 @@ SCOPED_TTL_SECONDS = 1800
 SCOPED_MAX_MINUTES = 30
 _scoped_lock = threading.Lock()
 _scoped_tokens: dict[str, dict] = {}
+_retained_lock = threading.Lock()
+_retained_snapshots: dict[str, dict] = {}
+
+
+def _retain_snapshots(request_id: str, request: dict) -> None:
+    """Keep file handles open across the approval-only execution window."""
+    with _retained_lock:
+        _retained_snapshots[request_id] = request
+
+
+def _release_retained(request_id: str) -> bool:
+    """Release retained snapshots for an approval id."""
+    with _retained_lock:
+        old = _retained_snapshots.pop(request_id, None)
+    if old:
+        _close_request_snapshots(old)
+        return True
+    return False
 
 def _allow_request(key: str = "default", now: float | None = None) -> tuple[bool, int]:
     """Token bucket for TOTP requests; returns (allowed, retry_after_seconds)."""
     moment = time.monotonic() if now is None else float(now)
     bucket_key = str(key or "default")
     with _request_rate_lock:
+        for old_key, (_tokens, old_last) in list(_request_buckets.items()):
+            if moment - float(old_last) > 3600:
+                _request_buckets.pop(old_key, None)
         tokens, last = _request_buckets.get(bucket_key, (float(REQUEST_BURST), moment))
         tokens = min(float(REQUEST_BURST), tokens + (moment - last) / REQUEST_REFILL_SECONDS)
         if tokens < 1.0:
@@ -306,10 +410,17 @@ def _deny_jitter() -> None:
     time.sleep(random.uniform(DENY_JITTER_MIN, DENY_JITTER_MAX))
 
 
-BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 WEBUI_CONTACT = ROOT / "webui" / "data" / "approval-contact.json"
 
 def _admin_email() -> str:
+    """Admin email.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for path in (BROKER_CONFIG, WEBUI_CONTACT):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -325,10 +436,10 @@ def _approval_channel() -> str:
     """Return qq or email; fail safe to qq when the config is missing/invalid."""
     try:
         data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
-        channel = str(data.get("approval_channel", "qq")).strip().lower()
-        return channel if channel in {"qq", "email"} else "qq"
+        channel = str(data.get("approval_channel", "webui")).strip().lower()
+        return channel if channel in {"qq", "email", "webui"} else "webui"
     except (OSError, ValueError):
-        return "qq"
+        return "webui"
 
 
 _send_events: dict[str, threading.Event] = {}
@@ -336,6 +447,14 @@ _send_results: dict[str, bool] = {}
 
 
 def log(message: str) -> None:
+    """Log.
+    
+    Args:
+        message: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {message}"
     print(line, flush=True)
     try:
@@ -350,6 +469,14 @@ def _start_audit_chain_mirror() -> None:
     import threading
 
     def run() -> None:
+        """Run.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             offset = AUDIT.stat().st_size if AUDIT.exists() else 0
         except OSError:
@@ -378,6 +505,7 @@ def _start_audit_chain_mirror() -> None:
                     offset = handle.tell()
             except Exception as exc:
                 log(f"audit chain mirror failed: {exc}")
+                os._exit(70)
 
     threading.Thread(target=run, name="audit-chain", daemon=True).start()
 
@@ -430,10 +558,20 @@ def audit_failure(request_id: str, action: str, target: str, attempts: int) -> N
                 "attempts": attempts,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"audit write failed: {exc}")
+        raise RuntimeError(f"audit write failed; fail-closed: {exc}") from exc
 
 
 def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
+    """Audit manifest reject.
+    
+    Args:
+        request_id: caller-supplied value.
+        request: caller-supplied value.
+        result: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT.open("a", encoding="utf-8") as handle:
@@ -446,23 +584,57 @@ def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
                 "result": result,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"audit write failed: {exc}")
+        raise RuntimeError(f"audit write failed; fail-closed: {exc}") from exc
 
 
 def ensure_token() -> str:
+    """Ensure token.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not TOKEN_FILE.exists():
         token = secrets.token_urlsafe(32)
         TOKEN_FILE.write_text(token, encoding="utf-8")
-        subprocess.run(
+        if TEST_MODE:
+            return token
+        service_user = os.environ.get("CBS_SERVICE_USER", "YOUR_SERVICE_USER").strip() or "YOUR_SERVICE_USER"
+        acl = subprocess.run(
             ["icacls", str(TOKEN_FILE), "/inheritance:r", "/grant:r",
-             "SYSTEM:(F)", "YOUR_SERVICE_USER:(R)", "*S-1-5-32-544:(F)"],
+             "SYSTEM:(F)", service_user + ":(R)", "*S-1-5-32-544:(F)"],
             check=False,
             capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
+        if acl.returncode != 0:
+            raise RuntimeError("broker token ACL failed: " + str(acl.stdout or acl.stderr).strip())
+        readback = subprocess.run(
+            ["icacls", str(TOKEN_FILE)],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if readback.returncode != 0 or "SYSTEM:" not in (readback.stdout or ""):
+            raise RuntimeError("broker token ACL readback failed")
     return TOKEN_FILE.read_text(encoding="utf-8").strip()
 
 
 def _secret_file() -> Path:
+    """Secret file.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if SECRET_FILE.is_file():
         return SECRET_FILE
     if LEGACY_SECRET_FILE.is_file():
@@ -471,6 +643,14 @@ def _secret_file() -> Path:
 
 
 def _recovery_file() -> Path:
+    """Recovery file.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if RECOVERY_FILE.is_file():
         return RECOVERY_FILE
     if LEGACY_RECOVERY_FILE.is_file():
@@ -479,6 +659,18 @@ def _recovery_file() -> Path:
 
 
 def secret() -> str:
+    """Secret.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    if TEST_MODE:
+        test_secret = os.environ.get("CBS_TEST_TOTP_SECRET", "").strip()
+        if test_secret:
+            return test_secret
     if win32crypt is None:
         raise RuntimeError("win32crypt is required to read the DPAPI secret")
     encrypted = _secret_file().read_bytes()
@@ -487,10 +679,18 @@ def secret() -> str:
 
 
 def send_qq(text: str) -> bool:
+    """Send qq.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
-        token = (ROOT / ".astrbot_token").read_text(encoding="utf-8").strip()
+        token = (ROOT / ".agentruntime_token").read_text(encoding="utf-8").strip()
         owner = UMO.rsplit(":", 1)[-1]
-        # AstrBot installations differ in the platform id (QQ, qq, or the
+        # AgentRuntime installations differ in the platform id (QQ, qq, or the
         # legacy qq_sujinyan). Try the configured spelling first, then fall
         # back without changing the owner or the message.
         for platform_id in PLATFORM_IDS:
@@ -509,7 +709,22 @@ def send_qq(text: str) -> bool:
         return False
 
 
+def _notify_async(text: str) -> None:
+    """Send notification on a daemon thread; never hold _lock for network IO."""
+    threading.Thread(target=send_qq, args=(str(text or ""),), daemon=True).start()
+
+
 def inside_shared(path: Path) -> bool:
+    """Inside shared.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    if _inside_any(path, _workspace_roots()):
+        return True
     try:
         path.resolve().relative_to(SHARED.resolve())
         return True
@@ -517,17 +732,45 @@ def inside_shared(path: Path) -> bool:
         return False
 
 
+WORKSPACE_ROOT = ROOT / "workspace"
+DEFAULT_WORKSPACE_ROOT = Path(r"C:\CyberButler\workspace")
+
+
+def _workspace_roots() -> tuple[Path, ...]:
+    """Return configured workspace roots, defaulting safely on bad config."""
+    roots = [WORKSPACE_ROOT, DEFAULT_WORKSPACE_ROOT]
+    try:
+        data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
+        for key in ("workspace_root", "workspace_path"):
+            value = str(data.get(key, "") or "").strip()
+            if value:
+                roots.append(Path(value))
+        shared = data.get("shared_roots", [])
+        if isinstance(shared, str):
+            shared = [shared]
+        if isinstance(shared, (list, tuple)):
+            for item in shared:
+                text = str(item or "").strip()
+                if text:
+                    roots.append(Path(text))
+    except Exception as exc:  # noqa: BLE001 - config must never crash the Broker
+        try:
+            log("broker_config workspace warning: " + str(exc))
+        except Exception as log_exc:
+            print("broker_config log warning failed: " + str(log_exc), file=sys.stderr)
+    return tuple(roots)
+
 TMP_ROOTS = (
     ROOT / "workspace" / "tmp",
-    ROOT / "AstrBot" / "data" / "tmp",
-    ROOT / "AstrBot" / "data" / "temp",
-    ROOT / "AstrBot" / "data" / "cache",
-    ROOT / "AstrBot" / "data" / "logs",
+    ROOT / "AgentRuntime" / "data" / "tmp",
+    ROOT / "AgentRuntime" / "data" / "temp",
+    ROOT / "AgentRuntime" / "data" / "cache",
+    ROOT / "AgentRuntime" / "data" / "logs",
 )
 MEMORY_ROOTS = (
-    ROOT / "AstrBot" / "data" / "memory",
-    ROOT / "AstrBot" / "data" / "config",
-    ROOT / "AstrBot" / "data" / "cmd_config.json",
+    ROOT / "AgentRuntime" / "data" / "memory",
+    ROOT / "AgentRuntime" / "data" / "config",
+    ROOT / "AgentRuntime" / "data" / "cmd_config.json",
 )
 TOTP_VAULT_ROOT = ROOT / "tools" / "totp-vault"
 CRITICAL_INTEGRITY_NAMES = {
@@ -542,6 +785,15 @@ PROTECTED_RULE_NAMES = {
 
 
 def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
+    """Inside any.
+    
+    Args:
+        path: caller-supplied value.
+        roots: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         resolved = path.resolve(strict=False)
     except (OSError, ValueError):
@@ -552,6 +804,22 @@ def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
             return True
         except (OSError, ValueError):
             continue
+    return False
+
+
+def _workspace_text(target: str) -> bool:
+    """Case/alias tolerant check for the dedicated workspace path."""
+    try:
+        def normalise(value: object) -> str:
+            """Normalize a path string for case/separator-insensitive comparison."""
+            return os.path.normcase(os.path.normpath(str(value).replace("\\", "/"))).rstrip("/")
+        candidate = normalise(target)
+        for root in _workspace_roots():
+            normalized = normalise(root)
+            if candidate == normalized or candidate.startswith(normalized + "/"):
+                return True
+    except (OSError, ValueError):
+        return False
     return False
 
 
@@ -575,6 +843,8 @@ def classify(action: str, target: str) -> str:
         return "deny"
     if _inside_any(path, TMP_ROOTS):
         return "allow"
+    if _inside_any(path, _workspace_roots()) or _workspace_text(target):
+        return "totp"
     if _inside_any(path, MEMORY_ROOTS):
         return "totp"
     if inside_shared(path):
@@ -587,8 +857,18 @@ def classify(action: str, target: str) -> str:
 
 
 def _critical_integrity_hit(target: str) -> bool:
+    """Critical integrity hit.
+    
+    Args:
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         path = Path(str(target or "")).resolve(strict=False)
+        root = ROOT.resolve(strict=False)
+        path.relative_to(root)
     except (OSError, ValueError):
         return False
     lowered_parts = [part.casefold() for part in path.parts]
@@ -605,6 +885,14 @@ def _critical_integrity_hit(target: str) -> bool:
 
 
 def _rule_tampering_hit(target: str) -> bool:
+    """Rule tampering hit.
+    
+    Args:
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         path = Path(str(target or "")).resolve(strict=False)
         root = ROOT.resolve(strict=False)
@@ -621,6 +909,17 @@ def _rule_tampering_hit(target: str) -> bool:
 
 
 def _audit_protection(event: str, action: str, target: str, reason: str) -> None:
+    """Audit protection.
+    
+    Args:
+        event: caller-supplied value.
+        action: caller-supplied value.
+        target: caller-supplied value.
+        reason: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT.open("a", encoding="utf-8") as handle:
@@ -633,14 +932,31 @@ def _audit_protection(event: str, action: str, target: str, reason: str) -> None
                 "ok": False,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"{event} audit write failed: {exc}")
+        raise RuntimeError(f"{event} audit write failed; fail-closed: {exc}") from exc
 
 
 def _allowed_target(path: Path) -> bool:
+    """Allowed target.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return inside_shared(path) or _inside_any(path, TMP_ROOTS) or _inside_any(path, MEMORY_ROOTS)
 
 
 def _target_mode(action: str, target: str) -> str:
+    """Target mode.
+    
+    Args:
+        action: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if action == "write_file":
         try:
             return "create" if not Path(target).resolve(strict=False).exists() else "replace"
@@ -652,11 +968,28 @@ def _target_mode(action: str, target: str) -> str:
 
 
 def _bypass_scope(action: str, target: str) -> str:
+    """Bypass scope.
+    
+    Args:
+        action: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     path = Path(target).resolve(strict=False)
     return f"{action}:{_target_mode(action, target)}:{str(path.parent.resolve(strict=False)).casefold()}"
 
 
 def _purge_bypass(now: float | None = None) -> None:
+    """Purge bypass.
+    
+    Args:
+        now: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     moment = time.monotonic() if now is None else now
     for token, record in list(_bypass_tokens.items()):
         if float(record.get("expires", 0)) <= moment:
@@ -664,6 +997,16 @@ def _purge_bypass(now: float | None = None) -> None:
 
 
 def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECONDS) -> dict | None:
+    """Issue bypass.
+    
+    Args:
+        action: caller-supplied value.
+        target: caller-supplied value.
+        ttl_seconds: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if action not in {"delete", "overwrite", "write_file"}:
         return None
     ttl = max(1, min(int(ttl_seconds), BYPASS_TTL_SECONDS))
@@ -682,6 +1025,16 @@ def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECOND
 
 
 def _consume_bypass(token: str, action: str, target: str) -> dict | None:
+    """Consume bypass.
+    
+    Args:
+        token: caller-supplied value.
+        action: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not token:
         return None
     scope = _bypass_scope(action, target)
@@ -698,6 +1051,14 @@ def _consume_bypass(token: str, action: str, target: str) -> dict | None:
 
 
 def _close_request_snapshots(request: dict | None) -> None:
+    """Close request snapshots.
+    
+    Args:
+        request: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not isinstance(request, dict):
         return
     for key in ("_snapshot", "_source_snapshot"):
@@ -705,11 +1066,21 @@ def _close_request_snapshots(request: dict | None) -> None:
         if snap is not None:
             try:
                 snap.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                log("snapshot close warning: " + str(exc))
 
 
 def _prepare_snapshots(action: str, target: str, source: str = "") -> tuple:
+    """Prepare snapshots.
+    
+    Args:
+        action: caller-supplied value.
+        target: caller-supplied value.
+        source: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if action not in {"delete", "overwrite", "write_file"}:
         return None, None
     target_path = Path(target)
@@ -728,6 +1099,14 @@ def _prepare_snapshots(action: str, target: str, source: str = "") -> tuple:
 
 
 def _assert_snapshots_current(request: dict) -> None:
+    """Assert snapshots current.
+    
+    Args:
+        request: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for key in ("_snapshot", "_source_snapshot"):
         snap = request.get(key)
         if snap is not None:
@@ -735,11 +1114,33 @@ def _assert_snapshots_current(request: dict) -> None:
 
 
 def _sha256_file(path: Path) -> str:
+    """Sha256 file.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _url_host_allowed(url: str) -> bool:
+    """SSRF gate: URL entries must target an explicitly allowed host."""
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").casefold()
+    except ValueError:
+        return False
+    if not host:
+        return False
+    allowed = os.environ.get("CBS_URL_ALLOWED_HOSTS", "")
+    hosts = {item.strip().casefold() for item in allowed.split(",") if item.strip()}
+    return host in hosts
 
 
 def _canonical_manifest(items) -> list[dict]:
@@ -760,6 +1161,8 @@ def _canonical_manifest(items) -> list[dict]:
         if kind == "url":
             if not raw_path.startswith(("http://", "https://")):
                 raise ValueError("manifest URL is invalid")
+            if not _url_host_allowed(raw_path):
+                raise ValueError("manifest URL host is not allowlisted")
             canonical.append(
                 {"kind": "url", "path": raw_path, "size": 0, "sha256": ""}
             )
@@ -787,16 +1190,51 @@ def _canonical_manifest(items) -> list[dict]:
 
 
 def _manifest_equal(left: list[dict], right: list[dict]) -> bool:
+    """Manifest equal.
+    
+    Args:
+        left: caller-supplied value.
+        right: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return json.dumps(left, sort_keys=True, ensure_ascii=False) == json.dumps(
         right, sort_keys=True, ensure_ascii=False
     )
 
 
 def _fail_send_wait(request_id: str) -> None:
+    """Fail send wait.
+    
+    Args:
+        request_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     event = _send_events.get(request_id)
     if event:
         _send_results[request_id] = False
         event.set()
+
+
+def _snapshot_summary(snapshot, path_text: str) -> str:
+    """Summarize the already-open target without reopening it.
+
+    The target snapshot holds DELETE access for the later rename. A second
+    path-based open can be denied by Windows sharing rules even though the
+    Broker owns the first handle, so never reopen the target here.
+    """
+    try:
+        if snapshot is not None and not getattr(snapshot, "is_directory", False):
+            return (
+                f"{snapshot.path} | file | {int(snapshot.identity[2])} bytes "
+                f"| sha256={snapshot.sha256}"
+            )
+    except Exception as exc:
+        log("snapshot summary warning: " + str(exc))
+    return _path_summary(path_text)
 
 
 def _path_summary(path_text: str) -> str:
@@ -829,10 +1267,18 @@ def _path_summary(path_text: str) -> str:
 
 
 def _manifest_prompt(manifest: list[dict]) -> str:
-    lines = [f"哥，瑾言想发送 {len(manifest)} 个文件，请输入动态验证码。完整清单："]
+    """Manifest prompt.
+    
+    Args:
+        manifest: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    lines = [approval_i18n.t("manifest", count=len(manifest))]
     for index, item in enumerate(manifest, 1):
         if item["kind"] == "url":
-            lines.append(f"{index}. URL: {item['path']} [OUTSIDE SHARED]")
+            lines.append(f"{index}. {approval_i18n.t('url')}: {item['path']} [OUTSIDE SHARED]")
         else:
             path = Path(item["path"])
             marker = "" if inside_shared(path) else " [OUTSIDE SHARED]"
@@ -844,6 +1290,14 @@ def _manifest_prompt(manifest: list[dict]) -> str:
 
 
 def verify_code(code: str) -> str:
+    """Verify code.
+    
+    Args:
+        code: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     code = code.strip().upper()
     if len(code) == 6 and code.isdigit():
         if pyotp.TOTP(secret()).verify(code, valid_window=1):
@@ -854,7 +1308,7 @@ def verify_code(code: str) -> str:
                     if now - used_at > TOTP_REPLAY_TTL:
                         _used_totp.pop(old_digest, None)
                 if digest in _used_totp:
-                    return ""
+                    return "replay"
                 _used_totp[digest] = now
             return "totp"
         return ""
@@ -863,6 +1317,8 @@ def verify_code(code: str) -> str:
             recovery_path = _recovery_file()
             store = json.loads(recovery_path.read_text(encoding="utf-8"))
             digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+            if digest in store.get("used", []):
+                return "replay"
             if digest in store.get("sha256", []) and digest not in store.get("used", []):
                 store.setdefault("used", []).append(digest)
                 recovery_path.write_text(
@@ -875,6 +1331,14 @@ def verify_code(code: str) -> str:
 
 
 def execute(request: dict) -> tuple[bool, str]:
+    """Execute.
+    
+    Args:
+        request: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     action = request.get("action")
     target = Path(request.get("target", ""))
     snapshot = request.get("_snapshot")
@@ -890,15 +1354,25 @@ def execute(request: dict) -> tuple[bool, str]:
 
         if action == "delete":
             if snapshot is not None and not snapshot.is_directory:
-                quarantine.QUARANTINE_ROOT = QUARANTINE
-                entry = quarantine.quarantine_file(
-                    snapshot,
-                    str(request.get("id", "request")),
-                    original_path=str(target),
-                    action="delete",
-                    reason=str(request.get("reason", "")),
-                )
-                return True, f"已把 {target.name} 移到隔离区：{entry.name}"
+                quarantine.TRASH_STAGING = QUARANTINE
+                try:
+                    entry = quarantine.quarantine_file(
+                        snapshot,
+                        str(request.get("id", "request")),
+                        original_path=str(target),
+                        action="delete",
+                        reason=str(request.get("reason", "")),
+                    )
+                except quarantine.QuarantineCapacityError as exc:
+                    return False, ("暂存区容量熔断，删除已拦截；没有移动任何文件。" + str(exc))
+                request["_trash_entry"] = str(entry)
+                try:
+                    manifest = quarantine._read_manifest(entry)
+                    request["_trash_expires_at"] = manifest.get("expires_at", "")
+                    request["_trash_expires_epoch"] = manifest.get("expires_epoch", 0)
+                except Exception as exc:
+                    log("trash manifest warning: " + str(exc))
+                return True, f"文件已移入两阶段暂存回收站，10 分钟内可撤回：{entry.name}"
             if not target.exists():
                 return False, "目标文件不存在。"
             QUARANTINE.mkdir(parents=True, exist_ok=True)
@@ -912,11 +1386,13 @@ def execute(request: dict) -> tuple[bool, str]:
             try:
                 source.resolve().relative_to(STAGING.resolve())
                 source_ok = True
-            except ValueError:
-                pass
+            except ValueError as exc:
+                log("source staging prefix warning: " + str(exc))
             if not source_ok:
-                return False, "覆盖源文件必须在大肥鱼专用文件夹、tmp 或 broker staging 内。"
+                return False, "覆盖源文件必须在shared专用文件夹、tmp 或 broker staging 内。"
             if source_snapshot is not None:
+                if snapshot is None:
+                    return False, "覆盖目标快照缺失。"
                 data = source_snapshot.read_bytes(limit=50 * 1024 * 1024)
                 snapshot.rewrite(data)
                 return True, f"已覆盖 {target.name}（句柄绑定，旧版本未直接删除）。"
@@ -964,6 +1440,14 @@ def execute(request: dict) -> tuple[bool, str]:
         _close_request_snapshots(request)
 
 def timeout_watch(request_id: str) -> None:
+    """Timeout watch.
+    
+    Args:
+        request_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     global _pending
     time.sleep(TIMEOUT_SECONDS)
     expired = False
@@ -977,11 +1461,19 @@ def timeout_watch(request_id: str) -> None:
     if expired:
         if approval_only:
             _set_approval_state(request_id, "expired", approval_only=True)
-        send_qq("哥，验证码超时了，这次操作没有执行。")
+        send_qq(approval_i18n.t("timeout"))
         log(f"timeout: {request_id}")
 
 
 def _is_verification_locked() -> bool:
+    """Is verification locked.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return time.monotonic() < max(_verify_locked_until, _global_lock_until)
 
 
@@ -1093,6 +1585,16 @@ def email_watch(request_id: str) -> None:
 
 
 def _email_result(config: dict, request: dict, result: str) -> None:
+    """Email result.
+    
+    Args:
+        config: caller-supplied value.
+        request: caller-supplied value.
+        result: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         email_approval.send_email(
             config,
@@ -1104,6 +1606,16 @@ def _email_result(config: dict, request: dict, result: str) -> None:
 
 
 def _audit_auto(request: dict, ok: bool, result: str) -> None:
+    """Audit auto.
+    
+    Args:
+        request: caller-supplied value.
+        ok: caller-supplied value.
+        result: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT.open("a", encoding="utf-8") as handle:
@@ -1141,6 +1653,16 @@ def _scoped_root(target: str) -> Path | None:
 
 
 def _issue_scoped(action: str, target: str, minutes: int = SCOPED_MAX_MINUTES) -> dict | None:
+    """Issue scoped.
+    
+    Args:
+        action: caller-supplied value.
+        target: caller-supplied value.
+        minutes: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if action not in {"delete", "overwrite", "write_file"}:
         return None
     root = _scoped_root(target)
@@ -1163,6 +1685,16 @@ def _issue_scoped(action: str, target: str, minutes: int = SCOPED_MAX_MINUTES) -
 
 
 def _consume_scoped(token: str, action: str, target: str) -> dict | None:
+    """Consume scoped.
+    
+    Args:
+        token: caller-supplied value.
+        action: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not token or action not in {"delete", "overwrite", "write_file"}:
         return None
     try:
@@ -1188,6 +1720,16 @@ def _consume_scoped(token: str, action: str, target: str) -> dict | None:
 
 
 def _audit_scoped(request: dict, result: str, root: str) -> None:
+    """Audit scoped.
+    
+    Args:
+        request: caller-supplied value.
+        result: caller-supplied value.
+        root: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT.open("a", encoding="utf-8") as handle:
@@ -1208,6 +1750,14 @@ def _audit_scoped(request: dict, result: str, root: str) -> None:
 
 
 def _as_bool(value: object) -> bool:
+    """As bool.
+    
+    Args:
+        value: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if isinstance(value, bool):
         return value
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
@@ -1219,6 +1769,17 @@ def _set_approval_state(
     approval_only: bool = True,
     scoped: dict | None = None,
 ) -> None:
+    """Set approval state.
+    
+    Args:
+        challenge_id: caller-supplied value.
+        status: caller-supplied value.
+        approval_only: caller-supplied value.
+        scoped: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     now = time.monotonic()
     scoped_ttl = int(scoped.get("expires_in", 0)) if scoped else 0
     with _approval_lock:
@@ -1240,6 +1801,14 @@ def _set_approval_state(
 
 
 def _get_approval_state(challenge_id: str) -> dict | None:
+    """Get approval state.
+    
+    Args:
+        challenge_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     now = time.monotonic()
     with _approval_lock:
         record = _approval_states.get(challenge_id)
@@ -1252,6 +1821,16 @@ def _get_approval_state(challenge_id: str) -> dict | None:
 
 
 def _audit_bypass(request: dict, result: str, scope: str) -> None:
+    """Audit bypass.
+    
+    Args:
+        request: caller-supplied value.
+        result: caller-supplied value.
+        scope: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
         with AUDIT.open("a", encoding="utf-8") as handle:
@@ -1272,6 +1851,14 @@ def _audit_bypass(request: dict, result: str, scope: str) -> None:
 
 
 def _is_uninstalling() -> bool:
+    """Is uninstalling.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if os.environ.get("CBS_IS_UNINSTALLING") == "1":
         return True
     candidate = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "uninstalling.marker"
@@ -1279,6 +1866,14 @@ def _is_uninstalling() -> bool:
 
 
 def run_request(payload: dict) -> tuple[int, dict]:
+    """Run request.
+    
+    Args:
+        payload: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     global _pending
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
@@ -1292,6 +1887,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
         return 400, {"ok": False, "error": "approval_only is not supported for send"}
     target_text = str(payload.get("target", "")).strip()
     target = Path(target_text)
+    if action == "delete" and target.is_dir():
+        return 400, {"ok": False, "error": "directory deletion is not supported; delete files individually"}
     if action in {"delete", "overwrite", "write_file"}:
         if _critical_integrity_hit(target_text):
             _audit_protection("TEST_TAMPERING_ATTEMPT", action, target_text, str(payload.get("reason", "")))
@@ -1486,9 +2083,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "manifest": manifest,
             "content": payload.get("content"),
             "mode": _target_mode(action, target_text),
-            "target_summary": _path_summary(target_text),
+            "scope_root": str(Path(target_text).resolve(strict=False).parent),
+            "target_summary": _snapshot_summary(target_snapshot, target_text),
             "source_summary": _path_summary(str(payload.get("source", ""))) if action == "overwrite" else "",
-            "channel": "email" if email_mode else "qq",
+            "channel": "email" if email_mode else ("webui" if channel == "webui" else "qq"),
             "challenge": challenge,
             "approval_only": approval_only,
             "preview": preview,
@@ -1530,7 +2128,32 @@ def run_request(payload: dict) -> tuple[int, dict]:
             return 502, {"ok": False, "error": f"email challenge send failed: {exc}"}
         threading.Thread(target=email_watch, args=(request_id,), daemon=True).start()
         log(f"email challenge sent: {request_id} {action} {target_text}")
-        return 200, {"ok": True, "id": request_id, "channel": "email", "challenge": challenge, "action": action, "target": target_text}
+        return 200, {
+            "ok": True,
+            "status": "requires_totp",
+            "id": request_id,
+            "channel": "email",
+            "challenge": challenge,
+            "action": action,
+            "target": target_text,
+        }
+
+    if channel == "webui":
+        with _lock:
+            if action != "send":
+                if approval_only:
+                    _set_approval_state(request_id, "pending", approval_only=True)
+                threading.Thread(target=timeout_watch, args=(request_id,), daemon=True).start()
+            log(f"webui challenge ready: {request_id} {action} {target_text}")
+        return 200, {
+            "ok": True,
+            "status": "requires_totp",
+            "id": request_id,
+            "channel": "webui",
+            "challenge": "",
+            "action": action,
+            "target": target_text,
+        }
 
     # Network I/O must never run while _lock is held: send_qq can block for
     # up to 60 seconds, and the lock only protects pending-state transitions.
@@ -1551,7 +2174,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         log(f"challenge sent: {request_id} {action} {target_text}")
 
     if approval_only:
-        response = {
+        response: dict[str, object] = {
             "ok": True,
             "status": "requires_totp",
             "approval_only": True,
@@ -1567,16 +2190,22 @@ def run_request(payload: dict) -> tuple[int, dict]:
     if action == "send":
         approved = event.wait(TIMEOUT_SECONDS) if event else False
         with _lock:
-            result = bool(_send_results.pop(request_id, False))
+            send_ok = bool(_send_results.pop(request_id, False))
             _send_events.pop(request_id, None)
             if _pending and _pending.get("id") == request_id:
                 _pending = None
-        if approved and result:
+        if approved and send_ok:
             return 200, {"ok": True, "approved": True, "id": request_id}
-        send_qq("哥，验证码超时了，这次发送没有执行。")
+        send_qq(approval_i18n.t("timeout"))
         return 408, {"ok": False, "approved": False, "error": "verification timed out"}
 
-    response = {"ok": True, "id": request_id, "action": action, "target": target_text}
+    response = {
+        "ok": True,
+        "status": "requires_totp",
+        "id": request_id,
+        "action": action,
+        "target": target_text,
+    }
     if scoped_invalid:
         response["scoped_invalid"] = True
         response["scoped_error"] = "CBS_SCOPED_INVALID"
@@ -1597,6 +2226,14 @@ def record_external_read(payload: dict) -> tuple[int, dict]:
 
 
 def run_verify(payload: dict) -> tuple[int, dict]:
+    """Run verify.
+    
+    Args:
+        payload: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     global _pending, _verify_locked_until, _global_failures, _global_lock_until
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
@@ -1607,11 +2244,9 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     except (TypeError, ValueError):
         bypass_seconds = 0
     bypass_seconds = max(0, min(bypass_seconds, BYPASS_TTL_SECONDS))
-    try:
-        scoped_minutes = int(payload.get("scoped_minutes", 0) or 0)
-    except (TypeError, ValueError):
-        scoped_minutes = 0
-    scoped_minutes = max(0, min(scoped_minutes, SCOPED_MAX_MINUTES))
+    # The caller never owns approval scope. Broker computes it from the
+    # pending target; a caller-supplied scoped_minutes is deliberately ignored.
+    scoped_minutes = 0
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
     with _lock:
@@ -1631,6 +2266,15 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             _pending = None
             return 410, {"ok": False, "error": "verification code expired"}
         code_type = verify_code(code)
+        if code_type == "replay":
+            _record_global_failure()
+            audit_failure(
+                request_id,
+                str(_pending.get("action", "")),
+                str(_pending.get("target", "")),
+                int(_pending.get("attempts", 0)) + 1,
+            )
+            return 429, {"ok": False, "error": "TOTP replay rejected"}
         if not code_type:
             attempts = int(_pending.get("attempts", 0)) + 1
             _pending["attempts"] = attempts
@@ -1667,6 +2311,10 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         request = dict(_pending)
         if request.get("action") == "send":
             manifest = request.get("manifest")
+            if manifest is None:
+                _pending = None
+                _fail_send_wait(request_id)
+                return 409, {"ok": False, "error": "file manifest missing at approval"}
             try:
                 current = _canonical_manifest(manifest)
             except (OSError, ValueError) as exc:
@@ -1702,7 +2350,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     scoped_minutes,
                 )
             _set_approval_state(request_id, "approved", approval_only=True, scoped=scoped)
-            send_qq("已批准 DSH 请求；本次只放行，不执行文件操作。")
+            _notify_async(approval_i18n.t("approved"))
             with AUDIT.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps({
                     "at": datetime.now().isoformat(timespec="seconds"),
@@ -1715,7 +2363,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     "approval_only": True,
                 }, ensure_ascii=False) + "\n")
             log(f"approval-only approved: {request_id} {request.get('action')}")
-            _close_request_snapshots(request)
+            _retain_snapshots(request_id, request)
             response = {
                 "ok": True,
                 "approved": True,
@@ -1779,6 +2427,11 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         }, ensure_ascii=False) + "\n")
     log(f"executed: {request_id} ok={ok} {result}")
     response = {"ok": ok, "id": request_id, "result": result}
+    if ok and request.get("_trash_entry"):
+        response["undo_available"] = True
+        response["trash_id"] = request_id
+        response["undo_expires_at"] = str(request.get("_trash_expires_at", ""))
+        response["undo_expires_epoch"] = float(request.get("_trash_expires_epoch", 0) or 0)
     if bypass:
         response["bypass_token"] = bypass["token"]
         response["bypass_expires_in"] = bypass["expires_in"]
@@ -1813,6 +2466,14 @@ def run_approval_request(payload: dict) -> tuple[int, dict]:
 
 
 def get_approval_status(challenge_id: str) -> tuple[int, dict]:
+    """Get approval status.
+    
+    Args:
+        challenge_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     challenge_id = str(challenge_id or "").strip()
     if not challenge_id:
         return 400, {"ok": False, "error": "id is required"}
@@ -1832,10 +2493,125 @@ def get_approval_status(challenge_id: str) -> tuple[int, dict]:
     return 200, body
 
 
+def _totp_qr(uri: str) -> str:
+    """Totp qr.
+    
+    Args:
+        uri: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    image = qrcode.make(uri)
+    buffer = io.BytesIO()
+    image.get_image().save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
+def totp_binding_payload() -> dict:
+    """Totp binding payload.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    value = secret()
+    uri = pyotp.TOTP(value).provisioning_uri(
+        name="Cyber-Butler owner", issuer_name="Cyber-Butler"
+    )
+    return {
+        "ok": True,
+        "otpauth_uri": uri,
+        "qr_png_base64": _totp_qr(uri),
+        "issuer": "Cyber-Butler",
+        "account": "Cyber-Butler owner",
+    }
+
+
+def reset_totp_with_recovery(code: str) -> tuple[int, dict]:
+    """Consume a recovery code, rotate the secret, and return new enrollment."""
+    code = str(code or "").strip().upper()
+    if verify_code(code) != "recovery":
+        return 403, {"ok": False, "error": "valid recovery code required"}
+    if win32crypt is None:
+        return 503, {"ok": False, "error": "win32crypt is unavailable"}
+    value = pyotp.random_base32()
+    TOTP_VAULT.mkdir(parents=True, exist_ok=True)
+    encrypted = win32crypt.CryptProtectData(
+        value.encode("utf-8"), "Cyber-Butler TOTP", None, None, None, 0x4
+    )
+    SECRET_FILE.write_bytes(encrypted)
+    codes = [
+        "".join(secrets.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(8))
+        for _ in range(3)
+    ]
+    hashes = [hashlib.sha256(item.encode("utf-8")).hexdigest() for item in codes]
+    RECOVERY_FILE.write_text(
+        json.dumps({"sha256": hashes, "used": []}, indent=2), encoding="utf-8"
+    )
+    recovery_text = RECOVERY_FILE.with_name("recovery_codes.txt")
+    recovery_lines = ["Cyber-Butler TOTP recovery codes (one use each)", ""]
+    recovery_lines.extend(f"{i + 1}. {item}" for i, item in enumerate(codes))
+    recovery_lines.append("")
+    recovery_text.write_text(chr(10).join(recovery_lines), encoding="utf-8")
+
+    with _replay_lock:
+        _used_totp.clear()
+    payload = totp_binding_payload()
+    payload["recovery_codes"] = codes
+    return 200, payload
+
+
+def undo_trash_request(payload: dict) -> tuple[int, dict]:
+    """Undo a two-stage delete; the HTTP layer has already authenticated."""
+    request_id = str(payload.get("id", "") or "").strip()
+    if not request_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" for ch in request_id):
+        return 400, {"ok": False, "error": "invalid trash id"}
+    entry = quarantine.TRASH_STAGING / request_id
+    if not entry.is_dir():
+        return 404, {"ok": False, "error": "trash entry not found or expired"}
+    try:
+        manifest = quarantine._read_manifest(entry)
+        destination = Path(str(manifest.get("original_path", "")))
+        if not destination.is_absolute() or not _allowed_target(destination):
+            return 400, {"ok": False, "error": "original target is not allowed"}
+        restored = quarantine.restore_quarantine(entry, destination)
+    except FileExistsError:
+        return 409, {"ok": False, "error": "original path exists again; refusing to overwrite"}
+    except (OSError, ValueError) as exc:
+        return 409, {"ok": False, "error": "undo failed: " + str(exc)}
+    try:
+        AUDIT.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "id": request_id,
+                "action": "trash_undo",
+                "target": str(restored),
+                "ok": True,
+                "result": "two-stage delete restored by owner",
+            }, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log("trash undo audit warning: " + str(exc))
+    return 200, {"ok": True, "restored": str(restored), "id": request_id}
+
+
 class Handler(BaseHTTPRequestHandler):
-    server_version = "AstrBotTOTPBroker/1.0"
+    """Handler helper/type."""
+    server_version = "AgentRuntimeTOTPBroker/1.6.3"
 
     def _json(self, status: int, payload: dict) -> None:
+        """Json.
+        
+        Args:
+            status: caller-supplied value.
+            payload: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -1844,41 +2620,126 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _auth(self) -> bool:
+        """Auth.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         expected = ensure_token()
         provided = self.headers.get("X-Broker-Token", "")
         return secrets.compare_digest(provided, expected)
 
+    def _host_origin_ok(self) -> bool:
+        """Reject DNS-rebinding / cross-site requests before token auth."""
+        host_header = str(self.headers.get("Host", "") or "").strip().casefold()
+        if host_header not in ALLOWED_HOSTS:
+            return False
+        origin = str(self.headers.get("Origin", "") or "").strip()
+        if origin:
+            try:
+                parsed = urlparse(origin)
+            except ValueError:
+                return False
+            if parsed.scheme not in {"http", "https"}:
+                return False
+            if (parsed.hostname or "").lower() not in {"127.0.0.1", "localhost"}:
+                return False
+        return True
+
     def _local_only(self) -> bool:
-        host = str(self.client_address[0] if self.client_address else "").strip()
+        """Local only.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        peer = str(self.client_address[0] if self.client_address else "").strip()
         try:
-            if host and ipaddress.ip_address(host).is_loopback:
-                return True
+            loopback = bool(peer and ipaddress.ip_address(peer).is_loopback)
         except ValueError:
-            pass
-        self._json(403, {"ok": False, "error": "loopback access only"})
-        log(f"rejected non-loopback client: {host}")
-        return False
+            loopback = False
+        if not loopback:
+            self._json(403, {"ok": False, "error": "loopback access only"})
+            log(f"rejected non-loopback client: {peer}")
+            return False
+        if not self._host_origin_ok():
+            self._json(403, {"ok": False, "error": "invalid Host or Origin"})
+            log(
+                "rejected forged Host/Origin: host=%r origin=%r"
+                % (self.headers.get("Host", ""), self.headers.get("Origin", ""))
+            )
+            return False
+        return True
 
     def _body(self) -> dict:
-        length = min(int(self.headers.get("Content-Length", "0") or 0), 65536)
-        raw = self.rfile.read(length) if length else b"{}"
-        return json.loads(raw.decode("utf-8", errors="replace"))
+        """Body.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        raw_length = str(self.headers.get("Content-Length", "0") or "0").strip()
+        try:
+            length = int(raw_length)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("invalid Content-Length") from exc
+        if length < 0 or length > 65536:
+            raise ValueError("Content-Length out of range")
+        if not length:
+            raw = b"{}"
+        else:
+            chunks = []
+            remaining = length
+            while remaining > 0:
+                chunk = self.rfile.read(remaining)
+                if not chunk:
+                    raise ValueError("incomplete request body")
+                chunks.append(chunk)
+                remaining -= len(chunk)
+            raw = b"".join(chunks)
+        if len(raw) != length:
+            raise ValueError("request body length mismatch")
+        # Tolerate an optional UTF-8 BOM; reject other invalid UTF-8 instead of
+        # silently replacing bytes and turning a valid JSON error into a 400.
+        text = raw.decode("utf-8-sig")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON at position {exc.pos}: {exc.msg}") from exc
 
     def do_GET(self) -> None:
+        """Do get.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not self._local_only():
             return
         parsed = urlparse(self.path)
         if parsed.path == "/health":
-            self._json(200, {"ok": True, "service": "totp-broker"})
+            self._json(200, {"status": "ok"})
         elif parsed.path == "/api/request_approval/status":
             if not self._auth():
-                self._json(401, {"ok": False, "error": "unauthorized"})
+                self._json(403, {"ok": False, "error": "unauthorized"})
                 return
             query = parse_qs(parsed.query)
             challenge_id = str((query.get("id") or [""])[0])
             status, body = get_approval_status(challenge_id)
             self._json(status, body)
         elif parsed.path == "/pending":
+            if not self._auth():
+                self._json(403, {"ok": False, "error": "unauthorized"})
+                return
             # Read-only hint for the local dashboard. Never expose the TOTP,
             # email challenge, full path, manifest or reason.
             with _lock:
@@ -1898,26 +2759,72 @@ class Handler(BaseHTTPRequestHandler):
                     "action": action,
                     "channel": str(pending.get("channel", "")),
                     "target_name": target_name,
+                    "target_size": int((getattr(pending.get("_snapshot"), "identity", (0, 0, 0, 0))[2]) or 0),
+                    "target_mtime_ns": int((getattr(pending.get("_snapshot"), "identity", (0, 0, 0, 0))[3]) or 0),
                     "remaining_seconds": remaining,
                 })
+        elif parsed.path == "/pending/approval":
+            if not self._auth():
+                self._json(403, {"ok": False, "error": "unauthorized"})
+                return
+            with _lock:
+                pending = dict(_pending) if _pending else None
+            if not pending:
+                self._json(200, {"ok": True, "pending": False})
+            else:
+                snapshot = pending.get("_snapshot")
+                self._json(200, {
+                    "ok": True,
+                    "pending": True,
+                    "id": str(pending.get("id", "")),
+                    "action": str(pending.get("action", "")),
+                    "target_name": Path(str(pending.get("target", ""))).name,
+                    "scope_root": str(pending.get("scope_root", "")),
+                    "target_size": int(snapshot.identity[2] if snapshot else 0),
+                    "target_mtime_ns": int(snapshot.identity[3] if snapshot else 0),
+                    "remaining_seconds": max(0, int(float(pending.get("deadline", 0)) - time.monotonic())),
+                })
+        elif parsed.path == "/totp/bind":
+            if not self._auth():
+                self._json(403, {"ok": False, "error": "unauthorized"})
+                return
+            try:
+                self._json(200, totp_binding_payload())
+            except Exception as exc:
+                self._json(409, {"ok": False, "error": str(exc)})
+        elif parsed.path == "/trash":
+            if not self._auth():
+                self._json(403, {"ok": False, "error": "unauthorized"})
+                return
+            trash_items = quarantine.list_pending()
+            self._json(200, {"ok": True, "items": trash_items})
         else:
             self._json(404, {"ok": False, "error": "not found"})
 
     def do_POST(self) -> None:
+        """Do post.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not self._local_only():
             return
         if not self._auth():
-            self._json(401, {"ok": False, "error": "unauthorized"})
+            self._json(403, {"ok": False, "error": "unauthorized"})
             return
         try:
             payload = self._body()
-        except (ValueError, TypeError):
-            self._json(400, {"ok": False, "error": "invalid JSON"})
+        except (ValueError, TypeError) as exc:
+            self._json(400, {"ok": False, "error": "invalid JSON", "detail": str(exc)})
             return
         try:
             parsed = urlparse(self.path)
             if parsed.path in {"/request", "/api/request_approval"}:
-                bucket_key = str(payload.get("source") or payload.get("action") or "default")
+                client_ip = str(getattr(self, "client_address", ("unknown",))[0] or "unknown")
+                bucket_key = client_ip + ":" + str(payload.get("action", "") or "request")
                 allowed, retry_after = _allow_request(bucket_key)
                 if not allowed:
                     self._json(429, {
@@ -1934,6 +2841,24 @@ class Handler(BaseHTTPRequestHandler):
                 status, body = record_external_read(payload)
             elif parsed.path == "/verify":
                 status, body = run_verify(payload)
+            elif parsed.path == "/deny":
+                request_id = str(payload.get("id", "")).strip()
+                if request_id:
+                    released = _release_retained(request_id)
+                    log(f"approval denied id={request_id[:32]} released={released}")
+                    status, body = 200, {"ok": True, "denied": True, "released": released}
+                else:
+                    status, body = 400, {"ok": False, "error": "id required"}
+            elif parsed.path == "/approval/complete":
+                request_id = str(payload.get("id", "")).strip()
+                if request_id:
+                    status, body = 200, {"ok": True, "released": _release_retained(request_id)}
+                else:
+                    status, body = 400, {"ok": False, "error": "id required"}
+            elif parsed.path == "/trash/undo":
+                status, body = undo_trash_request(payload)
+            elif parsed.path == "/totp/recovery-reset":
+                status, body = reset_totp_with_recovery(str(payload.get("code", "")))
             else:
                 status, body = 404, {"ok": False, "error": "not found"}
         except Exception as exc:
@@ -1941,42 +2866,66 @@ class Handler(BaseHTTPRequestHandler):
             status, body = 500, {"ok": False, "error": str(exc)}
         self._json(status, body)
 
-    def log_message(self, fmt: str, *args) -> None:
-        log("http: " + fmt % args)
+    def log_message(self, format: str, *args) -> None:
+        """Log message.
+        
+        Args:
+            fmt: caller-supplied value.
+            args: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        log("http: " + format % args)
 
 
 def verify_runtime_acl() -> None:
-    """Fail closed unless the SYSTEM runner's script roots pass the ACL check."""
+    """Fail closed unless the checker proves the real filesystem ACLs are safe."""
+    if TEST_MODE:
+        return
     if os.name != "nt":
         return
     checker = ROOT / "tools" / "verify_broker_acl.ps1"
     if not checker.exists():
         raise SystemExit(
             "Broker refuses to start: tools/verify_broker_acl.ps1 is missing; "
-            "lock down tools/ and AstrBot/.venv before running as SYSTEM."
+            "lock down tools/ and AgentRuntime/.venv before running as SYSTEM."
         )
-    result = subprocess.run(
-        [
-            "powershell.exe",
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy", "Bypass",
-            "-File", str(checker),
-        ],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy", "Bypass",
+                "-File", str(checker),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=45,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise SystemExit(f"Broker refuses to start: ACL checker could not run: {exc}") from exc
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip()
         raise SystemExit(
             "Broker refuses to start: runtime ACL is writable or owned by a "
             f"low-privilege principal. {detail}"
         )
-    log("runtime ACL check passed (tools/ and AstrBot/.venv locked)")
+    if "Broker runtime ACL: OK" not in (result.stdout or ""):
+        raise SystemExit("Broker refuses to start: ACL checker did not confirm success")
+    log("runtime ACL check passed (tools/ and AgentRuntime/.venv locked)")
 
 
 def main() -> None:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     unrendered = [value for value in (str(ROOT), str(SHARED), UMO) if "YOUR_" in value]
     if unrendered:
         log("broker startup refused: unrendered YOUR_* placeholder; run the installer or render the template first")
@@ -1997,6 +2946,7 @@ def main() -> None:
     QUARANTINE.mkdir(parents=True, exist_ok=True)
     STAGING.mkdir(parents=True, exist_ok=True)
     log(f"broker HTTP listening on {HOST}:{PORT}")
+    quarantine.start_sweeper()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     try:
         server.serve_forever()

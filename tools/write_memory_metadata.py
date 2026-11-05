@@ -2,15 +2,32 @@ import hashlib, json, sqlite3, shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path('AstrBot/data/plugin_data/astrbot_plugin_livingmemory')
+ROOT = Path('AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory')
 DB = ROOT / 'livingmemory.db'
 CONV = ROOT / 'conversations.db'
-BACKUP = Path('AstrBot/data/backups/memory_metadata_20261030/livingmemory.db.before')
+BACKUP = Path('AgentRuntime/data/backups/memory_metadata_20261030/livingmemory.db.before')
 CORR = '对话中曾自称本地模型，实际当时为 DeepSeek'
 ALIAS = '主人（某次角色扮演，现统一为“哥”）'
 
-def H(x): return hashlib.sha256(x.encode('utf-8')).hexdigest()
+def H(x):
+    """H.
+    
+    Args:
+        x: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    return hashlib.sha256(x.encode('utf-8')).hexdigest()
 def canon(x):
+    """Canon.
+    
+    Args:
+        x: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
 
 conn = sqlite3.connect(DB); conn.row_factory = sqlite3.Row

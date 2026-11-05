@@ -287,8 +287,8 @@ def test_approval_only_totp_creates_pending_state(monkeypatch, tmp_path) -> None
 
     assert status == 200
     assert body["status"] == "requires_totp"
-    assert body["challenge_id"] == body["id"]
-    state = broker.get_approval_status(body["challenge_id"])
+    assert body["id"]
+    state = broker.get_approval_status(body["id"])
     assert state[0] == 200
     assert state[1]["status"] == "pending"
     assert not target.exists()
@@ -417,7 +417,7 @@ def test_approval_only_scoped_is_allowed_without_execute(monkeypatch, tmp_path) 
     assert "Scoped via 30-minute Directory Token" in audit.read_text(encoding="utf-8")
 
 
-def test_verify_issues_scoped_token(monkeypatch, tmp_path) -> None:
+def test_verify_ignores_caller_supplied_scope(monkeypatch, tmp_path) -> None:
     tmp, memory, vault, shared, audit = _scoped_roots(monkeypatch, tmp_path)
     root = shared / "draft"
     root.mkdir()
@@ -440,13 +440,8 @@ def test_verify_issues_scoped_token(monkeypatch, tmp_path) -> None:
     status, body = broker.run_verify({"code": "123456", "scoped_minutes": 30})
 
     assert status == 200
-    assert body["scoped_token"]
-    assert body["scoped_expires_in"] == 1800
-    status, state = broker.get_approval_status("scoped-1")
-    assert status == 200
-    assert state["scoped_token"] == body["scoped_token"]
-    assert state["scoped_expires_in"] == 1800
-    assert broker._consume_scoped(body["scoped_token"], "delete", str(root / "b.txt")) is not None
+    assert "scoped_token" not in body
+    assert body["status"] == "approved"
 
 
 def test_uipi_blocked_audit_event(monkeypatch, tmp_path) -> None:

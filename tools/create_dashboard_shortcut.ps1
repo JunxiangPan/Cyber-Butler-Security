@@ -22,7 +22,7 @@ $dashboard = Join-Path $ProjectRoot 'tools\start-dashboard.ps1'
 if (-not (Test-Path -LiteralPath $launcher)) { throw "Native launcher missing: $launcher" }
 if (-not (Test-Path -LiteralPath $dashboard)) { throw "Dashboard script missing: $dashboard" }
 $desktop = [Environment]::GetFolderPath('Desktop')
-$legacy = Join-Path $desktop '检查苏瑾言更新.lnk'
+$legacy = Join-Path $desktop '检查local agent更新.lnk'
 if (Test-Path -LiteralPath $legacy) { Remove-Item -LiteralPath $legacy -Force }
 $shortcutPath = Join-Path $desktop ($ShortcutName + '.lnk')
 $shell = New-Object -ComObject WScript.Shell

@@ -14,8 +14,8 @@ Modes:
 
 Example:
     python tools/repair_memory_sources.py rehearse \
-      --living-db AstrBot/data/plugin_data/astrbot_plugin_livingmemory/livingmemory.db \
-      --conversations-db AstrBot/data/plugin_data/astrbot_plugin_livingmemory/conversations.db \
+      --living-db AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/livingmemory.db \
+      --conversations-db AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/conversations.db \
       --workdir tmp-memory-rehearsal \
       --memory-id 20 --memory-id 21 \
       --start-id 391 --end-id 412
@@ -40,6 +40,14 @@ BACKUP_DIR = "backup-before"
 
 
 def _sha256(path: Path) -> str:
+    """Sha256.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -48,6 +56,15 @@ def _sha256(path: Path) -> str:
 
 
 def _backup_sqlite(source: Path, destination: Path) -> None:
+    """Backup sqlite.
+    
+    Args:
+        source: caller-supplied value.
+        destination: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     destination.parent.mkdir(parents=True, exist_ok=True)
     source_conn = sqlite3.connect(f"file:{source}?mode=ro", uri=True)
     destination_conn = sqlite3.connect(destination)
@@ -59,6 +76,14 @@ def _backup_sqlite(source: Path, destination: Path) -> None:
 
 
 def _remove_sqlite_sidecars(path: Path) -> None:
+    """Remove sqlite sidecars.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for suffix in ("-wal", "-shm", "-journal"):
         sidecar = Path(str(path) + suffix)
         try:
@@ -68,11 +93,28 @@ def _remove_sqlite_sidecars(path: Path) -> None:
 
 
 def _restore_file(backup: Path, target: Path) -> None:
+    """Restore file.
+    
+    Args:
+        backup: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     _remove_sqlite_sidecars(target)
     shutil.copy2(backup, target)
 
 
 def _integrity_check(path: Path) -> str:
+    """Integrity check.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
         row = conn.execute("PRAGMA integrity_check").fetchone()
@@ -82,6 +124,16 @@ def _integrity_check(path: Path) -> str:
 
 
 def _read_messages(path: Path, start_id: int, end_id: int) -> list[dict[str, Any]]:
+    """Read messages.
+    
+    Args:
+        path: caller-supplied value.
+        start_id: caller-supplied value.
+        end_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     conn.row_factory = sqlite3.Row
     try:
@@ -126,10 +178,27 @@ def _read_messages(path: Path, start_id: int, end_id: int) -> list[dict[str, Any
 
 
 def _source_json(messages: list[dict[str, Any]]) -> str:
+    """Source json.
+    
+    Args:
+        messages: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return json.dumps(messages, ensure_ascii=False, separators=(", ", ": "))
 
 
 def _memory_window(path: Path, memory_ids: list[int]) -> dict[int, str]:
+    """Memory window.
+    
+    Args:
+        path: caller-supplied value.
+        memory_ids: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     conn.row_factory = sqlite3.Row
     try:
@@ -146,6 +215,15 @@ def _memory_window(path: Path, memory_ids: list[int]) -> dict[int, str]:
 
 
 def _apply(path: Path, sources: dict[int, str]) -> None:
+    """Apply.
+    
+    Args:
+        path: caller-supplied value.
+        sources: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     conn = sqlite3.connect(path)
     try:
         now = time.time()
@@ -175,6 +253,17 @@ def _apply(path: Path, sources: dict[int, str]) -> None:
 
 
 def _verify(path: Path, memory_ids: list[int], start_id: int, end_id: int) -> dict[str, Any]:
+    """Verify.
+    
+    Args:
+        path: caller-supplied value.
+        memory_ids: caller-supplied value.
+        start_id: caller-supplied value.
+        end_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     integrity = _integrity_check(path)
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     conn.row_factory = sqlite3.Row
@@ -207,6 +296,14 @@ def _verify(path: Path, memory_ids: list[int], start_id: int, end_id: int) -> di
 
 
 def _prepare_workdir(args: argparse.Namespace) -> Path:
+    """Prepare workdir.
+    
+    Args:
+        args: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     workdir = args.workdir.resolve()
     workdir.mkdir(parents=True, exist_ok=True)
     living = workdir / WORK_LIVING
@@ -225,6 +322,17 @@ def _prepare_workdir(args: argparse.Namespace) -> Path:
 
 
 def _report(workdir: Path, memory_ids: list[int], start_id: int, end_id: int) -> dict[str, Any]:
+    """Report.
+    
+    Args:
+        workdir: caller-supplied value.
+        memory_ids: caller-supplied value.
+        start_id: caller-supplied value.
+        end_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     living = workdir / WORK_LIVING
     conversations = workdir / WORK_CONVERSATIONS
     messages = _read_messages(conversations, start_id, end_id)
@@ -240,6 +348,14 @@ def _report(workdir: Path, memory_ids: list[int], start_id: int, end_id: int) ->
 
 
 def _rehearse(args: argparse.Namespace) -> int:
+    """Rehearse.
+    
+    Args:
+        args: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     workdir = _prepare_workdir(args)
     manifest_path = workdir / MANIFEST
     manifest: dict[str, Any] = {
@@ -278,6 +394,14 @@ def _rehearse(args: argparse.Namespace) -> int:
 
 
 def _parser() -> argparse.ArgumentParser:
+    """Parser.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("rehearse", "dry-run", "apply", "verify", "rollback"))
     parser.add_argument("--living-db", type=Path, required=True)
@@ -291,6 +415,14 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     args = _parser().parse_args()
     if args.mode == "rehearse":
         return _rehearse(args)

@@ -11,10 +11,10 @@
 - [6. 安全边界](#6-安全边界)
 - [7. 排障](#7-排障)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: archived v1.6.1 status (removed).
 
 
-目标：手机在公司/外面用蜂窝网络访问家里的 Cyber-Butler Web 面板和“大肥鱼文件”，
+目标：手机在公司/外面用蜂窝网络访问家里的 Cyber-Butler Web 面板和“shared文件”，
 **不开放路由器端口、不做公网端口映射**。
 
 最终地址形式：
@@ -162,7 +162,7 @@ http://100.101.102.103:8765
 ```
 
 4. 输入管理员邮箱，收 OTP，登录；
-5. 打开“我的大肥鱼文件”，点文件预览/下载。
+5. 打开“我的shared文件”，点文件预览/下载。
 
 如果电脑同时开着局域网和 Tailscale，**手机用蜂窝网络时不要用
 `192.168.1.111:8765`**，那个地址在蜂窝网络下不可达；请用 `100.x.x.x`。

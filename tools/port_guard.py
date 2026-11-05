@@ -11,6 +11,14 @@ class PortHijackError(RuntimeError):
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess:
+    """Run.
+    
+    Args:
+        command: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     return subprocess.run(
         command,
@@ -22,6 +30,14 @@ def _run(command: list[str]) -> subprocess.CompletedProcess:
 
 
 def listener_pids(port: int = 18090) -> set[int]:
+    """Listener pids.
+    
+    Args:
+        port: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if os.name != "nt":
         return set()
     command = [

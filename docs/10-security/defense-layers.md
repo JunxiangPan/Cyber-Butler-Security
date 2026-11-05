@@ -3,7 +3,7 @@
 | Layer | Control | Current state |
 |---|---|---|
 | Account isolation | `CyberButlerSvc` + `SeDenyInteractiveLogonRight` | implemented |
-| Service hosting | SCM service `CyberButlerAstrBot` | implemented and host-tested |
+| Service hosting | SCM service `CyberButlerAgentRuntime` | implemented and host-tested |
 | Binary integrity | service binary ACL `Svc:RX / SYSTEM:F / Administrators:F` | implemented |
 | Process tree | Job Object `KILL_ON_JOB_CLOSE` | implemented |
 | Data split | sensitive subdirectories read-only; runtime DB root writable | implemented with host repair |

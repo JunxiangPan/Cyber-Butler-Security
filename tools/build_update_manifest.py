@@ -10,12 +10,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+from typing import cast
 from pathlib import Path
 
 import update_core
 
 
 def collect(root: Path) -> list[dict]:
+    """Collect.
+    
+    Args:
+        root: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     files: list[dict] = []
     for base in ("tools", "plugins", "overlay", "docs"):
         for path in sorted((root / base).rglob("*")):
@@ -63,6 +72,14 @@ def collect(root: Path) -> list[dict]:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     root = Path(__file__).resolve().parent.parent
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
     manifest = {"schema": 1, "version": version, "files": collect(root)}
@@ -72,7 +89,8 @@ def main() -> int:
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"wrote {out} ({len(manifest['files'])} files, version {version})")
+    file_count = len(cast(list[object], manifest["files"]))
+    print(f"wrote {out} ({file_count} files, version {version})")
     return 0
 
 

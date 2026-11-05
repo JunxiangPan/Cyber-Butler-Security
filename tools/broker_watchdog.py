@@ -10,6 +10,15 @@ from pathlib import Path
 
 
 def check_health(url: str = "http://127.0.0.1:18090/health", timeout: float = 1.5) -> bool:
+    """Check health.
+    
+    Args:
+        url: caller-supplied value.
+        timeout: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
             if response.status != 200:
@@ -21,10 +30,27 @@ def check_health(url: str = "http://127.0.0.1:18090/health", timeout: float = 1.
 
 
 def state_path(root: str | Path) -> Path:
+    """State path.
+    
+    Args:
+        root: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return Path(root) / "tools" / "broker-health.json"
 
 
 def write_state(root: str | Path, healthy: bool) -> dict:
+    """Write state.
+    
+    Args:
+        root: caller-supplied value.
+        healthy: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     path = state_path(root)
     path.parent.mkdir(parents=True, exist_ok=True)
     record = {
@@ -45,11 +71,28 @@ def is_fail_closed(root: str | Path) -> bool:
 
 
 def run_once(root: str | Path, url: str = "http://127.0.0.1:18090/health") -> dict:
+    """Run once.
+    
+    Args:
+        root: caller-supplied value.
+        url: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     healthy = check_health(url)
     return write_state(root, healthy)
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     root = os.environ.get("CBS_ROOT", r"C:\CyberButler")
     interval = max(1, int(os.environ.get("CBS_WATCHDOG_INTERVAL", "2")))
     while True:

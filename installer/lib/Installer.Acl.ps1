@@ -1,4 +1,4 @@
-# ACL lifecycle for the Cyber-Butler installer.
+﻿# ACL lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerAclTargets {
@@ -8,9 +8,8 @@ function Get-CyberButlerAclTargets {
     )
     $root = [IO.Path]::GetFullPath($InstallPath)
     return @(
-        (Join-Path $root 'AstrBot'),
-        (Join-Path $root 'AstrBot\.venv'),
-        (Join-Path $root 'SnowLuma'),
+        (Join-Path $root 'tools'),
+        (Join-Path $root 'webui'),
         (Join-Path $root 'data'),
         (Join-Path $root 'workspace')
     )
@@ -40,6 +39,12 @@ function Get-CyberButlerAclAccessType {
     return [System.Security.AccessControl.AccessControlType]::Allow
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -82,7 +87,7 @@ function Test-CyberButlerAcl {
             if ([string]$rule.AccessControlType -ne [string]$accessType) { continue }
             $ruleIdentity = [string]$rule.IdentityReference.Value
             $ruleSid = $null
-            try { $ruleSid = ([System.Security.Principal.NTAccount]$ruleIdentity).Translate([System.Security.Principal.SecurityIdentifier]).Value } catch { }
+            try { $ruleSid = ([System.Security.Principal.NTAccount]$ruleIdentity).Translate([System.Security.Principal.SecurityIdentifier]).Value } catch { Write-Verbose 'optional operation failed' }
             if ($ruleIdentity -ne $Identity -and $ruleSid -ne $target) { continue }
             if (([int]$rule.FileSystemRights -band [int]$required) -eq [int]$required) {
                 $result.satisfied = $true
@@ -115,6 +120,12 @@ function Assert-CyberButlerAcl {
     return [bool]$test.satisfied
 }
 
+<#
+.SYNOPSIS
+    Set-CyberButlerAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -150,6 +161,12 @@ function Set-CyberButlerAcl {
 }
 
 
+<#
+.SYNOPSIS
+    Set-CyberButlerDataAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerDataAcl {
     param(
         [Parameter(Mandatory = $true)][string]$DataRoot,
@@ -173,11 +190,9 @@ function Set-CyberButlerDataAcl {
     # Re-running /T on every install can take minutes and be interrupted; if
     # the root and existing DB already carry Modify for the service account,
     # keep those ACLs and skip the recursive pass.
-    $rootAcl = Test-CyberButlerAcl -Path $DataRoot -Identity $ServiceAccount -Mode 'RW'
-    $dbPath = Join-Path $DataRoot 'data_v4.db'
-    $dbAcl = if (Test-Path -LiteralPath $dbPath) { Test-CyberButlerAcl -Path $dbPath -Identity $ServiceAccount -Mode 'RW' } else { $null }
-    if ($rootAcl.satisfied -and (($null -eq $dbAcl) -or $dbAcl.satisfied)) {
-        return [pscustomobject]@{ status = 'skipped'; reason = 'service-account-acl-already-present'; message = '' }
+    $rootAcl = Test-CyberButlerAcl -Path $DataRoot -Identity $ServiceAccount -Mode 'RX'
+    if ($rootAcl.satisfied) {
+        return [pscustomobject]@{ status = 'skipped'; reason = 'service-account-read-acl-already-present'; message = '' }
     }
 
     $backup = $null
@@ -192,20 +207,19 @@ function Set-CyberButlerDataAcl {
         }
     }
 
-    $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data', 'memory', 'config', 'knowledge_base')
-    $readDirs = @('site-packages', 'plugins')
+    $writeDirs = @('cache', 'tmp', 'temp', 'logs', 'plugin_data')
+    $readDirs = @('memory', 'config', 'knowledge_base', 'site-packages', 'plugins')
     foreach ($name in @($writeDirs + $readDirs)) {
         $path = Join-Path $DataRoot $name
         if (-not (Test-Path -LiteralPath $path)) { New-Item -ItemType Directory -Path $path -Force | Out-Null }
     }
 
-    # Keep broad principals out. The runtime account needs Modify on data so
-    # AstrBot can create data_v4.db/WAL and save its config; agent tool writes
-    # remain policy-controlled by the Broker.
+    # Physical boundary: the Agent account is read-only on the data root.
+    # It may write only the non-sensitive runtime dirs below and workspace.
     & icacls.exe $DataRoot /inheritance:r `
         /grant:r '*S-1-5-18:(OI)(CI)F' `
         /grant:r '*S-1-5-32-544:(OI)(CI)F' `
-        /grant:r "${ServiceAccount}:(OI)(CI)M" `
+        /grant:r "${ServiceAccount}:(OI)(CI)RX" `
         /grant:r "${DesktopAccount}:(OI)(CI)RX" /T 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'root-acl'; message = ('icacls root failed: ' + $LASTEXITCODE) } }
 
@@ -237,19 +251,25 @@ function Set-CyberButlerDataAcl {
         & icacls.exe $cmdConfig /grant:r `
             '*S-1-5-18:(F)' `
             '*S-1-5-32-544:(F)' `
-            "${ServiceAccount}:(M)" `
+            "${ServiceAccount}:(RX)" `
             "${DesktopAccount}:(RX)" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ status = 'failed'; reason = 'config-acl'; message = $cmdConfig } }
     }
 
     return [pscustomobject]@{
         status = 'completed'
-        reason = 'root-modify; cache/tmp/temp/logs/plugin_data/memory/config/knowledge_base-modify; site-packages/plugins-rx'
+        reason = 'root-read; cache/tmp/temp/logs/plugin_data-modify; memory/config/knowledge_base/site-packages/plugins-read; workspace-modify'
         message = ''
         backup = $backup
     }
 }
 
+<#
+.SYNOPSIS
+    Undo-CyberButlerAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Undo-CyberButlerAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -273,6 +293,12 @@ function Undo-CyberButlerAcl {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerAcl {
     [CmdletBinding()]
     param(
@@ -394,6 +420,12 @@ function Get-CyberButlerTestProtectionTargets {
     return @($candidates | Where-Object { Test-Path -LiteralPath $_ })
 }
 
+<#
+.SYNOPSIS
+    Protect-CyberButlerTestFiles performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Protect-CyberButlerTestFiles {
     param(
         [Parameter(Mandatory = $true)][string]$InstallPath,

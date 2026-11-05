@@ -7,7 +7,7 @@
 - `tools/update_gui.ps1`: WPF desktop update window.
 - `tools/update_gui.vbs`: no-console launcher through `wscript.exe`.
 - `tools/create_update_shortcut.ps1`: creates the desktop shortcut
-  `检查苏瑾言更新`.
+  `检查local agent更新`.
 - Skip-version support in `tools/check_update.ps1` and `tools/skip_version.json`.
 - `-StatusFile` phase reporting and `-ConfirmationText` validation in
   `tools/update_merge.ps1`.

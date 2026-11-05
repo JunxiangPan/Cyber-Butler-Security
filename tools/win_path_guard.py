@@ -31,8 +31,18 @@ class TargetGuardError(OSError):
 
 
 def _reject_unsafe_path_text(raw_path: str) -> Path:
-    if not raw_path or "\x00" in raw_path:
+    """Reject unsafe path text.
+    
+    Args:
+        raw_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    if not raw_path or chr(0) in raw_path:
         raise TargetGuardError("empty or NUL path")
+    if any(ord(ch) < 32 for ch in raw_path):
+        raise TargetGuardError("control character in path")
     path = Path(raw_path)
     if any(part == ".." for part in path.parts):
         raise TargetGuardError("path traversal segment is not allowed")
@@ -41,7 +51,36 @@ def _reject_unsafe_path_text(raw_path: str) -> Path:
     return path
 
 
+def _reject_reparse_ancestors(path: Path) -> None:
+    """Reject a symlink or Windows junction anywhere in the path chain.
+
+    OPEN_REPARSE_POINT stops the *final* component from being followed, but a
+    junction in a parent directory can silently redirect a workspace path to
+    System32 or another protected location. Check existing components with
+    no-follow semantics before the handle is opened.
+    """
+    candidates = [path, *path.parents]
+    for candidate in candidates:
+        try:
+            info = os.stat(str(candidate), follow_symlinks=False)
+        except OSError:
+            continue
+        if os.name == "nt":
+            if int(getattr(info, "st_file_attributes", 0)) & 0x00000400:
+                raise TargetGuardError(f"reparse point in path chain is not allowed: {candidate}")
+        elif stat.S_ISLNK(info.st_mode):
+            raise TargetGuardError(f"symlink in path chain is not allowed: {candidate}")
+
+
 def _hash_fd(fd: int) -> str:
+    """Hash fd.
+    
+    Args:
+        fd: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     digest = hashlib.sha256()
     os.lseek(fd, 0, os.SEEK_SET)
     while True:
@@ -54,6 +93,14 @@ def _hash_fd(fd: int) -> str:
 
 
 def _identity(fd: int) -> tuple[int, int, int, int]:
+    """Identity.
+    
+    Args:
+        fd: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     stat = os.fstat(fd)
     return (
         int(getattr(stat, "st_dev", 0)),
@@ -76,13 +123,33 @@ class TargetSnapshot:
 
     @classmethod
     def open(cls, raw_path: str, *, write: bool = False, delete: bool = False) -> "TargetSnapshot":
+        """Open.
+        
+        Args:
+            raw_path: caller-supplied value.
+            write: caller-supplied value.
+            delete: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         path = _reject_unsafe_path_text(str(raw_path))
+        _reject_reparse_ancestors(path)
         if os.name == "nt":
             return cls._open_windows(path, write=write, delete=delete)
         return cls._open_posix(path, write=write)
 
     @classmethod
     def _open_posix(cls, path: Path, *, write: bool) -> "TargetSnapshot":
+        """Open posix.
+        
+        Args:
+            path: caller-supplied value.
+            write: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         flags = (os.O_RDWR if write else os.O_RDONLY) | getattr(os, "O_NOFOLLOW", 0)
         try:
             fd = os.open(str(path), flags)
@@ -100,6 +167,16 @@ class TargetSnapshot:
 
     @classmethod
     def _open_windows(cls, path: Path, *, write: bool, delete: bool) -> "TargetSnapshot":
+        """Open windows.
+        
+        Args:
+            path: caller-supplied value.
+            write: caller-supplied value.
+            delete: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         import ctypes.wintypes as wintypes
         import msvcrt
 
@@ -153,6 +230,7 @@ class TargetSnapshot:
             )
 
         class _BY_HANDLE_FILE_INFORMATION(ctypes.Structure):
+            """_BY_HANDLE_FILE_INFORMATION helper/type."""
             _fields_ = [
                 ("dwFileAttributes", wintypes.DWORD),
                 ("ftCreationTime", wintypes.FILETIME),
@@ -249,6 +327,7 @@ class TargetSnapshot:
             kernel32.SetFileInformationByHandle.restype = ctypes.c_bool
 
             class _FILE_DISPOSITION_INFO(ctypes.Structure):
+                """_FILE_DISPOSITION_INFO helper/type."""
                 _fields_ = [("DeleteFile", ctypes.c_bool)]
 
             info = _FILE_DISPOSITION_INFO(True)
@@ -293,6 +372,7 @@ class TargetSnapshot:
         import msvcrt
 
         class _FILE_RENAME_INFO(ctypes.Structure):
+            """_FILE_RENAME_INFO helper/type."""
             _fields_ = [
                 ("ReplaceIfExists", wintypes.BOOL),
                 ("RootDirectory", wintypes.HANDLE),
@@ -325,6 +405,14 @@ class TargetSnapshot:
             )
 
     def close(self) -> None:
+        """Close.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not self._closed and self.fd is not None:
             try:
                 os.close(self.fd)
@@ -333,9 +421,25 @@ class TargetSnapshot:
                 self._closed = True
 
     def __enter__(self) -> "TargetSnapshot":
+        """Enter.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return self
 
     def __exit__(self, *_exc) -> None:
+        """Exit.
+        
+        Args:
+            _exc: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.close()
 
 

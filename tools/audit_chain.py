@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
+import secrets
 import threading
 import time
 from contextlib import contextmanager
@@ -16,6 +18,14 @@ _LOCK = threading.Lock()
 
 @contextmanager
 def _process_lock(path: Path):
+    """Process lock.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     lock_path = path.with_name(path.name + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     if os.name == "nt":
@@ -32,22 +42,71 @@ def _process_lock(path: Path):
                 handle.close()
     else:
         import fcntl
+        from typing import Any, cast
+        fcntl_any = cast(Any, fcntl)
 
         handle = lock_path.open("a+b")
         try:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            fcntl_any.flock(handle.fileno(), fcntl_any.LOCK_EX)
             yield
         finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            fcntl_any.flock(handle.fileno(), fcntl_any.LOCK_UN)
             handle.close()
 ZERO_HASH = "0" * 64
+_KEY_CACHE: bytes | None = None
 
 
 class AuditChainError(ValueError):
     """Raised when a chain record is malformed or tampered with."""
 
 
+def _key() -> bytes:
+    """Load the HMAC key from env or a restricted key file; fail closed."""
+    global _KEY_CACHE
+    if _KEY_CACHE is not None:
+        return _KEY_CACHE
+    env_value = str(os.environ.get("CBS_AUDIT_HMAC_KEY", "") or "").strip()
+    if env_value:
+        try:
+            _KEY_CACHE = bytes.fromhex(env_value)
+        except ValueError:
+            _KEY_CACHE = env_value.encode("utf-8")
+        if len(_KEY_CACHE) < 16:
+            raise AuditChainError("CBS_AUDIT_HMAC_KEY is too short")
+        return _KEY_CACHE
+    key_path = Path(os.environ.get("CBS_AUDIT_KEY_FILE", "")) if os.environ.get("CBS_AUDIT_KEY_FILE") else None
+    if key_path is None:
+        key_path = Path(__file__).resolve().parents[1] / "tools" / "audit_hmac.dpapi"
+    try:
+        raw = key_path.read_bytes()
+        if key_path.suffix.casefold() == ".dpapi":
+            import win32crypt
+            _description, raw = win32crypt.CryptUnprotectData(raw, None, None, None, 0)
+    except OSError as exc:
+        raise AuditChainError(f"cannot read audit HMAC key: {exc}") from exc
+    key = raw.strip()
+    if len(key) < 16:
+        raise AuditChainError("audit HMAC key is too short")
+    _KEY_CACHE = key
+    return key
+
+
+def _mac(seq: int, previous: str, event: dict) -> str:
+    """HMAC-SHA256 over the chain slot."""
+    return hmac.new(_key(), _canonical(seq, previous, event).encode("utf-8"), hashlib.sha256).hexdigest()
+
+
 def _canonical(seq: int, previous: str, event: dict) -> str:
+    """Canonical.
+    
+    Args:
+        seq: caller-supplied value.
+        previous: caller-supplied value.
+        event: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     payload = json.dumps(
         {"seq": seq, "prev": previous, "event": event},
         ensure_ascii=False,
@@ -58,10 +117,28 @@ def _canonical(seq: int, previous: str, event: dict) -> str:
 
 
 def _hash(seq: int, previous: str, event: dict) -> str:
+    """Hash.
+    
+    Args:
+        seq: caller-supplied value.
+        previous: caller-supplied value.
+        event: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return hashlib.sha256(_canonical(seq, previous, event).encode("utf-8")).hexdigest()
 
 
 def _tail(path: Path) -> tuple[int, str]:
+    """Tail.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not path.exists():
         return 0, ZERO_HASH
     last = None
@@ -94,6 +171,7 @@ def append_event(path: Path, event: dict) -> dict:
             "prev": previous,
             "event": event,
             "hash": _hash(seq, previous, event),
+            "mac": _mac(seq, previous, event),
         }
         with path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
@@ -128,6 +206,9 @@ def verify_chain(path: Path) -> tuple[bool, str]:
                 actual = _hash(expected_seq, previous, event)
                 if str(record.get("hash", "")) != actual:
                     return False, f"line {number}: hash mismatch"
+                expected_mac = _mac(expected_seq, previous, event)
+                if not hmac.compare_digest(str(record.get("mac", "")), expected_mac):
+                    return False, f"line {number}: HMAC mismatch"
                 previous = actual
                 expected_seq += 1
     except OSError as exc:

@@ -29,7 +29,7 @@ function Write-WatchdogLog([string]$Message) {
             Move-Item -LiteralPath $logPath -Destination ($logPath + '.1') -Force -ErrorAction SilentlyContinue
         }
         Add-Content -LiteralPath $logPath -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-SensorEndpoint {
@@ -49,7 +49,7 @@ function Save-WatchdogState([bool]$Healthy, [string]$Action) {
             action     = $Action
             url        = $Url
         } | ConvertTo-Json -Compress | Set-Content -LiteralPath $statePath -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 if (Test-SensorEndpoint) {

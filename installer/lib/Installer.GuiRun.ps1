@@ -15,9 +15,15 @@ function Write-CyberButlerGuiError {
     try {
         $path = Join-Path $env:TEMP 'CyberButler-Installer-GUI-error.log'
         Add-Content -LiteralPath $path -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
+<#
+.SYNOPSIS
+    Show-CyberButlerTotpDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerTotpDialog {
     param(
         [Parameter(Mandatory = $true)][string]$ReadyPath,
@@ -106,6 +112,12 @@ function Show-CyberButlerTotpDialog {
 
 
 
+<#
+.SYNOPSIS
+    Show-CyberButlerInfoWindow performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerInfoWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,
@@ -146,11 +158,17 @@ function Show-CyberButlerInfoWindow {
     $dialog.FindName('InfoBody').Text = $Text
     $dialog.FindName('InfoCopy').Content = $Copy
     $dialog.FindName('InfoClose').Content = $Close
-    $dialog.FindName('InfoCopy').Add_Click({ try { [System.Windows.Clipboard]::SetText($dialog.FindName('InfoBody').Text) } catch { } })
+    $dialog.FindName('InfoCopy').Add_Click({ try { [System.Windows.Clipboard]::SetText($dialog.FindName('InfoBody').Text) } catch { Write-Verbose 'optional operation failed' } })
     $dialog.FindName('InfoClose').Add_Click({ $dialog.Close() })
     [void]$dialog.ShowDialog()
 }
 
+<#
+.SYNOPSIS
+    Show-CyberButlerStatusWindow performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerStatusWindow {
     param(
         $Owner = $null,
@@ -199,11 +217,11 @@ function Show-CyberButlerStatusWindow {
     $dialog.FindName('CloseStatusButton').Content = $Close
     $dialog.FindName('RefreshStatusButton').Add_Click({
         if ($RefreshScript) {
-            try { $dialog.FindName('StatusBody').Text = [string](& $RefreshScript) } catch { }
+            try { $dialog.FindName('StatusBody').Text = [string](& $RefreshScript) } catch { Write-Verbose 'optional operation failed' }
         }
     })
     $dialog.FindName('CopyStatusButton').Add_Click({
-        try { [System.Windows.Clipboard]::SetText($dialog.FindName('StatusBody').Text) } catch { }
+        try { [System.Windows.Clipboard]::SetText($dialog.FindName('StatusBody').Text) } catch { Write-Verbose 'optional operation failed' }
     })
     $dialog.FindName('CloseStatusButton').Add_Click({ $dialog.Close() })
     if ($RefreshScript) {
@@ -215,7 +233,7 @@ function Show-CyberButlerStatusWindow {
                 if ($next -and $next -ne [string]$dialog.FindName('StatusBody').Text) {
                     $dialog.FindName('StatusBody').Text = $next
                 }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         })
         $timer.Start()
         $dialog.Add_Closed({ $timer.Stop() })
@@ -224,6 +242,12 @@ function Show-CyberButlerStatusWindow {
 }
 
 
+<#
+.SYNOPSIS
+    Show-CyberButlerRemoveDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerRemoveDialog {
     param(
         $Owner = $null,
@@ -251,7 +275,7 @@ function Show-CyberButlerRemoveDialog {
       <CheckBox x:Name="RemoveServiceAccount" Foreground="#FBBF24" Margin="0,16,0,0"
                 Content="同时删除 CyberButlerSvc 服务账户（不会删除 CBS 用户）/ Also remove the CyberButlerSvc service account (never the CBS user)"/>
       <CheckBox x:Name="RemoveBigFish" Foreground="#FBBF24" Margin="0,12,0,0"
-                Content="同时删除桌面大肥鱼专用文件夹（用户文件，默认保留）/ Also delete the Big Fish folder (user files; kept by default)"/>
+                Content="同时删除桌面shared专用文件夹（用户文件，默认保留）/ Also delete the Big Fish folder (user files; kept by default)"/>
       <CheckBox x:Name="RemoveDashboardShortcut" Foreground="#FBBF24" Margin="0,12,0,0" IsChecked="True"
                 Content="同时删除桌面 Cyber-Butler 主控台快捷方式 / Also remove the desktop Dashboard shortcut"/>
     </StackPanel>
@@ -292,6 +316,12 @@ function Show-CyberButlerRemoveDialog {
     return $script:cbRemoveChoice
 }
 
+<#
+.SYNOPSIS
+    Remove-CyberButlerPackage performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Remove-CyberButlerPackage {
     param([Parameter(Mandatory = $true)][string]$InstallerRoot)
     $packageRoot = Split-Path -Parent ([IO.Path]::GetFullPath($InstallerRoot)).TrimEnd([char]92)
@@ -309,73 +339,26 @@ function Remove-CyberButlerPackage {
             $version = (Get-Content -LiteralPath $versionPath -Raw).Trim()
             $zip = Join-Path (Split-Path -Parent $packageRoot) ('public-release-v' + $version + '.zip')
             if ($version -and (Test-Path -LiteralPath $zip)) { $targets.Add($zip) }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     $commands = @()
     foreach ($target in $targets) {
         $escaped = $target.Replace("'", "''")
         # START-INSTALLER.exe is still running until the GUI/launcher exits.
         # Retry after a delay instead of making one attempt that must fail.
-        $commands += ("for (`$i=0; `$i -lt 30; `$i++) { try { Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction Stop; if (-not (Test-Path -LiteralPath '" + $escaped + "')) { break } } catch { }; Start-Sleep -Seconds 2 }")
+        $commands += ("for (`$i=0; `$i -lt 30; `$i++) { try { Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction Stop; if (-not (Test-Path -LiteralPath '" + $escaped + "')) { break } } catch { Write-Verbose 'optional operation failed' }; Start-Sleep -Seconds 2 }")
     }
     $command = 'Start-Sleep -Seconds 8; ' + ($commands -join '; ')
     Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $command) | Out-Null
     return ($targets -join '; ')
 }
 
-function Get-CyberButlerAstrBotInitialCredentials {
-    param([Parameter(Mandatory = $true)][string]$InstallPath)
-    $log = Join-Path $InstallPath 'AstrBot\data\logs\astrbot.log'
-    $passwordFile = Join-Path $InstallPath 'AstrBot\data\logs\initial-admin-password.txt'
-    $passwordMarker = Join-Path $InstallPath 'AstrBot\data\.cbs-dashboard-password-configured'
-    $result = [pscustomobject]@{ username = 'astrbot'; password = ''; log = $log; password_file = $passwordFile }
-    $configPath = Join-Path $InstallPath 'AstrBot\data\cmd_config.json'
-    try {
-        if (Test-Path -LiteralPath $configPath) {
-            $cfg = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($cfg.dashboard.username) { $result.username = [string]$cfg.dashboard.username }
-        }
-    } catch { }
-    if ((Test-Path -LiteralPath $passwordFile) -and (Test-Path -LiteralPath $passwordMarker)) {
-        try { $result.password = (Get-Content -LiteralPath $passwordFile -Raw -Encoding UTF8).Trim() } catch { }
-    }
-    if (-not (Test-Path -LiteralPath $log)) { return $result }
-    try {
-        $lines = @(Get-Content -LiteralPath $log -Tail 400 -Encoding UTF8 -ErrorAction Stop)
-        foreach ($line in $lines) {
-            if ($line -match 'Initial username:\s*(\S+)') { $result.username = [string]$Matches[1] }
-            if (-not $result.password -and $line -match 'Initial password:\s*(\S+)') { $result.password = [string]$Matches[1] }
-        }
-    } catch { }
-    return $result
-}
-
-function Get-CyberButlerSnowLumaInitialCredentials {
-    param([Parameter(Mandatory = $true)][string]$InstallPath)
-    $logDir = Join-Path $InstallPath 'SnowLuma\logs'
-    $candidates = @(
-        (Join-Path $logDir 'startup-snowluma.out.log'),
-        (Join-Path $logDir 'start-snowluma-console.log')
-    )
-    $candidates += @(Get-ChildItem -LiteralPath $logDir -Filter 'snowluma-*.log' -File -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending | Select-Object -First 3 -ExpandProperty FullName)
-    $result = [pscustomobject]@{ username = 'admin'; password = ''; log = (Join-Path $logDir 'startup-snowluma.out.log') }
-    foreach ($log in $candidates) {
-        if (-not (Test-Path -LiteralPath $log)) { continue }
-        $result.log = $log
-        try {
-            foreach ($line in @(Get-Content -LiteralPath $log -Tail 500 -Encoding UTF8 -ErrorAction Stop)) {
-                if ($line -match 'initial credentials:\s*user=(?<user>\S+)\s+password=(?<pass>\S+)') {
-                    $result.username = [string]$Matches['user']
-                    $result.password = [string]$Matches['pass']
-                    return $result
-                }
-            }
-        } catch { }
-    }
-    return $result
-}
-
+<#
+.SYNOPSIS
+    Show-CyberButlerPostInstallWindow performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerPostInstallWindow {
     param(
         [Parameter(Mandatory = $true)]$Owner,
@@ -383,131 +366,76 @@ function Show-CyberButlerPostInstallWindow {
         [string]$ReportPath = (Join-Path $env:ProgramData 'CyberButler\installer-report\install-report.json'),
         [string]$GuidePath = '',
         [string]$WebUIUrl = 'http://127.0.0.1:8765/',
-        [string]$AstrBotUrl = 'http://127.0.0.1:6185/',
-        [string]$SnowLumaUrl = 'http://127.0.0.1:5099/',
         [string]$LaunchGuideText = '',
         [hashtable]$Text = @{},
         [switch]$SelfTest
     )
+    if ($SelfTest) { return $true }
     $title = if ($Text['PostTitle']) { $Text['PostTitle'] } else { 'Installation complete' }
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Installation complete" Width="760" Height="620"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-        Background="#0F172A">
+        Title="Installation complete" Width="700" Height="520"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Background="#0F172A">
   <Grid Margin="24">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <TextBlock x:Name="PostTitle" Text="Installation complete" Foreground="#F8FAFC" FontSize="26" FontWeight="SemiBold"/>
     <TextBlock x:Name="PostSubtitle" Grid.Row="1" Text="" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,10,0,0"/>
-    <TextBox x:Name="PostBody" Grid.Row="2" IsReadOnly="True" AcceptsReturn="True"
-             VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"
-             Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B"
-             Padding="12" TextWrapping="Wrap" Margin="0,14,0,0"/>
+    <TextBox x:Name="PostBody" Grid.Row="2" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" Background="#020617" Foreground="#CBD5E1" BorderBrush="#1E293B" Padding="12" TextWrapping="Wrap" Margin="0,14,0,0"/>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,14,0,0">
-      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="105" Height="36" Margin="0,0,6,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
-      <Button x:Name="OpenAstrBotButton" Content="Open AstrBot" Width="105" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenSnowLumaButton" Content="Open SnowLuma" Width="115" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenGuideButton" Content="Install guide" Width="100" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenLaunchButton" Content="Startup guide" Width="100" Height="36" Margin="0,0,6,0"/>
-      <Button x:Name="OpenReportButton" Content="Open report" Width="95" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenWebUIButton" Content="Open WebUI" Width="110" Height="36" Margin="0,0,6,0" Background="#0EA5E9" Foreground="#FFFFFF" BorderBrush="#0EA5E9"/>
+      <Button x:Name="OpenGuideButton" Content="Install guide" Width="105" Height="36" Margin="0,0,6,0"/>
+      <Button x:Name="OpenReportButton" Content="Open report" Width="100" Height="36" Margin="0,0,6,0"/>
       <Button x:Name="ClosePostButton" Content="Close" Width="70" Height="36"/>
     </StackPanel>
-    <TextBlock Grid.Row="4" Text="" Foreground="#64748B" FontSize="11" Margin="0,16,0,0" TextWrapping="Wrap"/>
   </Grid>
 </Window>
 '@
-    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
-    $dialog = [System.Windows.Markup.XamlReader]::Load($reader)
-    if ($SelfTest) { return $true }
+    $dialog = [System.Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader ([xml]$xaml)))
     $dialog.Owner = $Owner
     $dialog.FindName('PostTitle').Text = $title
-    $dialog.FindName('PostSubtitle').Text = $(if ($Text['PostSubtitle']) { $Text['PostSubtitle'] } else { 'The three services are installed. Open the WebUI and configure the bot account and model provider next.' })
-    $body = @()
-    $body += '--- Installation / 安装信息 ---'
-    $body += 'Install path: ' + $InstallPath
-    $body += 'WebUI: ' + $WebUIUrl
-    $body += 'AstrBot: ' + $AstrBotUrl
-    $body += 'SnowLuma: ' + $SnowLumaUrl
-    try {
-        $null = Invoke-WebRequest -Uri 'http://127.0.0.1:8766/health' -UseBasicParsing -TimeoutSec 3
-        $body += 'OTP Mailer (8766): ready'
-    } catch {
-        $body += 'OTP Mailer (8766): NOT ready; run Cyber-Butler OTP Mailer or check webui\data\otp_mailer.err.log'
-    }
-    try {
-        $webCfgPath = Join-Path $InstallPath 'webui\config.json'
-        if (Test-Path -LiteralPath $webCfgPath) {
-            $webCfg = Get-Content -LiteralPath $webCfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($webCfg.file_root) { $body += 'File folder: ' + [string]$webCfg.file_root }
-        }
-    } catch { }
-    $body += 'Report: ' + $ReportPath
-    if ($GuidePath) { $body += 'Guide: ' + $GuidePath }
+    $dialog.FindName('PostSubtitle').Text = 'CBS is installed. It does not bundle or manage an external agent.'
+    $body = @(
+        '--- Installation / 安装信息 ---',
+        ('Install path: ' + $InstallPath),
+        ('CBS WebUI: ' + $WebUIUrl),
+        ('Report: ' + $ReportPath)
+    )
+    if ($GuidePath) { $body += ('Guide: ' + $GuidePath) }
     $body += ''
-    $body += '--- Credentials / 凭据 ---'
-    $astrbotCreds = Get-CyberButlerAstrBotInitialCredentials -InstallPath $InstallPath
-    if ($astrbotCreds.password) {
-        $body += 'AstrBot initial username: ' + $(if ($astrbotCreds.username) { $astrbotCreds.username } else { 'astrbot' })
-        $body += 'AstrBot initial password: ' + $astrbotCreds.password
-        $body += 'Change the AstrBot password after the first login.'
-    } else {
-        $body += 'AstrBot initial password was not captured; see ' + $astrbotCreds.log + ' or reset it with:'
-        $body += '  C:\CyberButler\AstrBot\.venv\Scripts\python.exe -m astrbot.cli password'
-    }
-    $snowCreds = Get-CyberButlerSnowLumaInitialCredentials -InstallPath $InstallPath
-    $body += 'SnowLuma WebUI username: ' + $snowCreds.username
-    if ($snowCreds.password) {
-        $body += 'SnowLuma WebUI initial password: ' + $snowCreds.password
-        $body += 'Change the SnowLuma WebUI password after the first login.'
-    } else {
-        $body += 'SnowLuma WebUI initial password: see ' + $snowCreds.log
-    }
-    $oneBotTokenFile = Join-Path $InstallPath 'data\onebot-reverse-token.txt'
-    if (Test-Path -LiteralPath $oneBotTokenFile) {
-        $oneBotToken = (Get-Content -LiteralPath $oneBotTokenFile -Raw -Encoding UTF8).Trim()
-        $body += ''
-        $body += 'Reverse WebSocket Token (same value in AstrBot and SnowLuma):'
-        $body += $oneBotToken
-        $body += 'Token file: ' + $oneBotTokenFile
-    }
+    $body += '--- External agent / 外部 Agent ---'
+    $body += 'CBS is an independent control plane. Install an external agent or another agent separately, then connect it to the CBS Broker on port 18090.'
+    $body += 'CBS does not install, configure, or manage that external application.'
     $body += ''
-    $body += '--- Next steps / 下一步 ---'
-    $body += $(if ($Text['PostNext']) { $Text['PostNext'] } else { 'Next: open WebUI -> configure the bot QQ adapter -> add other model providers -> send a test message -> keep TOTP recovery codes offline.' })
-    if ($Text['PostNextDetailed']) {
-        $body += ''
-        $body += @($Text['PostNextDetailed'])
-    }
+    $body += '--- Next / 下一步 ---'
+    $body += '1. Open the CBS WebUI and complete approval/TOTP setup.'
+    $body += '2. Point your agent at http://127.0.0.1:18090 (Broker).'
+    $body += '3. Read docs/API_SPEC.md for the standard integration contract.'
     $dialog.FindName('PostBody').Text = ($body -join "`r`n")
-    $dialog.FindName('OpenWebUIButton').Content = $(if ($Text['OpenWebUI']) { $Text['OpenWebUI'] } else { 'Open WebUI' })
-    $dialog.FindName('OpenAstrBotButton').Content = $(if ($Text['OpenAstrBot']) { $Text['OpenAstrBot'] } else { 'Open AstrBot' })
-    $dialog.FindName('OpenSnowLumaButton').Content = $(if ($Text['OpenSnowLuma']) { $Text['OpenSnowLuma'] } else { 'Open SnowLuma' })
-    $dialog.FindName('OpenGuideButton').Content = $(if ($Text['OpenGuide']) { $Text['OpenGuide'] } else { 'Install guide' })
-    $dialog.FindName('OpenLaunchButton').Content = $(if ($Text['OpenLaunchGuide']) { $Text['OpenLaunchGuide'] } else { 'Startup guide' })
-    $dialog.FindName('OpenReportButton').Content = $(if ($Text['OpenReport']) { $Text['OpenReport'] } else { 'Open report' })
-    $dialog.FindName('ClosePostButton').Content = $(if ($Text['Close']) { $Text['Close'] } else { 'Close' })
-    $dialog.FindName('OpenWebUIButton').Add_Click({ try { Start-Process $WebUIUrl } catch { } })
-    $dialog.FindName('OpenAstrBotButton').Add_Click({ try { Start-Process $AstrBotUrl } catch { } })
-    $dialog.FindName('OpenSnowLumaButton').Add_Click({ try { Start-Process $SnowLumaUrl } catch { } })
-    $dialog.FindName('OpenGuideButton').Add_Click({ if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) { Start-Process $GuidePath } })
-    $dialog.FindName('OpenLaunchButton').Add_Click({ if ($LaunchGuideText) { Show-CyberButlerInfoWindow -Owner $dialog -Title $(if ($Text['LaunchGuideTitle']) { $Text['LaunchGuideTitle'] } else { 'Startup guide' }) -Text $LaunchGuideText -Copy $(if ($Text['Copy']) { $Text['Copy'] } else { 'Copy' }) -Close $(if ($Text['Close']) { $Text['Close'] } else { 'Close' }) } })
-    $dialog.FindName('OpenReportButton').Add_Click({ if (Test-Path -LiteralPath $ReportPath) { Start-Process $ReportPath } elseif (Test-Path -LiteralPath (Split-Path -Parent $ReportPath)) { Start-Process (Split-Path -Parent $ReportPath) } })
+    $dialog.FindName('OpenWebUIButton').Add_Click({ try { Start-Process $WebUIUrl } catch { Write-Verbose 'optional operation failed' } })
+    if ($GuidePath -and (Test-Path -LiteralPath $GuidePath)) {
+        $dialog.FindName('OpenGuideButton').Add_Click({ try { Start-Process $GuidePath } catch { Write-Verbose 'optional operation failed' } })
+    }
+    if ($ReportPath -and (Test-Path -LiteralPath (Split-Path -Parent $ReportPath))) {
+        $dialog.FindName('OpenReportButton').Add_Click({ try { Start-Process (Split-Path -Parent $ReportPath) } catch { Write-Verbose 'optional operation failed' } })
+    }
     $dialog.FindName('ClosePostButton').Add_Click({ $dialog.Close() })
-    [void]$dialog.ShowDialog()
+    $dialog.ShowDialog() | Out-Null
+    return $true
 }
-
+<#
+.SYNOPSIS
+    Start-CyberButlerGuiInstall performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Start-CyberButlerGuiInstall {
     param(
         [Parameter(Mandatory = $true)]$Window,
         [Parameter(Mandatory = $true)][string]$InstallerPath,
         [Parameter(Mandatory = $true)][string]$InstallPath,
         [Parameter(Mandatory = $true)][string]$Tier,
+        [string]$DesktopAccount = '',
         [string]$OwnerQQ = '',
         [string]$WebUIBind = 'Loopback',
         [string]$PersonalPluginsPath = '',
@@ -539,28 +467,37 @@ function Start-CyberButlerGuiInstall {
 '@
     Set-Content -LiteralPath $configPath -Value $configBody -Encoding UTF8
 
-    $args = @(
+    $desktopAccountValue = if (-not [string]::IsNullOrWhiteSpace($DesktopAccount)) {
+        $DesktopAccount
+    } else {
+        try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+    }
+    if ([string]::IsNullOrWhiteSpace($desktopAccountValue)) { $desktopAccountValue = [string]$env:USERNAME }
+    if ([string]::IsNullOrWhiteSpace($desktopAccountValue)) { throw 'DesktopAccount could not be resolved; refusing to launch installer.' }
+
+    $launchArgs = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $InstallerPath,
         '-Tier', $Tier, '-InstallPath', $InstallPath, '-WebUIBind', $WebUIBind,
+        '-DesktopAccount', $desktopAccountValue,
         '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir,
         '-TestConfigPath', $configPath,
         '-JournalRoot', 'C:\ProgramData\CyberButler\installer\state',
         '-ReportDirectory', (Join-Path $env:ProgramData 'CyberButler\installer-report')
     )
-    if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $args += @('-OwnerQQ', $OwnerQQ) }
-    if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $args += @('-PersonalPluginsPath', $PersonalPluginsPath) }
-    if (-not [string]::IsNullOrWhiteSpace($WebUIAdminEmail)) { $args += @('-WebUIAdminEmail', $WebUIAdminEmail) }
-    if (-not [string]::IsNullOrWhiteSpace($SmtpHost)) { $args += @('-SmtpHost', $SmtpHost) }
-    if (-not [string]::IsNullOrWhiteSpace($SmtpPort)) { $args += @('-SmtpPort', $SmtpPort) }
-    if ($Tier -eq 'High') { $args += @('-EnableIsolation', 'true') }
-    if ($Tier -eq 'Light') { $args += @('-AcceptLowerSecurity') }
+    if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $launchArgs += @('-OwnerQQ', $OwnerQQ) }
+    if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $launchArgs += @('-PersonalPluginsPath', $PersonalPluginsPath) }
+    if (-not [string]::IsNullOrWhiteSpace($WebUIAdminEmail)) { $launchArgs += @('-WebUIAdminEmail', $WebUIAdminEmail) }
+    if (-not [string]::IsNullOrWhiteSpace($SmtpHost)) { $launchArgs += @('-SmtpHost', $SmtpHost) }
+    if (-not [string]::IsNullOrWhiteSpace($SmtpPort)) { $launchArgs += @('-SmtpPort', $SmtpPort) }
+    if ($Tier -eq 'High') { $launchArgs += @('-EnableIsolation', 'true') }
+    if ($Tier -eq 'Light') { $launchArgs += @('-AcceptLowerSecurity') }
     if (-not [string]::IsNullOrWhiteSpace($ApiKeyFile)) {
-        $args += @('-ApiKeyFile', $ApiKeyFile, '-SkipSmtp')
+        $launchArgs += @('-ApiKeyFile', $ApiKeyFile, '-SkipSmtp')
     } else {
-        $args += @('-SkipSecrets')
+        $launchArgs += @('-SkipSecrets')
     }
 
-    $argumentLine = (($args | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"','\"') + '"' } else { $_ } }) -join ' ')
+    $argumentLine = (($launchArgs | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"','\"') + '"' } else { $_ } }) -join ' ')
     $script:cbGuiWindow = $Window
     $script:cbGuiOnLog = $OnLog
     $script:cbGuiOnStatus = $OnStatus
@@ -595,7 +532,7 @@ function Start-CyberButlerGuiInstall {
     $script:cbGuiTimer.add_Tick({
         if ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited) {
             $script:cbGuiTimer.Stop()
-            try { & $script:cbGuiOnStatus ($(if ($script:cbGuiProcess.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' })) } catch { }
+            try { & $script:cbGuiOnStatus ($(if ($script:cbGuiProcess.ExitCode -eq 0) { 'Installation finished.' } else { 'Installation failed; review the report.' })) } catch { Write-Verbose 'optional operation failed' }
             return
         }
         if ($script:cbGuiOnProgress -and $script:cbGuiLogPath -and (Test-Path -LiteralPath $script:cbGuiLogPath)) {
@@ -626,14 +563,14 @@ function Start-CyberButlerGuiInstall {
                     elseif ($script:cbGuiPercent -eq 100) { $message = 'Installation complete' }
                     $script:cbGuiWindow.Dispatcher.Invoke([Action]{ & $script:cbGuiOnProgress $percent $message })
                 }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
         if ($script:cbGuiTotpSeen) { return }
         $readyPath = Join-Path $script:cbGuiSignalDir 'totp-ready.json'
         if (-not (Test-Path -LiteralPath $readyPath)) { return }
         $script:cbGuiTotpSeen = $true
         $script:cbGuiTimer.Stop()
-        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { }
+        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpReady']) } catch { Write-Verbose 'optional operation failed' }
         $result = $null
         try {
             $result = Show-CyberButlerTotpDialog -ReadyPath $readyPath -Owner $script:cbGuiWindow `
@@ -643,7 +580,7 @@ function Start-CyberButlerGuiInstall {
         } catch {
             $message = 'TOTP dialog failed: ' + $_.Exception.Message
             Write-CyberButlerGuiError $message
-            try { & $script:cbGuiOnLog $message } catch { }
+            try { & $script:cbGuiOnLog $message } catch { Write-Verbose 'optional operation failed' }
             $ready = Get-Content -LiteralPath $readyPath -Raw | ConvertFrom-Json
             $fallback = "TOTP material is ready.`n`nQR: $($ready.qr_path)`nRecovery: $($ready.recovery_path)`n`nOpen both files, scan the QR, save the recovery codes, then click Yes."
             $answer = [System.Windows.MessageBox]::Show($fallback, 'TOTP enrollment', 'YesNo', 'Warning')
@@ -654,7 +591,7 @@ function Start-CyberButlerGuiInstall {
             scanned = [bool]$result.scanned
             recovery_saved = [bool]$result.recovery_saved
         } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:cbGuiSignalDir 'totp-confirm.json') -Encoding UTF8
-        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpConfirmed']) } catch { }
+        try { & $script:cbGuiOnLog ($script:cbGuiText['TotpConfirmed']) } catch { Write-Verbose 'optional operation failed' }
         $script:cbGuiTimer.Start()
     })
     $script:cbGuiTimer.Start()

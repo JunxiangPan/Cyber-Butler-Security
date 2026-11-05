@@ -11,6 +11,7 @@ from settings import Settings
 
 
 class FileAccessError(RuntimeError):
+    """FileAccessError helper/type."""
     pass
 
 
@@ -28,16 +29,41 @@ DRIVE_RE = re.compile(r"^[A-Za-z]:")
 
 
 def _is_link(path: Path) -> bool:
+    """Is link.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return path.is_symlink() or bool(getattr(os.path, "isjunction", lambda _: False)(path))
 
 
 class FileManager:
+    """FileManager helper/type."""
     def __init__(self, settings: Settings) -> None:
+        """Init.
+        
+        Args:
+            settings: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.settings = settings
         self.max_bytes = max(1, int(settings.file_max_mb)) * 1024 * 1024
         self.deny_patterns = tuple(str(item).lower() for item in settings.file_deny_patterns)
 
     def _root(self) -> Path:
+        """Root.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         raw = str(self.settings.file_root or "").strip()
         if self.settings.config_path:
             try:
@@ -58,6 +84,14 @@ class FileManager:
         return root
 
     def _resolve(self, relative: str) -> tuple[Path, Path]:
+        """Resolve.
+        
+        Args:
+            relative: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         root = self._root()
         raw = str(relative or "").strip()
         if "\x00" in raw:
@@ -83,6 +117,14 @@ class FileManager:
         return root, target
 
     def _denied_name(self, name: str) -> bool:
+        """Denied name.
+        
+        Args:
+            name: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         lower = name.lower()
         if lower.startswith("."):
             return True
@@ -91,11 +133,19 @@ class FileManager:
         return Path(name).suffix.lower() in BLOCKED_EXTENSIONS
 
     def list_dir(self, relative: str = "") -> dict:
+        """List dir.
+        
+        Args:
+            relative: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         _, target = self._resolve(relative)
         if not target.is_dir():
             raise FileAccessError("not a directory")
         rel_base = relative.replace("\\", "/").strip("/")
-        entries = []
+        entries: list[dict[str, object]] = []
         for child in target.iterdir():
             if len(entries) >= MAX_ENTRIES:
                 break
@@ -121,7 +171,7 @@ class FileManager:
                     })
             except OSError:
                 continue
-        entries.sort(key=lambda item: (not item["is_dir"], item["name"].lower()))
+        entries.sort(key=lambda item: (not bool(item["is_dir"]), str(item["name"]).lower()))
         return {
             "ok": True,
             "path": rel_base,
@@ -131,6 +181,14 @@ class FileManager:
         }
 
     def file_info(self, relative: str) -> dict:
+        """File info.
+        
+        Args:
+            relative: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         _, target = self._resolve(relative)
         if not target.is_file():
             raise FileAccessError("not a file")

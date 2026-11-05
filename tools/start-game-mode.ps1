@@ -11,7 +11,7 @@ function Write-LaunchLog([string]$message) {
     try {
         New-Item -ItemType Directory -Path $runtime -Force | Out-Null
         Add-Content -LiteralPath $log -Value $line -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Get-MonitorProcesses {

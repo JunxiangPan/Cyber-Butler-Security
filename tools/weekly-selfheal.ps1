@@ -4,7 +4,7 @@ $log = Join-Path $root 'tools\weekly-selfheal.log'
 $memoryFile = Join-Path $root 'tools\weekly-selfheal-memory.jsonl'
 $gameModeLog = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode\game-mode.log'
 $gameList = Join-Path $root 'tools\game-list.txt'
-$tempDir = Join-Path $root 'AstrBot\data\temp'
+$tempDir = Join-Path $root 'AgentRuntime\data\temp'
 
 function Log([string]$m) {
     Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m) -Encoding UTF8
@@ -15,6 +15,12 @@ function Test-Url([string]$url) {
     catch { return $false }
 }
 
+<#
+.SYNOPSIS
+    Get-MemorySnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-MemorySnapshot([string]$phase) {
     $cs = Get-CimInstance Win32_ComputerSystem
     $os = Get-CimInstance Win32_OperatingSystem
@@ -27,7 +33,7 @@ function Get-MemorySnapshot([string]$phase) {
     }
     foreach ($p in Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='node.exe' OR Name='ollama.exe' OR Name='llama-server.exe'" -ErrorAction SilentlyContinue) {
         $cmd = [string]$p.CommandLine
-        if ($cmd -match 'AstrBot.*main\.py|SnowLuma.*index\.mjs|snowluma_guard\.py|ollama|llama-server') {
+        if ($cmd -match 'AgentRuntime.*main\.py|AuxRuntime.*index\.mjs|auxruntime_guard\.py|ollama|llama-server') {
             $pids[[int]$p.ProcessId] = $true
         }
     }
@@ -55,6 +61,12 @@ function Get-MemorySnapshot([string]$phase) {
     Log ("memory snapshot " + $phase + " system=" + $snapshot.memory_percent + "% processes=" + $rows.Count)
 }
 
+<#
+.SYNOPSIS
+    Test-GameRunning performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-GameRunning {
     if (Test-Path -LiteralPath $gameModeLog) {
         $lines = @(Get-Content -LiteralPath $gameModeLog -Tail 500 -ErrorAction SilentlyContinue)
@@ -115,9 +127,15 @@ function Stop-Model {
     } catch { Log 'Ollama ps check failed' }
 }
 
+<#
+.SYNOPSIS
+    Stop-Stack performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Stop-Stack {
-    try { Stop-ScheduledTask -TaskName 'SnowLuma Startup' -ErrorAction SilentlyContinue } catch { }
-    try { Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue } catch { }
+    try { Stop-ScheduledTask -TaskName 'AuxRuntime Startup' -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
+    try { Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
     Start-Sleep -Seconds 2
     $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='node.exe' OR Name='powershell.exe'" -ErrorAction SilentlyContinue)
     foreach ($p in $procs) {
@@ -128,14 +146,14 @@ function Stop-Stack {
             try {
                 $o = Invoke-CimMethod -InputObject $p -MethodName GetOwner -ErrorAction Stop
                 $owner = "$($o.Domain)\$($o.User)"
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
             if ($owner -eq 'YOUR_HOST\YOUR_SERVICE_USER') { $kill = $true }
         }
-        if ($p.Name -eq 'python.exe' -and $cmd -match 'AstrBot.*main\.py') { $kill = $true }
-        if ($p.Name -eq 'python.exe' -and $cmd -match 'snowluma_guard\.py') { $kill = $true }
-        if ($p.Name -eq 'node.exe' -and $cmd -match 'SnowLuma.*index\.mjs') { $kill = $true }
+        if ($p.Name -eq 'python.exe' -and $cmd -match 'AgentRuntime.*main\.py') { $kill = $true }
+        if ($p.Name -eq 'python.exe' -and $cmd -match 'auxruntime_guard\.py') { $kill = $true }
+        if ($p.Name -eq 'node.exe' -and $cmd -match 'AuxRuntime.*index\.mjs') { $kill = $true }
         if ($p.Name -eq 'node.exe' -and $cmd -match 'playwright.*mcp.*cli\.js') { $kill = $true }
-        if ($p.Name -eq 'powershell.exe' -and $cmd -match 'run-astrbot-service\.ps1') { $kill = $true }
+        if ($p.Name -eq 'powershell.exe' -and $cmd -match 'run-agentruntime-service\.ps1') { $kill = $true }
         if ($kill) {
             try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop; Log ('killed ' + $p.ProcessId + ' ' + $p.Name) } catch { Log ('kill failed ' + $p.ProcessId + ': ' + $_.Exception.Message) }
         }
@@ -147,8 +165,8 @@ function Clear-Temp {
     if (-not (Test-Path -LiteralPath $tempDir)) { Log 'temp dir missing'; return }
     $files = @(Get-ChildItem -LiteralPath $tempDir -Force -ErrorAction SilentlyContinue)
     $bytes = 0
-    foreach ($f in $files) { try { $bytes += [double]$f.Length } catch { } }
-    foreach ($f in $files) { try { Remove-Item -LiteralPath $f.FullName -Recurse -Force -ErrorAction SilentlyContinue } catch { } }
+    foreach ($f in $files) { try { $bytes += [double]$f.Length } catch { Write-Verbose 'optional operation failed' } }
+    foreach ($f in $files) { try { Remove-Item -LiteralPath $f.FullName -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' } }
     Log ('temp cleaned: objects=' + $files.Count + ' bytes=' + [math]::Round($bytes / 1MB, 1) + 'MB')
 }
 
@@ -156,12 +174,12 @@ function Start-Stack {
     if ($script:OllamaReason) {
         Log ("Skipped Ollama startup (Ollama {0})" -f $script:OllamaReason)
     } else {
-        try { Start-ScheduledTask -TaskName 'Ollama Startup' -ErrorAction SilentlyContinue; Log 'started Ollama task' } catch { }
+        try { Start-ScheduledTask -TaskName 'Ollama Startup' -ErrorAction SilentlyContinue; Log 'started Ollama task' } catch { Write-Verbose 'optional operation failed' }
     }
     Start-Sleep -Seconds 3
-    try { Start-ScheduledTask -TaskName 'SnowLuma Startup' -ErrorAction SilentlyContinue; Log 'started SnowLuma task' } catch { }
+    try { Start-ScheduledTask -TaskName 'AuxRuntime Startup' -ErrorAction SilentlyContinue; Log 'started AuxRuntime task' } catch { Write-Verbose 'optional operation failed' }
     Start-Sleep -Seconds 8
-    try { Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue; Log 'started AstrBot task' } catch { }
+    try { Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue; Log 'started AgentRuntime task' } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-Stack {
@@ -176,7 +194,7 @@ function Test-Stack {
     try {
         $ps = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/ps' -TimeoutSec 5
         $model = @($ps.models | Where-Object { $_.name -eq 'sujinyan-chat-24k:latest' }).Count -gt 0
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     Log ('check api=' + $api + ' snow=' + $snow + ' ollama=' + $ollama + ' model=' + $model)
     return ($api -and $snow -and $ollama -and $model)
 }

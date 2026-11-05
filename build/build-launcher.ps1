@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 Build the native Cyber-Butler launcher.
 
@@ -15,6 +15,8 @@ $source = Join-Path $PSScriptRoot 'CyberButlerLauncher.cs'
 $manifest = Join-Path $PSScriptRoot 'app.manifest'
 $output = Join-Path $root 'tools\CyberButlerLauncher.exe'
 $rootLauncher = Join-Path $root 'START-INSTALLER.exe'
+$installerSource = Join-Path $PSScriptRoot 'StartInstaller.cs'
+$installerOutput = Join-Path $root 'START-INSTALLER.exe'
 
 $cscCandidates = @(
     (Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'),
@@ -22,13 +24,20 @@ $cscCandidates = @(
 )
 $csc = $cscCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (-not $csc) { throw 'No in-box C# compiler (csc.exe) was found.' }
+$psAssembly = Join-Path $env:WINDIR 'Microsoft.NET/assembly/GAC_MSIL/System.Management.Automation/v4.0_3.0.0.0__31bf3856ad364e35/System.Management.Automation.dll'
+if (-not (Test-Path -LiteralPath $psAssembly)) { throw 'System.Management.Automation.dll was not found.' }
 
 & $csc /nologo /target:winexe /platform:anycpu `
     ("/win32manifest:" + $manifest) `
     ("/out:" + $output) `
+    ("/reference:" + $psAssembly) `
     $source
 if ($LASTEXITCODE -ne 0) { throw "csc failed with exit code $LASTEXITCODE" }
 
-Copy-Item -LiteralPath $output -Destination $rootLauncher -Force
+$dotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+if (-not $dotnet) { throw 'dotnet SDK is required to publish the self-contained installer.' }
+& $dotnet.Source publish (Join-Path $PSScriptRoot 'StartInstaller.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o (Join-Path $PSScriptRoot 'publish')
+if ($LASTEXITCODE -ne 0) { throw "installer publish failed with exit code $LASTEXITCODE" }
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'publish\START-INSTALLER.exe') -Destination $installerOutput -Force
 Write-Output ("LAUNCHER=" + $output)
 Write-Output ("ROOT_LAUNCHER=" + $rootLauncher)

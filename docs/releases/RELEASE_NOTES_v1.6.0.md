@@ -63,20 +63,20 @@ Preflight
 .\installer\Migrate-EnableIsolation.ps1 -Rollback
 ```
 
-迁移只涉及 AstrBot 与 Web UI 的账户/任务，**SnowLuma 和 TOTP Broker 不迁移**。数据不复制；失败时只恢复任务 XML、ACL 和 secret 引用。停机窗口估算为 2–5 分钟，必须在干净 VM 上实测。
+迁移只涉及 AgentRuntime 与 Web UI 的账户/任务，**AuxRuntime 和 TOTP Broker 不迁移**。数据不复制；失败时只恢复任务 XML、ACL 和 secret 引用。停机窗口估算为 2–5 分钟，必须在干净 VM 上实测。
 
 ### 已知限制
 
-- 系统 Python 3.10-3.13 可直接使用；如果系统 Python 是 3.14+ 或不可用，安装器会自动下载 Python 3.13.17 到 `<InstallPath>\.python` 并用它创建 AstrBot venv，不再要求用户降级系统 Python。离线环境可通过 `-PythonPackage <官方 .exe>` 提供本地安装包。
+- 系统 Python 3.10-3.13 可直接使用；如果系统 Python 是 3.14+ 或不可用，安装器会自动下载 Python 3.13.17 到 `<InstallPath>\.python` 并用它创建 AgentRuntime venv，不再要求用户降级系统 Python。离线环境可通过 `-PythonPackage <官方 .exe>` 提供本地安装包。
 
-- 本次 v1.6.0 已实现核心部署的下载、SHA-256 校验、解压、venv、依赖安装与 overlay 合并；真实下载源与完整安装路径尚未在干净 Windows 11 Pro VM 上完成集成验收。`installer/core-sources.json` 已固定 AstrBot v4.29.3 官方 tag 源码包与 SnowLuma v2.2.1 官方 win-x64 发布包的 URL/SHA-256；也可通过 `-AstrBotPackage` / `-SnowLumaPackage` 使用本地包。
-- Block 3 的真实服务账户、ACL、防火墙执行路径需要 VM 验证：账户登录、AstrBot 启动、6185/18090/8765 可达性。
+- 本次 v1.6.0 已实现核心部署的下载、SHA-256 校验、解压、venv、依赖安装与 overlay 合并；真实下载源与完整安装路径尚未在干净 Windows 11 Pro VM 上完成集成验收。`installer/core-sources.json` 已固定 AgentRuntime v4.29.3 官方 tag 源码包与 AuxRuntime v2.2.1 官方 win-x64 发布包的 URL/SHA-256；也可通过 `-AgentRuntimePackage` / `-AuxRuntimePackage` 使用本地包。
+- Block 3 的真实服务账户、ACL、防火墙执行路径需要 VM 验证：账户登录、AgentRuntime 启动、6185/18090/8765 可达性。
 - TOTP/DPAPI/计划任务真实执行路径同样需要 VM 验证；当前自动化测试使用 handler 注入和 fake secret，不读取真实 DPAPI 密钥。
 - `-Repair` 当前为只读诊断模式，不自动执行安全修复。
-- CBS 开源包不含 `astrbot_plugin_private_companion`、`astrbot_plugin_livingmemory`、`astrbot_plugin_memorix` 三个个人定制插件；需要完整苏瑾言时，使用 `-PersonalPluginsPath` 指定这三个插件的源目录。
-- 从 v1.5.x 迁移到 v1.6.0 时，v1.6.0 安装到独立目录（默认 `C:\CyberButler`），不是原地升级。需要用 `-PersonalPluginsPath` 指定旧安装的个人插件源（通常是 `D:\qq苏瑾言大肥鱼\AstrBot\data\plugins`），安装器会复制三个插件的代码文件。旧安装的 `AstrBot/data/`（记忆、对话历史、数据库）不自动迁移，需要手动处理。
-- 从 v1.5.x 升级时，如果原来的插件已经在 v1.6.0 目标目录的 `AstrBot/data/plugins/` 里，可以不传 `-PersonalPluginsPath`，Core Deploy 会保留现有插件。
-- overlay 现在包含 `provider.py`、`context.py` 等核心文件的大幅修改，已接近 fork。v1.6.1 会评估 fork AstrBot 定期 merge upstream 的路线，避免每次 AstrBot 升级都出现版本不匹配。
+- CBS 开源包不含 `agentruntime_plugin_private_companion`、`agentruntime_plugin_livingmemory`、`agentruntime_plugin_memorix` 三个个人定制插件；需要完整local agent时，使用 `-PersonalPluginsPath` 指定这三个插件的源目录。
+- 从 v1.5.x 迁移到 v1.6.0 时，v1.6.0 安装到独立目录（默认 `C:\CyberButler`），不是原地升级。需要用 `-PersonalPluginsPath` 指定旧安装的个人插件源（通常是 `D:\qqlocal agentshared\AgentRuntime\data\plugins`），安装器会复制三个插件的代码文件。旧安装的 `AgentRuntime/data/`（记忆、对话历史、数据库）不自动迁移，需要手动处理。
+- 从 v1.5.x 升级时，如果原来的插件已经在 v1.6.0 目标目录的 `AgentRuntime/data/plugins/` 里，可以不传 `-PersonalPluginsPath`，Core Deploy 会保留现有插件。
+- overlay 现在包含 `provider.py`、`context.py` 等核心文件的大幅修改，已接近 fork。v1.6.1 会评估 fork AgentRuntime 定期 merge upstream 的路线，避免每次 AgentRuntime 升级都出现版本不匹配。
 - 迁移实际耗时取决于数据目录大小、任务数量和 DPAPI 文件数量；文档中的 2–5 分钟只是预估值。
 
 ---
@@ -141,23 +141,23 @@ presented as High.
 .\installer\Migrate-EnableIsolation.ps1 -Rollback
 ```
 
-The migration changes only AstrBot and Web UI identity/tasks. **SnowLuma and the
+The migration changes only AgentRuntime and Web UI identity/tasks. **AuxRuntime and the
 TOTP Broker are not migrated.** Data is never copied; rollback restores task
 XML, ACLs, and secret references only. The 2–5 minute downtime estimate must be
 measured on a clean VM.
 
 ### Known limitations
 
-- System Python 3.10-3.13 is supported directly. When the system Python is 3.14+ or unavailable, the installer downloads Python 3.13.17 into `<InstallPath>\.python` and uses it to create the AstrBot venv; users no longer need to downgrade system Python. Offline installs can use `-PythonPackage <official .exe>`.
+- System Python 3.10-3.13 is supported directly. When the system Python is 3.14+ or unavailable, the installer downloads Python 3.13.17 into `<InstallPath>\.python` and uses it to create the AgentRuntime venv; users no longer need to downgrade system Python. Offline installs can use `-PythonPackage <official .exe>`.
 
 - v1.6.0 implements the core deployment download, SHA-256 verification,
   extraction, venv, dependency install, and overlay merge. The real download
   sources and the full install path have not yet been validated on a clean
-  Windows 11 Pro VM. `installer/core-sources.json` pins the official AstrBot v4.29.3 tag source
-  archive and SnowLuma v2.2.1 win-x64 release URL/SHA-256; local packages can
-  be supplied with `-AstrBotPackage` / `-SnowLumaPackage`.
+  Windows 11 Pro VM. `installer/core-sources.json` pins the official AgentRuntime v4.29.3 tag source
+  archive and AuxRuntime v2.2.1 win-x64 release URL/SHA-256; local packages can
+  be supplied with `-AgentRuntimePackage` / `-AuxRuntimePackage`.
 - The real service-account, ACL, and firewall paths still require VM validation:
-  account logon, AstrBot startup, and 6185/18090/8765 reachability.
+  account logon, AgentRuntime startup, and 6185/18090/8765 reachability.
 - TOTP/DPAPI/scheduled-task execution also requires VM validation. Automated
   tests use handler injection and fake secrets; they do not read real DPAPI keys.
 - `-Repair` is currently read-only diagnostics; it does not execute security

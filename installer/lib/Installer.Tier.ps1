@@ -1,6 +1,12 @@
 ﻿# Tier profile loading, validation, and plan rendering.
 # Dot-source Installer.Common.ps1 before this file.
 
+<#
+.SYNOPSIS
+    Import-CyberButlerProfile performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Import-CyberButlerProfile {
     param(
         [Parameter(Mandatory = $true)]
@@ -14,16 +20,22 @@ function Import-CyberButlerProfile {
         throw "Installer profile not found: $path"
     }
 
-    $profile = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ([int]$profile.schema -ne 1) {
-        throw "Unsupported installer profile schema: $($profile.schema)"
+    $tierProfile = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([int]$tierProfile.schema -ne 1) {
+        throw "Unsupported installer profile schema: $($tierProfile.schema)"
     }
-    if ([string]$profile.tier -ne $Tier) {
-        throw "Profile tier mismatch: expected $Tier, got $($profile.tier)"
+    if ([string]$tierProfile.tier -ne $Tier) {
+        throw "Profile tier mismatch: expected $Tier, got $($tierProfile.tier)"
     }
-    return $profile
+    return $tierProfile
 }
 
+<#
+.SYNOPSIS
+    Format-CyberButlerPlan performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Format-CyberButlerPlan {
     param(
         [Parameter(Mandatory = $true)]
@@ -32,7 +44,7 @@ function Format-CyberButlerPlan {
 
     $p = $Resolution.Profile
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add('Cyber-Butler installer plan (v1.6.2)')
+    $lines.Add('Cyber-Butler installer plan (v1.6.3)')
     $lines.Add('Mode: PlanOnly - no files will be changed.')
     $lines.Add(('Tier: {0}' -f $Resolution.Tier))
     $lines.Add(('Effective: {0}' -f $Resolution.EffectiveLabel))
@@ -59,8 +71,8 @@ function Format-CyberButlerPlan {
     $lines.Add(('  Firewall: {0}' -f $p.firewall))
     $lines.Add(('  Audit: {0}' -f $p.audit))
     $lines.Add(('  Broker account: {0}' -f $p.brokerAccount))
-    $lines.Add(('  AstrBot account: {0}' -f $p.astrbotAccount))
-    $lines.Add(('  SnowLuma account: {0}' -f $p.snowLumaAccount))
+    $lines.Add(('  AgentRuntime account: {0}' -f $p.agentruntimeAccount))
+    $lines.Add(('  AuxRuntimeApplication account: {0}' -f $p.AuxRuntimeAccount))
 
     $lines.Add('')
     $lines.Add('BLOCKING approvals:')
@@ -95,6 +107,12 @@ function Format-CyberButlerPlan {
     return ($lines -join [Environment]::NewLine)
 }
 
+<#
+.SYNOPSIS
+    Resolve-CyberButlerTier performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Resolve-CyberButlerTier {
     [CmdletBinding()]
     param(
@@ -115,7 +133,7 @@ function Resolve-CyberButlerTier {
         [switch]$EnableTailscaleServe,
         [string]$OwnerQQ = '',
 
-        [int]$AstrBotPort = 6185,
+        [int]$AgentRuntimePort = 6185,
         [int]$BrokerPort = 18090,
         [int]$WebUIPort = 8765,
         [int]$OtpMailerPort = 8766
@@ -126,9 +144,9 @@ function Resolve-CyberButlerTier {
     $blocking = New-Object System.Collections.Generic.List[string]
     $manual = New-Object System.Collections.Generic.List[string]
 
-    $profile = $null
+    $tierProfile = $null
     try {
-        $profile = Import-CyberButlerProfile -Tier $Tier -ProfileRoot $ProfileRoot
+        $tierProfile = Import-CyberButlerProfile -Tier $Tier -ProfileRoot $ProfileRoot
     } catch {
         $errors.Add($_.Exception.Message)
         return [pscustomobject]@{
@@ -144,7 +162,7 @@ function Resolve-CyberButlerTier {
     $isolation = if ($null -ne $EnableIsolation) {
         [bool]$EnableIsolation
     } else {
-        [bool]$profile.enableIsolation
+        [bool]$tierProfile.enableIsolation
     }
 
     if ($Tier -eq 'High' -and -not $isolation) {
@@ -158,26 +176,26 @@ function Resolve-CyberButlerTier {
     }
 
     if ([string]::IsNullOrWhiteSpace($WebUIBind)) {
-        $WebUIBind = [string]$profile.webUIBind
+        $WebUIBind = [string]$tierProfile.webUIBind
     }
     if ($WebUIBind -notin @('Loopback', 'Tailscale', 'LAN')) {
         $errors.Add("WebUIBind must be Loopback, Tailscale, or LAN; got: $WebUIBind")
     }
-    if ($WebUIBind -eq 'LAN' -and -not [bool]$profile.allowLan) {
+    if ($WebUIBind -eq 'LAN' -and -not [bool]$tierProfile.allowLan) {
         $errors.Add("$Tier does not allow LAN binding.")
     }
     if ($WebUIBind -eq 'Tailscale' -and -not $EnableTailscaleServe) {
         $manual.Add('Enable Tailscale Serve before relying on the Web UI URL.')
     }
 
-    $ports = @($AstrBotPort, $BrokerPort, $WebUIPort, $OtpMailerPort)
+    $ports = @($AgentRuntimePort, $BrokerPort, $WebUIPort, $OtpMailerPort)
     foreach ($port in $ports) {
         if ($port -lt 1 -or $port -gt 65535) {
             $errors.Add("Port out of range: $port")
         }
     }
     if (($ports | Select-Object -Unique).Count -ne $ports.Count) {
-        $errors.Add('AstrBotPort, BrokerPort, WebUIPort and OtpMailerPort must be distinct.')
+        $errors.Add('AgentRuntimePort, BrokerPort, WebUIPort and OtpMailerPort must be distinct.')
     }
 
     $blocking.Add('APPROVE PLAN')
@@ -197,7 +215,7 @@ function Resolve-CyberButlerTier {
     }
 
     if (-not $isolation) {
-        $warnings.Add('Single-account mode: AstrBot and the desktop user share an identity; TOTP guards model actions, not account compromise.')
+        $warnings.Add('Single-account mode: AgentRuntime and the desktop user share an identity; TOTP guards model actions, not account compromise.')
     }
     if ($Tier -eq 'Light') {
         $warnings.Add('Light is an explicit lower-security profile; code ACL, TOTP egress, and daily audit are reduced.')
@@ -218,7 +236,7 @@ function Resolve-CyberButlerTier {
     }
     $manual.Add('Scan the TOTP QR code and store the recovery codes offline.')
     $manual.Add('If `where python` shows WindowsApps before real Python, disable App Execution Aliases for python.exe and python3.exe or move real Python to the front of PATH.')
-    $manual.Add('Log in to QQ / SnowLuma on the desktop account.')
+    $manual.Add('Log in to QQ / AuxRuntimeApplication on the desktop account.')
 
     $effective = if ($isolation -and $Tier -ne 'High') { "$Tier + Isolation" } else { $Tier }
     $existing = Get-CyberButlerExistingState -InstallPath $InstallPath
@@ -232,7 +250,7 @@ function Resolve-CyberButlerTier {
         Tier = $Tier
         EffectiveLabel = $effective
         Isolation = $isolation
-        Profile = $profile
+        Profile = $tierProfile
         ExistingState = $existing
         HasExistingInstall = ($existing -ne 'None')
         WebUIBind = $WebUIBind

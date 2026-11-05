@@ -9,6 +9,14 @@ from pathlib import Path
 
 
 def _sha256(path: Path) -> str:
+    """Sha256.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -17,6 +25,15 @@ def _sha256(path: Path) -> str:
 
 
 def build(requirements: Path, output: Path | None = None) -> dict:
+    """Build.
+    
+    Args:
+        requirements: caller-supplied value.
+        output: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     requirements = Path(requirements)
     lines = [
         line.rstrip()
@@ -39,6 +56,15 @@ def build(requirements: Path, output: Path | None = None) -> dict:
 
 
 def verify(requirements: Path, manifest: Path) -> tuple[bool, str]:
+    """Verify.
+    
+    Args:
+        requirements: caller-supplied value.
+        manifest: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     expected = json.loads(Path(manifest).read_text(encoding="utf-8"))
     actual = build(requirements)
     if expected.get("sha256") != actual["sha256"]:
@@ -73,6 +99,15 @@ def build_bundle(root: Path, output: Path, manifests: list[Path] | None = None) 
 
 
 def verify_bundle(root: Path, manifest_path: Path) -> tuple[bool, str]:
+    """Verify bundle.
+    
+    Args:
+        root: caller-supplied value.
+        manifest_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     root = Path(root).resolve()
     try:
         manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
@@ -95,10 +130,27 @@ def verify_bundle(root: Path, manifest_path: Path) -> tuple[bool, str]:
 
 
 def build_default_bundle(root: Path, output: Path) -> dict:
+    """Build default bundle.
+    
+    Args:
+        root: caller-supplied value.
+        output: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return build_bundle(root, output)
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     import argparse
 
     parser = argparse.ArgumentParser()

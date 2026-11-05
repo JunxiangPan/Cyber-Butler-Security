@@ -11,6 +11,14 @@ from email.message import EmailMessage
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         config = json.loads(sys.stdin.read())
     except Exception as exc:

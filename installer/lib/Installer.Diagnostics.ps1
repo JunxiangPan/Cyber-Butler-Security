@@ -33,6 +33,12 @@ function Get-CyberButlerDiagnosticDefaults {
     )
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerDiagnostics performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerDiagnostics {
     [CmdletBinding()]
     param(
@@ -44,7 +50,7 @@ function Get-CyberButlerDiagnostics {
         [string]$Root = 'C:\CyberButler',
         [string]$ServiceAccount = 'CyberButlerSvc',
         [string]$TotpReaderAccount = 'BUILTIN\Administrators',
-        [string]$AstrBotAccount = '',
+        [string]$AgentRuntimeAccount = '',
         [ValidateSet('Loopback', 'Tailscale', 'LAN')]
         [string]$WebUIBind = 'Loopback',
         $Handlers = @{}
@@ -54,7 +60,7 @@ function Get-CyberButlerDiagnostics {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'diagnostics.run') {
         $result = Invoke-CyberButlerHandler -Handlers $Handlers -Name 'diagnostics.run' -Context ([pscustomobject]@{
             Tier = $Tier; EffectiveTier = $EffectiveTier; Isolation = $Isolation
-            Root = $Root; ServiceAccount = $ServiceAccount; TotpReaderAccount = $TotpReaderAccount; AstrBotAccount = $AstrBotAccount; WebUIBind = $WebUIBind
+            Root = $Root; ServiceAccount = $ServiceAccount; TotpReaderAccount = $TotpReaderAccount; AgentRuntimeAccount = $AgentRuntimeAccount; WebUIBind = $WebUIBind
         })
         foreach ($item in @($result.items)) {
             $items.Add((New-CyberButlerDiagnosticItem -Id ([string]$item.id) -Label ([string]$item.label) -Status ([string]$item.status) -Reason ([string]$item.reason)))
@@ -75,7 +81,7 @@ function Get-CyberButlerDiagnostics {
         } else { 'MANUAL' }
         $items.Add((New-CyberButlerDiagnosticItem -Id 'totp' -Label 'TOTP 审批' -Status $totpStatus -Reason $(if ($totpStatus -eq 'ENABLED') { 'TOTP secret 存在' } elseif ($totpStatus -eq 'PARTIAL') { 'secret 存在但 ACL 无法验证' } else { '未找到 TOTP secret' })))
 
-        $routerConfig = Join-Path $rootFull 'AstrBot\data\router\settings.json'
+        $routerConfig = Join-Path $rootFull 'AgentRuntime\data\router\settings.json'
         $routerStatus = 'MANUAL'
         $routerReason = 'Router settings not found'
         if (Test-Path -LiteralPath $routerConfig) {
@@ -92,7 +98,7 @@ function Get-CyberButlerDiagnostics {
 
         $listener = $null
         if (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue) {
-            try { $listener = @(Get-NetTCPConnection -State Listen -LocalPort 8765 -ErrorAction SilentlyContinue) | Select-Object -First 1 } catch { }
+            try { $listener = @(Get-NetTCPConnection -State Listen -LocalPort 8765 -ErrorAction SilentlyContinue) | Select-Object -First 1 } catch { Write-Verbose 'optional operation failed' }
         }
         if ($null -eq $listener) {
             $webStatus = 'MANUAL'; $webReason = '8765 is not listening'
@@ -114,7 +120,7 @@ function Get-CyberButlerDiagnostics {
                     $apiStatus = 'PARTIAL'
                     $apiReason = 'ApiKey: PARTIAL (skipped by user)'
                 }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
         $items.Add((New-CyberButlerDiagnosticItem -Id 'api_key' -Label 'API Key 保护' -Status $apiStatus -Reason $apiReason))
 
@@ -122,7 +128,7 @@ function Get-CyberButlerDiagnostics {
         $vaultAclReason = 'TOTP vault missing'
         if (Test-Path -LiteralPath $vault) {
             if (Get-Command Test-CyberButlerTotpVaultAcl -ErrorAction SilentlyContinue) {
-                $aclCheck = Test-CyberButlerTotpVaultAcl -VaultPath $vault -ReaderAccount $TotpReaderAccount -AstrBotAccount $AstrBotAccount -RequireAstrBotDeny:$Isolation
+                $aclCheck = Test-CyberButlerTotpVaultAcl -VaultPath $vault -ReaderAccount $TotpReaderAccount -AgentRuntimeAccount $AgentRuntimeAccount -RequireAgentRuntimeDeny:$Isolation
                 if ($aclCheck.satisfied) { $vaultAclStatus = 'ENABLED'; $vaultAclReason = 'vault ACL is restricted' }
                 else { $vaultAclStatus = 'PARTIAL'; $vaultAclReason = $aclCheck.reason }
             } else { $vaultAclStatus = 'PARTIAL'; $vaultAclReason = 'vault exists but ACL checker is unavailable' }
@@ -140,9 +146,9 @@ function Get-CyberButlerDiagnostics {
         $fwStatus = 'MANUAL'; $fwReason = 'firewall cmdlet unavailable'
         if (Get-Command Get-NetFirewallRule -ErrorAction SilentlyContinue) {
             try {
-                $fw = @(Get-NetFirewallRule -ErrorAction Stop | Where-Object { [string]$_.DisplayName -match 'Cyber-Butler|AstrBot' })
-                if ($fw.Count -gt 0) { $fwStatus = 'ENABLED'; $fwReason = "$($fw.Count) Cyber-Butler/AstrBot firewall rules found" }
-                else { $fwStatus = 'MANUAL'; $fwReason = 'no Cyber-Butler/AstrBot firewall rules found' }
+                $fw = @(Get-NetFirewallRule -ErrorAction Stop | Where-Object { [string]$_.DisplayName -match 'Cyber-Butler|AgentRuntime' })
+                if ($fw.Count -gt 0) { $fwStatus = 'ENABLED'; $fwReason = "$($fw.Count) Cyber-Butler/AgentRuntime firewall rules found" }
+                else { $fwStatus = 'MANUAL'; $fwReason = 'no Cyber-Butler/AgentRuntime firewall rules found' }
             } catch { $fwStatus = 'FAILED'; $fwReason = 'firewall rules unreadable' }
         }
         $items.Add((New-CyberButlerDiagnosticItem -Id 'firewall' -Label '防火墙' -Status $fwStatus -Reason $fwReason))

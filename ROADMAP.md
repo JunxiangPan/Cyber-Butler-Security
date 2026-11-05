@@ -2,11 +2,76 @@
 
 > This roadmap describes intended direction, not a delivery promise. Security
 > work is gated on reproducible tests and a signed release; dates are not
-> commitments. The v1.6.1 scope is frozen.
+> commitments.
 
 Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
+
+## Current release candidate — v1.6.3 RC
+
+**Status:** v1.6.3 is a **Release Candidate**, not a final release. The current candidate is **unsigned**: FINAL_QA_REPORT is BLOCKED and ACCEPTANCE_PROOF.md and update-manifest.sig do not exist yet.
+
+- Candidate package: `public-release-v1.6.3.zip`
+- The package is **not signed** yet; no signature is claimed.
+- **Mandatory acceptance before publication:**
+  1. clean-VM, offline install with a real phone-authenticator TOTP approval;
+  2. WebUI two-stage delete undo + capacity-breaker test;
+  3. `tools/Test-TwoStageTrashACL.ps1` real ACL/SYSTEM/purge verification.
+- Do not mark the GitHub release as Latest until all three pass.
+- The current offline package still requires a system CPython 3.13. It is not
+  zero-dependency.
+
+## Cross-version upgrade and migration policy
+
+**Hard rule:** a direct overwrite from v1.6.2 to v1.7.0 is forbidden.
+
+The only supported upgrade path is:
+
+```text
+v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
+```
+
+### v1.6.2 -> v1.6.3
+
+- The v1.6.3 installer must detect a v1.6.2 installation before changing files.
+- The migration entry point is `installer/Migrate-v1.6.2-to-v1.6.3.ps1`.
+- It must create a timestamped, integrity-checked backup of the user data
+  before stopping or deleting anything.
+- It must guide the operator to remove the old AgentRuntime SCM service and reinstall
+  AgentRuntime as an independently managed application. CBS never performs that
+  third-party installation.
+- Data backup includes, when present: `AgentRuntime\data`, `AuxRuntime\config`,
+  `AuxRuntime\data`, `AuxRuntime\logs`, `tools/totp-vault`, `webui\data`,
+  `data`, Broker configuration, and audit logs.
+- The backup is not encrypted by default; it is ACL-restricted and must be
+  moved to offline media by the operator. Never place the signing private key
+  in a backup.
+
+### v1.7.0 and later
+
+- The installer must block upgrades from v1.6.2 or earlier with this message:
+
+```text
+Please upgrade to v1.6.3 first to complete the architecture decoupling,
+then upgrade to v1.7.0.
+```
+
+- A v1.7.0 installer may proceed only when the installed VERSION is at least
+  `1.6.3`.
+- The version gate is fail-closed: if the installed version cannot be read, the
+  installer stops instead of guessing.
+
+### Backup and rollback
+
+- Every cross-version upgrade must offer
+  `installer/Backup-CyberButler.ps1` and
+  `installer/Restore-CyberButler.ps1`.
+- A backup contains a manifest with SHA-256 for every payload file.
+- Restore must validate the manifest before writing, stop CBS processes first,
+  and offer a dry-run.
+- No upgrade is complete until the operator has a successful backup and a
+  tested restore path.
 
 ## v1.6.2 — WFP, anti-blind approval, and tamper evidence
 
@@ -28,8 +93,8 @@ not only by application policy.
 - **TOCTOU**: bind approval to the opened handle and re-hash that same handle
   immediately before execution; quarantine high-risk deletes.
 - **Tamper-evident audit**: hash-chain JSONL plus an anchor; strict redaction.
-- **Installer auto-provisioning**: AstrBot Open API key (`im` scope),
-  `.astrbot_token`, SnowLuma reverse-WS bootstrap, `broker_config` bootstrap,
+- **Installer auto-provisioning**: AgentRuntime Open API key (`im` scope),
+  `.agentruntime_token`, AuxRuntime reverse-WS bootstrap, `broker_config` bootstrap,
   and a self-test before success is reported.
 - **Physical separation**: installer/WebUI warn when the TOTP authenticator is
   on the same host.
@@ -66,10 +131,10 @@ adopt MXC correctly.
 **Backlog entry**
 
 ```text
-[ ] Generate MXC Policy (v1.6.2+)
-[ ] Export a user-reviewable JSON file; no silent apply
-[ ] Schema validation and round-trip tests
-[ ] Map CBS controls to MXC capabilities
+[ ] Generate MXC Policy (v1.7.0, optional backend)
+[ ] Export a user-reviewable JSON file; no silent apply (v1.7.0)
+[ ] Schema validation and round-trip tests (v1.7.0)
+[ ] Map CBS controls to MXC capabilities (v1.7.0)
 ```
 
 ## v1.6.3 — Tiered authorization, not one approval for everything
@@ -99,13 +164,13 @@ Scoped Token is a transition mechanism, not the final policy.
 - **XSS hardening**: escape file names and log lines at every render boundary.
 - **One-time recovery codes**: generate, display once, hash at rest, consume on
   use, and require a fresh TOTP to regenerate.
-- **Overlay self-heal**: detect when an AstrBot upgrade overwrites an overlay
+- **Overlay self-heal**: detect when an AgentRuntime upgrade overwrites an overlay
   patch and report/repair it without silently claiming success.
 - **Upgrade rollback**: one-click rollback plus a documented config migration
   path.
 - **Uninstall cleanup**: RunOnce removal for a locked service profile, WFP
   rules, extraction directory, and scheduled tasks.
-- **AstrBot/DSH cache alignment**: the same scoped-token cache semantics in the
+- **AgentRuntime/DSH cache alignment**: the same scoped-token cache semantics in the
   native plugin and the DSH adapter.
 
 **Exit criteria**
@@ -117,6 +182,51 @@ memory/config/vault/egress always requires fresh TOTP
 a scoped token cannot be replayed outside its directory or after restart
 ```
 
+## Two-Stage Delayed Delete (两阶段延迟删除)
+
+**Goal:** make a high-risk delete recoverable after a blind approval, without
+turning the staging area into a new data-leak path.
+
+- A TOTP-approved `delete` is moved to `tools/broker/trash_staging/<request_id>/`; it is not physically destroyed.
+- The staging entry is ACL-locked to `NT AUTHORITY\SYSTEM:(F)`; the desktop owner and `CyberButlerSvc` receive explicit deny ACEs. The Broker, not Explorer or the agent, performs restore.
+- The owner gets a 10-minute undo window. The WebUI calls a CSRF-protected backend, which calls the authenticated Broker `/trash/undo` endpoint.
+- A SYSTEM-only sweeper purges expired entries. Purge overwrites the file with random bytes for up to three passes, flushes, then unlinks it.
+- Staging capacity is capped at 500 MB or 1000 entries (configurable). A capacity breach is a fail-closed block on further deletes, with an audit event. Overwrite-based erasure is best-effort on SSDs; wear levelling and snapshots can retain physical copies.
+- The undo API is the only supported restore path. Direct access to the staging directory is not a supported user workflow.
+
+## v1.6.4 — Embedded Python runtime (planned)
+
+**Goal:** remove the last external prerequisite for the offline package.
+
+- Evaluate a signed Windows x64 CPython 3.13 embeddable runtime.
+- Resolve redistribution/license, pip/venv bootstrap, DLL loading, and SBOM
+  entries.
+- Run the Wheelhouse install, WebUI start, Broker start, and real TOTP
+  enrollment fully offline.
+- Only after that test passes may documentation use the phrase
+  **zero-dependency**.
+- Until then, every offline statement must say:
+  `Windows x64 + CPython 3.13 + bundled wheelhouse`.
+
+This is **not** part of v1.6.3 RC.
+
+## v1.7 — Temporal replay, IPC, and MXC (optional backends)
+
+**Version boundary:** v1.6.3 is a mandatory bridge release. A v1.6.2 host must
+complete `v1.6.2 -> v1.6.3` before any v1.7.0 installation. There is no direct
+v1.6.2 -> v1.7.0 path.
+
+The v1.7.0 line will add IPC and Microsoft MXC compatibility only as
+**detectable, optional backends**:
+
+- IPC and MXC are capability-detected, not assumed.
+- They are off by default; no silent enablement and no automatic policy apply.
+- Unsupported capabilities must return a typed, fail-closed result.
+- CBS must not claim kernel-level containment or non-bypassability because an
+  optional IPC/MXC backend is present.
+- The v1.6.3 approval gateway, ACL boundary, and migration contract remain the
+  supported base.
+
 ## v1.7 — Temporal replay and pipeline
 
 **Goal:** let an owner reconstruct and safely replay what an agent did without
@@ -127,7 +237,7 @@ turning the audit log into a second execution path.
 - **Deterministic pipeline replay**: replay a recorded sequence in a sandbox
   with network and filesystem writes disabled by default.
 - **Quarantine browser**: restore only with a fresh approval; never automatic.
-- **Cross-agent correlation**: correlate AstrBot, DSH, and Broker events by a
+- **Cross-agent correlation**: correlate AgentRuntime, DSH, and Broker events by a
   shared request id; keep token/TOTP material out of the timeline.
 
 **Exit criteria**
@@ -212,3 +322,15 @@ making the SDK a second security boundary
 Every major release (for example v1.6.x to v1.7.x) must complete a seven-round documentation audit before packaging. The audit covers structure, deduplication, eight-language consistency, Markdown/link checks, known limitations, GitHub-facing cleanup, and UX readability.
 
 Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED - 已废弃]` at the top. They are never deleted. The canonical status source is `docs/_data/status-v1.6.2.json`; CI runs `tests/test_docs_consistency.py` on every pull request.
+
+## v1.6.4 — Engineering debt (deferred from v1.6.3)
+
+- Split `tools/broker.py` into `broker_core.py`, `broker_policy.py`, `broker_audit.py`, and `broker_totp.py` without changing `TargetSnapshot`.
+- Raise Broker test coverage above 80% and add hash-pinned runtime dependency lock.
+- Resolve Pillow/filelock CVEs when the Python 3.10 floor is raised.
+- Fix the self-contained `START-INSTALLER.exe` C# shell: on a clean VM it exits 0 without launching the GUI; direct `powershell.exe -File installer\CyberButler.Installer.GUI.ps1` works. Investigate single-file `Environment.ProcessPath` / UAC relaunch / `Process.Start` visibility and add a VM smoke test for the C# launcher.
+- Raise Broker test coverage above 80%, especially exception paths.
+- Add `requirements-runtime.lock` with dependency hashes.
+- Upgrade CBP SHA-256 self-seal to a DPAPI key + HMAC signature.
+- Fix the C# self-contained `START-INSTALLER.exe` silent-exit launcher and add a VM smoke test.
+- Install `jinja2` in CI and restore WebUI template/API tests.

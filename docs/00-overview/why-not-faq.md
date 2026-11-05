@@ -12,9 +12,9 @@ Because the agent often owns the application layer. A compromised agent can edit
 
 A local button can be automated by the same user session. A separate device makes approval an intentional human action and provides a recovery path.
 
-### Why not run AstrBot as SYSTEM?
+### Why not run AgentRuntime as SYSTEM?
 
-SYSTEM is more privilege than AstrBot needs. A dedicated `CyberButlerSvc` plus a service boundary limits blast radius.
+SYSTEM is more privilege than AgentRuntime needs. A dedicated `CyberButlerSvc` plus a service boundary limits blast radius.
 
 ### Why keep WFP in audit mode?
 
@@ -22,4 +22,4 @@ The native WFP filter is not implemented and enforce mode has not passed pressur
 
 ### Why is 6199 missing?
 
-It is not a CBS service. It is opened by AstrBot's OneBot adapter after configuration.
+It is not a CBS service. It is opened by AgentRuntime's AgentProtocol adapter after configuration.

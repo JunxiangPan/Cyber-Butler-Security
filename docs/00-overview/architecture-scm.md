@@ -1,3 +1,5 @@
+> Historical document. S4U and Task Scheduler are legacy/deprecated; retained for migration context only.
+
 # High-tier architecture: native Windows SCM service
 
 ## Contents
@@ -14,25 +16,25 @@ On this local non-domain Windows host, Task Scheduler rejected both local-accoun
 High tier therefore uses a native Windows service:
 
 ```text
-Service: CyberButlerAstrBot
+Service: CyberButlerAgentRuntime
 Account: CyberButlerSvc
-Binary:  <InstallPath>\tools\service\CyberButlerAstrBotService.exe
-Log:     <InstallPath>\AstrBot\data\logs\service-astrbot.log
+Binary:  <InstallPath>\tools\service\CyberButlerAgentRuntimeService.exe
+Log:     <InstallPath>\AgentRuntime\data\logs\service-agentruntime.log
 ```
 
 ## Service wrapper properties
 
 - Absolute Python and working-directory paths.
-- Session 0 / GUI fail-closed environment (`ASTRBOT_SERVICE_MODE`, `ASTRBOT_DISABLE_GUI`, `QT_QPA_PLATFORM=offscreen`, `MPLBACKEND=Agg`, empty `DISPLAY`).
+- Session 0 / GUI fail-closed environment (`AgentRuntime_SERVICE_MODE`, `AgentRuntime_DISABLE_GUI`, `QT_QPA_PLATFORM=offscreen`, `MPLBACKEND=Agg`, empty `DISPLAY`).
 - stdout and stderr redirected to one log.
 - machine-readable startup lines: account, cwd, workdir, root, child PID, Job Object assignment.
 - `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`; descendants are killed when the service stops.
-- data-directory write probe before launching AstrBot.
+- data-directory write probe before launching AgentRuntime.
 
 ## Security boundary
 
 ```text
-CyberButlerAstrBotService.exe:
+CyberButlerAgentRuntimeService.exe:
   CyberButlerSvc:RX
   SYSTEM:F
   Administrators:F
@@ -43,8 +45,8 @@ CyberButlerAstrBotService.exe:
 ## Operational checks
 
 ```powershell
-Get-Service CyberButlerAstrBot
-Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" |
+Get-Service CyberButlerAgentRuntime
+Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" |
   Select-Object Name,State,StartName,ProcessId
 Get-NetTCPConnection -LocalPort 6185 -State Listen
 ```

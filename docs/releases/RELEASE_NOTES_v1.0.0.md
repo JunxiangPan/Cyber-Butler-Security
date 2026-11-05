@@ -9,7 +9,7 @@
 > [!WARNING]
 > **Unofficial QQ protocol — use a test account only.**
 >
-> This project depends on third-party, **non-official** QQ protocol clients such as SnowLuma. Such use may violate Tencent's *QQ Software License and Service Agreement* and can result in account restriction, suspension, or **permanent account bans**. The maintainers provide no guarantee against account loss, data loss, legal disputes, or financial damage.
+> This project depends on third-party, **non-official** QQ protocol clients such as AuxRuntime. Such use may violate Tencent's *QQ Software License and Service Agreement* and can result in account restriction, suspension, or **permanent account bans**. The maintainers provide no guarantee against account loss, data loss, legal disputes, or financial damage.
 >
 > This project is for **personal study, research, and local security-technical exchange only**. Commercial use, illegal profit-making, black-market activity, and malicious disruption are strictly prohibited. Use an isolated test account and a test machine; never connect a primary QQ account.
 
@@ -38,9 +38,9 @@ The release includes a dual-account isolation model, an ACL-protected TOTP vault
 
 ### 1. Dual-account isolation
 
-- AstrBot runs under a dedicated low-privilege service account (`YOUR_SERVICE_USER`).
-- The QQ/SnowLuma desktop session is separate from the AstrBot service account.
-- AstrBot has no read/delete/overwrite permission on the TOTP vault.
+- AgentRuntime runs under a dedicated low-privilege service account (`YOUR_SERVICE_USER`).
+- The QQ/AuxRuntime desktop session is separate from the AgentRuntime service account.
+- AgentRuntime has no read/delete/overwrite permission on the TOTP vault.
 - The SYSTEM Broker is the only component allowed to execute approved destructive actions.
 
 ### 2. ACL boundary
@@ -49,7 +49,7 @@ The vault is protected by an **explicit deny ACE** for the service account, not 
 
 ### 3. TOTP Broker
 
-- AstrBot calls a loopback-only HTTP Broker (`127.0.0.1:18090`) with a local broker token.
+- AgentRuntime calls a loopback-only HTTP Broker (`127.0.0.1:18090`) with a local broker token.
 - The Broker sends a one-time TOTP challenge over the configured chat transport.
 - A wrong code returns **HTTP 403** without consuming the pending request.
 - TOTP and recovery codes are single-use; a 120-second in-memory replay cache rejects repeated TOTP values.
@@ -67,7 +67,7 @@ The owner QQ account is trusted. Other senders are stopped before the model when
 
 ### 6. API-only graceful fallback
 
-`astrbot_plugin_cloud_fallback` checks the local `local_qwen36` configuration and Ollama port `11434`. If the local model is disabled or unreachable, it switches the private session to DeepSeek and logs:
+`agentruntime_plugin_cloud_fallback` checks the local `local_qwen36` configuration and Ollama port `11434`. If the local model is disabled or unreachable, it switches the private session to DeepSeek and logs:
 
 ```text
 未检测到本地模型，已自动切换为纯云端模式
@@ -80,7 +80,7 @@ Game-mode and weekly self-heal scripts skip local model unload/reload with `Skip
 This release also closes four audit findings:
 
 - **TOTP brute force:** five failed attempts clear the pending request, set a 300-second verification lockout, return HTTP 429, and write an audit entry.
-- **SYSTEM runtime injection:** `tools/broker.py` runs a startup ACL verifier and refuses to start if `tools/` or `AstrBot/.venv` is writable by a broad principal. See `tools/harden_broker_runtime.ps1` and `tools/verify_broker_acl.ps1`.
+- **SYSTEM runtime injection:** `tools/broker.py` runs a startup ACL verifier and refuses to start if `tools/` or `AgentRuntime/.venv` is writable by a broad principal. See `tools/harden_broker_runtime.ps1` and `tools/verify_broker_acl.ps1`.
 - **Case/hard-link bypass:** owner comparison is casefolded on both sides; `st_nlink > 1` forces TOTP.
 - **Security Gate fail-open:** unknown `umo` platforms are logged and blocked by default.
 
@@ -158,7 +158,7 @@ The root now exposes the security core and tests directly:
 ├── requirements-dev.txt
 ├── .github/workflows/security-tests.yml
 ├── tests/
-├── overlay/astrbot/
+├── overlay/agentruntime/
 ├── plugins/
 ├── tools/broker.py
 └── docs/
@@ -181,10 +181,10 @@ All localized READMEs contain a language switcher, the Mermaid architecture diag
 
 ## Quick Start
 
-1. Install AstrBot v4.29.x, SnowLuma, and (optionally) Ollama.
-2. Back up the target AstrBot directory.
-3. Apply the files in `overlay/astrbot/` to the matching AstrBot paths.
-4. Copy the custom plugins to AstrBot's `data/plugins/`.
+1. Install AgentRuntime v4.29.x, AuxRuntime, and (optionally) Ollama.
+2. Back up the target AgentRuntime directory.
+3. Apply the files in `overlay/agentruntime/` to the matching AgentRuntime paths.
+4. Copy the custom plugins to AgentRuntime's `data/plugins/`.
 5. Replace every `YOUR_*` placeholder.
 6. Configure Windows accounts, ACLs, the Broker token, TOTP, and scheduled tasks.
 7. Start with a test QQ account; verify ACLs and the Broker before any real use.
@@ -199,8 +199,8 @@ All localized READMEs contain a language switcher, the Mermaid architecture diag
 
 ## Legal and Compliance Notice
 
-- This repository contains overlay modifications based on AstrBot and is distributed under **AGPL-3.0**. You must comply with its source-code availability obligations; **closed-source commercial use is prohibited**.
-- This is **not** an official Tencent, QQ, AstrBot, or SnowLuma project and is not affiliated with or endorsed by them.
+- This repository contains overlay modifications based on AgentRuntime and is distributed under **AGPL-3.0**. You must comply with its source-code availability obligations; **closed-source commercial use is prohibited**.
+- This is **not** an official Tencent, QQ, AgentRuntime, or AuxRuntime project and is not affiliated with or endorsed by them.
 - The software is provided **“AS IS”**, without warranty. The developers and contributors disclaim direct, indirect, incidental, special, consequential, and joint and several liability to the maximum extent permitted by law.
 - You are solely responsible for complying with platform terms, local law, and all dependency licenses.
 

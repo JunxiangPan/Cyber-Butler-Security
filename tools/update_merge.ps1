@@ -44,7 +44,7 @@ $OverlayPath = [IO.Path]::GetFullPath($OverlayPath)
 if ($PythonPath) {
     $python = (Resolve-Path -LiteralPath $PythonPath).Path
 } else {
-    $python = Join-Path $sourceRoot 'AstrBot\.venv\Scripts\python.exe'
+    $python = Join-Path $sourceRoot 'AgentRuntime\.venv\Scripts\python.exe'
 }
 $updateCore = Join-Path $root 'tools\update_core.py'
 $mergeCore = Join-Path $sourceRoot 'tools\update_merge_core.py'
@@ -76,7 +76,7 @@ function Write-Status([string]$stage, [int]$progress, [string]$message) {
         }
         $json = $state | ConvertTo-Json -Compress
         [IO.File]::WriteAllText($StatusFile, $json, (New-Object Text.UTF8Encoding($false)))
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Write-UpdateLog([string]$message) {
@@ -85,7 +85,7 @@ function Write-UpdateLog([string]$message) {
         $line = '[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message
         Add-Content -LiteralPath $log -Value $line -Encoding UTF8
         Write-Host $line
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-Health([string]$url) {
@@ -107,12 +107,18 @@ function Wait-Health([string]$name, [string]$url, [int]$seconds = 45) {
     return $false
 }
 
+<#
+.SYNOPSIS
+    Ensure-TotpAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Ensure-TotpAcl {
-    $serviceUser = 'AstrBot_User'
+    $serviceUser = 'AgentRuntime_User'
     try {
         $overlay = Get-Content -LiteralPath $OverlayPath -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($overlay.values.YOUR_SERVICE_USER) { $serviceUser = [string]$overlay.values.YOUR_SERVICE_USER }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     foreach ($name in @('totp_secret.dpapi', 'totp_recovery.json')) {
         $path = Join-Path (Join-Path $root 'tools') $name
         if (-not (Test-Path -LiteralPath $path)) { throw ('protected TOTP file missing: ' + $path) }
@@ -163,6 +169,12 @@ function Wait-TaskReady([string]$TaskName, [int]$Seconds = 10) {
     return $false
 }
 
+<#
+.SYNOPSIS
+    Get-LatestAsset performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-LatestAsset {
     $headers = @{
         'User-Agent' = 'Cyber-Butler-Merge/1.0'
@@ -207,13 +219,19 @@ function Get-CoreDataFingerprint([string]$path) {
     return ($parts -join "`n")
 }
 
+<#
+.SYNOPSIS
+    Stop-LiveProcesses performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Stop-LiveProcesses {
     $ids = @()
     try {
         $ids += @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.CommandLine -and (
-                    $_.CommandLine -match 'AstrBot.*main\.py' -or
+                    $_.CommandLine -match 'AgentRuntime.*main\.py' -or
                     $_.CommandLine -match 'broker\.py'
                 )
             } | Select-Object -ExpandProperty ProcessId)
@@ -232,7 +250,7 @@ function Stop-LiveProcesses {
     $left = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
         Where-Object {
             $_.CommandLine -and (
-                $_.CommandLine -match 'AstrBot.*main\.py' -or
+                $_.CommandLine -match 'AgentRuntime.*main\.py' -or
                 $_.CommandLine -match 'broker\.py'
             )
         })
@@ -243,19 +261,19 @@ function Stop-LiveProcesses {
     $still = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
         Where-Object {
             $_.CommandLine -and (
-                $_.CommandLine -match 'AstrBot.*main\.py' -or
+                $_.CommandLine -match 'AgentRuntime.*main\.py' -or
                 $_.CommandLine -match 'broker\.py'
             )
         })
-    if ($still.Count -gt 0) { throw 'AstrBot/Broker python processes are still running after force stop' }
+    if ($still.Count -gt 0) { throw 'AgentRuntime/Broker python processes are still running after force stop' }
 }
 
 function Set-OverlayAcl {
-    $serviceUser = 'AstrBot_User'
+    $serviceUser = 'AgentRuntime_User'
     try {
         $overlay = Get-Content -LiteralPath $OverlayPath -Raw | ConvertFrom-Json
         if ($overlay.values.YOUR_SERVICE_USER) { $serviceUser = [string]$overlay.values.YOUR_SERVICE_USER }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     try {
         & icacls $OverlayPath /inheritance:r /grant:r "${env:USERNAME}:(F)" "SYSTEM:(F)" "*S-1-5-32-544:(F)" /deny "${serviceUser}:(F)" | Out-Null
         Write-UpdateLog ('overlay ACL restricted; denied=' + $serviceUser)
@@ -264,18 +282,24 @@ function Set-OverlayAcl {
     }
 }
 
+<#
+.SYNOPSIS
+    Get-BootstrapValues performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-BootstrapValues {
     $qq = ''
-    $gate = Join-Path $root 'AstrBot\data\config\astrbot_plugin_at_gate_config.json'
+    $gate = Join-Path $root 'AgentRuntime\data\config\agentruntime_plugin_at_gate_config.json'
     if (Test-Path -LiteralPath $gate) {
         try {
             $cfg = Get-Content -LiteralPath $gate -Raw | ConvertFrom-Json
             if ($cfg.owner_ids) { $qq = ([string]$cfg.owner_ids).Split(',')[0].Trim() }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     $broker = Join-Path $root 'tools\broker.py'
-    $serviceUser = 'AstrBot_User'
-    $shared = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹'
+    $serviceUser = 'AgentRuntime_User'
+    $shared = Join-Path $env:USERPROFILE 'Desktop\shared专用文件夹'
     $platform = 'qq_sujinyan'
     if (Test-Path -LiteralPath $broker) {
         $text = Get-Content -LiteralPath $broker -Raw
@@ -289,17 +313,17 @@ function Get-BootstrapValues {
     return [ordered]@{
         YOUR_PROJECT_PATH = $root
         YOUR_USER_PATH = $env:USERPROFILE
-        YOUR_USER_NAME = $env:USERNAME
+        TEST_USER_NAME = $env:USERNAME
         YOUR_QQ_ID = $qq
         YOUR_SERVICE_USER = $serviceUser
         YOUR_SERVICE_PATH = $env:SystemRoot
         YOUR_HOST = '127.0.0.1'
         YOUR_PLATFORM_ID = $platform
         YOUR_SHARED_FOLDER = $shared
-        YOUR_TOTP_VAULT = (Join-Path $env:USERPROFILE 'Documents\苏瑾言TOTP保险箱')
+        YOUR_TOTP_VAULT = (Join-Path $env:USERPROFILE 'Documents\local agentTOTP保险箱')
         YOUR_LOCAL_MODEL = 'sujinyan-chat-24k:latest'
-        YOUR_AGENT_NAME = '苏瑾言'
-        YOUR_NAME = '苏瑾言'
+        YOUR_AGENT_NAME = 'local agent'
+        YOUR_NAME = 'local agent'
     }
 }
 
@@ -307,9 +331,9 @@ try {
     if (-not (Test-Path -LiteralPath $python)) { throw "Python not found: $python" }
     if (-not (Test-Path -LiteralPath $updateCore)) { throw "update_core.py not found: $updateCore" }
     if (-not (Test-Path -LiteralPath $mergeCore)) { throw "update_merge_core.py not found: $mergeCore" }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot'))) { throw "TargetRoot does not contain AstrBot: $root" }
-    if (-not $isLive -and -not (Test-Path -LiteralPath (Join-Path $root 'AstrBot\data'))) {
-        throw "non-live TargetRoot must contain AstrBot/data: $root"
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'AgentRuntime'))) { throw "TargetRoot does not contain AgentRuntime: $root" }
+    if (-not $isLive -and -not (Test-Path -LiteralPath (Join-Path $root 'AgentRuntime\data'))) {
+        throw "non-live TargetRoot must contain AgentRuntime/data: $root"
     }
 
     if ($BootstrapOverlay) {
@@ -448,8 +472,8 @@ try {
     Write-UpdateLog 'runtime syntax checks passed'
     Write-Status 'syntax' 65 '代码语法检查通过'
     if ($DryRun) {
-        $dataBefore = Get-CoreDataFingerprint (Join-Path $root 'AstrBot\data')
-        $dataAfter = Get-CoreDataFingerprint (Join-Path $root 'AstrBot\data')
+        $dataBefore = Get-CoreDataFingerprint (Join-Path $root 'AgentRuntime\data')
+        $dataAfter = Get-CoreDataFingerprint (Join-Path $root 'AgentRuntime\data')
         if ($dataBefore -ne $dataAfter) { throw 'data changed during dry run' }
         Write-UpdateLog ('MERGE_DRY_RUN_OK version=' + $newVersion + ' files=' + $files.Count)
         exit 0
@@ -457,24 +481,24 @@ try {
 
     if ($isLive) {
         Write-Status 'stopping' 70 '正在停止服务并释放文件句柄...'
-        Write-UpdateLog 'Stopping AstrBot Service and TOTP Broker'
-        Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-        Stop-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
+        Write-UpdateLog 'Stopping AgentRuntime Service and TOTP Broker'
+        Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+        Stop-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 5
-        Write-UpdateLog 'Force-stopping remaining AstrBot/Broker python processes'
+        Write-UpdateLog 'Force-stopping remaining AgentRuntime/Broker python processes'
         Stop-LiveProcesses
         Start-Sleep -Seconds 5
         $remainingPorts = @(Get-NetTCPConnection -LocalPort 6185,18090 -State Listen -ErrorAction SilentlyContinue)
-        if ($remainingPorts.Count -gt 0) { throw 'AstrBot or Broker is still listening after forced stop' }
-        Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-        Stop-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
-        if (-not (Wait-TaskReady 'AstrBot Service' 45)) { throw 'AstrBot Service task is still Running' }
-        if (-not (Wait-TaskReady 'AstrBot TOTP Broker' 45)) { throw 'AstrBot TOTP Broker task is still Running' }
-        Write-UpdateLog 'AstrBot/Broker stopped, ports released, tasks Ready'
+        if ($remainingPorts.Count -gt 0) { throw 'AgentRuntime or Broker is still listening after forced stop' }
+        Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+        Stop-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
+        if (-not (Wait-TaskReady 'AgentRuntime Service' 45)) { throw 'AgentRuntime Service task is still Running' }
+        if (-not (Wait-TaskReady 'AgentRuntime TOTP Broker' 45)) { throw 'AgentRuntime TOTP Broker task is still Running' }
+        Write-UpdateLog 'AgentRuntime/Broker stopped, ports released, tasks Ready'
     }
 
     Write-Status 'data_check' 75 '正在计算核心数据库指纹...'
-    $dataBefore = Get-CoreDataFingerprint (Join-Path $root 'AstrBot\data')
+    $dataBefore = Get-CoreDataFingerprint (Join-Path $root 'AgentRuntime\data')
 
     if (-not (Test-Path -LiteralPath $backupCode)) {
         New-Item -ItemType Directory -Path $backupCode -Force | Out-Null
@@ -503,24 +527,24 @@ try {
     & $python $mergeCore refresh-baseline --target $root --overlay $OverlayPath
     if ($LASTEXITCODE -ne 0) { throw 'overlay baseline refresh failed' }
 
-    $dataAfter = Get-CoreDataFingerprint (Join-Path $root 'AstrBot\data')
+    $dataAfter = Get-CoreDataFingerprint (Join-Path $root 'AgentRuntime\data')
     if ($dataBefore -ne $dataAfter) { throw 'data fingerprint changed during update' }
     Write-UpdateLog 'data untouched verified'
     Write-Status 'data_check' 88 '数据目录未发生变化'
     Ensure-TotpAcl
     if ($isLive) {
-        Write-Status 'restarting' 92 '正在重启苏瑾言...'
-        Invoke-SchtasksService 'End' 'AstrBot TOTP Broker' | Out-Null
-        Invoke-SchtasksService 'End' 'AstrBot Service' | Out-Null
-        if (-not (Wait-TaskReady 'AstrBot TOTP Broker' 10)) { throw 'Broker task did not reach Ready' }
-        if (-not (Wait-TaskReady 'AstrBot Service' 10)) { throw 'AstrBot task did not reach Ready' }
-        Invoke-SchtasksService 'Run' 'AstrBot TOTP Broker' | Out-Null
-        Invoke-SchtasksService 'Run' 'AstrBot Service' | Out-Null
-        Write-UpdateLog 'AstrBot and Broker started via schtasks /Run; waiting up to 90s'
+        Write-Status 'restarting' 92 '正在重启local agent...'
+        Invoke-SchtasksService 'End' 'AgentRuntime TOTP Broker' | Out-Null
+        Invoke-SchtasksService 'End' 'AgentRuntime Service' | Out-Null
+        if (-not (Wait-TaskReady 'AgentRuntime TOTP Broker' 10)) { throw 'Broker task did not reach Ready' }
+        if (-not (Wait-TaskReady 'AgentRuntime Service' 10)) { throw 'AgentRuntime task did not reach Ready' }
+        Invoke-SchtasksService 'Run' 'AgentRuntime TOTP Broker' | Out-Null
+        Invoke-SchtasksService 'Run' 'AgentRuntime Service' | Out-Null
+        Write-UpdateLog 'AgentRuntime and Broker started via schtasks /Run; waiting up to 90s'
         $brokerOk = Wait-Health 'broker' 'http://127.0.0.1:18090/health' 90
-        $astrbotOk = Wait-Health 'astrbot' 'http://127.0.0.1:6185' 90
-        if (-not ($brokerOk -and $astrbotOk)) { throw 'post-update health check failed' }
-        Write-Status 'done' 100 '更新完成，苏瑾言已重启。'
+        $agentruntimeOk = Wait-Health 'agentruntime' 'http://127.0.0.1:6185' 90
+        if (-not ($brokerOk -and $agentruntimeOk)) { throw 'post-update health check failed' }
+        Write-Status 'done' 100 '更新完成，local agent已重启。'
         Write-UpdateLog ('PRODUCTION_UPDATE_OK version=' + $newVersion)
     } else {
         Write-Status 'done' 100 '沙盒更新完成。'
@@ -555,8 +579,8 @@ try {
             }
             if (Test-Path -LiteralPath $backupOverlay) { Copy-Item -LiteralPath $backupOverlay -Destination $OverlayPath -Force }
             if ($isLive) {
-                Start-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
-                Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+                Start-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
+                Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
                 Start-Sleep -Seconds 10
             }
             Write-UpdateLog 'rollback attempted'

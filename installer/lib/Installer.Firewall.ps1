@@ -1,6 +1,12 @@
 ﻿# Windows Firewall rule lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
+<#
+.SYNOPSIS
+    Get-CyberButlerFirewallState performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerFirewallState {
     param(
         [Parameter(Mandatory = $true)]
@@ -23,6 +29,12 @@ function Get-CyberButlerFirewallState {
     }
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerFirewallRule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerFirewallRule {
     param(
         [Parameter(Mandatory = $true)]
@@ -32,7 +44,7 @@ function Test-CyberButlerFirewallRule {
         [string]$Direction,
         [Parameter(Mandatory = $true)]
         [ValidateSet('Domain', 'Private', 'Public', 'Any')]
-        [string]$Profile,
+        [string]$FirewallProfile,
         [Parameter(Mandatory = $true)]
         [string]$RemoteAddress,
         [Parameter(Mandatory = $true)]
@@ -45,7 +57,7 @@ function Test-CyberButlerFirewallRule {
     )
 
     $context = [pscustomobject]@{
-        RuleName = $RuleName; Direction = $Direction; Profile = $Profile
+        RuleName = $RuleName; Direction = $Direction; Profile = $FirewallProfile
         RemoteAddress = $RemoteAddress; Port = $Port; Protocol = $Protocol; Action = $Action
     }
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'firewall.test') {
@@ -79,7 +91,7 @@ function Test-CyberButlerFirewallRule {
         ([string]$state.enabled -eq 'True') -and
         ([string]$state.direction -eq $Direction) -and
         ([string]$state.action -eq $Action) -and
-        ([string]$state.profile -eq $Profile -or [string]$state.profile -eq 'Any') -and
+        ([string]$state.profile -eq $FirewallProfile -or [string]$state.profile -eq 'Any') -and
         ($addresses -contains $RemoteAddress -or $addresses -contains 'Any') -and
         ($ports -contains [string]$Port)
     )
@@ -87,6 +99,12 @@ function Test-CyberButlerFirewallRule {
     return [pscustomobject]$result
 }
 
+<#
+.SYNOPSIS
+    Assert-CyberButlerFirewallRule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Assert-CyberButlerFirewallRule {
     param(
         [Parameter(Mandatory = $true)]
@@ -94,7 +112,7 @@ function Assert-CyberButlerFirewallRule {
         [Parameter(Mandatory = $true)]
         [string]$Direction,
         [Parameter(Mandatory = $true)]
-        [string]$Profile,
+        [string]$FirewallProfile,
         [Parameter(Mandatory = $true)]
         [string]$RemoteAddress,
         [Parameter(Mandatory = $true)]
@@ -106,15 +124,21 @@ function Assert-CyberButlerFirewallRule {
 
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'firewall.assert') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'firewall.assert' -Context ([pscustomobject]@{
-            RuleName = $RuleName; Direction = $Direction; Profile = $Profile
+            RuleName = $RuleName; Direction = $Direction; Profile = $FirewallProfile
             RemoteAddress = $RemoteAddress; Port = $Port; Protocol = $Protocol; Action = $Action
         }))
     }
-    $test = Test-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -Profile $Profile `
+    $test = Test-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -FirewallProfile $FirewallProfile `
         -RemoteAddress $RemoteAddress -Port $Port -Protocol $Protocol -Action $Action -Handlers $Handlers
     return [bool]$test.satisfied
 }
 
+<#
+.SYNOPSIS
+    Set-CyberButlerFirewallRule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerFirewallRule {
     param(
         [Parameter(Mandatory = $true)]
@@ -124,7 +148,7 @@ function Set-CyberButlerFirewallRule {
         [Parameter(Mandatory = $true)]
         [string]$Direction,
         [Parameter(Mandatory = $true)]
-        [string]$Profile,
+        [string]$FirewallProfile,
         [Parameter(Mandatory = $true)]
         [string]$RemoteAddress,
         [Parameter(Mandatory = $true)]
@@ -136,7 +160,7 @@ function Set-CyberButlerFirewallRule {
 
     $context = [pscustomobject]@{
         RuleName = $RuleName; DisplayName = $DisplayName; Direction = $Direction
-        Profile = $Profile; RemoteAddress = $RemoteAddress; Port = $Port
+        Profile = $FirewallProfile; RemoteAddress = $RemoteAddress; Port = $Port
         Protocol = $Protocol; Action = $Action
     }
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'firewall.apply') {
@@ -145,7 +169,7 @@ function Set-CyberButlerFirewallRule {
 
     $existing = Get-NetFirewallRule -Name $RuleName -ErrorAction SilentlyContinue
     if ($existing) {
-        Set-NetFirewallRule -Name $RuleName -Enabled True -Direction $Direction -Action $Action -Profile $Profile -ErrorAction Stop
+        Set-NetFirewallRule -Name $RuleName -Enabled True -Direction $Direction -Action $Action -Profile $FirewallProfile -ErrorAction Stop
         Set-NetFirewallAddressFilter -Name $RuleName -RemoteAddress $RemoteAddress -ErrorAction Stop
         Set-NetFirewallPortFilter -Name $RuleName -Protocol $Protocol -LocalPort ([string]$Port) -ErrorAction Stop
         return [pscustomobject]@{ created = $false; rule_name = $RuleName }
@@ -153,10 +177,16 @@ function Set-CyberButlerFirewallRule {
 
     New-NetFirewallRule -Name $RuleName -DisplayName $DisplayName -Direction $Direction `
         -Action $Action -Protocol $Protocol -LocalPort ([string]$Port) `
-        -RemoteAddress $RemoteAddress -Profile $Profile -Enabled True -ErrorAction Stop | Out-Null
+        -RemoteAddress $RemoteAddress -Profile $FirewallProfile -Enabled True -ErrorAction Stop | Out-Null
     return [pscustomobject]@{ created = $true; rule_name = $RuleName }
 }
 
+<#
+.SYNOPSIS
+    Undo-CyberButlerFirewallRule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Undo-CyberButlerFirewallRule {
     param(
         [Parameter(Mandatory = $true)]
@@ -193,6 +223,12 @@ function Undo-CyberButlerFirewallRule {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerFirewallRule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerFirewallRule {
     [CmdletBinding()]
     param(
@@ -202,7 +238,7 @@ function Invoke-CyberButlerFirewallRule {
         [ValidateSet('Inbound', 'Outbound')]
         [string]$Direction = 'Inbound',
         [ValidateSet('Domain', 'Private', 'Public', 'Any')]
-        [string]$Profile = 'Private',
+        [string]$FirewallProfile = 'Private',
         [string]$RemoteAddress = '127.0.0.1',
         [int]$Port = 8765,
         [ValidateSet('TCP', 'UDP')]
@@ -218,7 +254,8 @@ function Invoke-CyberButlerFirewallRule {
     )
 
     if ([string]::IsNullOrWhiteSpace($DisplayName)) { $DisplayName = $RuleName }
-    $test = Test-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -Profile $Profile `
+    try {
+    $test = Test-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -FirewallProfile $FirewallProfile `
         -RemoteAddress $RemoteAddress -Port $Port -Protocol $Protocol -Action $Action -Handlers $Handlers
     $base = [ordered]@{
         module = 'firewall'
@@ -267,7 +304,7 @@ function Invoke-CyberButlerFirewallRule {
     $created = $false
     try {
         $applied = Set-CyberButlerFirewallRule -RuleName $RuleName -DisplayName $DisplayName -Direction $Direction `
-            -Profile $Profile -RemoteAddress $RemoteAddress -Port $Port -Protocol $Protocol -Action $Action -Handlers $Handlers
+            -FirewallProfile $FirewallProfile -RemoteAddress $RemoteAddress -Port $Port -Protocol $Protocol -Action $Action -Handlers $Handlers
         $created = [bool]$applied.created
         $base.changed = $true
         if ($null -ne $Journal) {
@@ -285,7 +322,7 @@ function Invoke-CyberButlerFirewallRule {
             }
         }
 
-        $asserted = Assert-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -Profile $Profile `
+        $asserted = Assert-CyberButlerFirewallRule -RuleName $RuleName -Direction $Direction -FirewallProfile $FirewallProfile `
             -RemoteAddress $RemoteAddress -Port $Port -Protocol $Protocol -Action $Action -Handlers $Handlers
         if (-not $asserted) { throw 'Firewall rule assertion failed.' }
 
@@ -306,5 +343,15 @@ function Invoke-CyberButlerFirewallRule {
             Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $_.Exception.Message; undo = $undo.action }) | Out-Null
         }
         return [pscustomobject]$base
+    }
+    } catch {
+        $message = $_.Exception.Message
+        if ($null -ne $Journal) {
+            Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = $message; stage = 'pre-apply' }) | Out-Null
+        }
+        return [pscustomobject]@{
+            module = 'firewall'; step = $JournalStep; status = 'failed'; message = $message
+            changed = $false; test = $null; exit_code = Get-InstallerExitCode -Name ValidationFailed
+        }
     }
 }

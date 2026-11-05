@@ -44,7 +44,7 @@ function Write-Status([bool]$Ok, [string]$Message) {
             broker     = $BrokerAccount
             checked_at = (Get-Date).ToString('o')
         } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $statusPath -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 try {
@@ -109,7 +109,7 @@ try {
             Write-Host ''
             Write-Host 'Encrypted configuration written; sending test email...' -ForegroundColor Yellow
             $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-            $python = Join-Path $root 'AstrBot\.venv\Scripts\python.exe'
+            $python = Join-Path $root 'AgentRuntime\.venv\Scripts\python.exe'
             $helper = Join-Path $PSScriptRoot 'send_email_stdin.py'
             if (-not (Test-Path -LiteralPath $python)) { throw ('python not found: ' + $python) }
             if (-not (Test-Path -LiteralPath $helper)) { throw ('email test helper missing: ' + $helper) }

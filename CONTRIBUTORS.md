@@ -58,7 +58,7 @@ DSH official / AI developer. Reminded us that DSH already has some built-in revi
 
 Author of a one-click launcher. Affirmed CBS's **low-level defense value** and pointed toward future **ecosystem complementarity**.
 
-### AstrBot Community — Group 18
+### AgentRuntime Community — Group 18
 
 #### 若宸
 
@@ -68,7 +68,7 @@ Used the **halting problem** to wake us up completely. This led us to abandon **
 
 Complained that **“the Bot asked me for my sudo password.”** This convinced us to **strip AI accounts of privileges**.
 
-#### AstrBot Community Group 18
+#### AgentRuntime Community Group 18
 
 The wider group provided the forum in which these critiques and design debates took place.
 

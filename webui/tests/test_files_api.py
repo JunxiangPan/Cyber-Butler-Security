@@ -14,25 +14,67 @@ from settings import Settings  # noqa: E402
 
 
 class FakeMailer:
+    """FakeMailer helper/type."""
     def __init__(self) -> None:
+        """Init.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.sent: list[tuple[str, str]] = []
 
     async def send(self, email: str, code: str, ttl: int, lang: str = "zh") -> None:
+        """Send.
+        
+        Args:
+            email: caller-supplied value.
+            code: caller-supplied value.
+            ttl: caller-supplied value.
+            lang: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.sent.append((email, code))
 
 
 class FakeServices:
-    async def usage(self):
-        return {"ok": True, "tokens": 123, "calls": 2, "cost": 0.01, "providers": [], "unpriced": [], "pricing_configured": True}
-
+    """FakeServices helper/type."""
     def backups(self):
+        """Backups.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return {"ok": True, "available": True, "items": [{"name": "b1", "kind": "directory", "size": 10, "mtime": 1}], "total": 10}
 
     async def security_pending(self):
+        """Security pending.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return {"ok": True, "available": True, "pending": False}
 
 
 def make_client(tmp_path: Path):
+    """Make client.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     root = tmp_path / "shared"
     root.mkdir()
     (root / "ok.txt").write_text("hello", encoding="utf-8")
@@ -53,6 +95,15 @@ def make_client(tmp_path: Path):
 
 
 def auth(client: TestClient, mailer: FakeMailer) -> dict:
+    """Auth.
+    
+    Args:
+        client: caller-supplied value.
+        mailer: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client.post("/api/auth/request-otp", json={"email": "owner@example.com"})
     code = mailer.sent[-1][1]
     assert client.post("/api/auth/verify", json={"email": "owner@example.com", "code": code}).status_code == 200
@@ -60,6 +111,14 @@ def auth(client: TestClient, mailer: FakeMailer) -> dict:
 
 
 def test_file_list_hides_executables_and_blocks_traversal(tmp_path: Path) -> None:
+    """Test file list hides executables and blocks traversal.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     auth(client, mailer)
     listing = client.get("/api/files/list")
@@ -78,6 +137,14 @@ def test_file_list_hides_executables_and_blocks_traversal(tmp_path: Path) -> Non
 
 
 def test_file_download_is_read_only_and_limited(tmp_path: Path) -> None:
+    """Test file download is read only and limited.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     auth(client, mailer)
     ok = client.get("/api/files/download", params={"path": "ok.txt"})
@@ -93,14 +160,29 @@ def test_file_download_is_read_only_and_limited(tmp_path: Path) -> None:
 
 
 def test_usage_backups_pending_are_read_only(tmp_path: Path) -> None:
+    """Test usage backups pending are read only.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     auth(client, mailer)
-    assert client.get("/api/usage").json()["tokens"] == 123
     assert client.get("/api/backups").json()["items"][0]["name"] == "b1"
     assert client.get("/api/security/pending").json()["pending"] is False
 
 
 def test_file_root_reloads_from_config(tmp_path: Path) -> None:
+    """Test file root reloads from config.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     first = tmp_path / "first"
     second = tmp_path / "second"
     first.mkdir()

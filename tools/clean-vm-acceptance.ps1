@@ -30,11 +30,11 @@ if (Test-Path -LiteralPath $versionPath) {
     if ($result.version -ne $expected.version) { $result.problems += ('VERSION mismatch: ' + $result.version) }
 } else { $result.problems += 'VERSION missing' }
 
-$svc = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" -ErrorAction SilentlyContinue
+$svc = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" -ErrorAction SilentlyContinue
 if ($svc) {
     $result.service = [ordered]@{ state = $svc.State; start_name = $svc.StartName; path = $svc.PathName }
-    if ($svc.State -ne 'Running') { $result.problems += 'CyberButlerAstrBot is not Running' }
-} else { $result.problems += 'CyberButlerAstrBot service missing' }
+    if ($svc.State -ne 'Running') { $result.problems += 'CyberButlerAgentRuntime is not Running' }
+} else { $result.problems += 'CyberButlerAgentRuntime service missing' }
 
 foreach ($port in @($expected.ports)) {
     $listen = @(Get-NetTCPConnection -LocalPort ([int]$port) -State Listen -ErrorAction SilentlyContinue)
@@ -43,9 +43,9 @@ foreach ($port in @($expected.ports)) {
 }
 
 $probeCandidates = @(
-    (Join-Path (Split-Path -Parent $PSScriptRoot) 'installer\Repair-AstrBotACL.ps1'),
-    (Join-Path $InstallPath 'installer\Repair-AstrBotACL.ps1'),
-    (Join-Path $InstallPath 'tools\Repair-AstrBotACL.ps1')
+    (Join-Path (Split-Path -Parent $PSScriptRoot) 'installer\Repair-AgentRuntimeACL.ps1'),
+    (Join-Path $InstallPath 'installer\Repair-AgentRuntimeACL.ps1'),
+    (Join-Path $InstallPath 'tools\Repair-AgentRuntimeACL.ps1')
 )
 $probe = $probeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if ($probe) {
@@ -57,7 +57,7 @@ if ($probe) {
         $result.problems += 'service account ACL read probe failed'
     }
 } else {
-    $result.problems += 'Repair-AstrBotACL.ps1 missing'
+    $result.problems += 'Repair-AgentRuntimeACL.ps1 missing'
 }
 
 $wfp = Join-Path $InstallPath 'webui\data\wfp-guard-status.json'

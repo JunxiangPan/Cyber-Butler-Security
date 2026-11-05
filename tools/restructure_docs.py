@@ -9,13 +9,13 @@ status = {
     "version": "1.6.2",
     "generated_for": "v1.6.2-rc2",
     "completed": [
-        "AstrBot runs as native Windows SCM service CyberButlerAstrBot",
-        "AstrBot 6185 listening; SQLite write probe succeeded",
+        "AgentRuntime runs as native Windows SCM service CyberButlerAgentRuntime",
+        "AgentRuntime 6185 listening; SQLite write probe succeeded",
         "Job Object KILL_ON_JOB_CLOSE covers the child tree",
         "TOTP Broker 18090 listening",
         "Cyber-Butler Web UI 8765 listening",
         "OTP Mailer 8766 listening",
-        "SnowLuma 5099 listening",
+        "AuxRuntime 5099 listening",
         "WFP Guard runs as SYSTEM in audit mode; wfp-guard-status.json ok=true"
     ],
     "not_completed": [
@@ -27,19 +27,19 @@ status = {
         "Full audit-chain replacement of legacy AUDIT writes is incomplete"
     ],
     "ports": {
-        "6185": "AstrBot SCM service (CyberButlerAstrBot)",
+        "6185": "AgentRuntime SCM service (CyberButlerAgentRuntime)",
         "18090": "TOTP Broker (SYSTEM task)",
         "8765": "WebUI (desktop task)",
         "8766": "OTP Mailer (desktop task)",
-        "5099": "SnowLuma (desktop task)",
-        "6199": "Dynamic AstrBot OneBot adapter port, not a system service"
+        "5099": "AuxRuntime (desktop task)",
+        "6199": "Dynamic AgentRuntime AgentProtocol adapter port, not a system service"
     },
     "service": {
-        "name": "CyberButlerAstrBot",
+        "name": "CyberButlerAgentRuntime",
         "account": "CyberButlerSvc",
         "binary_acl": "CyberButlerSvc:RX, SYSTEM:F, Administrators:F",
         "interactive_logon": "denied",
-        "log": "AstrBot\\data\\logs\\service-astrbot.log"
+        "log": "AgentRuntime\\data\\logs\\service-agentruntime.log"
     }
 }
 (base / '_data/status-v1.6.2.json').write_text(json.dumps(status, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
@@ -74,25 +74,25 @@ On this local non-domain Windows host, Task Scheduler rejected both local-accoun
 High tier therefore uses a native Windows service:
 
 ```text
-Service: CyberButlerAstrBot
+Service: CyberButlerAgentRuntime
 Account: CyberButlerSvc
-Binary:  <InstallPath>\\tools\\service\\CyberButlerAstrBotService.exe
-Log:     <InstallPath>\\AstrBot\\data\\logs\\service-astrbot.log
+Binary:  <InstallPath>\\tools\\service\\CyberButlerAgentRuntimeService.exe
+Log:     <InstallPath>\\AgentRuntime\\data\\logs\\service-agentruntime.log
 ```
 
 ## Service wrapper properties
 
 - Absolute Python and working-directory paths.
-- Session 0 / GUI fail-closed environment (`ASTRBOT_SERVICE_MODE`, `ASTRBOT_DISABLE_GUI`, `QT_QPA_PLATFORM=offscreen`, `MPLBACKEND=Agg`, empty `DISPLAY`).
+- Session 0 / GUI fail-closed environment (`AgentRuntime_SERVICE_MODE`, `AgentRuntime_DISABLE_GUI`, `QT_QPA_PLATFORM=offscreen`, `MPLBACKEND=Agg`, empty `DISPLAY`).
 - stdout and stderr redirected to one log.
 - machine-readable startup lines: account, cwd, workdir, root, child PID, Job Object assignment.
 - `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`; descendants are killed when the service stops.
-- data-directory write probe before launching AstrBot.
+- data-directory write probe before launching AgentRuntime.
 
 ## Security boundary
 
 ```text
-CyberButlerAstrBotService.exe:
+CyberButlerAgentRuntimeService.exe:
   CyberButlerSvc:RX
   SYSTEM:F
   Administrators:F
@@ -103,8 +103,8 @@ CyberButlerAstrBotService.exe:
 ## Operational checks
 
 ```powershell
-Get-Service CyberButlerAstrBot
-Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" |
+Get-Service CyberButlerAgentRuntime
+Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" |
   Select-Object Name,State,StartName,ProcessId
 Get-NetTCPConnection -LocalPort 6185 -State Listen
 ```
@@ -119,7 +119,7 @@ files['00-overview/quickstart.md'] = """# Quick start
 6. After installation verify:
 
 ```powershell
-Get-Service CyberButlerAstrBot
+Get-Service CyberButlerAgentRuntime
 Get-NetTCPConnection -State Listen |
   Where-Object { $_.LocalPort -in 6185,18090,8765,8766,5099 }
 ```
@@ -131,11 +131,11 @@ files['00-overview/glossary.md'] = """# Glossary
 | Term | Meaning |
 |---|---|
 | CBS | Cyber-Butler Security, the control plane in this repository |
-| SCM | Windows Service Control Manager; hosts `CyberButlerAstrBot` |
-| S4U | Service-for-User Task Scheduler logon; retired for AstrBot on this host |
+| SCM | Windows Service Control Manager; hosts `CyberButlerAgentRuntime` |
+| S4U | Service-for-User Task Scheduler logon; retired for AgentRuntime on this host |
 | WFP | Windows Filtering Platform; current guard writes audit status, not a native filter |
 | Broker | Local TOTP/approval HTTP service on 18090 |
-| OneBot adapter | AstrBot platform adapter; it dynamically opens 6199 |
+| AgentProtocol adapter | AgentRuntime platform adapter; it dynamically opens 6199 |
 | Job Object | Windows kernel object used to kill the whole child tree |
 """
 files['10-security/defense-layers.md'] = """# Defense layers
@@ -143,7 +143,7 @@ files['10-security/defense-layers.md'] = """# Defense layers
 | Layer | Control | Current state |
 |---|---|---|
 | Account isolation | `CyberButlerSvc` + `SeDenyInteractiveLogonRight` | implemented |
-| Service hosting | SCM service `CyberButlerAstrBot` | implemented and host-tested |
+| Service hosting | SCM service `CyberButlerAgentRuntime` | implemented and host-tested |
 | Binary integrity | service binary ACL `Svc:RX / SYSTEM:F / Administrators:F` | implemented |
 | Process tree | Job Object `KILL_ON_JOB_CLOSE` | implemented |
 | Data split | sensitive subdirectories read-only; runtime DB root writable | implemented with host repair |
@@ -161,7 +161,7 @@ files['10-security/scm-service-hardening.md'] = """# SCM service hardening
 ## Required binary ACL
 
 ```text
-CyberButlerAstrBotService.exe
+CyberButlerAgentRuntimeService.exe
   CyberButlerSvc:RX
   SYSTEM:F
   Administrators:F
@@ -184,9 +184,9 @@ SeDenyInteractiveLogonRight
 The wrapper sets:
 
 ```text
-ASTRBOT_SERVICE_MODE=1
-ASTRBOT_ROOT=<install root>
-ASTRBOT_DISABLE_GUI=1
+AgentRuntime_SERVICE_MODE=1
+AgentRuntime_ROOT=<install root>
+AgentRuntime_DISABLE_GUI=1
 NO_GUI=1
 PYTHONUTF8=1
 PYTHONIOENCODING=utf-8
@@ -242,7 +242,7 @@ v1.6.2-rc2 has not completed a clean-VM install/upgrade/uninstall run. Host-side
 
 ## 6199 is not a service
 
-`6199` is opened dynamically by the AstrBot OneBot adapter after the adapter is configured and enabled. It is not a CBS or AstrBot system service.
+`6199` is opened dynamically by the AgentRuntime AgentProtocol adapter after the adapter is configured and enabled. It is not a CBS or AgentRuntime system service.
 
 ## Other partial controls
 
@@ -253,7 +253,7 @@ v1.6.2-rc2 has not completed a clean-VM install/upgrade/uninstall run. Host-side
 
 ## What is verified
 
-AstrBot SCM service, 6185, SQLite write probe, Job Object assignment, Broker 18090, WebUI 8765, OTP Mailer 8766, SnowLuma 5099, and WFP audit status on the current host.
+AgentRuntime SCM service, 6185, SQLite write probe, Job Object assignment, Broker 18090, WebUI 8765, OTP Mailer 8766, AuxRuntime 5099, and WFP audit status on the current host.
 """
 for rel, text in files.items():
     (base / rel).write_text(text, encoding='utf-8')
@@ -274,13 +274,13 @@ Task Scheduler returned `Access is denied` for S4U registration and `username or
 
 ## Resolution
 
-Native SCM service `CyberButlerAstrBot` running as `CyberButlerSvc`, with a locked binary ACL and SCM-managed recovery.
+Native SCM service `CyberButlerAgentRuntime` running as `CyberButlerSvc`, with a locked binary ACL and SCM-managed recovery.
 """,
 'sqlite-readonly.md': """# Incident: SQLite readonly under High isolation
 
 ## Symptom
 
-`sqlite3.OperationalError: attempt to write a readonly database` or `unable to open database file` while AstrBot started under the service account.
+`sqlite3.OperationalError: attempt to write a readonly database` or `unable to open database file` while AgentRuntime started under the service account.
 
 ## Root causes found
 
@@ -290,14 +290,14 @@ Native SCM service `CyberButlerAstrBot` running as `CyberButlerSvc`, with a lock
 
 ## Alternatives predicted and abandoned
 
-- Move the DB into a writable subdirectory: rejected because AstrBot's database path is fixed at `data\\data_v4.db`.
-- Run AstrBot as SYSTEM: rejected, loses High isolation.
+- Move the DB into a writable subdirectory: rejected because AgentRuntime's database path is fixed at `data\\data_v4.db`.
+- Run AgentRuntime as SYSTEM: rejected, loses High isolation.
 - Use Medium: works but not High.
 - Replace the DB file with a copy: rejected as unsafe without a consistent SQLite backup; the final design keeps the existing data and grants the service account write/delete on the data root.
 
 ## Resolution
 
-Data write probe in the service wrapper; SQLite write test; data ACL repair; SCM service starts AstrBot and 6185 listens.
+Data write probe in the service wrapper; SQLite write test; data ACL repair; SCM service starts AgentRuntime and 6185 listens.
 """,
 'wfp-empty-rules.md': """# Incident: WFP empty-rule Remove failure
 
@@ -337,13 +337,13 @@ Task definition and directory ACLs were changed without preserving the administr
 
 ## Resolution
 
-Stop the SCM service before replacing the binary; keep administrators/SYSTEM full control of the service directory; use a dedicated read-only service binary ACL for `CyberButlerSvc`. Task rollback preserves the AstrBot service definition on assertion failure.
+Stop the SCM service before replacing the binary; keep administrators/SYSTEM full control of the service directory; use a dedicated read-only service binary ACL for `CyberButlerSvc`. Task rollback preserves the AgentRuntime service definition on assertion failure.
 """,
 'task-rollback.md': """# Incident: task rollback deleted the diagnostic target
 
 ## Symptom
 
-After a Services assertion failure, `AstrBot Service` disappeared from Task Scheduler, so the failure could not be reproduced or inspected.
+After a Services assertion failure, `AgentRuntime Service` disappeared from Task Scheduler, so the failure could not be reproduced or inspected.
 
 ## Cause
 
@@ -357,7 +357,7 @@ The rollback unconditionally unregistered tasks created during the install.
 
 ## Resolution
 
-`Undo-CyberButlerServices` now accepts `KeepTaskDefinitions`; the Services failure path keeps `AstrBot Service` (now the SCM service definition) and only stops processes/ports.
+`Undo-CyberButlerServices` now accepts `KeepTaskDefinitions`; the Services failure path keeps `AgentRuntime Service` (now the SCM service definition) and only stops processes/ports.
 """
 }
 for name, text in incidents.items():

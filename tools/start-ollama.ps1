@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Continue'
+﻿$ErrorActionPreference = 'Continue'
 
 # The install root tools/ directory is read-only for the service account.
 # Runtime logs must never be written there; use the per-user local app data
@@ -26,7 +26,7 @@ $serveErr = Join-Path $logDir 'ollama-serve.err.log'
 function Log([string]$m) {
     try {
         Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m) -Encoding UTF8 -ErrorAction SilentlyContinue
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-Ollama {
@@ -119,7 +119,7 @@ if (-not $embedListening) {
     for ($i=0; $i -lt 15; $i++) {
         try {
             if ((Invoke-WebRequest -Uri 'http://127.0.0.1:11435/api/tags' -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200) { break }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         Start-Sleep -Seconds 1
     }
     $embedOwner = Get-EmbedOwner

@@ -108,29 +108,29 @@ Describe 'Installer journal lifecycle' {
         $base = New-JournalTestRoot
         try {
             $install = Join-Path $base 'install'
-            $astrbot = Join-Path $install 'AstrBot'
-            New-Item -ItemType Directory -Path $astrbot -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $astrbot 'main.py') -Value 'fixture' -Encoding ASCII
+            $agentruntime = Join-Path $install 'AgentRuntime'
+            New-Item -ItemType Directory -Path $agentruntime -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $agentruntime 'main.py') -Value 'fixture' -Encoding ASCII
 
             $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $install -Tier Medium
             Add-CyberButlerJournalStep -Journal $journal -Name 'core' -Status completed | Out-Null
             Add-CyberButlerReverseAction -Journal $journal -Step 'core' -Action ([pscustomobject]@{
                 type = 'delete-created-directory'
-                path = $astrbot
+                path = $agentruntime
                 allowed_root = $install
             })
             Add-CyberButlerJournalStep -Journal $journal -Name 'services' -Status failed | Out-Null
             Add-CyberButlerReverseAction -Journal $journal -Step 'services' -Action ([pscustomobject]@{
                 type = 'delete-created-scheduled-task'
-                task_name = 'AstrBot Service'
+                task_name = 'AgentRuntime Service'
             })
 
             $result = Invoke-CyberButlerRollback -Journal $journal -Handlers @{
                 'delete-created-scheduled-task' = { param($action) }
             }
             $result.status | Should Be 'rolled_back'
-            (Test-Path -LiteralPath (Join-Path $astrbot 'main.py')) | Should Be $true
-            (Test-Path -LiteralPath $astrbot) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $agentruntime 'main.py')) | Should Be $true
+            (Test-Path -LiteralPath $agentruntime) | Should Be $true
             $read = Read-CyberButlerJournal -StatePath $journal.StatePath
             ($read.State.steps | Where-Object { $_.name -eq 'core' }).status | Should Be 'completed'
             ($read.State.steps | Where-Object { $_.name -eq 'services' }).status | Should Be 'failed'

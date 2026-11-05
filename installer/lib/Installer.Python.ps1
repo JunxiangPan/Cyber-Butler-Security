@@ -20,6 +20,12 @@ function Get-CyberButlerPythonSourceConfig {
     return $config.python
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerExistingSystemPython performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerExistingSystemPython {
     $paths = New-Object System.Collections.Generic.List[string]
     if ($env:LOCALAPPDATA) {
@@ -33,19 +39,19 @@ function Get-CyberButlerExistingSystemPython {
         $paths.Add((Join-Path $root 'python.exe'))
     }
     try {
-        foreach ($profile in @(Get-ChildItem -LiteralPath 'C:\Users' -Directory -ErrorAction SilentlyContinue)) {
+        foreach ($profile in @(Get-ChildItem -LiteralPath (Join-Path $env:SystemDrive 'Users') -Directory -ErrorAction SilentlyContinue)) {
             foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
                 $paths.Add((Join-Path $profile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
             }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     foreach ($tree in @('HKCU:\Software\Python\PythonCore\3.13\InstallPath',
                         'HKLM:\Software\Python\PythonCore\3.13\InstallPath',
                         'HKLM:\Software\WOW6432Node\Python\PythonCore\3.13\InstallPath')) {
         try {
             $value = (Get-ItemProperty -LiteralPath $tree -ErrorAction Stop).'(default)'
             if ($value) { $paths.Add((Join-Path ([string]$value) 'python.exe')) }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     foreach ($path in $paths) {
         if ([string]::IsNullOrWhiteSpace([string]$path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
@@ -64,11 +70,17 @@ function Get-CyberButlerExistingSystemPython {
                     python_source = 'system'
                 }
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     return [pscustomobject]@{ found = $false }
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerBundledPython performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerBundledPython {
     param(
         [Parameter(Mandatory = $true)]
@@ -120,11 +132,17 @@ function Get-CyberButlerPythonRegistryKey {
                     $keys.Add([string]$item.PSPath)
                 }
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     return $keys.ToArray()
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerPythonBootstrap performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerPythonBootstrap {
     [CmdletBinding()]
     param(

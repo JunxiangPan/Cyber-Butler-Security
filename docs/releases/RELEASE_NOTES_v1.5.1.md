@@ -61,14 +61,14 @@ v1.5.1 补齐插件调用的 provider telemetry，将 router skeleton 保持在
 - Summary resolves its real UMO and conversation_id, but keeps provider
   resolution on the default DeepSeek path via `telemetry_umo`.
 - The end-to-end test goes through real `SummaryService`, `SummaryImporter`,
-  `AstrBotLLMClient`, `AstrBotProviderBridge` and `provider_stats`.
+  `AgentRuntimeLLMClient`, `AgentRuntimeProviderBridge` and `provider_stats`.
 - Episode segmentation has no reliable UMO source; `agent_type=plugin` is
   corrected, while episode UMO remains unknown.
 - memorix bridge 透传 `agent_type=plugin`、UMO、conversation_id 与 trace_id。
 - Summary 解析真实 UMO 与 conversation_id，但通过 `telemetry_umo` 让 provider
   解析继续走默认 DeepSeek。
 - 端到端测试使用真实 `SummaryService`、`SummaryImporter`、
-  `AstrBotLLMClient`、`AstrBotProviderBridge` 与 `provider_stats`。
+  `AgentRuntimeLLMClient`、`AgentRuntimeProviderBridge` 与 `provider_stats`。
 - episode segmentation 没有可靠 UMO 来源；已修正 `agent_type=plugin`，
   episode UMO 仍为 unknown。
 
@@ -83,9 +83,9 @@ v1.5.1 补齐插件调用的 provider telemetry，将 router skeleton 保持在
 ### apply-overlay / overlay 交付
 
 - Three fixed mappings:
-  - `overlay/astrbot/core/` -> `AstrBot/astrbot/core/`
-  - `overlay/astrbot/dashboard/` -> `AstrBot/astrbot/dashboard/`
-  - `overlay/astrbot/data/plugins/` -> `AstrBot/data/plugins/`
+  - `overlay/agentruntime/core/` -> `AgentRuntime/agentruntime/core/`
+  - `overlay/agentruntime/dashboard/` -> `AgentRuntime/agentruntime/dashboard/`
+  - `overlay/agentruntime/data/plugins/` -> `AgentRuntime/data/plugins/`
 - Per-file hashes are backed up under `backups/overlay-{timestamp}/`;
   failures restore and compare the original hashes.
 - Missing target plugins and missing manifest overlay files are skipped with a
@@ -93,9 +93,9 @@ v1.5.1 补齐插件调用的 provider telemetry，将 router skeleton 保持在
 - The fixed `update_merge.ps1` is included in the package.
 - The public-release router file is directly synced with the live router.
 - 三条固定映射：
-  - `overlay/astrbot/core/` -> `AstrBot/astrbot/core/`
-  - `overlay/astrbot/dashboard/` -> `AstrBot/astrbot/dashboard/`
-  - `overlay/astrbot/data/plugins/` -> `AstrBot/data/plugins/`
+  - `overlay/agentruntime/core/` -> `AgentRuntime/agentruntime/core/`
+  - `overlay/agentruntime/dashboard/` -> `AgentRuntime/agentruntime/dashboard/`
+  - `overlay/agentruntime/data/plugins/` -> `AgentRuntime/data/plugins/`
 - 逐文件 hash 备份到 `backups/overlay-{timestamp}/`；失败时回滚并比对
   原始 hash。
 - 目标插件不存在或 manifest 中 overlay 文件缺失时 WARN 并跳过，不创建
@@ -106,7 +106,7 @@ v1.5.1 补齐插件调用的 provider telemetry，将 router skeleton 保持在
 ## ✅ Verification / 验证
 
 ```text
-AstrBot pytest                 58 passed
+AgentRuntime pytest                 58 passed
 release pytest                 12 passed
 privacy scan                   OK
 overlay private-identifier scan clean

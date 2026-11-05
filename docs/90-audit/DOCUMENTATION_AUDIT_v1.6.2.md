@@ -63,9 +63,9 @@ docs/
 
 All eight localized README files contain:
 
-- `CyberButlerAstrBot` and the SCM service statement
+- `CyberButlerAgentRuntime` and the SCM service statement
 - `S4U` explicitly marked as retired
-- `6199` explicitly marked as a dynamic OneBot adapter port, not a service
+- `6199` explicitly marked as a dynamic AgentProtocol adapter port, not a service
 - the same status facts: 6185/18090/8765/8766/5099 verified; WFP audit-only; Light not accepted
 - a link to `docs/_data/status-v1.6.2.json`
 - a link to `docs/10-security/known-limitations.md`
@@ -98,7 +98,7 @@ README_ru.md
 - Light tier has no real-machine acceptance.
 - v1.6.2 has no clean-VM full install/uninstall acceptance.
 - Credential Proxy and full audit-chain replacement remain partial.
-- 6199 is not a system service and is absent until the AstrBot OneBot adapter is configured.
+- 6199 is not a system service and is absent until the AgentRuntime AgentProtocol adapter is configured.
 
 ## Final statement
 
@@ -122,7 +122,7 @@ The documentation audit is complete; the v1.6.2 package is rebuilt and signed af
 ## Round 7: UX and anti-footgun pass
 
 - Added a traffic-light status matrix to the root README, every language README, and `docs/00-overview/quickstart.md`.
-- Replaced the technical glossary with one-line plain-language cards for SCM, Job Object, WFP, ACL, TOTP, Broker, and OneBot.
+- Replaced the technical glossary with one-line plain-language cards for SCM, Job Object, WFP, ACL, TOTP, Broker, and AgentProtocol.
 - Put the three highest-frequency failure checks at the top of `docs/20-operations/troubleshooting.md`, with copy-paste commands.
 - Generated `## Contents` anchors for active long documents.
 - Added `docs/00-overview/why-not-faq.md` covering Docker, app-layer blocking, phone TOTP, SYSTEM, WFP audit-only, and 6199.

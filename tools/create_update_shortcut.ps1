@@ -7,7 +7,7 @@ This script never creates an update shortcut; it removes the old desktop entry.
 #>
 $ErrorActionPreference = 'Stop'
 $desktop = [Environment]::GetFolderPath('Desktop')
-$old = Join-Path $desktop '检查苏瑾言更新.lnk'
+$old = Join-Path $desktop '检查local agent更新.lnk'
 if (Test-Path -LiteralPath $old) {
     Remove-Item -LiteralPath $old -Force
     Write-Output ('REMOVED=' + $old)

@@ -26,7 +26,15 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig"}
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md", "CHANGELOG.md", "PSScriptAnalyzerSettings.psd1", "vulture_whitelist.py", "requirements-runtime.txt", "ruff.toml", "tools/update_pubkey.pem"}
+PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/", "quality/", "checks/")
+FORBIDDEN_PAYLOAD_PREFIXES = ("agentruntime/", "auxruntime/")
+
+
+def is_forbidden_payload(rel_path: str) -> bool:
+    """v1.6.3 CBS is an independent control plane; never bundle third-party runtimes."""
+    normalised = rel_path.replace("\\", "/").lstrip("/").casefold()
+    return any(normalised == prefix.rstrip("/") or normalised.startswith(prefix) for prefix in FORBIDDEN_PAYLOAD_PREFIXES)
 
 
 def load_baseline_core(path: Path):
@@ -40,11 +48,25 @@ def load_baseline_core(path: Path):
 
 
 def tracked_files() -> list[str]:
+    """Return files tracked by git, excluding the package's own manifest."""
     raw = subprocess.check_output(["git", "-C", str(ROOT), "ls-files", "-z"])
-    return [item.decode("utf-8") for item in raw.split(b"\0") if item]
+    return [item.decode("utf-8") for item in raw.split(b"\x00") if item]
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
+    import os
+    token_file = ROOT / "quality" / ".release-pipeline-token"
+    expected = os.environ.get("CBS_RELEASE_PIPELINE_TOKEN", "")
+    if not expected or not token_file.is_file() or token_file.read_text(encoding="utf-8").strip() != expected:
+        raise SystemExit("REFUSING DIRECT PACKAGING: use tools/Run-ReleasePipeline.ps1")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--baseline-core",
@@ -59,11 +81,50 @@ def main() -> int:
     if not update_core.VERSION_RE.fullmatch(version):
         raise SystemExit(f"invalid VERSION: {version!r}")
     output = ROOT.parent / f"public-release-v{version}.zip"
+    preflight = ROOT / "quality" / "preflight.py"
+    if preflight.is_file():
+        gate = subprocess.run(
+            [sys.executable, str(preflight)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if gate.returncode != 0:
+            raise SystemExit("packaging gate failed: " + gate.stdout + gate.stderr)
+        print("packaging gates OK")
+    for gate_name, gate_script in (
+        ("code comments", ROOT / "tools" / "audit_code_comments.py"),
+        ("docs consistency", ROOT / "tools" / "audit_docs_consistency.py"),
+    ):
+        if not gate_script.is_file():
+            raise SystemExit(f"packaging gate missing: {gate_name}")
+        gate = subprocess.run(
+            [sys.executable, str(gate_script)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if gate.returncode != 0:
+            raise SystemExit(gate_name + " gate failed: " + gate.stdout + gate.stderr)
+        print(gate_name + " gate OK")
+    # Rebuild the dependency SBOM from the exact manifests in this worktree.
+    sbom_tool = ROOT / "tools" / "sbom.py"
+    sbom_bundle = ROOT / "dependencies.sbom.json"
+    subprocess.run(
+        [sys.executable, str(sbom_tool), "build-bundle", "--root", str(ROOT), "--manifest", str(sbom_bundle)],
+        cwd=ROOT,
+        check=True,
+    )
+
     entries: list[tuple[str, bytes]] = []
     manifest_files: list[dict] = []
     for rel in tracked_files():
         if rel == "update-manifest.json" or rel in PACKAGE_EXCLUDE:
             continue
+        if any(rel.replace("\\", "/").startswith(prefix) for prefix in PACKAGE_EXCLUDE_PREFIXES):
+            continue
+        if is_forbidden_payload(rel):
+            raise SystemExit(f"forbidden third-party payload in CBS package: {rel}")
         path = ROOT / rel
         if not path.is_file():
             raise SystemExit(f"tracked file missing from worktree: {rel}")
@@ -77,6 +138,21 @@ def main() -> int:
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
+    proof_extra = ROOT / "ACCEPTANCE_PROOF.md"
+    if proof_extra.is_file() and not any(rel == "ACCEPTANCE_PROOF.md" for rel, _ in entries):
+        proof_data = proof_extra.read_bytes()
+        entries.append(("ACCEPTANCE_PROOF.md", proof_data))
+        if update_core.is_allowed_path("ACCEPTANCE_PROOF.md"):
+            manifest_files.append({"path": "ACCEPTANCE_PROOF.md", "size": len(proof_data), "sha256": hashlib.sha256(proof_data).hexdigest()})
+    for required in ("tools/merge_vm_acceptance.py",):
+        if not any(rel == required for rel, _ in entries):
+            required_path = ROOT / required
+            if not required_path.is_file():
+                raise SystemExit("required release file missing: " + required)
+            required_data = required_path.read_bytes()
+            entries.append((required, required_data))
+            if update_core.is_allowed_path(required):
+                manifest_files.append({"path": required, "size": len(required_data), "sha256": hashlib.sha256(required_data).hexdigest()})
     rejected_self = [
         rel
         for rel, _ in entries
@@ -109,7 +185,7 @@ def main() -> int:
 
     manifest_files.sort(key=lambda item: item["path"])
     manifest = update_core.validate_manifest(
-        {"schema": 1, "version": version, "files": manifest_files}
+        {"schema": 1, "version": version, "signature_version": "2", "files": manifest_files}
     )
     manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode(
         "utf-8"
@@ -135,6 +211,17 @@ def main() -> int:
                 raise SystemExit(f"packaged size mismatch: {entry['path']}")
             if hashlib.sha256(data).hexdigest() != entry["sha256"]:
                 raise SystemExit(f"packaged hash mismatch: {entry['path']}")
+
+    hygiene = ROOT / "tools" / "audit_text_hygiene.py"
+    if hygiene.is_file():
+        result = subprocess.run(
+            [sys.executable, str(hygiene), str(extracted)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise SystemExit("package text hygiene failed: " + result.stdout + result.stderr)
+        print("text hygiene OK")
 
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     print(f"wrote {output}")

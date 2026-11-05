@@ -18,7 +18,7 @@
 ## Why
 
 The previous shortcut pointed at `public-release\tools\`, while the updater
-modified `D:\qq苏瑾言大肥鱼`. A successful reinstall/downgrade changed the root
+modified `D:\qqlocal agentshared`. A successful reinstall/downgrade changed the root
 version label but not the interface that was actually running. The shortcut now
 starts the root launcher, so an update changes the code that opens next time.
 

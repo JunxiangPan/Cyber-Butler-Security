@@ -1,4 +1,4 @@
-﻿"""Safe, dependency-free primitives for Cyber-Butler release updates.
+"""Safe, dependency-free primitives for Cyber-Butler release updates.
 
 The updater itself is deliberately small: this module validates the update
 manifest, rejects every path that could touch user data, and applies only
@@ -45,6 +45,7 @@ ALLOWED_ROOT_FILES = {
     "TROUBLESHOOTING.md",
     "THREAT_MODEL.md",
     "ROADMAP.md",
+    "INTEGRATION.md",
     "CONTRIBUTING.md",
     "CONTRIBUTORS.md",
     "DEPLOYMENT.md",
@@ -60,10 +61,10 @@ ALLOWED_ROOT_FILES = {
     "VERSION",
 }
 DENIED_PARTS = {
-    "astrbot/data",
-    "astrbot/.venv",
-    "snowluma/config",
-    "snowluma/logs",
+    "agentruntime/data",
+    "agentruntime/.venv",
+    "auxruntime/config",
+    "auxruntime/logs",
     "backups",
     "data",
     "logs",
@@ -77,13 +78,13 @@ DENIED_PARTS = {
 SENSITIVE_BASENAMES = {
     "cmd_config.json",
     "config.json",
-    ".astrbot_token",
-    ".astrbot_ws_token",
-    ".snowluma_token",
+    ".agentruntime_token",
+    ".agentruntime_ws_token",
+    ".auxruntime_token",
     "broker_token.txt",
     "totp_secret.dpapi",
     "totp_recovery.json",
-    "snowluma_guard.json",
+    "auxruntime_guard.json",
 }
 SENSITIVE_SUFFIXES = (
     ".db",
@@ -101,6 +102,14 @@ class UpdateSafetyError(ValueError):
 
 
 def _normalise_path(value: object) -> str:
+    """Normalise path.
+    
+    Args:
+        value: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     raw = str(value or "").strip()
     if not raw or "\x00" in raw or "\\" in raw:
         raise UpdateSafetyError(f"invalid update path: {raw!r}")
@@ -129,7 +138,7 @@ def is_allowed_path(value: object) -> bool:
         return True
     if not any(lower.startswith(root) for root in ALLOWED_ROOTS):
         return False
-    if lower.startswith("overlay/astrbot/data/plugins/"):
+    if lower.startswith("overlay/agentruntime/data/plugins/"):
         # Explicit plugin overlay patches are code-only, not runtime data.
         basename = lower.rsplit("/", 1)[-1]
         return basename.endswith(".py") and not basename.startswith(".")
@@ -165,6 +174,9 @@ def validate_manifest(value: object) -> dict:
     version = str(value.get("version", "")).strip()
     if not VERSION_RE.fullmatch(version):
         raise UpdateSafetyError("manifest version is invalid")
+    signature_version = value.get("signature_version")
+    if signature_version is not None and str(signature_version) != "2":
+        raise UpdateSafetyError("unsupported manifest signature_version")
     files = value.get("files")
     if not isinstance(files, list) or not files:
         raise UpdateSafetyError("manifest files must be a non-empty list")
@@ -183,8 +195,11 @@ def validate_manifest(value: object) -> dict:
         digest = str(entry.get("sha256", "")).strip().lower()
         if not SHA256_RE.fullmatch(digest):
             raise UpdateSafetyError(f"invalid sha256 for {path}")
+        raw_size = entry.get("size")
         try:
-            size = int(entry.get("size"))
+            if not isinstance(raw_size, (int, str)):
+                raise TypeError("size must be int or str")
+            size = int(raw_size)
         except (TypeError, ValueError) as exc:
             raise UpdateSafetyError(f"invalid size for {path}") from exc
         if size < 0 or size > MAX_TOTAL_BYTES:
@@ -192,7 +207,10 @@ def validate_manifest(value: object) -> dict:
         seen.add(path)
         canonical.append({"path": path, "sha256": digest, "size": size})
     canonical.sort(key=lambda item: item["path"])
-    return {"schema": SCHEMA_VERSION, "version": version, "files": canonical}
+    result = {"schema": SCHEMA_VERSION, "version": version, "files": canonical}
+    if signature_version is not None:
+        result["signature_version"] = "2"
+    return result
 
 
 def load_manifest(path: Path) -> dict:
@@ -205,6 +223,14 @@ def load_manifest(path: Path) -> dict:
 
 
 def _is_symlink(info: zipfile.ZipInfo) -> bool:
+    """Is symlink.
+    
+    Args:
+        info: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     mode = (info.external_attr >> 16) & 0o170000
     return mode == stat.S_IFLNK
 
@@ -291,6 +317,14 @@ def apply_update(staging: Path, target: Path, manifest: dict) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Main.
+    
+    Args:
+        argv: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser(description="Cyber-Butler update safety core")
     sub = parser.add_subparsers(dest="command", required=True)
     extract = sub.add_parser("extract")

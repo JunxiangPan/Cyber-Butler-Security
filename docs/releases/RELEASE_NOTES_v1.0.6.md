@@ -23,7 +23,7 @@ Tests added:
 
 ## P1 — Event-loop and request-rate hardening
 
-- `plugins/astrbot_plugin_totp_broker/main.py` now runs blocking `requests` calls through `asyncio.to_thread`.
+- `plugins/agentruntime_plugin_totp_broker/main.py` now runs blocking `requests` calls through `asyncio.to_thread`.
 - `tools/broker.py` rate-limits `/request` to one request per second per Broker process.
 
 ## Documentation corrections
@@ -40,7 +40,7 @@ Tests added:
 
 ## Remaining reported items (not silently fixed)
 
-- Sanitization still contains deployment literals such as `qq_sujinyan`, `苏瑾言`, and `大肥鱼专用文件夹`; extend the sanitizer or replace them in a separate release.
+- Sanitization still contains deployment literals such as `qq_sujinyan`, `local agent`, and `shared专用文件夹`; extend the sanitizer or replace them in a separate release.
 - The owner-input rule still forwards any 6-digit number to `/verify`; a prefixed challenge format is a separate UX/security change.
 - Outstanding test count is now 20 because the P0 regression tests were added.
 

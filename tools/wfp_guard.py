@@ -28,42 +28,55 @@ ENFORCE_IMPLEMENTED = False
 
 
 class WfpError(RuntimeError):
+    """WfpError helper/type."""
     pass
 
 
 @dataclass(frozen=True)
 class BlockPlan:
+    """BlockPlan helper/type."""
     allowed: tuple[str, ...]
     blocked: tuple[str, ...]
 
 
 def _ipv4(value: str) -> ipaddress.IPv4Network | None:
+    """Ipv4.
+    
+    Args:
+        value: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
-        return ipaddress.ip_network(value, strict=False)
+        network = ipaddress.ip_network(value, strict=False)
     except ValueError:
         return None
+    if not isinstance(network, ipaddress.IPv4Network):
+        return None
+    return network
 
 
 def build_block_plan(policy: dict, *, resolve: bool = True) -> BlockPlan:
     """Return IPv4 allow/block sets; loopback is always permitted."""
     canonical = validate(policy)
-    allowed: list[ipaddress.IPv4Network] = [ipaddress.ip_network("127.0.0.0/8")]
+    allowed: list[ipaddress.IPv4Network] = [ipaddress.IPv4Network("127.0.0.0/8")]
     if resolve:
         for entry in resolve_domains(canonical):
             for ip in entry["ips"]:
                 network = _ipv4(str(ip))
                 if network is not None:
                     allowed.append(network)
-    allowed = list(ipaddress.collapse_addresses(allowed))
+    allowed = [item for item in ipaddress.collapse_addresses(allowed) if isinstance(item, ipaddress.IPv4Network)]
     # Compute 0.0.0.0/0 minus allowed without materialising 4 billion hosts.
-    universe = [ipaddress.ip_network("0.0.0.0/0")]
+    universe: list[ipaddress.IPv4Network] = [ipaddress.IPv4Network("0.0.0.0/0")]
     for permit in allowed:
-        next_universe = []
+        next_universe: list[ipaddress.IPv4Network] = []
         for network in universe:
             if network.subnet_of(permit):
                 continue
             if permit.subnet_of(network):
-                next_universe.extend(network.address_exclude(permit))
+                next_universe.extend(item for item in network.address_exclude(permit) if isinstance(item, ipaddress.IPv4Network))
             else:
                 next_universe.append(network)
         universe = next_universe
@@ -75,6 +88,14 @@ def build_block_plan(policy: dict, *, resolve: bool = True) -> BlockPlan:
 
 
 def _sid(account: str) -> str:
+    """Sid.
+    
+    Args:
+        account: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if os.name != "nt":
         return "S-1-5-18"
     command = [
@@ -90,11 +111,29 @@ def _sid(account: str) -> str:
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess:
+    """Run.
+    
+    Args:
+        command: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     return subprocess.run(command, capture_output=True, text=True, timeout=30, creationflags=flags)
 
 
 def build_apply_commands(policy: dict, sid: str, mode: str | None = None) -> list[str]:
+    """Build apply commands.
+    
+    Args:
+        policy: caller-supplied value.
+        sid: caller-supplied value.
+        mode: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     canonical = validate(policy)
     effective_mode = (mode or canonical["mode"]).lower()
     if effective_mode == "audit":
@@ -116,6 +155,15 @@ def build_apply_commands(policy: dict, sid: str, mode: str | None = None) -> lis
 
 
 def _rule_command(sid: str, networks: list[str]) -> str:
+    """Rule command.
+    
+    Args:
+        sid: caller-supplied value.
+        networks: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     addresses = ",".join(networks)
     name = RULE_PREFIX + "-" + str(abs(hash(addresses)))[:12]
     return (
@@ -127,6 +175,14 @@ def _rule_command(sid: str, networks: list[str]) -> str:
 
 
 def remove_policy() -> None:
+    """Remove policy.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if os.name != "nt":
         return
     # An empty pipeline makes Remove-NetFirewallRule fail even though there is
@@ -166,6 +222,15 @@ def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
 
 
 def _write_status(policy_path: Path, status: dict) -> None:
+    """Write status.
+    
+    Args:
+        policy_path: caller-supplied value.
+        status: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     target = policy_path.with_name("wfp-guard-status.json")
     tmp = target.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(status, sort_keys=True), encoding="utf-8")
@@ -173,6 +238,16 @@ def _write_status(policy_path: Path, status: dict) -> None:
 
 
 def watch(policy_path: Path, interval: int = 15, *, allow_enforce: bool = False) -> None:
+    """Watch.
+    
+    Args:
+        policy_path: caller-supplied value.
+        interval: caller-supplied value.
+        allow_enforce: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     import time
 
     last_mtime = None

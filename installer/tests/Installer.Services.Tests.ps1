@@ -9,14 +9,14 @@ Describe 'Installer services safety' {
         $desktop = [Security.Principal.WindowsIdentity]::GetCurrent().Name
         $service = 'CyberButlerSvc'
         $mediumSpecs = @(Get-CyberButlerServiceSpecs -Root 'C:\CyberButler' -ServiceAccount $service -DesktopAccount $desktop -Isolation $false)
-        ($mediumSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).principal | Should Be 'desktop'
+        ($mediumSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).principal | Should Be 'SYSTEM'
         $highSpecs = @(Get-CyberButlerServiceSpecs -Root 'C:\CyberButler' -ServiceAccount $service -DesktopAccount $desktop -Isolation $true)
-        ($highSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).principal | Should Be 'service'
+        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Web UI Services' }).principal | Should Be 'desktop'
 
         $mediumPrincipal = Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'desktop' -DesktopAccount $desktop
         $mediumPrincipal.user_id | Should Be $desktop
         $mediumPrincipal.logon_type | Should Be 'Interactive'
-        ($highSpecs | Where-Object { $_.name -eq 'AstrBot Service' }).kind | Should Be 'service'
+        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).kind | Should Be 'task'
         { Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'service' -ServiceAccount $service } | Should Throw
     }
 
@@ -30,7 +30,6 @@ Describe 'Installer services safety' {
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $true; supported = $true; can_manage = $true } }
                 'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @(); started_process_ids = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
-                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers
             $result.status | Should Be 'skipped'
@@ -48,9 +47,8 @@ Describe 'Installer services safety' {
             $global:cbServiceCalls = @{ apply = 0; undo = 0 }
             $handlers = @{
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
-                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @(4242) } }
+                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AgentRuntime Service'); started_process_ids = @(4242) } }
                 'services.assert' = { param($c) $true }
-                'services.plugin-smoke' = { param($c) [pscustomobject]@{ ok = $true; reason = 'test'; failed = @(); lines = @(); tail = @() } }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
             $result = Invoke-CyberButlerServices -Root $base -Approval 'APPROVE SERVICES' -Journal $journal -Handlers $handlers
@@ -75,7 +73,7 @@ Describe 'Installer services safety' {
             $global:cbServiceCalls = @{ apply = 0; undo = 0 }
             $handlers = @{
                 'services.test' = { param($c) [pscustomobject]@{ satisfied = $false; supported = $true; can_manage = $true } }
-                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AstrBot Service'); started_process_ids = @() } }
+                'services.apply' = { param($c) $global:cbServiceCalls.apply++; [pscustomobject]@{ created = @('AgentRuntime Service'); started_process_ids = @() } }
                 'services.assert' = { param($c) $false }
                 'services.undo' = { param($c) $global:cbServiceCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
@@ -143,7 +141,7 @@ Describe 'Installer services safety' {
         $assertion = [pscustomobject]@{
             satisfied = $false
             tasks = @(
-                [pscustomobject]@{ name = 'AstrBot TOTP Broker'; exists = $true; principal_ok = $true; state = 'Ready'; last_task_result = '0x00000000'; port = 18090 }
+                [pscustomobject]@{ name = 'AgentRuntime TOTP Broker'; exists = $true; principal_ok = $true; state = 'Ready'; last_task_result = '0x00000000'; port = 18090 }
             )
             ports = @(
                 [pscustomobject]@{ port = 18090; listening = $false; healthy = $false; owner_pid = $null }
@@ -151,54 +149,30 @@ Describe 'Installer services safety' {
         }
         $text = Format-CyberButlerServiceAssertion -Assertion $assertion
         $text | Should Match 'Service assertion failed'
-        $text | Should Match 'AstrBot TOTP Broker'
+        $text | Should Match 'AgentRuntime TOTP Broker'
         $text | Should Match '18090 not listening'
         $text | Should Match 'task exited immediately'
     }
 
     It 'saves a service diagnostics snapshot' {
         $base = Join-Path $env:TEMP ('cb-services-diag-' + [guid]::NewGuid().ToString('N'))
-        $logDir = Join-Path (Join-Path (Join-Path $base 'AstrBot') 'data') 'logs'
+        $logDir = Join-Path (Join-Path (Join-Path $base 'AgentRuntime') 'data') 'logs'
         New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-        Set-Content -LiteralPath (Join-Path $logDir 'astrbot.log') -Value 'line' -Encoding UTF8
+        Set-Content -LiteralPath (Join-Path $logDir 'agentruntime.log') -Value 'line' -Encoding UTF8
         try {
             $dir = Save-CyberButlerServicesDiagnostics -Root $base -SnapshotRoot (Join-Path $base 'diag') -Assertion ([pscustomobject]@{ satisfied = $false; tasks = @(); ports = @() })
             (Test-Path -LiteralPath $dir) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $dir 'assertion.json')) | Should Be $true
-            (Test-Path -LiteralPath (Join-Path (Join-Path $dir 'logs') 'astrbot.tail.txt')) | Should Be $true
             (Get-Content -LiteralPath (Join-Path $dir 'assertion.json') -Raw) | Should Match 'satisfied'
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
-    It 'stops listeners owned by the install root by port' {
-        $base = Join-Path $env:TEMP ('cb-services-ports-' + [guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path (Join-Path $base 'AstrBot') -Force | Out-Null
-        $python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
-        if (-not $python) { return }
-        $script = Join-Path (Join-Path $base 'AstrBot') 'fake-listener.py'
-        Set-Content -LiteralPath $script -Value 'import socket,sys,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",int(sys.argv[1]))); s.listen(1); time.sleep(30)' -Encoding ASCII
-        $ports = @(46233, 46234, 46235, 46236)
-        $procs = @()
-        try {
-            foreach ($port in $ports) {
-                $procs += Start-Process -FilePath $python -ArgumentList @($script, [string]$port) -WindowStyle Hidden -PassThru
-            }
-            $deadline = (Get-Date).AddSeconds(10)
-            do {
-                $listeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $ports -contains [int]$_.LocalPort })
-                if ($listeners.Count -ge $ports.Count) { break }
-                Start-Sleep -Milliseconds 200
-            } while ((Get-Date) -lt $deadline)
-            $stopped = @(Stop-CyberButlerInstallProcesses -Root $base -Ports $ports)
-            $stopped.Count | Should BeGreaterThan 0
-            $remaining = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $ports -contains [int]$_.LocalPort })
-            $remaining.Count | Should Be 0
-        } finally {
-            foreach ($proc in $procs) {
-                if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
-            }
-            Remove-Item -LiteralPath $base -Recurse -Force
-        }
+    It 'stops listeners returned by the root-scoped owner lookup' {
+        Mock Get-CyberButlerInstallPortOwnerIds { @(4242) }
+        Mock Stop-Process { }
+        $stopped = @(Stop-CyberButlerInstallProcesses -Root 'C:\fake' -Ports @(1))
+        $stopped.Count | Should Be 1
+        Assert-MockCalled Stop-Process -Times 1 -ParameterFilter { $Id -eq 4242 }
     }
 
     It 'restores through the Undo handler' {

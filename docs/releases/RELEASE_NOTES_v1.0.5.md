@@ -4,20 +4,20 @@
 
 ## Cleanup
 
-- Removed unused `time` import from `overlay/astrbot/core/tools/message_tools.py`.
+- Removed unused `time` import from `overlay/agentruntime/core/tools/message_tools.py`.
 - Removed the unreferenced `_totp_session_key()` helper.
-- Removed the redundant local `import asyncio` in `plugins/astrbot_plugin_security_gate/main.py`.
+- Removed the redundant local `import asyncio` in `plugins/agentruntime_plugin_security_gate/main.py`.
 - Kept all 17 tests; no test cases were removed.
 - Preserved the 14 UTF-8 BOM PowerShell scripts.
 
 ## Broken deployment link fixed
 
-`tools/install_startup_tasks.ps1` previously registered `SnowLuma Startup` with a missing legacy batch launcher.
+`tools/install_startup_tasks.ps1` previously registered `AuxRuntime Startup` with a missing legacy batch launcher.
 
 It now launches the existing:
 
 ```text
-tools/start-snowluma.ps1
+tools/start-auxruntime.ps1
 ```
 
 using `powershell.exe -File`.
@@ -26,10 +26,10 @@ using `powershell.exe -File`.
 
 `docs/使用说明.md` now describes the current scheduled-task architecture:
 
-- `SnowLuma Startup` → `tools/start-snowluma.ps1`
+- `AuxRuntime Startup` → `tools/start-auxruntime.ps1`
 - `Ollama Startup` → `tools/start-ollama.ps1`
 - `Game Mode Startup` → `tools/game-mode.ps1`
-- `AstrBot Service` → AstrBot service task
+- `AgentRuntime Service` → AgentRuntime service task
 
 All legacy batch-launcher references were removed from operational files.
 
@@ -39,7 +39,7 @@ The multilingual Agent-Ready Deployment sections from v1.0.4 are included.
 
 ```text
 17 passed
-AstrBot 6185 = 200
+AgentRuntime 6185 = 200
 Broker 18090 = 200
 ```
 

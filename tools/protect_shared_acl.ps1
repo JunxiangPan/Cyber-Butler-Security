@@ -1,6 +1,6 @@
 ﻿#Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
-$shared = 'YOUR_USER_PATH\Desktop\大肥鱼专用文件夹'
+$shared = 'YOUR_USER_PATH\Desktop\shared专用文件夹'
 $log = 'YOUR_PROJECT_PATH\tools\protect_shared_acl.log'
 $backup = 'YOUR_PROJECT_PATH\tools\shared-acl-before-totp.clixml'
 Set-Content -LiteralPath $log -Value ('ACL protect ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8

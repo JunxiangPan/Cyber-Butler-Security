@@ -15,11 +15,11 @@ corrections. The legacy provider patch remains as a rollback path.
 
 ### Router Architecture / 路由架构
 
-- New `astrbot_plugin_router` plugin.
+- New `agentruntime_plugin_router` plugin.
 - `/cloud` owner-only command with a 120-second one-shot grant.
 - Gate is bound to the single owner and checks the actual provider.
 - `legacy_provider_patch` remains available for rollback.
-- 新增 `astrbot_plugin_router` 插件。
+- 新增 `agentruntime_plugin_router` 插件。
 - `/cloud` 仅 owner 可用，120 秒一次性授权。
 - gate 只绑定单一 owner，并依据实际 provider 判断。
 - `legacy_provider_patch` 保留为回滚路径。

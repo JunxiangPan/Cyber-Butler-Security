@@ -9,7 +9,7 @@
 
 ## Canonical policy
 
-High-tier AstrBot is a native Windows SCM service named `CyberButlerAstrBot`, running as `CyberButlerSvc`. The S4U scheduled-task path is retired. S4U is documented only as a rejected/deprecated historical path, never as a supported deployment mode. The service binary ACL is `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` is restored. The wrapper uses absolute paths, Session 0 GUI-disabled settings, `AstrBot\data\logs\service-astrbot.log`, and a Job Object.
+High-tier AgentRuntime is a native Windows SCM service named `CyberButlerAgentRuntime`, running as `CyberButlerSvc`. The S4U scheduled-task path is retired. S4U is documented only as a rejected/deprecated historical path, never as a supported deployment mode. The service binary ACL is `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`; `SeDenyInteractiveLogonRight` is restored. The wrapper uses absolute paths, Session 0 GUI-disabled settings, `AgentRuntime\data\logs\service-agentruntime.log`, and a Job Object.
 
 ## Eight-language README inventory
 
@@ -27,7 +27,7 @@ High-tier AstrBot is a native Windows SCM service named `CyberButlerAstrBot`, ru
 
 ## Cross-language checks
 
-- All eight README files contain the service name `CyberButlerAstrBot`.
+- All eight README files contain the service name `CyberButlerAgentRuntime`.
 - All eight state that S4U is retired, not supported.
 - The English and Chinese READMEs explicitly explain the local non-domain Task Scheduler limitation and the SYSTEM-launcher privilege-escalation risk.
 - `SECURITY.md` uses the SCM service in the High-account row.

@@ -9,9 +9,9 @@
 - Email OTP login (6 digits, 5 minutes, one use, attempt/rate limits),
   HttpOnly/SameSite=Strict sessions and CSRF-protected actions.
 - Read-only APIs:
-  - `GET /api/status` — AstrBot, Broker, SnowLuma TCP health;
+  - `GET /api/status` — AgentRuntime, Broker, AuxRuntime TCP health;
   - `GET /api/temps` — CPU/GPU temperature, GPU load, VRAM;
-  - `GET /api/astrbot/plugins` — plugin names/versions/activated state;
+  - `GET /api/agentruntime/plugins` — plugin names/versions/activated state;
   - `GET /api/logs?name=...` — allowlisted tails with secret/path redaction.
 - `POST /api/chat/send` — fixed `owner_umo`, plain text, 500 characters,
   5 sends/minute/IP, CSRF required.

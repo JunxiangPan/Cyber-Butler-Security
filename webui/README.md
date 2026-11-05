@@ -13,17 +13,17 @@
 > 不可信网络。请定期核查 8765 入站规则。
 
 Phase 2: email OTP login, read-only status/temperature/plugin/log APIs, and an
-inbound-only fixed-owner chat bridge. The sidecar never calls AstrBot's outbound
-`/api/v1/im/messages`; the `astrbot_plugin_webui_bridge` plugin turns the Web
-text into an owner event, and 苏瑾言 replies through QQ.
+inbound-only fixed-owner chat bridge. The sidecar never calls AgentRuntime's outbound
+`/api/v1/im/messages`; the `agentruntime_plugin_webui_bridge` plugin turns the Web
+text into an owner event, and local agent replies through QQ.
 
 No delete, restore, reload, persona or arbitrary-path endpoints exist.
 
 ## Requirements
 
 - Python 3.13 (3.11+ should work)
-- The project's `.astrbot_token` (read by the sidecar, never returned to the page)
-- A running AstrBot on `127.0.0.1:6185`
+- The project's `.agentruntime_token` (read by the sidecar, never returned to the page)
+- A running AgentRuntime on `127.0.0.1:6185`
 - LibreHardwareMonitor on `127.0.0.1:18085` for CPU/GPU temperatures
 - The `otp-mailer` process for email delivery
 
@@ -39,9 +39,9 @@ Copy-Item example-config.json config.json
 Edit `webui/config.json`:
 
 - `admin_email`: the only mailbox allowed to receive OTPs;
-- Configure the `astrbot_plugin_webui_bridge` plugin with `owner_id` and
+- Configure the `agentruntime_plugin_webui_bridge` plugin with `owner_id` and
   `platform_id`; this is the only fixed recipient of Web UI messages.
-- `project_root`: project root containing `AstrBot/`;
+- `project_root`: project root containing `AgentRuntime/`;
 - `host`: `127.0.0.1` for local only, or `0.0.0.0` for LAN;
 - `cookie_secure`: `false` for local HTTP, `true` behind HTTPS.
 

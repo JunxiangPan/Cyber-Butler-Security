@@ -5,9 +5,15 @@
       "requirements": [
         "pytest>=8.0",
         "pyotp>=2.9",
-        "requests>=2.31"
+        "requests>=2.31",
+        "qrcode>=8.2",
+        "Pillow>=12.3.0",
+        "pywin32==310; sys_platform == \"win32\"",
+        "mypy>=1.10",
+        "ruff>=0.9",
+        "pip-audit>=2.7"
       ],
-      "sha256": "43817134c3b17783c3e9122556a6218bcff7de3972b60df4f1b16e206f66ca2f"
+      "sha256": "126d4af137d0d7a76c53362cc6abe6e8bcfea913ba93c8245195a69efbb187bb"
     },
     {
       "path": "webui/requirements.txt",
@@ -16,11 +22,15 @@
         "uvicorn==0.54.0",
         "jinja2>=3.1",
         "httpx==0.28.1",
-        "pytest>=8.0"
+        "pyotp==2.9.0",
+        "requests==2.32.5",
+        "qrcode==8.2",
+        "pywin32==310; sys_platform == \"win32\"",
+        "Pillow==11.3.0"
       ],
-      "sha256": "aefb3944a25c1389bee9c4b89d164cffff3f6fdaddf71d99acf0aac214056f16"
+      "sha256": "36a70d04016a1057b0bae188cb630ddf664403240e7485b7eedac63088fe34e0"
     }
   ],
-  "generated_at": "2026-11-02T22:19:48+00:00",
+  "generated_at": "2026-11-05T17:01:08+00:00",
   "schema": 2
 }

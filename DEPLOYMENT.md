@@ -1,8 +1,8 @@
-﻿# Cyber-Butler / 苏瑾言部署与排障交接
+# Cyber-Butler / local agent部署与排障交接
 
 ## 故障排查入口
 
-如果重启后 6199 未连接、QQ 挑战发送失败、TOTP 一直 pending、AstrBot 6185 冲突或仍看到 `YOUR_QQ_ID`/`qq_sujinyan`，按 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) 处理。
+如果重启后 6199 未连接、QQ 挑战发送失败、TOTP 一直 pending、AgentRuntime 6185 冲突或仍看到 `YOUR_QQ_ID`/`qq_sujinyan`，按 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) 处理。
 
 
 > **WARNING:** The Web UI binds to `0.0.0.0`. Its security relies entirely on
@@ -24,7 +24,7 @@
   TMP_ROOTS；memory/config、totp-vault、send 永远不允许。
 - **Job Object**：Broker 启动早期设置 `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`，
   并把自身加入 Job；其 PowerShell/icacls/Python 后代随 Broker 退出被系统终止。
-  AstrBot 是独立任务，其子进程不受该 Job 保护。
+  AgentRuntime 是独立任务，其子进程不受该 Job 保护。
 - **DSH/Cordis**：`dsh-cbs-gate` 是独立 bundle，使用 `tools/pre-execute` 和
   approval-only API；它把 `write` 映射为 `write_file`，`delete_file` 映射为
   `delete`，`edit` 与 shell 工具拒绝执行。
@@ -67,16 +67,16 @@ tailscale serve off
 
 | 数据 | 实际文件 | 表/字段 | 说明 |
 |---|---|---|---|
-| 原始逐条消息 | `AstrBot/data/plugin_data/astrbot_plugin_livingmemory/conversations.db` | `messages(id, session_id, role, content, sender_id, sender_name, group_id, platform, timestamp, metadata)` | 苏瑾言与用户的原始对话。`messages.id` 就是排障时使用的消息 ID。 |
+| 原始逐条消息 | `AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/conversations.db` | `messages(id, session_id, role, content, sender_id, sender_name, group_id, platform, timestamp, metadata)` | local agent与用户的原始对话。`messages.id` 就是排障时使用的消息 ID。 |
 | 会话列表 | 同上 | `sessions(...)` | LivingMemory 的会话记录。 |
-| 记忆正文 | `AstrBot/data/plugin_data/astrbot_plugin_livingmemory/livingmemory.db` | `documents(id, doc_id, text, metadata, ...)` | 长期记忆主库；`metadata` 含 `source_window`、人格、主题、关键事实。 |
+| 记忆正文 | `AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/livingmemory.db` | `documents(id, doc_id, text, metadata, ...)` | 长期记忆主库；`metadata` 含 `source_window`、人格、主题、关键事实。 |
 | 记忆原文窗口 | 同上 | `memory_sources(memory_id, source_json, ...)` | `resummarize_memory` 真正读取的 source。`source_json` 保存本次记忆覆盖的原始消息数组。 |
 | 记忆原子/图 | 同上 | `memory_atoms`、`graph_entries`、`graph_nodes`、`graph_edges` | 记忆派生数据。 |
-| 图文档库 | `AstrBot/data/plugin_data/astrbot_plugin_livingmemory/livingmemory_graph_documents.db` | `documents` 等 | 图记忆文档；回滚图相关摘要时一并处理。 |
+| 图文档库 | `AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/livingmemory_graph_documents.db` | `documents` 等 | 图记忆文档；回滚图相关摘要时一并处理。 |
 
 ### 不是记忆主库
 
-`AstrBot/data/data_v4.db` 只有 AstrBot 核心数据：
+`AgentRuntime/data/data_v4.db` 只有 AgentRuntime 核心数据：
 
 - `conversations`：核心会话记录，不是逐条原始消息表；
 - `provider_stats`：模型/token 用量；
@@ -108,10 +108,10 @@ Page API
 记忆摘要相关备份必须包含：
 
 ```text
-AstrBot/data/data_v4.db
-AstrBot/data/plugin_data/astrbot_plugin_livingmemory/conversations.db
-AstrBot/data/plugin_data/astrbot_plugin_livingmemory/livingmemory.db
-AstrBot/data/plugin_data/astrbot_plugin_livingmemory/livingmemory_graph_documents.db
+AgentRuntime/data/data_v4.db
+AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/conversations.db
+AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/livingmemory.db
+AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/livingmemory_graph_documents.db
 ```
 
 恢复原则：
@@ -163,7 +163,7 @@ FROM memory_sources, json_each(memory_sources.source_json) AS j;
    - 只允许 `127.0.0.1` 访问 11434；
    - 拒绝局域网入站；
    - 不改 11434 的 `OLLAMA_HOST`；
-   - 需单独验证不会影响本机 AstrBot/embedding 调用。
+   - 需单独验证不会影响本机 AgentRuntime/embedding 调用。
 
 计划中的第二个 Ollama（11435）只绑定 `127.0.0.1`，不新增防火墙规则。
 
@@ -172,7 +172,7 @@ FROM memory_sources, json_each(memory_sources.source_json) AS j;
 - `memory 18 -> 22`，`memory 19 -> 23` 已通过 `resummarize_memory` 重做，source 仍为 330–350、351–370。
 - `memory 20/21` 只有 `documents.metadata.source_window`，没有 `memory_sources.source_json`，因此不能直接 resummarize。
 - 09:39 的原始消息 402–405 被 memory 21 的正文覆盖，但 memory 21 没有 source_json；不要误以为“没有 memory 覆盖”。
-- 备份目录：`AstrBot/data/backups/memory_resummarize_20261030_130411`。
+- 备份目录：`AgentRuntime/data/backups/memory_resummarize_20261030_130411`。
 
 ## 2026-10-30 VRAM 治理记录
 
@@ -183,7 +183,7 @@ FROM memory_sources, json_each(memory_sources.source_json) AS j;
 - bge 在 11434/11435 均已停止；qwen 16k-only 采样：
   - min 2209 MiB / median 2219 MiB / max 2239 MiB（60 samples）。
 - `local_loaded_min_free_mb` 定为 2048；`effective_cold_min=21856`。
-- AstrBot 已通过 `/api/v1/system/restart` 重启（新进程 13400）。
+- AgentRuntime 已通过 `/api/v1/system/restart` 重启（新进程 13400）。
 - **运维说明**：11435 的启动/停止状态以发布包内脚本和 PID 文件为准；历史手动启动细节不再展开。
 
 ### 阈值抖动规则（路由设计）
@@ -199,37 +199,37 @@ FROM memory_sources, json_each(memory_sources.source_json) AS j;
 
 ## 2026-10-30 Router 信号端点
 
-实际挂载路径（AstrBot 插件 Web API）：
+实际挂载路径（AgentRuntime 插件 Web API）：
 
 ```text
-POST /api/v1/plugins/extensions/astrbot_plugin_router/signal
-Authorization: Bearer <astrbot-token>
+POST /api/v1/plugins/extensions/agentruntime_plugin_router/signal
+Authorization: Bearer <agentruntime-token>
 X-Router-Signal-Token: <router-signal-dpapi-token>
 ```
 
 - `/api/router/signal` 不是最终路径；直接请求会 405。
 - 双 token：
-  - `Authorization: Bearer`：AstrBot 的 `.astrbot_token`；
+  - `Authorization: Bearer`：AgentRuntime 的 `.agentruntime_token`；
   - `X-Router-Signal-Token`：DPAPI 保护的 router signal token。
 - 下一轮 `game-mode.ps1` 和 `cloud_fallback` 改造必须使用上述路径和双 token。
-- AstrBot token 获取：项目根目录 `.astrbot_token`（`<PROJECT_ROOT>\.astrbot_token`）。game-mode 已使用 `$AstrBotRoot/.astrbot_token`；cloud_fallback 使用 `ROOT/.astrbot_token`。
+- AgentRuntime token 获取：项目根目录 `.agentruntime_token`（`<PROJECT_ROOT>\.agentruntime_token`）。game-mode 已使用 `$AgentRuntimeRoot/.agentruntime_token`；cloud_fallback 使用 `ROOT/.agentruntime_token`。
 - Router token：`C:\ProgramData\CyberButler\secrets
 outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 
 ## 2026-10-30 Router legacy / /cloud / 回滚
 
-- `AstrBot/data/router/settings.json`：`legacy_provider_patch` 默认 `true`，保留旧 PATCH 回滚路径；设为 `false` 才由 router 接管。
+- `AgentRuntime/data/router/settings.json`：`legacy_provider_patch` 默认 `true`，保留旧 PATCH 回滚路径；设为 `false` 才由 router 接管。
 - `/cloud`：owner 私聊命令，120 秒一次性授权；非 owner/群聊拒绝；连续 `/cloud` 刷新 TTL。
 - cloud_fallback：legacy=true 走旧 PATCH；legacy=false 只发 local_unavailable/local_ready 信号。
 - game-mode：legacy=true 走旧 PATCH；legacy=false 只发 game_start/game_end + outbox，信号失败不先停模型。
-- 信号端点：`POST /api/v1/plugins/extensions/astrbot_plugin_router/signal`，双 token。
-- 回滚：先把 `legacy_provider_patch` 设为 `true`，重启 AstrBot/game-mode；旧 PATCH 路径恢复。若 router 异常，fail closed，不自动切云。
-- 注意：AstrBot 端口 6185 被旧 supervisor 占用时，新进程可能只起 dashboard 不处理消息；需要先停止 supervisor/task 再启动。
+- 信号端点：`POST /api/v1/plugins/extensions/agentruntime_plugin_router/signal`，双 token。
+- 回滚：先把 `legacy_provider_patch` 设为 `true`，重启 AgentRuntime/game-mode；旧 PATCH 路径恢复。若 router 异常，fail closed，不自动切云。
+- 注意：AgentRuntime 端口 6185 被旧 supervisor 占用时，新进程可能只起 dashboard 不处理消息；需要先停止 supervisor/task 再启动。
 
 ## 测试注意事项（Live 测试）
 
-- live 测试不得直接写生产 `AstrBot/data/plugin_data/astrbot_plugin_livingmemory/conversations.db`。
-- 必须使用独立测试库，或在测试前停止 LivingMemory/AstrBot 写入，并明确记录测试产生的消息数。
+- live 测试不得直接写生产 `AgentRuntime/data/plugin_data/agentruntime_plugin_livingmemory/conversations.db`。
+- 必须使用独立测试库，或在测试前停止 LivingMemory/AgentRuntime 写入，并明确记录测试产生的消息数。
 - 如果误写生产库，恢复时不能只覆盖主 `.db` 而保留旧 `-wal/-shm`；必须先停进程、移除 WAL/SHM、再从备份恢复并跑 `PRAGMA integrity_check`，否则会出现 btree 损坏。
 - 本轮事故：bridge live 测试把 messages 从 414 写到 445；恢复时先复制主库仍带着旧 WAL，触发 `btreeInitPage error 11`；清理 WAL/SHM 后重新从 13:04 的 414 条备份恢复，才恢复 integrity ok。
 
@@ -251,7 +251,7 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 
 ## Memorix Telemetry（v1.5.1）
 
-- `AstrBotProviderBridge.generate_text()` 现在会传 `agent_type="plugin"`；UMO / conversation_id / trace_id 在调用方提供时透传。
+- `AgentRuntimeProviderBridge.generate_text()` 现在会传 `agent_type="plugin"`；UMO / conversation_id / trace_id 在调用方提供时透传。
 - summary 使用独立的 `telemetry_umo`：provider 解析仍用空 UMO，保持 deepseek；统计里的 UMO 才是真实会话。
 - **episode umo 仍为 unknown**：episode_segmentation 当前没有 UMO 来源，不硬编；`agent_type=plugin` 已修正，UMO 修复在 v1.5.2 评估。
 - 不要把 lecture/本地文件路径写进 provider_stats；统计只保存 UMO / conversation_id / trace_id。
@@ -277,7 +277,7 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 手动启动 / 幂等验证：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "D:\qq苏瑾言大肥鱼\public-release\webui\start-services.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "D:\qqlocal agentshared\public-release\webui\start-services.ps1"
 Start-ScheduledTask -TaskName 'Cyber-Butler Web UI Services'
 Get-ScheduledTaskInfo -TaskName 'Cyber-Butler Web UI Services'
 ```

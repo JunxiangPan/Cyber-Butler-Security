@@ -1,4 +1,4 @@
-# Secrets and credentials
+﻿# Secrets and credentials
 .env
 .env.*
 *.env
@@ -11,9 +11,6 @@
 # Public keys are safe to commit
 !tools/update_pubkey.pem
 *.dpapi
-.astrbot_token
-.astrbot_ws_token
-.snowluma_token
 broker_token.txt
 deepseek.key.dpapi
 totp_secret.dpapi
@@ -25,18 +22,12 @@ qbittorrent*.txt
 # Runtime configuration
 *.json
 !webui/static/i18n/*.json
-!plugins/astrbot_plugin_webui_bridge/_conf_schema.json
 !webui/config.example.json
 !installer/profiles/*.json
 !installer/core-sources.json
 !overlay/overlay-manifest.json
 **/config.json
 **/cmd_config.json
-AstrBot/data/config/
-AstrBot/data/plugin_data/
-AstrBot/data/cmd_config.json
-AstrBot/data/cmd_config.json.*
-tools/snowluma_guard.json
 tools/api-lock-state.json
 
 # Databases and indexes
@@ -49,15 +40,10 @@ tools/api-lock-state.json
 *.gguf
 *.safetensors
 
-# AstrBot / SnowLuma runtime data
-AstrBot/data/
 data/
 **/data/plugin_data/
 **/logs/
 **/log/
-SnowLuma/logs/
-SnowLuma/data/
-SnowLuma/config/
 
 # Runtime state and generated files
 tools/broker/
@@ -81,8 +67,6 @@ backups/
 downloads/
 tmp*
 temp/
-AstrBot/data/temp/
-AstrBot/data/task_dbs/
 
 # Environments / dependencies
 .venv/
@@ -120,7 +104,6 @@ test-*.txt
 !update-manifest.json
 
 # Dashboard module manifests are source, not runtime state
-!tools/dashboard_plugins/**/manifest.json
 !update-manifest.sig
 
 webui/.venv/
@@ -128,3 +111,8 @@ webui/data/
 webui/config.json
 
 .pytest-tmp/
+
+quality/artifacts/
+
+
+ACCEPTANCE_PROOF.md

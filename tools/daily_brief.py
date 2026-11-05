@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Morning brief from IT之家 and GitHub Trending, sent to QQ via AstrBot."""
+"""Morning brief from IT之家 and GitHub Trending, sent to QQ via AgentRuntime."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-ROOT = Path(r"YOUR_PROJECT_PATH")
-TOKEN = ROOT / ".astrbot_token"
+ROOT = Path(__file__).resolve().parents[1]
+TOKEN = ROOT / ".agentruntime_token"
 UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
 HEADERS = {
     "User-Agent": (
@@ -24,6 +24,14 @@ HEADERS = {
 
 
 def it_home(limit: int = 3) -> list[tuple[str, str]]:
+    """It home.
+    
+    Args:
+        limit: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     response = requests.get("https://www.ithome.com/", headers=HEADERS, timeout=20)
     response.raise_for_status()
     response.encoding = response.apparent_encoding or "utf-8"
@@ -32,7 +40,7 @@ def it_home(limit: int = 3) -> list[tuple[str, str]]:
     seen: set[str] = set()
     for anchor in soup.find_all("a", href=True):
         title = anchor.get_text(" ", strip=True)
-        href = urljoin("https://www.ithome.com/", anchor["href"])
+        href = urljoin("https://www.ithome.com/", str(anchor["href"]))
         if len(title) < 10 or "ithome.com" not in href:
             continue
         if not any(part in href for part in ("/0/", "/1/")):
@@ -49,6 +57,14 @@ def it_home(limit: int = 3) -> list[tuple[str, str]]:
 
 
 def github_trending(limit: int = 3) -> list[tuple[str, str]]:
+    """Github trending.
+    
+    Args:
+        limit: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     response = requests.get(
         "https://github.com/trending?since=daily",
         headers=HEADERS,
@@ -62,7 +78,7 @@ def github_trending(limit: int = 3) -> list[tuple[str, str]]:
         if not heading or not heading.get("href"):
             continue
         title = " ".join(heading.get_text(" ", strip=True).split())
-        href = urljoin("https://github.com", heading["href"])
+        href = urljoin("https://github.com", str(heading["href"]))
         if title:
             items.append((title, href))
         if len(items) >= limit:
@@ -71,6 +87,14 @@ def github_trending(limit: int = 3) -> list[tuple[str, str]]:
 
 
 def send_qq(text: str) -> bool:
+    """Send qq.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not TOKEN.exists():
         return False
     token = TOKEN.read_text(encoding="utf-8").strip()
@@ -87,6 +111,14 @@ def send_qq(text: str) -> bool:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-send", action="store_true")
     args = parser.parse_args()

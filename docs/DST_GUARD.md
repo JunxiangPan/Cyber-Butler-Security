@@ -10,10 +10,10 @@
 - [5. 测试](#5-测试)
 - [Standalone plugin installation](#standalone-plugin-installation)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: archived v1.6.1 status (removed).
 
 
-这份文档描述 `astrbot_plugin_private_companion` 中的 DST（Dialogue-State Tracking）防复读补丁。它不是一份完整插件源码，而是一套可审查、可移植的运行时设计；完整插件仍由使用者在自己的 AstrBot 数据目录中维护。
+这份文档描述 `agentruntime_plugin_private_companion` 中的 DST（Dialogue-State Tracking）防复读补丁。它不是一份完整插件源码，而是一套可审查、可移植的运行时设计；完整插件仍由使用者在自己的 AgentRuntime 数据目录中维护。
 
 目标不是“检测某个词”，而是判断用户这一轮到底是在：
 
@@ -33,7 +33,7 @@
 
 ## 1. Prompt 层
 
-`astrbot_plugin_private_companion_config.json` 的 `reply_style_prompt` 中加入了通用 DST 规则：
+`agentruntime_plugin_private_companion_config.json` 的 `reply_style_prompt` 中加入了通用 DST 规则：
 
 ```text
 【对话状态感知（DST）与通用反刍禁令】
@@ -161,12 +161,12 @@ if bool(getattr(event, "_private_companion_dst_disable_segmenting", False)):
 
 ## 3. 部署方式
 
-这是对本地 `astrbot_plugin_private_companion` 的运行时补丁，不是本仓库发布的独立插件包。部署时应：
+这是对本地 `agentruntime_plugin_private_companion` 的运行时补丁，不是本仓库发布的独立插件包。部署时应：
 
-1. 备份插件目录与 `astrbot_plugin_private_companion_config.json`；
-2. 将补丁应用到 `AstrBot/data/plugins/astrbot_plugin_private_companion/`；
+1. 备份插件目录与 `agentruntime_plugin_private_companion_config.json`；
+2. 将补丁应用到 `AgentRuntime/data/plugins/agentruntime_plugin_private_companion/`；
 3. 保留本地 `companions.json`、长期记忆数据库和配置；
-4. 重启 AstrBot；
+4. 重启 AgentRuntime；
 5. 发送两类测试消息：
    - “真的吗？然后呢？为什么？”应继续深入；
    - “算了不说这个了，来聊点别的”应停止旧话题。
@@ -195,7 +195,7 @@ if bool(getattr(event, "_private_companion_dst_disable_segmenting", False)):
 ```text
 4 passed
 py_compile: OK
-AstrBot plugin loaded: OK
+AgentRuntime plugin loaded: OK
 ```
 
 ## Standalone plugin installation
@@ -203,14 +203,14 @@ AstrBot plugin loaded: OK
 The open-source package now includes a small, independent implementation:
 
 ```text
-plugins/astrbot_plugin_dst_guard/
+plugins/agentruntime_plugin_dst_guard/
 ├── main.py
 ├── metadata.yaml
 └── tests/test_dst_guard_plugin.py
 ```
 
 It does **not** import the 44 MB companion plugin. It provides the same
-three-state behavior through AstrBot hooks:
+three-state behavior through AgentRuntime hooks:
 
 1. `on_llm_request` remembers the previous user turn and appends the generic
    DST rule to the request system prompt;
@@ -225,11 +225,11 @@ three-state behavior through AstrBot hooks:
 
 ### Install
 
-1. Back up the existing AstrBot data directory.
-2. Copy `plugins/astrbot_plugin_dst_guard/` into
-   `AstrBot/data/plugins/`.
-3. Enable `astrbot_plugin_dst_guard` in the AstrBot plugin panel.
-4. Restart AstrBot.
+1. Back up the existing AgentRuntime data directory.
+2. Copy `plugins/agentruntime_plugin_dst_guard/` into
+   `AgentRuntime/data/plugins/`.
+3. Enable `agentruntime_plugin_dst_guard` in the AgentRuntime plugin panel.
+4. Restart AgentRuntime.
 5. Optional: add the `dst_guard` block from `config.pro.example.json` to the
    plugin configuration. Defaults are shown there.
 
@@ -239,7 +239,7 @@ not write chat history, memory databases, or user data.
 ### Test
 
 ```bash
-cd plugins/astrbot_plugin_dst_guard
+cd plugins/agentruntime_plugin_dst_guard
 python -m pytest -q tests/test_dst_guard_plugin.py
 ```
 

@@ -25,7 +25,7 @@ privacy scan
 
 ```text
 安装器在干净 Windows 上一定成功
-AstrBot/SnowLuma 一定能启动
+AgentRuntime/AuxRuntime 一定能启动
 QQ 登录/反向 WS 一定可用
 WFP/Tripwire 在真实网络环境下一定正确
 卸载不会残留
@@ -163,7 +163,7 @@ QQ 凭据
 v1.6.2 先导版的目标不是“让所有人升级”，而是：
 
 - 找出干净 VM 安装失败点；
-- 找出 AstrBot/SnowLuma 启动问题；
+- 找出 AgentRuntime/AuxRuntime 启动问题；
 - 找出 WFP/Tripwire 误报/漏报；
 - 找出卸载残留和卡死；
 - 找出审批/Intent Mismatch 的误报；

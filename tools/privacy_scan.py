@@ -34,6 +34,14 @@ EMAIL_RE = re.compile(r"@163\.com", re.I)
 
 
 def iter_files():
+    """Iter files.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for path in sorted(ROOT.rglob("*")):
         if not path.is_file() or path.name in EXCLUDED_NAMES:
             continue
@@ -45,6 +53,14 @@ def iter_files():
 
 
 def scan_file(path: Path) -> list[str]:
+    """Scan file.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     findings: list[str] = []
     try:
         text = path.read_text(encoding="utf-8-sig")
@@ -67,6 +83,14 @@ def scan_file(path: Path) -> list[str]:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     findings: list[str] = []
     for path in iter_files():
         findings.extend(scan_file(path))
