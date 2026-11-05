@@ -328,3 +328,4 @@ Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED -
 - Split `tools/broker.py` into `broker_core.py`, `broker_policy.py`, `broker_audit.py`, and `broker_totp.py` without changing `TargetSnapshot`.
 - Raise Broker test coverage above 80% and add hash-pinned runtime dependency lock.
 - Resolve Pillow/filelock CVEs when the Python 3.10 floor is raised.
+- Fix the self-contained `START-INSTALLER.exe` C# shell: on a clean VM it exits 0 without launching the GUI; direct `powershell.exe -File installer\CyberButler.Installer.GUI.ps1` works. Investigate single-file `Environment.ProcessPath` / UAC relaunch / `Process.Start` visibility and add a VM smoke test for the C# launcher.
