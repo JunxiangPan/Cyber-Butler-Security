@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "ebee57bc652c1d47ae103c9d25bd7fc7ed71421e10a4d13056f6034c09cc355f",
+      "sha256": "d1511f69b3af12aa3592ee0e7bd4535e32d46c94e023f3357ce4c2c18d3ac1e9",
       "size": 947
     },
     {
@@ -1284,8 +1284,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "c5671ed172b48feade689347a7f1c748e8e0813191136f4afb660ce496d6adc0",
-      "size": 113140
+      "sha256": "820e4080f09e9d6fd13385735a416762737d83a504f5d095b94a9a0865a3aaf4",
+      "size": 113621
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1739,8 +1739,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "c0b5da740fdabeb24820f42f5373b59c7bdf9ae56e7a8b5154008f3eb0cdf235",
-      "size": 32971
+      "sha256": "6eed6177180c8ed14d0e78e8b1a04aaeb4e9d309a34cfffbe94868671cc56128",
+      "size": 33697
     },
     {
       "path": "webui/auth.py",
@@ -1789,8 +1789,8 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "286524ed7b951cd0a69df4f361cae39a1b92ef3067e4b589a6454ea1500bd41f",
-      "size": 9794
+      "sha256": "58268c6742ba0cbe4526ce49a9757e01929f3d382d18bffd057fbffd08fd5b7f",
+      "size": 10504
     },
     {
       "path": "webui/settings.py",
@@ -1809,8 +1809,8 @@
     },
     {
       "path": "webui/static/dashboard.js",
-      "sha256": "2430a73ede1e14bc27ce290a6c921052f43ca5c9c1f7416f20894b2fd138a814",
-      "size": 3913
+      "sha256": "dcbc5c6b213e8cb4867bd2f0ab66b42ddae6a00808a49f8954b033d24463dfde",
+      "size": 4465
     },
     {
       "path": "webui/static/error.js",
@@ -1889,8 +1889,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "4fec27e791707aca082cea469638a92553ab7cdb8a670b8dd5055c633289aa49",
-      "size": 2458
+      "sha256": "42cfae0786b0e8d4d5f4c3a60c661590e4651cffa25b30a9b4e52274cd46c967",
+      "size": 3159
     },
     {
       "path": "webui/templates/error.html",
