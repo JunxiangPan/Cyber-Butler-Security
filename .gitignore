@@ -112,3 +112,5 @@ webui/data/
 webui/config.json
 
 .pytest-tmp/
+
+quality/artifacts/
