@@ -21,6 +21,16 @@
     return response.json().catch(() => ({}));
   };
 
+  const loadStatus = async () => {
+    const data = await api("/api/status");
+    if (!data) return;
+    const online = !!data.services?.broker;
+    const dot = $("statusDot");
+    if (dot) dot.className = "dot " + (online ? "up" : "down");
+    setText("statusTitle", online ? "Protected" : "Offline");
+    setText("statusNote", online ? "Broker is reachable on 127.0.0.1:18090" : "Broker is not reachable on 127.0.0.1:18090");
+  };
+
   const loadPending = async () => {
     const data = await api("/api/security/pending");
     if (!data) return;
@@ -89,7 +99,9 @@
     $("pendingVerify")?.addEventListener("click", verifyPending);
     $("totpBind")?.addEventListener("click", loadTotpBinding);
     $("logoutButton")?.addEventListener("click", logout);
+    await loadStatus();
     await loadPending();
+    setInterval(loadStatus, 5000);
     setInterval(loadPending, 5000);
   };
 

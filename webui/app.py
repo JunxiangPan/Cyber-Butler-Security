@@ -497,61 +497,6 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             logger.warning("status failed: %s", exc)
             return JSONResponse({"ok": False, "code": "service.status_failed", "message": "状态读取失败。"}, status_code=502)
 
-    @app.get("/api/temps")
-    async def temps(session=Depends(require_session)):
-        """Temps.
-        
-        Args:
-            session: caller-supplied value.
-        
-        Returns:
-            Function result, or None when no value is returned.
-        """
-        try:
-            return await services.temperatures()
-        except ServiceError as exc:
-            logger.warning("temperature read failed: %s", exc)
-            return JSONResponse({"ok": False, "code": "service.temps_failed", "message": "温度读取失败。"}, status_code=502)
-
-    async def logs(name: str = "broker", lines: int = 80, session=Depends(require_session)):
-        """Logs.
-        
-        Args:
-            name: caller-supplied value.
-            lines: caller-supplied value.
-            session: caller-supplied value.
-        
-        Returns:
-            Function result, or None when no value is returned.
-        """
-        if name not in {"broker", "dashboard"}:
-            return JSONResponse({"ok": False, "code": "logs.unknown", "message": "unknown log name"}, status_code=400)
-        try:
-            return services.logs(name, max(1, min(int(lines), 200)))
-        except ServiceError as exc:
-            logger.warning("log read failed: %s", exc)
-            return JSONResponse({"ok": False, "code": "service.logs_failed", "message": "日志读取失败。"}, status_code=502)
-
-    def audit_file_denial(request: Request, relative: str, reason: str) -> None:
-        """Audit file denial.
-        
-        Args:
-            request: caller-supplied value.
-            relative: caller-supplied value.
-            reason: caller-supplied value.
-        
-        Returns:
-            Function result, or None when no value is returned.
-        """
-        safe = str(relative or "")[:160]
-        logger.warning("[files] denied reason=%s path=%r", reason, safe)
-        try:
-            path = settings.data_dir / "files-audit.log"
-            with path.open("a", encoding="utf-8") as handle:
-                print(f"{int(time.time())} ip={request.client.host if request.client else 'unknown'} reason={reason} path={safe!r}", file=handle)
-        except OSError:
-            pass
-
     @app.get("/api/backups")
     async def backups(session=Depends(require_session)):
         """Backups.

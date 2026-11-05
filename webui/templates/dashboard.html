@@ -3,49 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cyber-Butler Console</title>
-  <link rel="stylesheet" href="/static/theme-phase2.css">
-  <link rel="stylesheet" href="/static/theme-phase2-extra.css">
+  <title>Cyber-Butler Security Console</title>
+  <link rel="stylesheet" href="/static/console.css">
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <span class="network-eyebrow">CYBER-BUTLER</span>
-      <h1>安全控制台 / Security Console</h1>
-    </div>
-    <div class="session-meta">
-      <span id="accountEmail">—</span>
-      <button id="logoutButton" class="ghost-button" type="button">退出 / Sign out</button>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="panel">
-      <div class="panel-head">
-        <h2>待审批的 TOTP 请求 / Pending TOTP approvals</h2>
-        <button id="pendingRefresh" class="ghost-button" type="button">刷新 / Refresh</button>
-      </div>
-      <p id="pendingEmpty" class="muted-line">当前没有待审批请求。</p>
-      <div id="pendingCard" hidden>
-        <p><strong id="pendingAction">—</strong></p>
-        <p id="pendingTarget" class="muted-line"></p>
-        <p><strong>授权根目录 / Scope root</strong></p>
-        <p id="pendingScope" class="pending-scope"></p>
-        <label for="pendingCode">验证码 / Authenticator code</label>
-        <input id="pendingCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="6-digit code">
-        <button id="pendingVerify" class="primary" type="button">验证 / Verify</button>
-      </div>
-      <p id="pendingStatus" class="network-status" role="status"></p>
-    </section>
-
-
-    <section class="panel">
-      <div class="panel-head"><h2>验证器绑定 / Authenticator binding</h2></div>
-      <button id="totpBind" class="ghost-button" type="button">显示绑定信息 / Show binding</button>
-      <pre id="totpInfo" class="muted-line"></pre>
-    </section>
-  </main>
-
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark"></span><div><p class="eyebrow">CYBER-BUTLER</p><h1>Security Console</h1></div></div>
+      <div class="session"><span id="accountEmail" class="email">—</span><button id="logoutButton" class="quiet" type="button">Sign out</button></div>
+    </header>
+    <main class="grid">
+      <section class="card status-card">
+        <div class="card-head"><span class="label">System status</span><span id="statusDot" class="dot"></span></div>
+        <p id="statusTitle" class="hero">Checking</p>
+        <p id="statusNote" class="muted">Broker 127.0.0.1:18090</p>
+        <div class="meta-row"><span>Protected root</span><code>C:\CyberButler</code></div>
+      </section>
+      <section class="card pending-card">
+        <div class="card-head"><span class="label">Pending approvals</span><button id="pendingRefresh" class="quiet" type="button">Refresh</button></div>
+        <p id="pendingEmpty" class="muted">No pending requests.</p>
+        <div id="pendingCard" hidden>
+          <p><strong id="pendingAction">—</strong></p>
+          <p id="pendingTarget" class="muted"></p>
+          <p class="scope-label">Scope root</p><p id="pendingScope" class="scope"></p>
+          <label for="pendingCode">Authenticator code</label>
+          <div class="approve-row"><input id="pendingCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="6-digit code"><button id="pendingVerify" class="primary" type="button">Approve</button></div>
+        </div>
+        <p id="pendingStatus" class="status-line" role="status"></p>
+      </section>
+      <section class="card bind-card">
+        <div class="card-head"><span class="label">Authenticator binding</span></div>
+        <p class="muted">Bind a TOTP authenticator to this console. Secrets are shown once.</p>
+        <button id="totpBind" class="primary wide" type="button">Show binding</button>
+        <pre id="totpInfo" class="bind-info"></pre>
+      </section>
+    </main>
+    <footer class="footer">Local security gateway · no telemetry · no model runtime</footer>
+  </div>
   <script src="/static/dashboard.js"></script>
 </body>
 </html>
