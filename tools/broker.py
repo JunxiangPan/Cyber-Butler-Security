@@ -370,6 +370,7 @@ def _retain_snapshots(request_id: str, request: dict) -> None:
     with _retained_lock:
         _retained_snapshots[request_id] = request
     def release() -> None:
+        """Release retained handles after the execution window."""
         time.sleep(300)
         with _retained_lock:
             old = _retained_snapshots.pop(request_id, None)
@@ -379,6 +380,7 @@ def _retain_snapshots(request_id: str, request: dict) -> None:
 
 
 def _release_retained(request_id: str) -> bool:
+    """Release retained snapshots for an approval id."""
     with _retained_lock:
         old = _retained_snapshots.pop(request_id, None)
     if old:
