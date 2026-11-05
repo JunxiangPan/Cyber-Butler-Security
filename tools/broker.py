@@ -2729,7 +2729,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         parsed = urlparse(self.path)
         if parsed.path == "/health":
-            self._json(200, {"ok": True, "service": "totp-broker"})
+            self._json(200, {"status": "ok"})
         elif parsed.path == "/api/request_approval/status":
             if not self._auth():
                 self._json(403, {"ok": False, "error": "unauthorized"})

@@ -3,7 +3,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Reflection;
+using System.Security.Principal;
 using System.Threading;
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 
 [assembly: AssemblyTitle("Cyber-Butler Launcher")]
 [assembly: AssemblyDescription("Hidden/native launcher for Cyber-Butler services and installers")]
@@ -80,10 +83,17 @@ internal static class Program
             string installerDir = Path.Combine(baseDir, "installer");
             string gui = Path.Combine(installerDir, "CyberButler.Installer.GUI.ps1");
             if (!File.Exists(gui)) return 3;
-            exe = "powershell.exe";
-            workdir = installerDir;
-            childArgs = "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File \"" + gui + "\"";
-            elevate = true;
+            if (!IsAdministrator())
+            {
+                ProcessStartInfo self = new ProcessStartInfo();
+                self.FileName = Assembly.GetEntryAssembly().Location;
+                self.Arguments = "--installer";
+                self.UseShellExecute = true;
+                self.Verb = "runas";
+                Process.Start(self);
+                return 0;
+            }
+            return RunInstallerGui(gui, installerDir);
         }
 
         if (exe.Length == 0 || workdir.Length == 0) return 2;
@@ -145,5 +155,33 @@ internal static class Program
             }
             return wait ? process.ExitCode : 0;
         }
+    }
+
+    private static bool IsAdministrator()
+    {
+        using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+        {
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+    }
+
+    private static int RunInstallerGui(string gui, string workdir)
+    {
+        try
+        {
+            Runspace runspace = RunspaceFactory.CreateRunspace();
+            runspace.ApartmentState = ApartmentState.STA;
+            runspace.Open();
+            using (PowerShell ps = PowerShell.Create())
+            {
+                ps.Runspace = runspace;
+                ps.AddCommand(gui);
+                ps.Invoke();
+                if (ps.HadErrors) { return 5; }
+            }
+            return 0;
+        }
+        catch { return 6; }
     }
 }

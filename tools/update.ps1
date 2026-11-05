@@ -15,6 +15,8 @@ param(
     [string]$AssetUrl = '',
     [string]$ExpectedSha256 = '',
     [string]$LocalZip = '',
+    [string]$SignatureUrl = '',
+    [string]$PublicKeyPath = '',
     [string]$TargetRoot = '',
     [switch]$DryRun,
     [switch]$Yes
@@ -32,6 +34,7 @@ $sourceRoot = $sourceRoot.TrimEnd('\')
 $isLive = [string]::Equals($root, $sourceRoot, [StringComparison]::OrdinalIgnoreCase)
 $python = Join-Path $sourceRoot 'AgentRuntime\.venv\Scripts\python.exe'
 $core = Join-Path $root 'tools\update_core.py'
+if (-not $PublicKeyPath) { $PublicKeyPath = Join-Path $sourceRoot 'tools\update_pubkey.pem' }
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $work = Join-Path $env:TEMP ('cyber-butler-update-' + $stamp)
 $zip = Join-Path $work 'release.zip'
@@ -117,6 +120,11 @@ function Restore-Backup {
     if (-not (Test-Path -LiteralPath $backupCode)) { return }
     $manifestPath = Join-Path $stage 'update-manifest.json'
     if (-not (Test-Path -LiteralPath $manifestPath)) { return }
+    $verify = Join-Path $sourceRoot ('tools' + [IO.Path]::DirectorySeparatorChar + 'verify_release.py')
+    if (-not (Test-Path -LiteralPath $verify)) { throw 'update verifier missing' }
+    & $python $verify --manifest $manifestPath --signature $signaturePath --pubkey $PublicKeyPath --legacy
+    if ($LASTEXITCODE -ne 0) { throw 'update manifest signature verification failed' }
+    Write-UpdateLog 'update manifest RSA signature verified'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
     foreach ($entry in @($manifest.files)) {
         $rel = ([string]$entry.path).Replace('/', '\')
@@ -162,6 +170,11 @@ try {
         }
         $uri = [Uri]$AssetUrl
         if ($uri.Scheme -ne 'https') { throw 'asset URL must use HTTPS' }
+        if (-not $SignatureUrl) {
+            $SignatureUrl = ([Uri]($AssetUrl -replace '[^/]+$', 'update-manifest.sig')).AbsoluteUri
+        }
+        $sigUri = [Uri]$SignatureUrl
+        if ($sigUri.Scheme -ne 'https') { throw 'signature URL must use HTTPS' }
     }
 
     if (-not $Yes -and -not $DryRun) {
@@ -179,6 +192,11 @@ try {
         Write-UpdateLog ('starting update from ' + $AssetUrl)
         Invoke-WebRequest -Uri $AssetUrl -OutFile $zip -UseBasicParsing -TimeoutSec 300
     }
+    $signaturePath = Join-Path $work 'update-manifest.sig'
+    if ($localZipSource -and -not $SignatureUrl) { throw 'local update requires -SignatureUrl and a pinned public key' }
+    Invoke-WebRequest -Uri $SignatureUrl -OutFile $signaturePath -UseBasicParsing -TimeoutSec 60
+    if (-not (Test-Path -LiteralPath $signaturePath)) { throw 'update signature is missing' }
+    if (-not (Test-Path -LiteralPath $PublicKeyPath)) { throw 'pinned update public key is missing' }
     $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLower()
     if ($actual -ne $ExpectedSha256.ToLower()) {
         throw 'downloaded asset SHA-256 does not match the trusted digest'
