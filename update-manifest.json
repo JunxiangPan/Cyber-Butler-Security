@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "bc2835b5275c1ead4873e0d10aef7500b3f702f9c03675c5a2d44c7c8ad5af6d",
+      "sha256": "0cd0498d7048308c314429374096febcc09f49e632c5bd235661a1645b5d911f",
       "size": 947
     },
     {
@@ -1741,11 +1741,6 @@
       "path": "webui/static/theme-phase2-extra.css",
       "sha256": "c7ab36f75133acc6918afb13d784b4388f5dfe0610618902823fdf3a942ca8de",
       "size": 10871
-    },
-    {
-      "path": "webui/static/theme-phase2.css",
-      "sha256": "d4a8a9cb49268043a8a1b8c62ad9390ae7e1a67a7fdabc6fd2d2770e87bf0e5a",
-      "size": 3000
     },
     {
       "path": "webui/static/theme.css",
