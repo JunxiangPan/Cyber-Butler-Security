@@ -9,8 +9,8 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "5c38283a718325811b4578342f6a7b26a3d7598d26ca018645d2fa2884ff4765",
-      "size": 2251
+      "sha256": "023610e184ad6aea125a5dabb7a20120a9a9caf4445f98656ea336c48f866525",
+      "size": 2321
     },
     {
       "path": ".gitignore",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "d264e784898cb8fef4c3e53f5f69bb7d93a14fed6ea9064d4a70bf5afc2bbff3",
+      "sha256": "ebee57bc652c1d47ae103c9d25bd7fc7ed71421e10a4d13056f6034c09cc355f",
       "size": 947
     },
     {
@@ -1214,12 +1214,12 @@
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
-      "sha256": "b76a09f9893d424f033fe75ee8cebcbc77f9dca8d317fd868d064ee910896a1f",
-      "size": 13530
+      "sha256": "a1059b797733cad346606a34a6e0ca267b4b1c128d03021ca292cd8be3c81f97",
+      "size": 13630
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
-      "sha256": "2fd2aa415a4f4c4946835f18b9f4bb392121a71e5ad608485be2cc49e351382a",
+      "sha256": "55b11b2abe486b0335df1c3630ea18b78f4de3e8667823bfdd58f33c8eb8829e",
       "size": 66
     },
     {
@@ -1334,8 +1334,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "b45f16b4ba8ea4623bbcd395723af217facbc42836307344e5ce8250f9184e09",
-      "size": 87904
+      "sha256": "2fc9a5c05fc3bbb1df67b3b7edba373a13e304edf77a6b8b8daefbd94817132d",
+      "size": 5461
     },
     {
       "path": "tools/daily_audit.py",
@@ -1739,8 +1739,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "80b6ac5d5b0df6a9b450802d464587135e2a97268d399a4d89e885223aa0b45e",
-      "size": 34419
+      "sha256": "c0b5da740fdabeb24820f42f5373b59c7bdf9ae56e7a8b5154008f3eb0cdf235",
+      "size": 32971
     },
     {
       "path": "webui/auth.py",
@@ -1749,8 +1749,8 @@
     },
     {
       "path": "webui/example-config.json",
-      "sha256": "a557d26affaa3bb65883e9dff6b9c14e009da1b1f2d7bb886d2f95b884b95a57",
-      "size": 561
+      "sha256": "4c7d90dd4c85bf9f80f4cf22d85a5c0a35f3b1788817ae4099576c492978e43d",
+      "size": 511
     },
     {
       "path": "webui/file_manager.py",
@@ -1789,13 +1789,13 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "a51c9b231ede8f00355deae85f66b1a0fd93a8e2226ed0d3234c636bd9d23385",
-      "size": 14384
+      "sha256": "286524ed7b951cd0a69df4f361cae39a1b92ef3067e4b589a6454ea1500bd41f",
+      "size": 9794
     },
     {
       "path": "webui/settings.py",
-      "sha256": "9eab0bc48183de6a2c573a3d800be78199c6996e851a2dd6d94b06a37c2533bb",
-      "size": 5948
+      "sha256": "7097fdfbb8d7d1dac5f775b7f13023f8392308456fb98b4bb5d8b291437b643b",
+      "size": 5662
     },
     {
       "path": "webui/start-services.ps1",
@@ -1803,9 +1803,14 @@
       "size": 4659
     },
     {
+      "path": "webui/static/console.css",
+      "sha256": "9cf284a44d0fa5b73c5444a573b5f1adbf2c26f4192509f6496c157634162bc4",
+      "size": 3916
+    },
+    {
       "path": "webui/static/dashboard.js",
-      "sha256": "1cc559cd9e06fe2e7f3abc99de292f293e6dea82f275780fd3ca63e1e839486d",
-      "size": 3408
+      "sha256": "2430a73ede1e14bc27ce290a6c921052f43ca5c9c1f7416f20894b2fd138a814",
+      "size": 3913
     },
     {
       "path": "webui/static/error.js",
@@ -1819,43 +1824,43 @@
     },
     {
       "path": "webui/static/i18n/de.json",
-      "sha256": "c708f259b2b8143a9e01eb2703787b859f6e6999e80b893f3280c5338121cdcf",
-      "size": 9181
+      "sha256": "0ade07683c8f16e7322712fb4db4785b9ab54de8336d03a692d8cb08dda3255b",
+      "size": 7999
     },
     {
       "path": "webui/static/i18n/en.json",
-      "sha256": "f15f528d41c528e1b6f0c64d7d5f717ba89e36a92aad737edcb0957a729e888d",
-      "size": 7612
+      "sha256": "1434c0a2fde62485b747e8d02710fd68fc570af62c74691a7b1504d550d668b0",
+      "size": 6573
     },
     {
       "path": "webui/static/i18n/es.json",
-      "sha256": "30e36f171604cd5f61b90ec689b23ad59829aea9fb2f56275c379118ba58301c",
-      "size": 9161
+      "sha256": "7d91a165f7f695186c58e56f1ea8330e3cba1def57b2fbf864c2e8ad3776ba7f",
+      "size": 7968
     },
     {
       "path": "webui/static/i18n/fr.json",
-      "sha256": "9898032d6da4cf1c69d432b8150adaff304f0ff7f4c770ef2cd39a1b5741a8e3",
-      "size": 9305
+      "sha256": "ecbb830cb4fcb406efa10db7eca76f3e0db21979c729c45a63a9989971e77107",
+      "size": 8062
     },
     {
       "path": "webui/static/i18n/ja.json",
-      "sha256": "00f9a2a10dca589bc4fd6bbd6d34ae4623a3dd00d404ba19a43b7fa5c917006f",
-      "size": 10127
+      "sha256": "40e9924794693010e6dffe479dacc0d01bb8dbe27364811d8219c73170ced92d",
+      "size": 8842
     },
     {
       "path": "webui/static/i18n/ko.json",
-      "sha256": "7697ef879d17f37427bc17600ae4005e25ce03f08a44bce509723c6859bd07e0",
-      "size": 9092
+      "sha256": "b6596003a46c5ca5198fdde3f705d9a2d14bc751878f19689a1ce79ea341bff3",
+      "size": 7869
     },
     {
       "path": "webui/static/i18n/ru.json",
-      "sha256": "3f48011d587896e9e0de8ad5df2a930c2ba9ca38679da30ffd00de38aba11a80",
-      "size": 12535
+      "sha256": "8da5e40ce205bf5eece25178bc58984d32608e036b36da006e8e63ea2eaa6a92",
+      "size": 10955
     },
     {
       "path": "webui/static/i18n/zh.json",
-      "sha256": "deca59bd560e88506097aa1b7f9fcbfd2f08ae09f9dc45162b1a0fe8061df84b",
-      "size": 7541
+      "sha256": "b46cbe0483ebbe924ac4b997cce442ffbf2eb166a16e3ffba3fdee9c0c24824a",
+      "size": 6506
     },
     {
       "path": "webui/static/login.js",
@@ -1884,8 +1889,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "4d74bf9c69c56ff9bcd0cb10a9d0dd6e1f6e6a4174e5903721fcc2e3d4730a0d",
-      "size": 2055
+      "sha256": "4fec27e791707aca082cea469638a92553ab7cdb8a670b8dd5055c633289aa49",
+      "size": 2458
     },
     {
       "path": "webui/templates/error.html",
