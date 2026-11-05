@@ -71,7 +71,7 @@ def test_email_watch_retries_then_executes(monkeypatch, tmp_path) -> None:
         calls["n"] += 1
         if calls["n"] == 1:
             raise socket.timeout("temporary")
-        return ("owner@example.com", "ABCD", "123456")
+        return ("owner@example.com", "ABCD", "ABCDEF")
 
     monkeypatch.setattr(email_approval, "load_config", lambda: CONFIG)
     monkeypatch.setattr(email_approval, "poll_once", poll)
