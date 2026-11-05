@@ -20,6 +20,7 @@
 - `/api/health`
 - `/api/security/network-policy`
 - `/api/security/pending`
+- `/api/security/pending/deny`
 - `/api/security/pending/verify`
 - `/api/security/totp-bind`
 - `/api/security/totp-recovery-reset`
@@ -27,7 +28,6 @@
 - `/api/security/trash/undo`
 - `/api/status`
 - `/api/summary`
-- `/api/temps`
 - `/favicon.ico`
 
 ## Localized README structure
