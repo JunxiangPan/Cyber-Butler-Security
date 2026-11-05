@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "d1511f69b3af12aa3592ee0e7bd4535e32d46c94e023f3357ce4c2c18d3ac1e9",
+      "sha256": "e3d5b18345867bf4afed0b6bf1099046f5eb137f752ad4e78117855df1fbc569",
       "size": 947
     },
     {
@@ -1804,8 +1804,8 @@
     },
     {
       "path": "webui/static/console.css",
-      "sha256": "9cf284a44d0fa5b73c5444a573b5f1adbf2c26f4192509f6496c157634162bc4",
-      "size": 3916
+      "sha256": "7225990db826bd687b07b8853a969e59ad8de858a83459ae385b8e9934dd922a",
+      "size": 3942
     },
     {
       "path": "webui/static/dashboard.js",
@@ -1889,8 +1889,8 @@
     },
     {
       "path": "webui/templates/dashboard.html",
-      "sha256": "42cfae0786b0e8d4d5f4c3a60c661590e4651cffa25b30a9b4e52274cd46c967",
-      "size": 3159
+      "sha256": "bd7ebda94eef69a7457b08c39c13f22e811f16c120b53758c26467c62f9bfeaf",
+      "size": 3270
     },
     {
       "path": "webui/templates/error.html",
