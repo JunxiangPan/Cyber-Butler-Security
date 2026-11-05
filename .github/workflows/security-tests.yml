@@ -51,5 +51,10 @@ jobs:
         shell: powershell
         run: |
           Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
+          . ./installer/lib/Installer.Common.ps1
+          . ./installer/lib/Installer.Journal.ps1
+          . ./installer/lib/Installer.Totp.ps1
+          . ./installer/lib/Installer.Upgrade.ps1
+          . ./installer/lib/Installer.Core.ps1
           $result = Invoke-Pester -Script ./installer/tests -PassThru
           if ($result.FailedCount -ne 0) { exit 1 }
