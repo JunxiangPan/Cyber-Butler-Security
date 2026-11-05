@@ -809,6 +809,7 @@ def _workspace_text(target: str) -> bool:
     """Case/alias tolerant check for the dedicated workspace path."""
     try:
         def normalise(value: object) -> str:
+            """Normalize a path string for case/separator-insensitive comparison."""
             return os.path.normcase(os.path.normpath(str(value).replace("\\", "/"))).rstrip("/")
         candidate = normalise(target)
         for root in _workspace_roots():
