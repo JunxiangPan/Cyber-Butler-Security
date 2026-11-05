@@ -27,10 +27,9 @@ def test_cursor_reads_once_and_rotates(tmp_path):
     assert len(first) == 1
     assert wfp_tripwire.read_new(log, cursor) == []
 
-    log.write_text(
-        "2026-11-03 12:00:01 DROP TCP 10.0.0.2 1.1.1.1 50001 443 0 - - - RECEIVE extra-field\n",
-        encoding="utf-8",
-    )
+    with log.open("a", encoding="utf-8") as handle:
+        handle.write("2026-11-03 12:00:01 DROP TCP 10.0.0.2 1.1.1.1 50001 443 0 - - - RECEIVE extra-field
+")
     second = wfp_tripwire.read_new(log, cursor)
     assert len(second) == 1
     assert second[0]["dst"] == "1.1.1.1"
