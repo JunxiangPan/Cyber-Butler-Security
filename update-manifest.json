@@ -164,8 +164,8 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "aaa319e2f67b01d3d3884f71f3757d6802aa972ec7943d0473e8715f5415deed",
-      "size": 875
+      "sha256": "790893d4b397e828c58710f42c49682c8d4f6dd08c63ccdd7344541e0bc1089d",
+      "size": 947
     },
     {
       "path": "docs/00-overview/architecture-scm.md",
@@ -1534,8 +1534,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "9967225d0f539996c9cba590620835a1381123c25f6194cad0f66824bd7b2815",
-      "size": 9673
+      "sha256": "423162a5c8f122665706384e106bb8148439d2cefa68c8a251f482fbed45b7d5",
+      "size": 10028
     },
     {
       "path": "tools/physical_separation.py",

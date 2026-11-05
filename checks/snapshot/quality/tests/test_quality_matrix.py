@@ -249,5 +249,24 @@ def test_q24_package_has_no_dev_artifacts():
 
 def test_q25_matrix_has_25_items():
     data = json.loads(MATRIX.read_text(encoding="utf-8"))
-    assert len(data["items"]) == 25
-    assert len({item["id"] for item in data["items"]}) == 25
+    assert len(data["items"]) == 26
+    assert len({item["id"] for item in data["items"]}) == 26
+
+
+def test_q26_sbom_matches_actual_package():
+    import hashlib
+
+    package = ROOT.parent / "public-release-v1.6.3.zip"
+    if not package.is_file():
+        pytest.skip("release zip not built")
+    with zipfile.ZipFile(package) as archive:
+        manifest = json.loads(archive.read("dependencies.sbom.json").decode("utf-8"))
+        for entry in manifest.get("entries", []):
+            path = str(entry.get("path", ""))
+            data = archive.read(path)
+            assert hashlib.sha256(data).hexdigest() == entry.get("sha256"), path
+            requirements = [
+                line.strip() for line in data.decode("utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+            assert requirements == entry.get("requirements"), path
