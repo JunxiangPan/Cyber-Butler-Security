@@ -808,10 +808,12 @@ def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
 def _workspace_text(target: str) -> bool:
     """Case/alias tolerant check for the dedicated workspace path."""
     try:
-        candidate = os.path.normcase(os.path.abspath(str(target)))
+        def normalise(value: object) -> str:
+            return os.path.normcase(os.path.normpath(str(value).replace("\\", "/"))).rstrip("/")
+        candidate = normalise(target)
         for root in _workspace_roots():
-            normalized = os.path.normcase(os.path.abspath(str(root)))
-            if candidate == normalized or candidate.startswith(normalized + os.sep):
+            normalized = normalise(root)
+            if candidate == normalized or candidate.startswith(normalized + "/"):
                 return True
     except (OSError, ValueError):
         return False
