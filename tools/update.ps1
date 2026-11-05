@@ -116,6 +116,12 @@ function Stop-LiveProcesses {
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
+<#
+.SYNOPSIS
+    Restore-Backup restores the backed-up code tree after a failed update.
+.DESCRIPTION
+    Internal updater helper. It copies only files named by the verified manifest.
+#>
 function Restore-Backup {
     if (-not (Test-Path -LiteralPath $backupCode)) { return }
     $manifestPath = Join-Path $stage 'update-manifest.json'
