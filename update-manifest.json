@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "e435bd4686b915238378c2767bbed10c01226eb0a2a500b215cd7c2585c66993",
+      "sha256": "09ad566bec387aba1a3c6dd4eeffb7b28b939ba0c9cd4bced3b39f70c8d8f695",
       "size": 947
     },
     {
@@ -1219,7 +1219,7 @@
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
-      "sha256": "703b2ac7c147ce7dccc8918c3686566e8d4592904c6a05171b66001cc7bd3d1c",
+      "sha256": "2fd2aa415a4f4c4946835f18b9f4bb392121a71e5ad608485be2cc49e351382a",
       "size": 66
     },
     {
