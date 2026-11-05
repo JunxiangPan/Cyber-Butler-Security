@@ -47,6 +47,8 @@ jobs:
         run: python quality/preflight.py
       - name: UI sanity gate
         run: python quality/ui_gate.py
+      - name: Acceptance 429 retry gate
+        run: python quality/fragility_gate.py
       - name: 25-item quality matrix (no fake PASS)
         run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
       - name: Pester installer red lines
