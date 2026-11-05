@@ -363,48 +363,30 @@ def close_job_object() -> None:
         _job_handle = None
 
 
-_lock = threading.Lock()
-_replay_lock = threading.Lock()
-_request_rate_lock = threading.Lock()
-_last_request_at = 0.0
-_request_buckets: dict[str, tuple[float, float]] = {}
-_used_totp: dict[str, float] = {}
-TOTP_REPLAY_TTL = 120
-TOTP_MAX_ATTEMPTS = 5
-VERIFY_LOCK_SECONDS = 300
-GLOBAL_LOCK_BASE_SECONDS = 300
-GLOBAL_LOCK_MAX_SECONDS = 86400
-_verify_locked_until = 0.0
-_global_failures = 0
-_global_lock_until = 0.0
-_pending: dict | None = None
-
-BYPASS_TTL_SECONDS = 30
-_bypass_lock = threading.Lock()
-_bypass_tokens: dict[str, dict] = {}
-
-APPROVAL_STATE_TTL_SECONDS = 600
-_approval_lock = threading.Lock()
-_approval_states: dict[str, dict] = {}
-
-SCOPED_TTL_SECONDS = 1800
-SCOPED_MAX_MINUTES = 30
-_scoped_lock = threading.Lock()
-_scoped_tokens: dict[str, dict] = {}
-_retained_lock = threading.Lock()
-_retained_snapshots: dict[str, dict] = {}
+import broker_state
+from broker_state import (
+    APPROVAL_STATE_TTL_SECONDS,
+    BYPASS_TTL_SECONDS,
+    GLOBAL_LOCK_BASE_SECONDS,
+    GLOBAL_LOCK_MAX_SECONDS,
+    SCOPED_MAX_MINUTES,
+    SCOPED_TTL_SECONDS,
+    TOTP_MAX_ATTEMPTS,
+    TOTP_REPLAY_TTL,
+    VERIFY_LOCK_SECONDS,
+)
 
 
 def _retain_snapshots(request_id: str, request: dict) -> None:
     """Keep file handles open across the approval-only execution window."""
-    with _retained_lock:
-        _retained_snapshots[request_id] = request
+    with broker_state._retained_lock:
+        broker_state._retained_snapshots[request_id] = request
 
 
 def _release_retained(request_id: str) -> bool:
     """Release retained snapshots for an approval id."""
-    with _retained_lock:
-        old = _retained_snapshots.pop(request_id, None)
+    with broker_state._retained_lock:
+        old = broker_state._retained_snapshots.pop(request_id, None)
     if old:
         _close_request_snapshots(old)
         return True
@@ -414,18 +396,18 @@ def _allow_request(key: str = "default", now: float | None = None) -> tuple[bool
     """Token bucket for TOTP requests; returns (allowed, retry_after_seconds)."""
     moment = time.monotonic() if now is None else float(now)
     bucket_key = str(key or "default")
-    with _request_rate_lock:
-        for old_key, (_tokens, old_last) in list(_request_buckets.items()):
+    with broker_state._request_rate_lock:
+        for old_key, (_tokens, old_last) in list(broker_state._request_buckets.items()):
             if moment - float(old_last) > 3600:
-                _request_buckets.pop(old_key, None)
-        tokens, last = _request_buckets.get(bucket_key, (float(REQUEST_BURST), moment))
+                broker_state._request_buckets.pop(old_key, None)
+        tokens, last = broker_state._request_buckets.get(bucket_key, (float(REQUEST_BURST), moment))
         tokens = min(float(REQUEST_BURST), tokens + (moment - last) / REQUEST_REFILL_SECONDS)
         if tokens < 1.0:
             retry = max(1, int((1.0 - tokens) * REQUEST_REFILL_SECONDS) + 1)
-            _request_buckets[bucket_key] = (tokens, moment)
+            broker_state._request_buckets[bucket_key] = (tokens, moment)
             return False, retry
-        _request_buckets[bucket_key] = (tokens - 1.0, moment)
-        _last_request_at = moment
+        broker_state._request_buckets[bucket_key] = (tokens - 1.0, moment)
+        broker_state._last_request_at = moment
         return True, 0
 
 
@@ -736,7 +718,7 @@ def send_qq(text: str) -> bool:
 
 
 def _notify_async(text: str) -> None:
-    """Send notification on a daemon thread; never hold _lock for network IO."""
+    """Send notification on a daemon thread; never hold broker_state._lock for network IO."""
     threading.Thread(target=send_qq, args=(str(text or ""),), daemon=True).start()
 
 
@@ -1017,9 +999,9 @@ def _purge_bypass(now: float | None = None) -> None:
         Function result, or None when no value is returned.
     """
     moment = time.monotonic() if now is None else now
-    for token, record in list(_bypass_tokens.items()):
+    for token, record in list(broker_state._bypass_tokens.items()):
         if float(record.get("expires", 0)) <= moment:
-            _bypass_tokens.pop(token, None)
+            broker_state._bypass_tokens.pop(token, None)
 
 
 def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECONDS) -> dict | None:
@@ -1039,9 +1021,9 @@ def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECOND
     scope = _bypass_scope(action, target)
     token = secrets.token_urlsafe(32)
     now = time.monotonic()
-    with _bypass_lock:
+    with broker_state._bypass_lock:
         _purge_bypass(now)
-        _bypass_tokens[token] = {
+        broker_state._bypass_tokens[token] = {
             "scope": scope,
             "action": action,
             "expires": now + ttl,
@@ -1065,9 +1047,9 @@ def _consume_bypass(token: str, action: str, target: str) -> dict | None:
         return None
     scope = _bypass_scope(action, target)
     now = time.monotonic()
-    with _bypass_lock:
+    with broker_state._bypass_lock:
         _purge_bypass(now)
-        record = _bypass_tokens.get(token)
+        record = broker_state._bypass_tokens.get(token)
         if not record:
             return None
         if record.get("scope") != scope or record.get("action") != action:
@@ -1329,13 +1311,13 @@ def verify_code(code: str, request_id: str = "") -> str:
         if pyotp.TOTP(secret()).verify(code, valid_window=1):
             digest = hashlib.sha256((str(request_id) + "|" + code).encode("utf-8")).hexdigest()
             now = time.time()
-            with _replay_lock:
-                for old_digest, used_at in list(_used_totp.items()):
+            with broker_state._replay_lock:
+                for old_digest, used_at in list(broker_state._used_totp.items()):
                     if now - used_at > TOTP_REPLAY_TTL:
-                        _used_totp.pop(old_digest, None)
-                if digest in _used_totp:
+                        broker_state._used_totp.pop(old_digest, None)
+                if digest in broker_state._used_totp:
                     return "replay"
-                _used_totp[digest] = now
+                broker_state._used_totp[digest] = now
             return "totp"
         return ""
     if len(code) == 8 and code.isalnum():
@@ -1474,15 +1456,14 @@ def timeout_watch(request_id: str) -> None:
     Returns:
         Function result, or None when no value is returned.
     """
-    global _pending
     time.sleep(TIMEOUT_SECONDS)
     expired = False
     approval_only = False
-    with _lock:
-        if _pending and _pending.get("id") == request_id:
-            approval_only = bool(_pending.get("approval_only"))
-            _close_request_snapshots(_pending)
-            _pending = None
+    with broker_state._lock:
+        if broker_state._pending and broker_state._pending.get("id") == request_id:
+            approval_only = bool(broker_state._pending.get("approval_only"))
+            _close_request_snapshots(broker_state._pending)
+            broker_state._pending = None
             expired = True
     if expired:
         if approval_only:
@@ -1500,39 +1481,37 @@ def _is_verification_locked() -> bool:
     Returns:
         Function result, or None when no value is returned.
     """
-    return time.monotonic() < max(_verify_locked_until, _global_lock_until)
+    return time.monotonic() < max(broker_state._verify_locked_until, broker_state._global_lock_until)
 
 
 def _record_global_failure() -> float:
     """Record a failure even if the pending request is later cleared/expired."""
-    global _global_failures, _global_lock_until
-    _global_failures += 1
-    if _global_failures < TOTP_MAX_ATTEMPTS:
+    broker_state._global_failures += 1
+    if broker_state._global_failures < TOTP_MAX_ATTEMPTS:
         return 0.0
-    exponent = max(0, _global_failures - TOTP_MAX_ATTEMPTS)
+    exponent = max(0, broker_state._global_failures - TOTP_MAX_ATTEMPTS)
     delay = min(GLOBAL_LOCK_BASE_SECONDS * (2 ** exponent), GLOBAL_LOCK_MAX_SECONDS)
-    _global_lock_until = max(_global_lock_until, time.monotonic() + delay)
+    broker_state._global_lock_until = max(broker_state._global_lock_until, time.monotonic() + delay)
     return delay
 
 
 def email_watch(request_id: str) -> None:
     """Poll IMAP for the owner's APPROVE reply and execute exactly one Pending."""
-    global _pending
     try:
         config = email_approval.load_config()
     except Exception as exc:
         log(f"email config failed: {exc}")
-        with _lock:
-            if _pending and _pending.get("id") == request_id:
-                _close_request_snapshots(_pending)
-                _pending = None
+        with broker_state._lock:
+            if broker_state._pending and broker_state._pending.get("id") == request_id:
+                _close_request_snapshots(broker_state._pending)
+                broker_state._pending = None
         return
 
     while True:
-        with _lock:
-            if not _pending or _pending.get("id") != request_id or _pending.get("channel") != "email":
+        with broker_state._lock:
+            if not broker_state._pending or broker_state._pending.get("id") != request_id or broker_state._pending.get("channel") != "email":
                 return
-            request = dict(_pending)
+            request = dict(broker_state._pending)
             deadline = float(request.get("deadline", 0))
         if time.monotonic() > deadline:
             break
@@ -1549,21 +1528,21 @@ def email_watch(request_id: str) -> None:
         if not email_approval.sender_allowed(from_header, config["allowed_sender"]):
             log("email approval ignored: sender not allowed")
             continue
-        with _lock:
-            if not _pending or _pending.get("id") != request_id:
+        with broker_state._lock:
+            if not broker_state._pending or broker_state._pending.get("id") != request_id:
                 return
-            actual_challenge = str(_pending.get("challenge", ""))
-            request = dict(_pending)
+            actual_challenge = str(broker_state._pending.get("challenge", ""))
+            request = dict(broker_state._pending)
         if challenge != actual_challenge:
             log("email approval ignored: challenge mismatch")
             continue
         if not verify_code(totp, request_id):
-            with _lock:
-                if _pending and _pending.get("id") == request_id:
-                    _pending["attempts"] = int(_pending.get("attempts", 0)) + 1
-                    if _pending["attempts"] >= TOTP_MAX_ATTEMPTS:
-                        _close_request_snapshots(_pending)
-                        _pending = None
+            with broker_state._lock:
+                if broker_state._pending and broker_state._pending.get("id") == request_id:
+                    broker_state._pending["attempts"] = int(broker_state._pending.get("attempts", 0)) + 1
+                    if broker_state._pending["attempts"] >= TOTP_MAX_ATTEMPTS:
+                        _close_request_snapshots(broker_state._pending)
+                        broker_state._pending = None
                         log("email approval locked after too many failures")
                         return
             log("email approval ignored: invalid TOTP")
@@ -1571,35 +1550,35 @@ def email_watch(request_id: str) -> None:
         try:
             _assert_snapshots_current(request)
         except TargetGuardError as exc:
-            with _lock:
-                _close_request_snapshots(_pending)
-                _pending = None
+            with broker_state._lock:
+                _close_request_snapshots(broker_state._pending)
+                broker_state._pending = None
             _email_result(config, request, f"target changed before approval: {exc}")
             return
         if request.get("_snapshot") is None and _path_summary(str(request.get("target", ""))) != request.get("target_summary"):
-            with _lock:
-                _close_request_snapshots(_pending)
-                _pending = None
+            with broker_state._lock:
+                _close_request_snapshots(broker_state._pending)
+                broker_state._pending = None
             _email_result(config, request, "target changed before approval")
             return
         if request.get("action") == "overwrite" and request.get("_source_snapshot") is None:
             if _path_summary(str(request.get("source", ""))) != request.get("source_summary"):
-                with _lock:
-                    _close_request_snapshots(_pending)
-                    _pending = None
+                with broker_state._lock:
+                    _close_request_snapshots(broker_state._pending)
+                    broker_state._pending = None
                 _email_result(config, request, "source changed before approval")
                 return
-        with _lock:
-            _pending = None
+        with broker_state._lock:
+            broker_state._pending = None
         ok, result = execute(request)
         log(f"email approved: {request_id} ok={ok} {result}")
         _email_result(config, request, result)
         return
 
-    with _lock:
-        if _pending and _pending.get("id") == request_id:
-            _close_request_snapshots(_pending)
-            _pending = None
+    with broker_state._lock:
+        if broker_state._pending and broker_state._pending.get("id") == request_id:
+            _close_request_snapshots(broker_state._pending)
+            broker_state._pending = None
     try:
         email_approval.send_email(
             config,
@@ -1697,16 +1676,16 @@ def _issue_scoped(action: str, target: str, minutes: int = SCOPED_MAX_MINUTES) -
     ttl = max(1, min(int(minutes), SCOPED_MAX_MINUTES)) * 60
     token = secrets.token_urlsafe(32)
     now = time.monotonic()
-    with _scoped_lock:
-        _scoped_tokens[token] = {
+    with broker_state._scoped_lock:
+        broker_state._scoped_tokens[token] = {
             "root": str(root).casefold(),
             "expires": now + ttl,
             "uses": 0,
             "actions": ("delete", "overwrite", "write_file"),
         }
-        for key, record in list(_scoped_tokens.items()):
+        for key, record in list(broker_state._scoped_tokens.items()):
             if float(record.get("expires", 0)) <= now:
-                _scoped_tokens.pop(key, None)
+                broker_state._scoped_tokens.pop(key, None)
     return {"token": token, "expires_in": ttl, "root": str(root)}
 
 
@@ -1730,10 +1709,10 @@ def _consume_scoped(token: str, action: str, target: str) -> dict | None:
     if _inside_any(path, (TOTP_VAULT_ROOT,)):
         return None
     now = time.monotonic()
-    with _scoped_lock:
-        record = _scoped_tokens.get(token)
+    with broker_state._scoped_lock:
+        record = broker_state._scoped_tokens.get(token)
         if not record or float(record.get("expires", 0)) <= now:
-            _scoped_tokens.pop(token, None)
+            broker_state._scoped_tokens.pop(token, None)
             return None
         if action not in tuple(record.get("actions", ())):
             return None
@@ -1808,9 +1787,9 @@ def _set_approval_state(
     """
     now = time.monotonic()
     scoped_ttl = int(scoped.get("expires_in", 0)) if scoped else 0
-    with _approval_lock:
-        current = _approval_states.get(challenge_id, {})
-        _approval_states[challenge_id] = {
+    with broker_state._approval_lock:
+        current = broker_state._approval_states.get(challenge_id, {})
+        broker_state._approval_states[challenge_id] = {
             "id": challenge_id,
             "status": status,
             "approval_only": bool(approval_only),
@@ -1821,9 +1800,9 @@ def _set_approval_state(
             "scoped_expires_in": scoped_ttl,
             "scoped_root": str(scoped.get("root", "")) if scoped else "",
         }
-        for key, record in list(_approval_states.items()):
+        for key, record in list(broker_state._approval_states.items()):
             if float(record.get("expires", 0)) <= now:
-                _approval_states.pop(key, None)
+                broker_state._approval_states.pop(key, None)
 
 
 def _get_approval_state(challenge_id: str) -> dict | None:
@@ -1836,8 +1815,8 @@ def _get_approval_state(challenge_id: str) -> dict | None:
         Function result, or None when no value is returned.
     """
     now = time.monotonic()
-    with _approval_lock:
-        record = _approval_states.get(challenge_id)
+    with broker_state._approval_lock:
+        record = broker_state._approval_states.get(challenge_id)
         if not record:
             return None
         if float(record.get("expires", 0)) <= now:
@@ -1900,7 +1879,6 @@ def run_request(payload: dict) -> tuple[int, dict]:
     Returns:
         Function result, or None when no value is returned.
     """
-    global _pending
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
     if _is_verification_locked():
@@ -2094,12 +2072,12 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
     preview["external_read_warning"] = injection_audit.warning()
     event = None
-    with _lock:
-        if _pending:
+    with broker_state._lock:
+        if broker_state._pending:
             _close_request_snapshots({"_snapshot": target_snapshot, "_source_snapshot": source_snapshot})
             return 409, {"ok": False, "error": "another TOTP request is pending"}
         request_id = secrets.token_hex(6)
-        _pending = {
+        broker_state._pending = {
             "id": request_id,
             "action": action,
             "target": target_text,
@@ -2131,10 +2109,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
     if email_mode:
         admin_email = _admin_email()
         if not admin_email:
-            with _lock:
-                if _pending and _pending.get("id") == request_id:
-                    _close_request_snapshots(_pending)
-                    _pending = None
+            with broker_state._lock:
+                if broker_state._pending and broker_state._pending.get("id") == request_id:
+                    _close_request_snapshots(broker_state._pending)
+                    broker_state._pending = None
             return 503, {"ok": False, "error": "email approval requires admin_email; configure it in the installer or WebUI"}
         try:
             email_config = email_approval.load_config()
@@ -2147,10 +2125,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
             )
             email_approval.send_email(email_config, subject, body)
         except Exception as exc:
-            with _lock:
-                if _pending and _pending.get("id") == request_id:
-                    _close_request_snapshots(_pending)
-                    _pending = None
+            with broker_state._lock:
+                if broker_state._pending and broker_state._pending.get("id") == request_id:
+                    _close_request_snapshots(broker_state._pending)
+                    broker_state._pending = None
             return 502, {"ok": False, "error": f"email challenge send failed: {exc}"}
         threading.Thread(target=email_watch, args=(request_id,), daemon=True).start()
         log(f"email challenge sent: {request_id} {action} {target_text}")
@@ -2165,7 +2143,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
         }
 
     if channel == "webui":
-        with _lock:
+        with broker_state._lock:
             if action != "send":
                 if approval_only:
                     _set_approval_state(request_id, "pending", approval_only=True)
@@ -2181,18 +2159,18 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "target": target_text,
         }
 
-    # Network I/O must never run while _lock is held: send_qq can block for
+    # Network I/O must never run while broker_state._lock is held: send_qq can block for
     # up to 60 seconds, and the lock only protects pending-state transitions.
     if not send_qq(prompt):
-        with _lock:
-            if _pending and _pending.get("id") == request_id:
-                _close_request_snapshots(_pending)
-                _pending = None
+        with broker_state._lock:
+            if broker_state._pending and broker_state._pending.get("id") == request_id:
+                _close_request_snapshots(broker_state._pending)
+                broker_state._pending = None
             _send_events.pop(request_id, None)
             _send_results.pop(request_id, None)
         return 502, {"ok": False, "error": "QQ challenge send failed"}
 
-    with _lock:
+    with broker_state._lock:
         if action != "send":
             if approval_only:
                 _set_approval_state(request_id, "pending", approval_only=True)
@@ -2215,11 +2193,11 @@ def run_request(payload: dict) -> tuple[int, dict]:
 
     if action == "send":
         approved = event.wait(TIMEOUT_SECONDS) if event else False
-        with _lock:
+        with broker_state._lock:
             send_ok = bool(_send_results.pop(request_id, False))
             _send_events.pop(request_id, None)
-            if _pending and _pending.get("id") == request_id:
-                _pending = None
+            if broker_state._pending and broker_state._pending.get("id") == request_id:
+                broker_state._pending = None
         if approved and send_ok:
             return 200, {"ok": True, "approved": True, "id": request_id}
         send_qq(approval_i18n.t("timeout"))
@@ -2260,7 +2238,6 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     Returns:
         Function result, or None when no value is returned.
     """
-    global _pending, _verify_locked_until, _global_failures, _global_lock_until
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
     request_id = str(payload.get("id", "")).strip()
@@ -2275,51 +2252,51 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     scoped_minutes = 0
     if _is_verification_locked():
         return 429, {"ok": False, "error": "verification is temporarily locked"}
-    with _lock:
-        if not _pending:
+    with broker_state._lock:
+        if not broker_state._pending:
             return 404, {"ok": False, "error": "pending request not found or expired"}
         if not request_id:
-            request_id = str(_pending.get("id", ""))
-        if _pending.get("id") != request_id:
+            request_id = str(broker_state._pending.get("id", ""))
+        if broker_state._pending.get("id") != request_id:
             return 404, {"ok": False, "error": "pending request not found or expired"}
-        if _pending.get("channel") == "email":
+        if broker_state._pending.get("channel") == "email":
             return 403, {"ok": False, "error": "email approval required"}
-        if time.monotonic() > float(_pending.get("deadline", 0)):
-            expired_id = str(_pending.get("id", ""))
-            if _pending.get("approval_only"):
+        if time.monotonic() > float(broker_state._pending.get("deadline", 0)):
+            expired_id = str(broker_state._pending.get("id", ""))
+            if broker_state._pending.get("approval_only"):
                 _set_approval_state(expired_id, "expired", approval_only=True)
-            _close_request_snapshots(_pending)
-            _pending = None
+            _close_request_snapshots(broker_state._pending)
+            broker_state._pending = None
             return 410, {"ok": False, "error": "verification code expired"}
         code_type = verify_code(code, request_id)
         if code_type == "replay":
             _record_global_failure()
             audit_failure(
                 request_id,
-                str(_pending.get("action", "")),
-                str(_pending.get("target", "")),
-                int(_pending.get("attempts", 0)) + 1,
+                str(broker_state._pending.get("action", "")),
+                str(broker_state._pending.get("target", "")),
+                int(broker_state._pending.get("attempts", 0)) + 1,
             )
             return 429, {"ok": False, "error": "TOTP replay rejected"}
         if not code_type:
-            attempts = int(_pending.get("attempts", 0)) + 1
-            _pending["attempts"] = attempts
+            attempts = int(broker_state._pending.get("attempts", 0)) + 1
+            broker_state._pending["attempts"] = attempts
             delay = _record_global_failure()
             audit_failure(
                 request_id,
-                str(_pending.get("action", "")),
-                str(_pending.get("target", "")),
+                str(broker_state._pending.get("action", "")),
+                str(broker_state._pending.get("target", "")),
                 attempts,
             )
             if attempts >= TOTP_MAX_ATTEMPTS:
-                if _pending.get("approval_only"):
-                    _set_approval_state(str(_pending.get("id", "")), "denied", approval_only=True)
-                _close_request_snapshots(_pending)
-                _pending = None
-                _verify_locked_until = time.monotonic() + VERIFY_LOCK_SECONDS
+                if broker_state._pending.get("approval_only"):
+                    _set_approval_state(str(broker_state._pending.get("id", "")), "denied", approval_only=True)
+                _close_request_snapshots(broker_state._pending)
+                broker_state._pending = None
+                broker_state._verify_locked_until = time.monotonic() + VERIFY_LOCK_SECONDS
                 log(
                     f"verification locked after {attempts} failures: {request_id} "
-                    f"(global_failures={_global_failures}, backoff={delay:.0f}s)"
+                    f"(global_failures={broker_state._global_failures}, backoff={delay:.0f}s)"
                 )
                 return 429, {
                     "ok": False,
@@ -2332,28 +2309,28 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                 "error": "invalid verification code",
                 "attempts": attempts,
             }
-        _global_failures = 0
-        _global_lock_until = 0.0
-        request = dict(_pending)
+        broker_state._global_failures = 0
+        broker_state._global_lock_until = 0.0
+        request = dict(broker_state._pending)
         if request.get("action") == "send":
             manifest = request.get("manifest")
             if manifest is None:
-                _pending = None
+                broker_state._pending = None
                 _fail_send_wait(request_id)
                 return 409, {"ok": False, "error": "file manifest missing at approval"}
             try:
                 current = _canonical_manifest(manifest)
             except (OSError, ValueError) as exc:
-                _pending = None
+                broker_state._pending = None
                 _audit_manifest_reject(request_id, request, f"manifest invalid at approval: {exc}")
                 _fail_send_wait(request_id)
                 return 409, {"ok": False, "error": f"file manifest changed: {exc}"}
             if not _manifest_equal(manifest, current):
-                _pending = None
+                broker_state._pending = None
                 _audit_manifest_reject(request_id, request, "manifest changed at approval")
                 _fail_send_wait(request_id)
                 return 409, {"ok": False, "error": "file manifest changed before approval"}
-        _pending = None
+        broker_state._pending = None
         if request.get("action") in {"delete", "overwrite", "write_file"}:
             try:
                 _assert_snapshots_current(request)
@@ -2584,8 +2561,8 @@ def reset_totp_with_recovery(code: str) -> tuple[int, dict]:
     recovery_lines.append("")
     recovery_text.write_text(chr(10).join(recovery_lines), encoding="utf-8")
 
-    with _replay_lock:
-        _used_totp.clear()
+    with broker_state._replay_lock:
+        broker_state._used_totp.clear()
     payload = totp_binding_payload()
     payload["recovery_codes"] = codes
     return 200, payload
@@ -2769,8 +2746,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
             # Read-only hint for the local dashboard. Never expose the TOTP,
             # email challenge, full path, manifest or reason.
-            with _lock:
-                pending = dict(_pending) if _pending else None
+            with broker_state._lock:
+                pending = dict(broker_state._pending) if broker_state._pending else None
             if not pending:
                 self._json(200, {"ok": True, "pending": False})
             else:
@@ -2794,8 +2771,8 @@ class Handler(BaseHTTPRequestHandler):
             if not self._auth():
                 self._json(403, {"ok": False, "error": "unauthorized"})
                 return
-            with _lock:
-                pending = dict(_pending) if _pending else None
+            with broker_state._lock:
+                pending = dict(broker_state._pending) if broker_state._pending else None
             if not pending:
                 self._json(200, {"ok": True, "pending": False})
             else:

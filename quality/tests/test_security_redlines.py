@@ -23,7 +23,7 @@ def test_verify_rejects_caller_supplied_scope(tmp_path: Path, monkeypatch) -> No
     monkeypatch.setattr(broker, "verify_code", lambda _code, request_id="": "totp")
     monkeypatch.setattr(broker, "_assert_snapshots_current", lambda _request: None)
     monkeypatch.setattr(broker, "AUDIT", tmp_path / "audit.jsonl")
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "scope-test",
         "action": "delete",
         "target": str(target),
@@ -44,7 +44,7 @@ def test_verify_rejects_caller_supplied_scope(tmp_path: Path, monkeypatch) -> No
         assert "scoped_token" not in body
         assert "scoped_expires_in" not in body
     finally:
-        broker._pending = None
+        broker.broker_state._pending = None
 
 
 def test_critical_integrity_scoped_to_root(tmp_path: Path) -> None:

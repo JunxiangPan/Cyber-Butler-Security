@@ -78,13 +78,13 @@ def test_q03_totp_replay_and_concurrency():
     old_secret = broker.secret
     broker.secret = lambda: secret
     try:
-        with broker._replay_lock:
-            broker._used_totp.clear()
+        with broker.broker_state._replay_lock:
+            broker.broker_state._used_totp.clear()
         assert broker.verify_code(code) == "totp"
         assert broker.verify_code(code) == "replay"
         results = []
-        with broker._replay_lock:
-            broker._used_totp.clear()
+        with broker.broker_state._replay_lock:
+            broker.broker_state._used_totp.clear()
 
         def worker():
             results.append(broker.verify_code(code))

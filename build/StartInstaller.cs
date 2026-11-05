@@ -37,9 +37,9 @@ internal static class InstallerProgram
         psi.FileName = "powershell.exe";
         psi.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File \"" + gui + "\"";
         psi.WorkingDirectory = Path.GetDirectoryName(gui);
-        psi.UseShellExecute = true;
-        psi.CreateNoWindow = false;
-        psi.WindowStyle = ProcessWindowStyle.Normal;
+        psi.UseShellExecute = false;
+        psi.CreateNoWindow = true;
+        psi.WindowStyle = ProcessWindowStyle.Hidden;
         Log("starting PowerShell with ExecutionPolicy Bypass gui=" + gui);
         using (Process child = Process.Start(psi))
         {

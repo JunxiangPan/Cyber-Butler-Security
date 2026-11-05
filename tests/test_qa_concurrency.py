@@ -21,10 +21,10 @@ def test_ten_concurrent_requests_do_not_deadlock_or_500(monkeypatch, tmp_path):
     monkeypatch.setattr(broker, "AUDIT", audit)
     monkeypatch.setattr(broker, "send_qq", lambda text: True)
     monkeypatch.setenv("CBS_DISABLE_JITTER", "1")
-    broker._pending = None
+    broker.broker_state._pending = None
     broker._send_events.clear()
     broker._send_results.clear()
-    broker._last_request_at = 0.0
+    broker.broker_state._last_request_at = 0.0
 
     def one(index: int):
         return broker.run_request({

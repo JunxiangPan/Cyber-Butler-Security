@@ -16,13 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def setup_function() -> None:
-    broker._pending = None
+    broker.broker_state._pending = None
     broker._send_events.clear()
     broker._send_results.clear()
-    broker._verify_locked_until = 0.0
-    broker._global_failures = 0
-    broker._global_lock_until = 0.0
-    broker._last_request_at = 0.0
+    broker.broker_state._verify_locked_until = 0.0
+    broker.broker_state._global_failures = 0
+    broker.broker_state._global_lock_until = 0.0
+    broker.broker_state._last_request_at = 0.0
 
 
 def _file_entry(path: Path) -> dict:

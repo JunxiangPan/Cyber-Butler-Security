@@ -9,11 +9,11 @@ import broker
 
 
 def setup_function() -> None:
-    broker._pending = None
-    broker._verify_locked_until = 0.0
-    broker._global_failures = 0
-    broker._global_lock_until = 0.0
-    broker._last_request_at = 0.0
+    broker.broker_state._pending = None
+    broker.broker_state._verify_locked_until = 0.0
+    broker.broker_state._global_failures = 0
+    broker.broker_state._global_lock_until = 0.0
+    broker.broker_state._last_request_at = 0.0
 
 
 def test_verify_rejects_handle_content_change(monkeypatch, tmp_path: Path) -> None:
@@ -36,16 +36,16 @@ def test_verify_rejects_handle_content_change(monkeypatch, tmp_path: Path) -> No
     )
     assert status == 200
     assert body["status"] == "requires_totp"
-    assert broker._pending is not None
+    assert broker.broker_state._pending is not None
 
     # Mutate through the same approved handle. A path re-open would not notice
     # this before execution; the broker must reject it at verify time.
-    snapshot = broker._pending["_snapshot"]
+    snapshot = broker.broker_state._pending["_snapshot"]
     snapshot.rewrite(b"tampered")
-    broker._pending["deadline"] = time.monotonic() + 60
+    broker.broker_state._pending["deadline"] = time.monotonic() + 60
 
-    status, body = broker.run_verify({"id": broker._pending["id"], "code": "123456"})
+    status, body = broker.run_verify({"id": broker.broker_state._pending["id"], "code": "123456"})
 
     assert status == 409
     assert "TOCTOU" in body["error"]
-    assert broker._pending is None
+    assert broker.broker_state._pending is None

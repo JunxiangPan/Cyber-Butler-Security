@@ -10,11 +10,11 @@ import broker
 
 
 def setup_function() -> None:
-    broker._pending = None
-    broker._verify_locked_until = 0.0
-    broker._global_failures = 0
-    broker._global_lock_until = 0.0
-    broker._last_request_at = 0.0
+    broker.broker_state._pending = None
+    broker.broker_state._verify_locked_until = 0.0
+    broker.broker_state._global_failures = 0
+    broker.broker_state._global_lock_until = 0.0
+    broker.broker_state._last_request_at = 0.0
 
 
 def _entry(path: Path) -> dict:
@@ -96,7 +96,7 @@ def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(broker, "AUDIT", audit)
     monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
 
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "manifest-tamper",
         "action": "send",
         "target": str(target),
@@ -110,7 +110,7 @@ def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:
     status, body = broker.run_verify({"id": "manifest-tamper", "code": "123456"})
 
     assert status == 409
-    assert broker._pending is None
+    assert broker.broker_state._pending is None
     assert "manifest" in body["error"]
     assert audit.exists()
 

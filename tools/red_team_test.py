@@ -118,8 +118,8 @@ def check_broker_totp(broker_module=None) -> DefenseResult:
             "SHARED": root / "shared",
             "TOTP_VAULT_ROOT": root / "vault",
             "AUDIT": root / "audit.jsonl",
-            "_pending": None,
         }
+        broker.broker_state._pending = None
         try:
             for name, value in names.items():
                 previous[name] = getattr(broker, name)
@@ -168,8 +168,8 @@ def check_toctou(broker_module=None) -> DefenseResult:
             "SHARED": root / "shared",
             "TOTP_VAULT_ROOT": root / "vault",
             "AUDIT": root / "audit.jsonl",
-            "_pending": None,
         }
+        broker.broker_state._pending = None
         try:
             for name, value in names.items():
                 previous[name] = getattr(broker, name)
@@ -181,16 +181,16 @@ def check_toctou(broker_module=None) -> DefenseResult:
             status, body = broker.run_request(
                 {"action": "write_file", "target": str(target), "content": "approved"}
             )
-            if status != 200 or broker._pending is None:
+            if status != 200 or broker.broker_state._pending is None:
                 return _run_pytest_result(
                     "TOCTOU Tamper Block",
                     FAIL,
                     f"could not create pending approval: HTTP {status} {body}",
                 )
-            broker._pending["_snapshot"].rewrite(b"tampered")
-            broker._pending["deadline"] = time.monotonic() + 60
+            broker.broker_state._pending["_snapshot"].rewrite(b"tampered")
+            broker.broker_state._pending["deadline"] = time.monotonic() + 60
             status, body = broker.run_verify(
-                {"id": broker._pending["id"], "code": "123456"}
+                {"id": broker.broker_state._pending["id"], "code": "123456"}
             )
         finally:
             for name, value in previous.items():

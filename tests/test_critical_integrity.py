@@ -8,7 +8,7 @@ import broker
 def _prepare(monkeypatch, tmp_path: Path) -> Path:
     audit = tmp_path / "audit.jsonl"
     monkeypatch.setattr(broker, "AUDIT", audit)
-    broker._pending = None
+    broker.broker_state._pending = None
     return audit
 
 

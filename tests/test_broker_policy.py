@@ -8,16 +8,16 @@ import broker
 
 
 def setup_function() -> None:
-    broker._pending = None
+    broker.broker_state._pending = None
     broker._send_events.clear()
     broker._send_results.clear()
-    broker._last_request_at = 0.0
-    with broker._bypass_lock:
-        broker._bypass_tokens.clear()
-    with broker._approval_lock:
-        broker._approval_states.clear()
-    with broker._scoped_lock:
-        broker._scoped_tokens.clear()
+    broker.broker_state._last_request_at = 0.0
+    with broker.broker_state._bypass_lock:
+        broker.broker_state._bypass_tokens.clear()
+    with broker.broker_state._approval_lock:
+        broker.broker_state._approval_states.clear()
+    with broker.broker_state._scoped_lock:
+        broker.broker_state._scoped_tokens.clear()
 
 
 def _roots(tmp_path: Path):
@@ -80,7 +80,7 @@ def test_tmp_write_file_executes_without_pending(monkeypatch, tmp_path) -> None:
     assert status == 200
     assert body["auto_executed"] is True
     assert target.read_text(encoding="utf-8") == "auto"
-    assert broker._pending is None
+    assert broker.broker_state._pending is None
     assert audit.exists()
 
 
@@ -101,9 +101,9 @@ def test_memory_write_file_creates_totp_pending(monkeypatch, tmp_path) -> None:
 
     assert status == 200
     assert body.get("id")
-    assert broker._pending is not None
-    assert broker._pending["action"] == "write_file"
-    assert broker._pending["content"] == "secret"
+    assert broker.broker_state._pending is not None
+    assert broker.broker_state._pending["action"] == "write_file"
+    assert broker.broker_state._pending["content"] == "secret"
     assert not target.exists()
 
 
@@ -153,8 +153,8 @@ def test_bypass_expires(monkeypatch, tmp_path) -> None:
 
     token = broker._issue_bypass("delete", str(first))
     assert token is not None
-    with broker._bypass_lock:
-        broker._bypass_tokens[token["token"]]["expires"] = 0
+    with broker.broker_state._bypass_lock:
+        broker.broker_state._bypass_tokens[token["token"]]["expires"] = 0
     assert broker._consume_bypass(token["token"], "delete", str(first)) is None
 
 
@@ -207,7 +207,7 @@ def test_shared_new_file_write_is_auto(monkeypatch, tmp_path) -> None:
     assert status == 200
     assert body["auto_executed"] is True
     assert target.read_text(encoding="utf-8") == "new"
-    assert broker._pending is None
+    assert broker.broker_state._pending is None
 
 
 def test_verify_issues_scoped_bypass_token(monkeypatch, tmp_path) -> None:
@@ -223,7 +223,7 @@ def test_verify_issues_scoped_bypass_token(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(broker, "execute", lambda request: (True, "ok"))
     target = shared / "a.txt"
     target.write_text("x", encoding="utf-8")
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "req-1",
         "action": "delete",
         "target": str(target),
@@ -306,7 +306,7 @@ def test_approval_only_verify_approves_without_execute(monkeypatch, tmp_path) ->
 
     monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
     monkeypatch.setattr(broker, "execute", fake_execute)
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "approval-1",
         "action": "write_file",
         "target": str(target),
@@ -425,7 +425,7 @@ def test_verify_ignores_caller_supplied_scope(monkeypatch, tmp_path) -> None:
     target.write_text("x", encoding="utf-8")
     monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
     monkeypatch.setattr(broker, "send_qq", lambda text: True)
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "scoped-1",
         "action": "delete",
         "target": str(target),
