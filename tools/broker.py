@@ -575,12 +575,28 @@ def ensure_token() -> str:
         TOKEN_FILE.write_text(token, encoding="utf-8")
         if TEST_MODE:
             return token
-        subprocess.run(
+        service_user = os.environ.get("CBS_SERVICE_USER", "YOUR_SERVICE_USER").strip() or "YOUR_SERVICE_USER"
+        acl = subprocess.run(
             ["icacls", str(TOKEN_FILE), "/inheritance:r", "/grant:r",
-             "SYSTEM:(F)", "YOUR_SERVICE_USER:(R)", "*S-1-5-32-544:(F)"],
+             "SYSTEM:(F)", service_user + ":(R)", "*S-1-5-32-544:(F)"],
             check=False,
             capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
+        if acl.returncode != 0:
+            raise RuntimeError("broker token ACL failed: " + str(acl.stdout or acl.stderr).strip())
+        readback = subprocess.run(
+            ["icacls", str(TOKEN_FILE)],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if readback.returncode != 0 or "SYSTEM:" not in (readback.stdout or ""):
+            raise RuntimeError("broker token ACL readback failed")
     return TOKEN_FILE.read_text(encoding="utf-8").strip()
 
 
@@ -2810,11 +2826,15 @@ def verify_runtime_acl() -> None:
     if os.name != "nt":
         return
     checker = ROOT / "tools" / "verify_broker_acl.ps1"
+    expected_checker_sha = "4917b5021e3dd76ab05e2cdb93aa0012b3fec826e1c315c899bfca3fa18b2902"
     if not checker.exists():
         raise SystemExit(
             "Broker refuses to start: tools/verify_broker_acl.ps1 is missing; "
             "lock down tools/ and AgentRuntime/.venv before running as SYSTEM."
         )
+    actual_checker_sha = hashlib.sha256(checker.read_bytes()).hexdigest()
+    if actual_checker_sha.casefold() != expected_checker_sha.casefold():
+        raise SystemExit("Broker refuses to start: ACL checker hash mismatch")
     result = subprocess.run(
         [
             "powershell.exe",

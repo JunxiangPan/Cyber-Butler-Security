@@ -60,31 +60,6 @@
     await loadPending();
   };
 
-  const loadNetwork = async () => {
-    const data = await api("/api/security/network-policy");
-    if (!data || !data.ok) return;
-    const domains = (data.policy?.allow || [])
-      .filter((item) => item.kind === "domain")
-      .map((item) => item.name);
-    $("networkDomains").value = domains.join("\n");
-    const guard = data.guard?.healthy ? "运行中 / running" : "未运行 / unavailable";
-    setText("networkStatus", "仅 Audit · 门卫 " + guard);
-  };
-
-  const saveNetwork = async () => {
-    const data = await api("/api/security/network-policy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: "audit",
-        domains: $("networkDomains").value,
-        block_unknown: true,
-      }),
-    });
-    if (!data) return;
-    setText("networkStatus", data.ok ? "已保存（仅审计）/ Saved (audit only)" : (data.message || "保存失败 / Save failed"));
-  };
-
   const loadTotpBinding = async () => {
     const data = await api("/api/security/totp-bind");
     if (!data) return;
@@ -112,12 +87,9 @@
     setText("accountEmail", me.email || "");
     $("pendingRefresh")?.addEventListener("click", loadPending);
     $("pendingVerify")?.addEventListener("click", verifyPending);
-    $("networkRefresh")?.addEventListener("click", loadNetwork);
-    $("networkSave")?.addEventListener("click", saveNetwork);
     $("totpBind")?.addEventListener("click", loadTotpBinding);
     $("logoutButton")?.addEventListener("click", logout);
     await loadPending();
-    await loadNetwork();
     setInterval(loadPending, 5000);
   };
 

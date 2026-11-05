@@ -80,6 +80,14 @@ Run-Process 'packaging preflight' 'python' @('quality/preflight.py')
 Run-Process 'test PowerShell syntax' 'powershell.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'quality/parse_ps_tests.ps1')
 Run-Process 'code comments (AST)' 'python' @('tools/audit_code_comments.py')
 Run-Process 'docs consistency' 'python' @('tools/audit_docs_consistency.py')
+$declaredVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+$launcherPath = Join-Path $root 'tools\CyberButlerLauncher.exe'
+if (-not (Test-Path -LiteralPath $launcherPath)) { throw 'version gate: launcher exe missing' }
+$launcherVersion = (Get-Item -LiteralPath $launcherPath).VersionInfo.FileVersion
+if (-not $launcherVersion.StartsWith($declaredVersion + '.')) {
+    throw ('version gate: launcher ' + $launcherVersion + ' != VERSION ' + $declaredVersion)
+}
+Add-Report ('- Launcher version: ' + $launcherVersion)
 Run-Process 'static types/dead code/PSScriptAnalyzer' 'python' @('quality/audit_static.py')
 Run-Process 'test integrity (MANIFEST + snapshot + empty-assert AST)' 'python' @('quality/test_guard.py', 'verify', '--restore')
 Run-Process 'mutation check (real assertion inversion)' 'python' @('quality/mutation_check.py')
