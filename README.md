@@ -65,3 +65,7 @@ Whether a third-party application uses CBS, how it integrates, and whether it is
 
 CBS tests use synthetic external agents, not real third-party applications as fixtures.
 
+
+## Private vulnerability reporting
+
+Use GitHub Security Advisories: <https://github.com/JunxiangPan/Cyber-Butler-Security/security/advisories/new>. Do not file a public issue for an unfixed vulnerability.

@@ -60,7 +60,7 @@ def test_send_outside_shared_folder_is_challenged(monkeypatch, tmp_path) -> None
     assert body.get("status") in {"requires_totp", "approved"}
 
 
-def test_send_url_is_challenged(monkeypatch, tmp_path) -> None:
+def test_send_url_requires_allowlist(monkeypatch, tmp_path) -> None:
     audit = tmp_path / "audit.jsonl"
     monkeypatch.setattr(broker, "AUDIT", audit)
     monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0.01)
@@ -81,8 +81,8 @@ def test_send_url_is_challenged(monkeypatch, tmp_path) -> None:
         }
     )
 
-    assert status == 200
-    assert body.get("status") in {"requires_totp", "approved"}
+    assert status == 409
+    assert "allowlisted" in str(body.get("error", "")).lower()
 
 
 def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:

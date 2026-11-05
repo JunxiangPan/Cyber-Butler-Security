@@ -361,12 +361,39 @@ SCOPED_TTL_SECONDS = 1800
 SCOPED_MAX_MINUTES = 30
 _scoped_lock = threading.Lock()
 _scoped_tokens: dict[str, dict] = {}
+_retained_lock = threading.Lock()
+_retained_snapshots: dict[str, dict] = {}
+
+
+def _retain_snapshots(request_id: str, request: dict) -> None:
+    """Keep file handles open across the approval-only execution window."""
+    with _retained_lock:
+        _retained_snapshots[request_id] = request
+    def release() -> None:
+        time.sleep(300)
+        with _retained_lock:
+            old = _retained_snapshots.pop(request_id, None)
+        if old:
+            _close_request_snapshots(old)
+    threading.Thread(target=release, daemon=True).start()
+
+
+def _release_retained(request_id: str) -> bool:
+    with _retained_lock:
+        old = _retained_snapshots.pop(request_id, None)
+    if old:
+        _close_request_snapshots(old)
+        return True
+    return False
 
 def _allow_request(key: str = "default", now: float | None = None) -> tuple[bool, int]:
     """Token bucket for TOTP requests; returns (allowed, retry_after_seconds)."""
     moment = time.monotonic() if now is None else float(now)
     bucket_key = str(key or "default")
     with _request_rate_lock:
+        for old_key, (_tokens, old_last) in list(_request_buckets.items()):
+            if moment - float(old_last) > 3600:
+                _request_buckets.pop(old_key, None)
         tokens, last = _request_buckets.get(bucket_key, (float(REQUEST_BURST), moment))
         tokens = min(float(REQUEST_BURST), tokens + (moment - last) / REQUEST_REFILL_SECONDS)
         if tokens < 1.0:
@@ -480,6 +507,7 @@ def _start_audit_chain_mirror() -> None:
                     offset = handle.tell()
             except Exception as exc:
                 log(f"audit chain mirror failed: {exc}")
+                os._exit(70)
 
     threading.Thread(target=run, name="audit-chain", daemon=True).start()
 
@@ -532,7 +560,7 @@ def audit_failure(request_id: str, action: str, target: str, attempts: int) -> N
                 "attempts": attempts,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"audit write failed: {exc}")
+        raise RuntimeError(f"audit write failed; fail-closed: {exc}") from exc
 
 
 def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
@@ -558,7 +586,7 @@ def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
                 "result": result,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"audit write failed: {exc}")
+        raise RuntimeError(f"audit write failed; fail-closed: {exc}") from exc
 
 
 def ensure_token() -> str:
@@ -903,7 +931,7 @@ def _audit_protection(event: str, action: str, target: str, reason: str) -> None
                 "ok": False,
             }, ensure_ascii=False) + "\n")
     except OSError as exc:
-        log(f"{event} audit write failed: {exc}")
+        raise RuntimeError(f"{event} audit write failed; fail-closed: {exc}") from exc
 
 
 def _allowed_target(path: Path) -> bool:
@@ -1100,6 +1128,20 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _url_host_allowed(url: str) -> bool:
+    """SSRF gate: URL entries must target an explicitly allowed host."""
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").casefold()
+    except ValueError:
+        return False
+    if not host:
+        return False
+    allowed = os.environ.get("CBS_URL_ALLOWED_HOSTS", "")
+    hosts = {item.strip().casefold() for item in allowed.split(",") if item.strip()}
+    return host in hosts
+
+
 def _canonical_manifest(items) -> list[dict]:
     """Validate a complete send manifest and recompute every local hash."""
     if not isinstance(items, list) or not items:
@@ -1118,6 +1160,8 @@ def _canonical_manifest(items) -> list[dict]:
         if kind == "url":
             if not raw_path.startswith(("http://", "https://")):
                 raise ValueError("manifest URL is invalid")
+            if not _url_host_allowed(raw_path):
+                raise ValueError("manifest URL host is not allowlisted")
             canonical.append(
                 {"kind": "url", "path": raw_path, "size": 0, "sha256": ""}
             )
@@ -2318,7 +2362,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
                     "approval_only": True,
                 }, ensure_ascii=False) + "\n")
             log(f"approval-only approved: {request_id} {request.get('action')}")
-            _close_request_snapshots(request)
+            _retain_snapshots(request_id, request)
             response = {
                 "ok": True,
                 "approved": True,
@@ -2778,7 +2822,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             parsed = urlparse(self.path)
             if parsed.path in {"/request", "/api/request_approval"}:
-                bucket_key = str(payload.get("source") or payload.get("action") or "default")
+                client_ip = str(getattr(self, "client_address", ("unknown",))[0] or "unknown")
+                bucket_key = client_ip + ":" + str(payload.get("action", "") or "request")
                 allowed, retry_after = _allow_request(bucket_key)
                 if not allowed:
                     self._json(429, {
@@ -2795,6 +2840,12 @@ class Handler(BaseHTTPRequestHandler):
                 status, body = record_external_read(payload)
             elif parsed.path == "/verify":
                 status, body = run_verify(payload)
+            elif parsed.path == "/approval/complete":
+                request_id = str(payload.get("id", "")).strip()
+                if request_id:
+                    status, body = 200, {"ok": True, "released": _release_retained(request_id)}
+                else:
+                    status, body = 400, {"ok": False, "error": "id required"}
             elif parsed.path == "/trash/undo":
                 status, body = undo_trash_request(payload)
             elif parsed.path == "/totp/recovery-reset":

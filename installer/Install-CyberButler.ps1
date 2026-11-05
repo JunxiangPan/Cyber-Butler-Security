@@ -844,6 +844,13 @@ if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPat
     } else {
         [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' }
     }
+    $auditKey = Join-Path $InstallPath 'tools\audit_hmac.key'
+    if (-not (Test-Path -LiteralPath $auditKey)) {
+        $keyBytes = New-Object byte[] 32
+        [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
+        [IO.File]::WriteAllBytes($auditKey, $keyBytes)
+        & icacls.exe $auditKey /inheritance:r /grant:r '*S-1-5-18:(R)' '*S-1-5-32-544:(F)' | Out-Null
+    }
     $workspaceRoot = Join-Path $InstallPath 'workspace'
     $brokerConfig | Add-Member -NotePropertyName workspace_root -NotePropertyValue $workspaceRoot -Force
     $brokerConfig | Add-Member -NotePropertyName workspace_path -NotePropertyValue $workspaceRoot -Force

@@ -68,6 +68,10 @@ class RateLimiter:
             Function result, or None when no value is returned.
         """
         now = time.monotonic()
+        if len(self._hits) > 256:
+            for old_key, old_bucket in list(self._hits.items()):
+                if not old_bucket or now - old_bucket[-1] > 3600:
+                    self._hits.pop(old_key, None)
         bucket = self._hits[key]
         while bucket and now - bucket[0] > window:
             bucket.popleft()

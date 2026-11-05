@@ -82,6 +82,7 @@ def main() -> int:
             "CBS_TEST_SHARED": str(shared),
             "CBS_TEST_PORT": str(PORT),
             "CBS_TEST_TOTP_SECRET": SECRET,
+            "CBS_AUDIT_HMAC_KEY": "00" * 32,
             "PYTHONIOENCODING": "utf-8",
         })
         process = subprocess.Popen(

@@ -14,5 +14,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("CBS_DISABLE_JITTER", "1")
 os.environ.setdefault("CBS_DISABLE_ACL", "1")
+os.environ.setdefault("CBS_AUDIT_HMAC_KEY", "00" * 32)
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT))
