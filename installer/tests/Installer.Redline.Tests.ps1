@@ -39,4 +39,27 @@ Describe 'CBS release red lines' {
         $source | Should Match '\$DesktopAccount'
         $source | Should Match '\(R\)'
     }
+
+    It 'test_installer_param_contract: GUI launch includes every strong installer parameter' {
+        $installer = Join-Path $root 'installer\Install-CyberButler.ps1'
+        $guiRun = Join-Path $root 'installer\lib\Installer.GuiRun.ps1'
+        $tokens = $null
+        $errors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($installer, [ref]$tokens, [ref]$errors)
+        if ($errors.Count -gt 0) { throw ('Install-CyberButler.ps1 parse errors: ' + ($errors -join '; ')) }
+        $paramAst = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.ParamBlockAst] }, $true)
+        if ($null -eq $paramAst) { throw 'Install-CyberButler.ps1 has no param block' }
+        $names = @($paramAst.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath })
+        foreach ($required in @('DesktopAccount','Tier','InstallPath','WebUIBind','GuiMode','GuiSignalDirectory','TestConfigPath','JournalRoot','ReportDirectory')) {
+            $names -contains $required | Should Be $true
+        }
+        $launchText = Get-Content -LiteralPath $guiRun -Raw
+        $start = $launchText.IndexOf('$launchArgs = @(')
+        $end = $launchText.IndexOf(')', $start)
+        $block = $launchText.Substring($start, $end - $start)
+        foreach ($required in @('DesktopAccount','Tier','InstallPath','WebUIBind','GuiMode','GuiSignalDirectory','TestConfigPath','JournalRoot','ReportDirectory')) {
+            $block | Should Match ('-' + $required)
+        }
+        ($block -like "*-DesktopAccount*desktopAccountValue*") | Should Be $true
+    }
 }

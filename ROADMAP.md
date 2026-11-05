@@ -329,3 +329,8 @@ Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED -
 - Raise Broker test coverage above 80% and add hash-pinned runtime dependency lock.
 - Resolve Pillow/filelock CVEs when the Python 3.10 floor is raised.
 - Fix the self-contained `START-INSTALLER.exe` C# shell: on a clean VM it exits 0 without launching the GUI; direct `powershell.exe -File installer\CyberButler.Installer.GUI.ps1` works. Investigate single-file `Environment.ProcessPath` / UAC relaunch / `Process.Start` visibility and add a VM smoke test for the C# launcher.
+- Raise Broker test coverage above 80%, especially exception paths.
+- Add `requirements-runtime.lock` with dependency hashes.
+- Upgrade CBP SHA-256 self-seal to a DPAPI key + HMAC signature.
+- Fix the C# self-contained `START-INSTALLER.exe` silent-exit launcher and add a VM smoke test.
+- Install `jinja2` in CI and restore WebUI template/API tests.
