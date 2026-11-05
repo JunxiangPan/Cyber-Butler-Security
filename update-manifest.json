@@ -19,8 +19,8 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "sha256": "1aabfbc9ab0112a259d9d66a45e6086273471c6c4ee0ff894fa500f248e32834",
-      "size": 5165
+      "sha256": "1e2b50e32865923f2aac0d9056c32ab7be0831ede65f912740937f8a76da2178",
+      "size": 5350
     },
     {
       "path": "CONTRIBUTORS.md",
@@ -99,8 +99,8 @@
     },
     {
       "path": "SECURITY.md",
-      "sha256": "7a05898bf79c002384b33e5f558ef25b2c31c3b3e9cb8fd80a654e7120a71cff",
-      "size": 2166
+      "sha256": "6b11f395cc8325d2758fa936d8d04bc8664e00963580d3e63c85007c484c18d2",
+      "size": 2850
     },
     {
       "path": "START-INSTALLER.exe",
@@ -296,6 +296,11 @@
       "path": "docs/README.md",
       "sha256": "cf9f221497719c905d8f5f3d9bcd6dedd94c2507cd1b213955e8f9c74ff8defe",
       "size": 1049
+    },
+    {
+      "path": "docs/RELEASE_DISCIPLINE.md",
+      "sha256": "7710e18beb7705917863e6ed00c835b1c5586985a6f59860dcad7a62bf608388",
+      "size": 831
     },
     {
       "path": "docs/S4U_AUDIT_v1.6.2.md",
@@ -968,6 +973,11 @@
       "size": 899
     },
     {
+      "path": "tests/test_approval_i18n.py",
+      "sha256": "b94a7bed92013210099b041211fc5b667662fc1b2a05a9c4c47a97b4b285f40e",
+      "size": 872
+    },
+    {
       "path": "tests/test_approval_preview.py",
       "sha256": "7c7dec021b242d40380272d28827ae72dc0bf52615dd933dc7bb0c0867382495",
       "size": 3953
@@ -1088,6 +1098,11 @@
       "size": 1151
     },
     {
+      "path": "tests/test_release_discipline.py",
+      "sha256": "5269061f0aa34e59abe852aa1c55ce91a0e153d94008bb6a1df126969361e61d",
+      "size": 903
+    },
+    {
       "path": "tests/test_sbom.py",
       "sha256": "a9ba7bd9e5bd859e66d869da3ddf99bbc8efa12ad3fddf98e72efc67ded3e72b",
       "size": 1185
@@ -1198,9 +1213,14 @@
       "size": 1581
     },
     {
+      "path": "tools/approval_i18n.py",
+      "sha256": "08d0d971a17df3ecc835b42e98287b031d166fe58536f8c4715f6a4c108f1106",
+      "size": 8494
+    },
+    {
       "path": "tools/approval_preview.py",
-      "sha256": "8a4de88a82cf09b23cc2d694075d5b05b18129d7726798c864e747000cd0f6c4",
-      "size": 10101
+      "sha256": "dbca4da3a2cde4c5ea6cb162a700aebcf46e6ebfe80e19cd6968437cbd317dc4",
+      "size": 10003
     },
     {
       "path": "tools/audit_chain.py",
@@ -1234,8 +1254,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "bcb3918fb0073d9acf36363e5d5fc57d87816acc6ad8465a428359610ef33a72",
-      "size": 109802
+      "sha256": "df379c964d9833c33017ebe3058dc299df1a0a2d8df881a856c7a97c48f593a3",
+      "size": 112648
     },
     {
       "path": "tools/broker_watchdog.py",
