@@ -49,8 +49,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "47469d0c03a8bd1ca4063ad0d996a0027ab9c2dce1d84e1c581f0515fcfdf049",
-      "size": 3189
+      "sha256": "96619f69db7be39072cf83d2af604d9c6de5b3a1853c4d9007644abe95b10016",
+      "size": 3193
     },
     {
       "path": "README_de.md",
@@ -104,8 +104,8 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "e598340cbc717305c1e8567272f894170cd53e578a4b225f6c0e201bbcfbf5fc",
-      "size": 35102914
+      "sha256": "62f28be82f0768323b0c62f4244c5fabb7499e85a74014cfa58c7d77547262bc",
+      "size": 35102803
     },
     {
       "path": "THREAT_MODEL.md",
@@ -129,8 +129,8 @@
     },
     {
       "path": "build/StartInstaller.cs",
-      "sha256": "b8206f3f8cbfe6d4ceffa6d9ec8e1b6caa39478e68a9cae0a006f6fef7ab2751",
-      "size": 2989
+      "sha256": "5172dfb81d50ebdfbae15e29431ce833d2bf6df526b237a18275c3b6f357a3ee",
+      "size": 2740
     },
     {
       "path": "build/StartInstaller.csproj",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "63456d235d9716d5c923bcca737bb4abb0132923c87947feaef79aa9adb8dfe5",
+      "sha256": "6be7145cfe0761efd69c6c79457d7dce180255b3e80ef1445353afa544ec3b4d",
       "size": 947
     },
     {
@@ -211,6 +211,11 @@
       "path": "docs/10-security/wfp-network-policy.md",
       "sha256": "2e2c7da031314c73c444332db912a9c84dfca1a8d8a87ac8965d7e00437e436b",
       "size": 962
+    },
+    {
+      "path": "docs/20-operations/installer-execution-policy.md",
+      "sha256": "0e99afb76b5673597b719f367ed9ac40bfcddf1e3832a528174ac2381d592e0e",
+      "size": 685
     },
     {
       "path": "docs/20-operations/ports-and-adapters.md",
@@ -1194,7 +1199,7 @@
     },
     {
       "path": "tools/CyberButlerLauncher.exe",
-      "sha256": "0596ca97dcb0d5151a6876a7c7322203972af7a8d7be6739046679c89dcdfcbe",
+      "sha256": "6040199033fd75b61cec46b416056acfaa83f27e793773778ba6730731039594",
       "size": 8704
     },
     {
