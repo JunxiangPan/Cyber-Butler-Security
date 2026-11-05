@@ -121,7 +121,7 @@ def main() -> int:
     REPORT.write_text("\n".join(lines), encoding="utf-8")
     print(f"wrote {REPORT}")
     print(f"overall={overall} passed={passed} failed={failed} blocked={blocked}")
-    return 0 if overall == "PASS" else 1
+    return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":

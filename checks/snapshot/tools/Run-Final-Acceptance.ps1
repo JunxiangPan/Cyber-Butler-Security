@@ -245,7 +245,7 @@ if (-not $SkipCapacity) {
     Add-Proof ''
     Add-Proof '## Capacity breaker'
     $big = Join-Path $SharedRoot 'capacity-600mb.bin'
-    fsutil file createnew $big 629145600 | Out-Null
+    fsutil file createnew $big (600 * 1024 * 1024) | Out-Null
 $capJson = [ordered]@{ action = 'delete'; target = $big; reason = 'capacity' } | ConvertTo-Json -Compress
 $cap = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $capJson
     $capId = ''

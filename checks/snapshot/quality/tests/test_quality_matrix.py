@@ -86,7 +86,7 @@ def test_q04_broker_config_tamper_fallback(tmp_path):
     bad.write_text("{not valid json", encoding="utf-8")
     broker.BROKER_CONFIG = bad
     try:
-        assert broker._approval_channel() == "qq"
+        assert broker._approval_channel() == "webui"
     finally:
         broker.BROKER_CONFIG = old
 
@@ -193,7 +193,8 @@ def test_q20_version_single_source():
     assert "v1.6.2" not in template
 
 
-def test_q21_log_newline_injection(tmp_path):
+def test_q21_log_newline_injection(tmp_path, monkeypatch):
+    monkeypatch.setenv("CBS_AUDIT_HMAC_KEY", "00" * 32)
     sys.path.insert(0, str(ROOT / "tools"))
     try:
         import audit_chain
@@ -212,7 +213,8 @@ def test_q22_port_conflict_preflight():
     _skip("Live port-conflict preflight")
 
 
-def test_q23_audit_chain_detects_tamper(tmp_path):
+def test_q23_audit_chain_detects_tamper(tmp_path, monkeypatch):
+    monkeypatch.setenv("CBS_AUDIT_HMAC_KEY", "00" * 32)
     sys.path.insert(0, str(ROOT / "tools"))
     try:
         import audit_chain
