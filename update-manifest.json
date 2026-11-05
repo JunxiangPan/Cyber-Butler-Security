@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "0cd0498d7048308c314429374096febcc09f49e632c5bd235661a1645b5d911f",
+      "sha256": "990bb622e9182f3895edcd18086973b3195c909678c6785a081a082504023f12",
       "size": 947
     },
     {
@@ -1334,8 +1334,8 @@
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
-      "sha256": "2fc9a5c05fc3bbb1df67b3b7edba373a13e304edf77a6b8b8daefbd94817132d",
-      "size": 5461
+      "sha256": "3d07d263d556ebd899a13cabc832ca8ad675e83d498be1a54e7769f8c7324f70",
+      "size": 9556
     },
     {
       "path": "tools/daily_audit.py",
