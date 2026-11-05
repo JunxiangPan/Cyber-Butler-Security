@@ -1,14 +1,11 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
-using System.Management.Automation;
-using System.Management.Automation.Runspaces;
 using System.Reflection;
 using System.Security.Principal;
-using System.Threading;
 
 [assembly: AssemblyTitle("Cyber-Butler Installer")]
-[assembly: AssemblyDescription("Installer entry point using an in-process PowerShell runspace")]
+[assembly: AssemblyDescription("Installer entry point (PowerShell fallback shell, no in-process PowerShell dependency)")]
 [assembly: AssemblyCompany("Cyber-Butler")]
 [assembly: AssemblyProduct("Cyber-Butler Security")]
 [assembly: AssemblyFileVersion("1.6.3.0")]
@@ -21,20 +18,6 @@ internal static class InstallerProgram
         using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
         {
             return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
-        }
-    }
-
-    private static int RunGui(string gui)
-    {
-        Runspace runspace = RunspaceFactory.CreateRunspace();
-        runspace.ApartmentState = ApartmentState.STA;
-        runspace.Open();
-        using (PowerShell ps = PowerShell.Create())
-        {
-            ps.Runspace = runspace;
-            ps.AddCommand(gui);
-            ps.Invoke();
-            return ps.HadErrors ? 5 : 0;
         }
     }
 
@@ -52,7 +35,21 @@ internal static class InstallerProgram
             Process.Start(self);
             return 0;
         }
-        try { return RunGui(gui); }
+        ProcessStartInfo psi = new ProcessStartInfo();
+        psi.FileName = "powershell.exe";
+        psi.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File \"" + gui + "\"";
+        psi.WorkingDirectory = Path.GetDirectoryName(gui);
+        psi.UseShellExecute = false;
+        psi.CreateNoWindow = true;
+        try
+        {
+            using (Process child = Process.Start(psi))
+            {
+                if (child == null) return 4;
+                child.WaitForExit();
+                return child.ExitCode;
+            }
+        }
         catch { return 6; }
     }
 }

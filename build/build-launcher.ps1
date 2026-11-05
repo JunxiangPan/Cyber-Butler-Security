@@ -37,7 +37,6 @@ if ($LASTEXITCODE -ne 0) { throw "csc failed with exit code $LASTEXITCODE" }
 & $csc /nologo /target:winexe /platform:anycpu `
     ("/win32manifest:" + $manifest) `
     ("/out:" + $installerOutput) `
-    ("/reference:" + $psAssembly) `
     $installerSource
 if ($LASTEXITCODE -ne 0) { throw "installer csc failed with exit code $LASTEXITCODE" }
 Write-Output ("LAUNCHER=" + $output)

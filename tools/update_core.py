@@ -31,6 +31,7 @@ ALLOWED_ROOTS = ("tools/", "plugins/", "overlay/", "docs/", "tests/", "webui/", 
 ALLOWED_ROOT_FILES = {
     "VERSION",
     "START-INSTALLER.exe",
+    "START-INSTALLER.cmd",
     "README.md",
     "README-INSTALL.md",
     "README_en.md",
