@@ -14,8 +14,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "356df864cfed4eba3f01cc1f16eafec4dd97f38c19253663f17194f56701b1e7",
-      "size": 1877
+      "sha256": "8fce2a0b8eac057d322d53cd2aac2d64cce0ea8fd9609f19176912f33e60e9f5",
+      "size": 1849
     },
     {
       "path": "CONTRIBUTING.md",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "f34c6854fc419955af7401f32438354f41edd5321e21012bd1ed82b6c1123c9f",
+      "sha256": "e435bd4686b915238378c2767bbed10c01226eb0a2a500b215cd7c2585c66993",
       "size": 947
     },
     {
@@ -214,8 +214,8 @@
     },
     {
       "path": "docs/20-operations/installer-execution-policy.md",
-      "sha256": "e2250bd56b565c663fd8c7be1a71af57fc266cfd3941de2f34663d09643513df",
-      "size": 1065
+      "sha256": "f92acc06fab3bd64db79e91d424e57c927656b357116e1eb64213dce4f67a774",
+      "size": 1039
     },
     {
       "path": "docs/20-operations/ports-and-adapters.md",
@@ -1284,13 +1284,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "f2925fbf73a1dcf96ff9b5ece89e592ea67e2a1d3e08aa2548a9643a35c66f93",
-      "size": 113722
-    },
-    {
-      "path": "tools/broker_acl_manifest.json",
-      "sha256": "5e315f01b50657907dcb0f7becca37877f62a10b58e3ecdde5aaaf2d0229e0ad",
-      "size": 139
+      "sha256": "c5671ed172b48feade689347a7f1c748e8e0813191136f4afb660ce496d6adc0",
+      "size": 113140
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1544,8 +1539,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "e0aa5fa44cfc7f1f22e826306bed1bb52b4a9df4304ac0dfc0c1186c994c0cec",
-      "size": 11634
+      "sha256": "79dde9aa5afe544da0ae7147d9f4bc49d710a4d26861cfcef75e268c9c4122b8",
+      "size": 10030
     },
     {
       "path": "tools/physical_separation.py",
