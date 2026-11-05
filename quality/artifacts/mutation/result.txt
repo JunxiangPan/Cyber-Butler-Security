@@ -1,0 +1,15 @@
+TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_acl_effective.py:16 test_kernel_acl_denies_write
+ORIGINAL assert user
+MUTATED  assert not user
+EXIT=1 KILLED=True
+RESTORED=True SHA256=2b528e8f0166bc890004c85aae390f83e80d89f4758bf155626c5250e76e114b
+TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:11 test_all_supported_languages_have_technical_header
+ORIGINAL assert header
+MUTATED  assert not header
+EXIT=1 KILLED=True
+RESTORED=True SHA256=d2aac531f2d7d181d7595db7c89418da98ec79ef8254d54825585d8b8a0d03be
+TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:18 test_manifest_prompt_formats_count
+ORIGINAL assert "3" in approval_i18n.t("manifest", count=3)
+MUTATED  assert not "3" in approval_i18n.t("manifest", count=3)
+EXIT=1 KILLED=True
+RESTORED=True SHA256=d2aac531f2d7d181d7595db7c89418da98ec79ef8254d54825585d8b8a0d03be

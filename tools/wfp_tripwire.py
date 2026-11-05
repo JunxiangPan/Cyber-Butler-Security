@@ -21,6 +21,7 @@ class Cursor:
     size: int = 0
     offset: int = 0
     mtime_ns: int = 0
+    tail: str = ""
 
     @classmethod
     def load(cls, path: Path) -> "Cursor":
@@ -39,6 +40,7 @@ class Cursor:
                 int(data.get("size", 0)),
                 int(data.get("offset", 0)),
                 int(data.get("mtime_ns", 0)),
+                str(data.get("tail", "")),
             )
         except (OSError, ValueError, TypeError):
             return cls()
@@ -111,14 +113,35 @@ def read_new(log_path: Path, cursor_path: Path) -> list[dict]:
     if not log_path.exists():
         return []
     inode, size, mtime_ns = _stat_identity(log_path)
-    replaced = size == cursor.size and cursor.offset and mtime_ns != cursor.mtime_ns
-    if inode != cursor.inode or size < cursor.offset or replaced:
+    skip_tail = ""
+    reset = inode != cursor.inode or size < cursor.offset
+    if cursor.offset and cursor.tail:
+        tail_bytes = cursor.tail.encode("utf-8", "replace")
+        tail_start = max(0, cursor.offset - len(tail_bytes))
+        try:
+            with log_path.open("rb") as probe:
+                probe.seek(tail_start)
+                if probe.read(len(tail_bytes)) != tail_bytes:
+                    reset = True
+        except OSError:
+            reset = True
+    if size == cursor.size and mtime_ns != cursor.mtime_ns:
+        reset = True
+    if reset:
+        skip_tail = cursor.tail
         cursor = Cursor(inode, size, 0, mtime_ns)
     events = []
+    last_raw = b""
+    skipped_tail = False
     with log_path.open("rb") as handle:
         handle.seek(cursor.offset)
         for raw in handle:
+            last_raw = raw
             line = raw.decode("utf-8", errors="replace")
+            if skip_tail and not skipped_tail and line.rstrip(chr(13) + chr(10)) == skip_tail.rstrip(chr(13) + chr(10)):
+
+                skipped_tail = True
+                continue
             parsed = parse_firewall_line(line)
             if parsed:
                 parsed["event"] = "NETWORK_EXFILTRATION_ATTEMPT"
@@ -128,6 +151,8 @@ def read_new(log_path: Path, cursor_path: Path) -> list[dict]:
     cursor.inode = inode
     cursor.size = size
     cursor.mtime_ns = mtime_ns
+    if last_raw:
+        cursor.tail = last_raw.decode("utf-8", errors="replace").rstrip(chr(13) + chr(10))
     cursor.save(cursor_path)
     return events
 

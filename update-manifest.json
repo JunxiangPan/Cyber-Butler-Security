@@ -1029,8 +1029,8 @@
     },
     {
       "path": "tests/test_broker_workspace_policy.py",
-      "sha256": "313df0020dba36e99657d1ee6a71c49aab0ff36d3dee7f325edd7aa5e1c01282",
-      "size": 1800
+      "sha256": "6a1778fdb271516dde67518574b25c0c2114ec784a899a74174975739852746e",
+      "size": 1798
     },
     {
       "path": "tests/test_broker_wrong_totp.py",
@@ -1184,8 +1184,8 @@
     },
     {
       "path": "tests/test_wfp_tripwire.py",
-      "sha256": "4bcb49a388d166105ff581e125f07fd9584ccc2da75a30d07543abd190f0c12b",
-      "size": 1082
+      "sha256": "f6707fa0106e21807cadaa83d00b6fffe4f864ae60eaa09cd6dba375fd6acc44",
+      "size": 1094
     },
     {
       "path": "tools/Audit-Package.ps1",
@@ -1279,8 +1279,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "b22de7e49b494deff8b2072294e455f4cc8d5cd90475c985fa9b081180f5c793",
-      "size": 112924
+      "sha256": "651f9c00fbad0d337ccb2a9924e6e260d5b3e12eebec642bac97dcb616b16d4d",
+      "size": 113097
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1334,13 +1334,13 @@
     },
     {
       "path": "tools/daily_audit.py",
-      "sha256": "bf829e8a485bca966d2dbd7a3c2faebd65a37619cc15c7b2ec1abf6a26c133f9",
-      "size": 4374
+      "sha256": "120e833dc202a02e72659183d315bac6c23c094621307441479606ad5130cc43",
+      "size": 4383
     },
     {
       "path": "tools/daily_brief.py",
-      "sha256": "b92dff80e6fea954b72f60aef32d8f46003256d8e403f6558578b6e8ba7468a6",
-      "size": 4431
+      "sha256": "f03caa8969ad5ce385666eca23e2c6ca3bdf4af8f4a5d601d7c7c187edd4a80f",
+      "size": 4440
     },
     {
       "path": "tools/dashboard_actions.ps1",
@@ -1639,8 +1639,8 @@
     },
     {
       "path": "tools/setup_totp.py",
-      "sha256": "9a419d480c0bf2a8796e91b8fe5798a0392c2dfbff8592e859c468d817a5c2a8",
-      "size": 3061
+      "sha256": "ebe12203bd62e4586f5291dfe01e4c6f613a52e520acde882f665acf3adb6078",
+      "size": 3070
     },
     {
       "path": "tools/sign_release.py",
