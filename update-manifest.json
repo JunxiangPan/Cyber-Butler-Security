@@ -9,8 +9,8 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "901ad0596ab6abf289c1225e22496f65d6cc7a7c72564dd183202dddfccafa2e",
-      "size": 1495
+      "sha256": "a14b2de020a7ebba7c3a8ed68c88c47d8db0821601900a440cb801d1cdd615c9",
+      "size": 1774
     },
     {
       "path": ".gitignore",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "f32c597be3060384bf7a0653e939ed4ce6cb09f1fd3adf6d6f63ec142d060d36",
+      "sha256": "139f0583d5a5ab29c6d1304557fb3efd4bf7d1f3359c9173c2da7273459ab36e",
       "size": 947
     },
     {
@@ -569,8 +569,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "940cc820bbfc3b62a73c98a6cfc8dde83fe7131d3173d8e7965f1e0ba616b953",
-      "size": 57896
+      "sha256": "ce390d2adddc9bf7f15490402d8a9fa8a328655e0622eb4bedffc6b73f80479f",
+      "size": 58223
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -624,8 +624,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "e163ca87cb7b1ccd41e37c342161e07373b0919d7435eacbc53037a03bf9b21b",
-      "size": 26658
+      "sha256": "81ed2257d1be3bea8c51b435acf6fcbe86fa01c9da6866e3965cad1a39c37f69",
+      "size": 27902
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -729,8 +729,8 @@
     },
     {
       "path": "installer/tests/Installer.Acl.Tests.ps1",
-      "sha256": "9ab667bd8c02130f004f90951adc82e6c37d9827b1b37f8fb2579b38b987cfa3",
-      "size": 8835
+      "sha256": "c92d39acbb1882a38ae49ee27c0b4983dc3763214f055c41ceaf55b81274085d",
+      "size": 1359
     },
     {
       "path": "installer/tests/Installer.Core.Tests.ps1",
