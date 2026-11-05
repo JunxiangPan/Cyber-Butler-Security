@@ -1269,7 +1269,10 @@ def execute(request: dict) -> ExecutionResult:
                 return _fail("write_file 内容超过 256KB。", 413, "request.content_too_large")
             target.parent.mkdir(parents=True, exist_ok=True)
             if request.get("mode") == "create" and snapshot is None:
-                create_exclusive(str(target), data)
+                try:
+                    create_exclusive(str(target), data)
+                except FileExistsError:
+                    return _fail("创建模式发现目标已存在；拒绝覆盖。", 409, "target.exists")
                 return _ok(f"已创建 {target.name}（{len(data)} bytes）。")
             if snapshot is not None:
                 if request.get("mode") == "create":
