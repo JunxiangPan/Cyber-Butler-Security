@@ -31,18 +31,16 @@ internal static class InstallerProgram
         catch { }
     }
 
-    private static int RunGui(string gui, bool allowBypass)
+    private static int RunGui(string gui)
     {
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = "powershell.exe";
-        psi.Arguments = (allowBypass
-            ? "-NoProfile -STA -ExecutionPolicy Bypass -File \""
-            : "-NoProfile -STA -File \"") + gui + "\"";
+        psi.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File \"" + gui + "\"";
         psi.WorkingDirectory = Path.GetDirectoryName(gui);
         psi.UseShellExecute = true;
         psi.CreateNoWindow = false;
         psi.WindowStyle = ProcessWindowStyle.Normal;
-        Log("starting PowerShell allowBypass=" + allowBypass + " gui=" + gui);
+        Log("starting PowerShell with ExecutionPolicy Bypass gui=" + gui);
         using (Process child = Process.Start(psi))
         {
             if (child == null) { Log("Process.Start returned null"); return 4; }
@@ -68,10 +66,7 @@ internal static class InstallerProgram
         }
         try
         {
-            int code = RunGui(gui, false);
-            if (code == 0) return 0;
-            Log("non-bypass run failed; retrying visible Bypass");
-            return RunGui(gui, true);
+            return RunGui(gui);
         }
         catch (Exception ex)
         {
