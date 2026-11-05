@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "09ad566bec387aba1a3c6dd4eeffb7b28b939ba0c9cd4bced3b39f70c8d8f695",
+      "sha256": "f32c597be3060384bf7a0653e939ed4ce6cb09f1fd3adf6d6f63ec142d060d36",
       "size": 947
     },
     {
@@ -1214,8 +1214,8 @@
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
-      "sha256": "8a56196167897fad2f4140588829681e01c00f84b4e76b1e9249eb2e6169c2bd",
-      "size": 12900
+      "sha256": "b76a09f9893d424f033fe75ee8cebcbc77f9dca8d317fd868d064ee910896a1f",
+      "size": 13530
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
