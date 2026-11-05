@@ -1199,13 +1199,13 @@
     },
     {
       "path": "tools/Invoke-CbsVmAcceptance.ps1",
-      "sha256": "7ea10fe3fc9e4fab7ad03ce42782a749a19be4950af2740befa1a889d1276a35",
-      "size": 5232
+      "sha256": "6140f3734e80bf3c1e055bacc3729771febdc8b4aff34bc3267e2583b50c7d9a",
+      "size": 5242
     },
     {
       "path": "tools/Run-Final-Acceptance.ps1",
-      "sha256": "d3834c4ba0059cb7a8a40007b053e7b58aaa964b249dbd14e17c6ba8477ac31c",
-      "size": 15278
+      "sha256": "5130e996f018eaf9094d3c0aef365fc1cbc41727f29cea585ff15aec29bb26c0",
+      "size": 15288
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
@@ -1269,8 +1269,8 @@
     },
     {
       "path": "tools/audit_text_hygiene.py",
-      "sha256": "035b096e7ec2314a11bdd216d59fa33553b0517be7a60e1bd5f7dc488acdb39d",
-      "size": 3558
+      "sha256": "c6600bdfa3a89153163b6c392788630d37931ec46efeffe9f7893aa334fc85e0",
+      "size": 3599
     },
     {
       "path": "tools/boot-selfcheck.ps1",
@@ -1279,8 +1279,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "1302c644e02c7add7b475c9c6952a505b526fe38010e22fcd83259b210cf79c5",
-      "size": 112755
+      "sha256": "b22de7e49b494deff8b2072294e455f4cc8d5cd90475c985fa9b081180f5c793",
+      "size": 112924
     },
     {
       "path": "tools/broker_watchdog.py",
