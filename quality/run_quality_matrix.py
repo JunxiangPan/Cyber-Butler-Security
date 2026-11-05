@@ -46,6 +46,7 @@ TEST_NAMES = {
     "Q23": "test_q23_audit_chain_detects_tamper",
     "Q24": "test_q24_package_has_no_dev_artifacts",
     "Q25": "test_q25_matrix_has_25_items",
+    "Q26": "test_q26_sbom_matches_actual_package",
 }
 
 

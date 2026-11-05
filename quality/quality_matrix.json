@@ -1,30 +1,135 @@
 {
   "version": "1.6.3",
   "items": [
-    {"id": "Q01", "title": "MAX_PATH / Unicode / emoji path handling", "kind": "unit"},
-    {"id": "Q02", "title": "WebUI XSS / oversized JSON / SQL injection", "kind": "integration"},
-    {"id": "Q03", "title": "TOTP replay and concurrent replay", "kind": "unit"},
-    {"id": "Q04", "title": "Broker config tamper graceful fallback", "kind": "unit"},
-    {"id": "Q05", "title": "Broker killed while Agent waits", "kind": "chaos"},
-    {"id": "Q06", "title": "WFP Guard heartbeat red light within 45s", "kind": "chaos"},
-    {"id": "Q07", "title": "Disk full / 1GB trash capacity breaker", "kind": "chaos"},
-    {"id": "Q08", "title": "CyberButlerSvc workspace ACL loss", "kind": "chaos"},
-    {"id": "Q09", "title": "1000 approval requests handle leak", "kind": "soak"},
-    {"id": "Q10", "title": "1 hour memory stability", "kind": "soak"},
-    {"id": "Q11", "title": "Orphan process scan after Job Object close", "kind": "soak"},
-    {"id": "Q12", "title": "TOCTOU target replacement returns 409", "kind": "unit"},
-    {"id": "Q13", "title": "Two-stage trash ACL read bypass attempt", "kind": "system"},
-    {"id": "Q14", "title": "CyberButlerSvc privilege escalation attempt", "kind": "system"},
-    {"id": "Q15", "title": "Clean uninstall leaves no service/file/registry residue", "kind": "system"},
-    {"id": "Q16", "title": "Offline wheelhouse on Python-free clean Windows", "kind": "system"},
-    {"id": "Q17", "title": "Interrupted service creation and resume/repair", "kind": "system"},
-    {"id": "Q18", "title": "No unresolved YOUR_ placeholders in package", "kind": "static"},
-    {"id": "Q19", "title": "WebUI QR otpauth URI matches Broker secret", "kind": "unit"},
-    {"id": "Q20", "title": "VERSION / installer UI / docs version same source", "kind": "static"},
-    {"id": "Q21", "title": "Newline filename cannot inject audit JSONL", "kind": "unit"},
-    {"id": "Q22", "title": "Port conflict 18090/8765 preflight block", "kind": "unit"},
-    {"id": "Q23", "title": "Audit chain detects historical tamper", "kind": "unit"},
-    {"id": "Q24", "title": "No pytest/.venv/tmp/build artefacts in package", "kind": "static"},
-    {"id": "Q25", "title": "Final QA report generated and complete", "kind": "meta"}
+    {
+      "id": "Q01",
+      "title": "MAX_PATH / Unicode / emoji path handling",
+      "kind": "unit"
+    },
+    {
+      "id": "Q02",
+      "title": "WebUI XSS / oversized JSON / SQL injection",
+      "kind": "integration"
+    },
+    {
+      "id": "Q03",
+      "title": "TOTP replay and concurrent replay",
+      "kind": "unit"
+    },
+    {
+      "id": "Q04",
+      "title": "Broker config tamper graceful fallback",
+      "kind": "unit"
+    },
+    {
+      "id": "Q05",
+      "title": "Broker killed while Agent waits",
+      "kind": "chaos"
+    },
+    {
+      "id": "Q06",
+      "title": "WFP Guard heartbeat red light within 45s",
+      "kind": "chaos"
+    },
+    {
+      "id": "Q07",
+      "title": "Disk full / 1GB trash capacity breaker",
+      "kind": "chaos"
+    },
+    {
+      "id": "Q08",
+      "title": "CyberButlerSvc workspace ACL loss",
+      "kind": "chaos"
+    },
+    {
+      "id": "Q09",
+      "title": "1000 approval requests handle leak",
+      "kind": "soak"
+    },
+    {
+      "id": "Q10",
+      "title": "1 hour memory stability",
+      "kind": "soak"
+    },
+    {
+      "id": "Q11",
+      "title": "Orphan process scan after Job Object close",
+      "kind": "soak"
+    },
+    {
+      "id": "Q12",
+      "title": "TOCTOU target replacement returns 409",
+      "kind": "unit"
+    },
+    {
+      "id": "Q13",
+      "title": "Two-stage trash ACL read bypass attempt",
+      "kind": "system"
+    },
+    {
+      "id": "Q14",
+      "title": "CyberButlerSvc privilege escalation attempt",
+      "kind": "system"
+    },
+    {
+      "id": "Q15",
+      "title": "Clean uninstall leaves no service/file/registry residue",
+      "kind": "system"
+    },
+    {
+      "id": "Q16",
+      "title": "Offline wheelhouse on Python-free clean Windows",
+      "kind": "system"
+    },
+    {
+      "id": "Q17",
+      "title": "Interrupted service creation and resume/repair",
+      "kind": "system"
+    },
+    {
+      "id": "Q18",
+      "title": "No unresolved YOUR_ placeholders in package",
+      "kind": "static"
+    },
+    {
+      "id": "Q19",
+      "title": "WebUI QR otpauth URI matches Broker secret",
+      "kind": "unit"
+    },
+    {
+      "id": "Q20",
+      "title": "VERSION / installer UI / docs version same source",
+      "kind": "static"
+    },
+    {
+      "id": "Q21",
+      "title": "Newline filename cannot inject audit JSONL",
+      "kind": "unit"
+    },
+    {
+      "id": "Q22",
+      "title": "Port conflict 18090/8765 preflight block",
+      "kind": "unit"
+    },
+    {
+      "id": "Q23",
+      "title": "Audit chain detects historical tamper",
+      "kind": "unit"
+    },
+    {
+      "id": "Q24",
+      "title": "No pytest/.venv/tmp/build artefacts in package",
+      "kind": "static"
+    },
+    {
+      "id": "Q25",
+      "title": "Final QA report generated and complete",
+      "kind": "meta"
+    },
+    {
+      "id": "Q26",
+      "title": "Dependency SBOM matches actual package manifests",
+      "kind": "static"
+    }
   ]
 }
