@@ -62,3 +62,35 @@ def test_email_watch_handles_expired_pending(monkeypatch) -> None:
         broker.email_watch("expired-email")
     finally:
         broker.broker_state._pending = None
+
+
+def test_email_watch_retries_then_executes(monkeypatch, tmp_path) -> None:
+    calls = {"n": 0}
+
+    def poll(config, challenge):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise socket.timeout("temporary")
+        return ("owner@example.com", "ABCD", "123456")
+
+    monkeypatch.setattr(email_approval, "load_config", lambda: CONFIG)
+    monkeypatch.setattr(email_approval, "poll_once", poll)
+    monkeypatch.setattr(email_approval, "sender_allowed", lambda header, allowed: True)
+    monkeypatch.setattr(broker.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
+    monkeypatch.setattr(broker, "_assert_snapshots_current", lambda request: None)
+    monkeypatch.setattr(broker, "send_qq", lambda text: True)
+    monkeypatch.setattr(broker, "execute", lambda request: broker.ExecutionResult(200, "ok"))
+    monkeypatch.setattr(broker, "_email_result", lambda config, request, result: None)
+    monkeypatch.setattr(broker, "AUDIT", tmp_path / "audit.jsonl")
+    broker.broker_state._pending = {
+        "id": "email-retry", "channel": "email", "deadline": 10**9,
+        "challenge": "ABCD", "action": "delete", "target": str(tmp_path / "x"),
+        "source": "", "reason": "", "attempts": 0, "_snapshot": None,
+        "_source_snapshot": None, "target_summary": broker._path_summary(str(tmp_path / "x")),
+    }
+    try:
+        broker.email_watch("email-retry")
+    finally:
+        broker.broker_state._pending = None
+    assert calls["n"] == 2
