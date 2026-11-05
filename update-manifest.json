@@ -549,8 +549,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "a538834800f8493cf1c7958e462bc9524120f8fb8fec59849dab26ddfbb137f9",
-      "size": 57747
+      "sha256": "940cc820bbfc3b62a73c98a6cfc8dde83fe7131d3173d8e7965f1e0ba616b953",
+      "size": 57896
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -1234,8 +1234,8 @@
     },
     {
       "path": "tools/audit_chain.py",
-      "sha256": "7cba662b008f0e8d0ab9275ec387fafdc99b5df0e62ca7865638469918146ee4",
-      "size": 7594
+      "sha256": "49e1873c95bd0a3b60e0fa1f8291cd8784eb2fce55c019649938dee80274098d",
+      "size": 7768
     },
     {
       "path": "tools/audit_code_comments.py",
@@ -1264,8 +1264,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "d877a90f4b6b455d9584f714b1a9a497408193932cdbb9e039cc653cd7a7a85b",
-      "size": 112626
+      "sha256": "90dc8d6212114f4223f558c74c03f1cc5384309600cd313c836a71d29d63ee29",
+      "size": 112295
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1519,8 +1519,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "312e724ad67074f47b15c2e54c7c5da5dd8115559bdca38e937a455b8c797c1d",
-      "size": 9646
+      "sha256": "9967225d0f539996c9cba590620835a1381123c25f6194cad0f66824bd7b2815",
+      "size": 9673
     },
     {
       "path": "tools/physical_separation.py",
@@ -1649,8 +1649,8 @@
     },
     {
       "path": "tools/update.ps1",
-      "sha256": "d96e0dc97ce0f162578f67537d11f545a053df407951b1368a36db5c45913ab7",
-      "size": 13780
+      "sha256": "8a32bc44609b9dc2b7ac5f30107096051edb31caa5b02e1cd01e9c2fed2a3098",
+      "size": 13653
     },
     {
       "path": "tools/update_core.py",
@@ -1673,19 +1673,14 @@
       "size": 22589
     },
     {
-      "path": "tools/update_pubkey.pem",
-      "sha256": "2309d4ac5ba9dadc2300a3f5d038fbbcee8f81507479e9cc246b6ed77b033398",
-      "size": 625
-    },
-    {
       "path": "tools/verify_broker_acl.ps1",
       "sha256": "4917b5021e3dd76ab05e2cdb93aa0012b3fec826e1c315c899bfca3fa18b2902",
       "size": 3272
     },
     {
       "path": "tools/verify_release.py",
-      "sha256": "a4cf46d048dcdc312155724f39fe2ac41bbeb0ed3dba82a50fea35303cc2062c",
-      "size": 3700
+      "sha256": "82535a9a3618b199207a34898f5fca5526aa763e1fe9dff401b02d9463463716",
+      "size": 4696
     },
     {
       "path": "tools/weekly-selfheal.ps1",
