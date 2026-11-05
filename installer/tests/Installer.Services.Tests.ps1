@@ -168,7 +168,6 @@ Describe 'Installer services safety' {
     }
 
     It 'stops listeners owned by the install root by port' {
-        if ($env:CI) { return }
         $base = Join-Path $env:TEMP ('cb-services-ports-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path (Join-Path $base 'AgentRuntime') -Force | Out-Null
         $python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
