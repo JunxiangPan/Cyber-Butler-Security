@@ -152,13 +152,13 @@
       "ru": "Текущий поставщик (только для чтения)"
     },
     {
-      "zh": "重启 AstrBot 服务",
-      "en": "Restart AstrBot",
-      "ja": "AstrBotを再起動します",
-      "ko": "AstrBot 다시 시작",
-      "es": "Reiniciar AstrBot",
-      "fr": "Redémarrer AstrBot",
-      "de": "Starten Sie AstrBot neu",
+      "zh": "重启 AgentRuntime 服务",
+      "en": "Restart AgentRuntime",
+      "ja": "AgentRuntimeを再起動します",
+      "ko": "AgentRuntime 다시 시작",
+      "es": "Reiniciar AgentRuntime",
+      "fr": "Redémarrer AgentRuntime",
+      "de": "Starten Sie AgentRuntime neu",
       "ru": "Перезапустите АстрБот"
     },
     {
@@ -272,14 +272,14 @@
       "ru": "Текущая системная подсказка (только для чтения)"
     },
     {
-      "zh": "保存并重载 AstrBot",
-      "en": "Save and Reload AstrBot",
-      "ja": "AstrBot を保存して再ロードする",
-      "ko": "AstrBot 저장 및 다시 로드",
-      "es": "Guardar y recargar AstrBot",
-      "fr": "Enregistrer et recharger AstrBot",
-      "de": "Speichern Sie AstrBot und laden Sie es neu",
-      "ru": "Сохраните и перезагрузите AstrBot"
+      "zh": "保存并重载 AgentRuntime",
+      "en": "Save and Reload AgentRuntime",
+      "ja": "AgentRuntime を保存して再ロードする",
+      "ko": "AgentRuntime 저장 및 다시 로드",
+      "es": "Guardar y recargar AgentRuntime",
+      "fr": "Enregistrer et recharger AgentRuntime",
+      "de": "Speichern Sie AgentRuntime und laden Sie es neu",
+      "ru": "Сохраните и перезагрузите AgentRuntime"
     },
     {
       "zh": "清空当前对话历史",
@@ -862,14 +862,14 @@
       "ru": "Выберите плагин, чтобы увидеть подробности."
     },
     {
-      "zh": "搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。",
-      "en": "Search, then review the static security scan and AstrBot compatibility before installing.",
-      "ja": "検索して、インストールする前に静的セキュリティ スキャンと AstrBot の互換性を確認してください。",
-      "ko": "검색한 다음 설치하기 전에 정적 보안 검사 및 AstrBot 호환성을 검토하세요.",
-      "es": "Busque y luego revise el análisis de seguridad estático y la compatibilidad con AstrBot antes de instalar.",
-      "fr": "Recherchez, puis examinez l'analyse de sécurité statique et la compatibilité d'AstrBot avant l'installation.",
-      "de": "Suchen Sie und überprüfen Sie dann vor der Installation den statischen Sicherheitsscan und die AstrBot-Kompatibilität.",
-      "ru": "Выполните поиск, а затем проверьте статическое сканирование безопасности и совместимость с AstrBot перед установкой."
+      "zh": "搜索插件后，安装前会自动做静态安全扫描与 AgentRuntime 版本兼容检查。",
+      "en": "Search, then review the static security scan and AgentRuntime compatibility before installing.",
+      "ja": "検索して、インストールする前に静的セキュリティ スキャンと AgentRuntime の互換性を確認してください。",
+      "ko": "검색한 다음 설치하기 전에 정적 보안 검사 및 AgentRuntime 호환성을 검토하세요.",
+      "es": "Busque y luego revise el análisis de seguridad estático y la compatibilidad con AgentRuntime antes de instalar.",
+      "fr": "Recherchez, puis examinez l'analyse de sécurité statique et la compatibilité d'AgentRuntime avant l'installation.",
+      "de": "Suchen Sie und überprüfen Sie dann vor der Installation den statischen Sicherheitsscan und die AgentRuntime-Kompatibilität.",
+      "ru": "Выполните поиск, а затем проверьте статическое сканирование безопасности и совместимость с AgentRuntime перед установкой."
     },
     {
       "zh": "系统日志",
@@ -962,34 +962,34 @@
       "ru": "Удалить личность"
     },
     {
-      "zh": "切换人格会更新 AstrBot 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。",
-      "en": "Switching updates AstrBot's default persona and reloads the config; deleting a non-default persona is backed up to backups/personas first.",
-      "ja": "切り替えると、AstrBot のデフォルトのペルソナが更新され、設定がリロードされます。デフォルト以外のペルソナを削除すると、最初にバックアップ/ペルソナにバックアップされます。",
-      "ko": "전환하면 AstrBot의 기본 페르소나가 업데이트되고 구성이 다시 로드됩니다. 기본이 아닌 페르소나를 삭제하면 먼저 백업/페르소나에 백업됩니다.",
-      "es": "El cambio actualiza la personalidad predeterminada de AstrBot y recarga la configuración; La eliminación de una persona no predeterminada se realiza primero en copias de seguridad/personas.",
-      "fr": "La commutation met à jour le personnage par défaut d'AstrBot et recharge la configuration ; la suppression d'un personnage autre que celui par défaut est d'abord sauvegardée dans des sauvegardes/personnages.",
-      "de": "Beim Wechsel wird die Standardpersona von AstrBot aktualisiert und die Konfiguration neu geladen. Das Löschen einer nicht standardmäßigen Persona wird zunächst in Backups/Personas gesichert.",
-      "ru": "При переключении обновляется образ AstrBot по умолчанию и перезагружается конфигурация; при удалении образа, отличного от стандартного, сначала создается резервная копия/персонажа."
+      "zh": "切换人格会更新 AgentRuntime 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。",
+      "en": "Switching updates AgentRuntime's default persona and reloads the config; deleting a non-default persona is backed up to backups/personas first.",
+      "ja": "切り替えると、AgentRuntime のデフォルトのペルソナが更新され、設定がリロードされます。デフォルト以外のペルソナを削除すると、最初にバックアップ/ペルソナにバックアップされます。",
+      "ko": "전환하면 AgentRuntime의 기본 페르소나가 업데이트되고 구성이 다시 로드됩니다. 기본이 아닌 페르소나를 삭제하면 먼저 백업/페르소나에 백업됩니다.",
+      "es": "El cambio actualiza la personalidad predeterminada de AgentRuntime y recarga la configuración; La eliminación de una persona no predeterminada se realiza primero en copias de seguridad/personas.",
+      "fr": "La commutation met à jour le personnage par défaut d'AgentRuntime et recharge la configuration ; la suppression d'un personnage autre que celui par défaut est d'abord sauvegardée dans des sauvegardes/personnages.",
+      "de": "Beim Wechsel wird die Standardpersona von AgentRuntime aktualisiert und die Konfiguration neu geladen. Das Löschen einer nicht standardmäßigen Persona wird zunächst in Backups/Personas gesichert.",
+      "ru": "При переключении обновляется образ AgentRuntime по умолчанию и перезагружается конфигурация; при удалении образа, отличного от стандартного, сначала создается резервная копия/персонажа."
     },
     {
-      "zh": "打开 AstrBot WebUI",
-      "en": "Open AstrBot WebUI",
+      "zh": "打开 AgentRuntime WebUI",
+      "en": "Open AgentRuntime WebUI",
       "ja": "AstBot WebUIを開く",
-      "ko": "AstrBot WebUI 열기",
-      "es": "Abra la interfaz web de AstrBot",
-      "fr": "Ouvrir l'interface utilisateur Web d'AstrBot",
-      "de": "Öffnen Sie die AstrBot-WebUI",
-      "ru": "Откройте веб-интерфейс AstrBot"
+      "ko": "AgentRuntime WebUI 열기",
+      "es": "Abra la interfaz web de AgentRuntime",
+      "fr": "Ouvrir l'interface utilisateur Web d'AgentRuntime",
+      "de": "Öffnen Sie die AgentRuntime-WebUI",
+      "ru": "Откройте веб-интерфейс AgentRuntime"
     },
     {
-      "zh": "打开 SnowLuma WebUI",
-      "en": "Open SnowLuma WebUI",
-      "ja": "SnowLuma WebUI を開く",
-      "ko": "SnowLuma WebUI 열기",
-      "es": "Abra la interfaz de usuario web de SnowLuma",
-      "fr": "Ouvrir l'interface utilisateur Web de SnowLuma",
-      "de": "Öffnen Sie die SnowLuma-WebUI",
-      "ru": "Открыть веб-интерфейс SnowLuma"
+      "zh": "打开 AuxRuntime WebUI",
+      "en": "Open AuxRuntime WebUI",
+      "ja": "AuxRuntime WebUI を開く",
+      "ko": "AuxRuntime WebUI 열기",
+      "es": "Abra la interfaz de usuario web de AuxRuntime",
+      "fr": "Ouvrir l'interface utilisateur Web de AuxRuntime",
+      "de": "Öffnen Sie die AuxRuntime-WebUI",
+      "ru": "Открыть веб-интерфейс AuxRuntime"
     },
     {
       "zh": "TOTP Broker 为后台无头服务，无 Web 管理界面",
@@ -1082,14 +1082,14 @@
       "ru": "Источник"
     },
     {
-      "zh": "AstrBot 官方市场",
-      "en": "AstrBot Official",
+      "zh": "AgentRuntime 官方市场",
+      "en": "AgentRuntime Official",
       "ja": "アストラボット公式",
-      "ko": "AstrBot 공식",
-      "es": "Oficial de AstrBot",
-      "fr": "AstrBot Officiel",
-      "de": "AstrBot-Beamter",
-      "ru": "Официальный сайт AstrBot"
+      "ko": "AgentRuntime 공식",
+      "es": "Oficial de AgentRuntime",
+      "fr": "AgentRuntime Officiel",
+      "de": "AgentRuntime-Beamter",
+      "ru": "Официальный сайт AgentRuntime"
     },
     {
       "zh": "⚠️ 注意：控制台插件运行在当前用户的最高权限下，请仅安装你信任的插件！",

@@ -9,7 +9,7 @@ $log = Join-Path $runtime 'game-mode-watchdog.log'
 
 function Write-WatchdogLog([string]$message) {
     $line = '[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message
-    try { Add-Content -LiteralPath $log -Value $line -Encoding UTF8 } catch { }
+    try { Add-Content -LiteralPath $log -Value $line -Encoding UTF8 } catch { Write-Verbose 'optional operation failed' }
 }
 
 if (-not (Test-Path -LiteralPath $stateFile)) { exit 0 }

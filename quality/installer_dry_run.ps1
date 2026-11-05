@@ -27,7 +27,7 @@ try {
     }
 
     # Chinese / emoji / long-path creation smoke.
-    $unicode = Join-Path $workspace '大肥鱼-测试.txt'
+    $unicode = Join-Path $workspace 'shared-测试.txt'
     Set-Content -LiteralPath $unicode -Value 'unicode path' -Encoding UTF8
     if ((Get-Content -LiteralPath $unicode -Raw) -notmatch 'unicode path') {
         throw 'unicode path readback failed'

@@ -2,13 +2,13 @@
   "version": "1.6.2",
   "generated_for": "v1.6.2",
   "completed": [
-    "AstrBot runs as native Windows SCM service CyberButlerAstrBot",
-    "AstrBot 6185 listening; SQLite write probe succeeded",
+    "AgentRuntime runs as native Windows SCM service CyberButlerAgentRuntime",
+    "AgentRuntime 6185 listening; SQLite write probe succeeded",
     "Job Object KILL_ON_JOB_CLOSE covers the child tree",
     "TOTP Broker 18090 listening",
     "Cyber-Butler Web UI 8765 listening",
     "OTP Mailer 8766 listening",
-    "SnowLuma 5099 listening",
+    "AuxRuntime 5099 listening",
     "WFP Guard runs as SYSTEM in audit mode; wfp-guard-status.json ok=true",
     "High/Medium/Light tiers installed on real machines"
   ],
@@ -20,18 +20,18 @@
     "Full audit-chain replacement of legacy AUDIT writes is incomplete"
   ],
   "ports": {
-    "6185": "AstrBot SCM service (CyberButlerAstrBot)",
+    "6185": "AgentRuntime SCM service (CyberButlerAgentRuntime)",
     "18090": "TOTP Broker (SYSTEM task)",
     "8765": "WebUI (desktop task)",
     "8766": "OTP Mailer (desktop task)",
-    "5099": "SnowLuma (desktop task)",
-    "6199": "Dynamic AstrBot OneBot adapter port, not a system service"
+    "5099": "AuxRuntime (desktop task)",
+    "6199": "Dynamic AgentRuntime AgentProtocol adapter port, not a system service"
   },
   "service": {
-    "name": "CyberButlerAstrBot",
+    "name": "CyberButlerAgentRuntime",
     "account": "CyberButlerSvc",
     "binary_acl": "CyberButlerSvc:RX, SYSTEM:F, Administrators:F",
     "interactive_logon": "denied",
-    "log": "AstrBot\\data\\logs\\service-astrbot.log"
+    "log": "AgentRuntime\\data\\logs\\service-agentruntime.log"
   }
 }

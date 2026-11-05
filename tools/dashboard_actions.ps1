@@ -4,14 +4,14 @@ Elevated action helper for the Cyber-Butler dashboard.
 
 The dashboard runs unprivileged and launches this script only after a UAC
 prompt. Supported actions:
-  RestartAstrBot
+  RestartAgentRuntime
   ReleaseVram
   Fuse
   ClearConversation
   SaveApiKey
 #>
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('RestartAstrBot', 'ReleaseVram', 'Fuse', 'ClearConversation', 'SaveApiKey', 'SetBrokerChannel', 'RestartBroker')]
+    [Parameter(Mandatory = $true)][ValidateSet('RestartAgentRuntime', 'ReleaseVram', 'Fuse', 'ClearConversation', 'SaveApiKey', 'SetBrokerChannel', 'RestartBroker')]
     [string]$Action,
     [Parameter(Mandatory = $true)][string]$ProjectRoot,
     [string]$ConfirmationText = '',
@@ -23,7 +23,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path -LiteralPath $ProjectRoot).Path
-$log = Join-Path $root 'AstrBot\data\dashboard-actions.log'
+$log = Join-Path $root 'AgentRuntime\data\dashboard-actions.log'
 
 function Write-ActionStatus([string]$stage, [int]$progress, [string]$message) {
     if (-not $StatusFile) { return }
@@ -37,7 +37,7 @@ function Write-ActionStatus([string]$stage, [int]$progress, [string]$message) {
             updated_at = (Get-Date).ToString('o')
         } | ConvertTo-Json -Compress
         [IO.File]::WriteAllText($StatusFile, $json, (New-Object Text.UTF8Encoding($false)))
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Write-ActionLog([string]$message) {
@@ -45,7 +45,7 @@ function Write-ActionLog([string]$message) {
         $parent = Split-Path -Parent $log
         if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
         Add-Content -LiteralPath $log -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Wait-Port([int]$Port, [int]$Seconds = 60) {
@@ -55,8 +55,7 @@ function Wait-Port([int]$Port, [int]$Seconds = 60) {
         try {
             $task = $client.ConnectAsync('127.0.0.1', $Port)
             if ($task.Wait(700) -and $client.Connected) { return $true }
-        } catch {
-        } finally {
+        } catch { Write-Verbose 'optional operation failed' } finally {
             $client.Dispose()
         }
         Start-Sleep -Seconds 2
@@ -64,7 +63,13 @@ function Wait-Port([int]$Port, [int]$Seconds = 60) {
     return $false
 }
 
-function Stop-AstrBotProcesses([switch]$IncludeBroker) {
+<#
+.SYNOPSIS
+    Stop-AgentRuntimeProcesses performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Stop-AgentRuntimeProcesses([switch]$IncludeBroker) {
     $killed = @()
     $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='pythonw.exe'" -ErrorAction SilentlyContinue |
         Where-Object {
@@ -76,24 +81,24 @@ function Stop-AstrBotProcesses([switch]$IncludeBroker) {
         try {
             Stop-Process -Id $proc.ProcessId -Force -ErrorAction Stop
             $killed += [int]$proc.ProcessId
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     if ($IncludeBroker) {
         $brokers = @(Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='pythonw.exe'" -ErrorAction SilentlyContinue |
             Where-Object { $_.CommandLine -and $_.CommandLine -match '(?i)broker\.py' })
         foreach ($proc in $brokers) {
-            try { Stop-Process -Id $proc.ProcessId -Force -ErrorAction Stop; $killed += [int]$proc.ProcessId } catch { }
+            try { Stop-Process -Id $proc.ProcessId -Force -ErrorAction Stop; $killed += [int]$proc.ProcessId } catch { Write-Verbose 'optional operation failed' }
         }
     }
     # WMI command lines can be blank for a service-owned process.  Never leave
-    # an old listener on 6185 behind; kill only the owner of AstrBot's port.
+    # an old listener on 6185 behind; kill only the owner of AgentRuntime's port.
     $listeners = @(Get-NetTCPConnection -LocalPort 6185 -State Listen -ErrorAction SilentlyContinue)
     foreach ($listener in $listeners) {
         if ([int]$listener.OwningProcess -gt 0) {
-            try { Stop-Process -Id ([int]$listener.OwningProcess) -Force -ErrorAction Stop; $killed += [int]$listener.OwningProcess } catch { }
+            try { Stop-Process -Id ([int]$listener.OwningProcess) -Force -ErrorAction Stop; $killed += [int]$listener.OwningProcess } catch { Write-Verbose 'optional operation failed' }
         }
     }
-    Write-ActionLog ('stopped AstrBot pids=' + (($killed | Select-Object -Unique) -join ','))
+    Write-ActionLog ('stopped AgentRuntime pids=' + (($killed | Select-Object -Unique) -join ','))
 }
 
 function Wait-PortClosed([int]$Port, [int]$Seconds = 20) {
@@ -117,33 +122,33 @@ function Wait-TaskNotRunning([string]$Name, [int]$Seconds = 15) {
 }
 
 try {
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot'))) {
-        throw "ProjectRoot does not contain AstrBot: $root"
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'AgentRuntime'))) {
+        throw "ProjectRoot does not contain AgentRuntime: $root"
     }
     Write-ActionLog ("action=$Action")
 
     switch ($Action) {
-        'RestartAstrBot' {
-            Write-ActionStatus 'stopping' 20 '正在停止 AstrBot...'
-            Write-ActionLog 'RestartAstrBot: stopping AstrBot service task'
-            Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+        'RestartAgentRuntime' {
+            Write-ActionStatus 'stopping' 20 '正在停止 AgentRuntime...'
+            Write-ActionLog 'RestartAgentRuntime: stopping AgentRuntime service task'
+            Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 2
-            if (-not (Wait-TaskNotRunning 'AstrBot Service' 15)) {
-                Write-ActionLog 'AstrBot task still running; issuing schtasks /End'
-                $end = Start-Process -FilePath 'schtasks.exe' -ArgumentList '/End /TN "AstrBot Service"' -WindowStyle Hidden -Wait -PassThru
-                Write-ActionLog ('schtasks /End AstrBot Service exit=' + $end.ExitCode)
+            if (-not (Wait-TaskNotRunning 'AgentRuntime Service' 15)) {
+                Write-ActionLog 'AgentRuntime task still running; issuing schtasks /End'
+                $end = Start-Process -FilePath 'schtasks.exe' -ArgumentList '/End /TN "AgentRuntime Service"' -WindowStyle Hidden -Wait -PassThru
+                Write-ActionLog ('schtasks /End AgentRuntime Service exit=' + $end.ExitCode)
                 Start-Sleep -Seconds 2
             }
-            Stop-AstrBotProcesses
+            Stop-AgentRuntimeProcesses
             if (-not (Wait-PortClosed 6185 20)) {
-                throw 'AstrBot port 6185 is still listening after forced stop'
+                throw 'AgentRuntime port 6185 is still listening after forced stop'
             }
-            Write-ActionLog 'AstrBot stopped; port 6185 is free; broker path was not targeted'
-            Write-ActionStatus 'starting' 55 '正在启动 AstrBot...'
-            Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-            if (-not (Wait-Port 6185 60)) { throw 'AstrBot did not become healthy on 6185' }
-            Write-ActionStatus 'done' 100 'AstrBot 已重启'
-            Write-ActionLog 'AstrBot restart OK; broker was not stopped'
+            Write-ActionLog 'AgentRuntime stopped; port 6185 is free; broker path was not targeted'
+            Write-ActionStatus 'starting' 55 '正在启动 AgentRuntime...'
+            Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+            if (-not (Wait-Port 6185 60)) { throw 'AgentRuntime did not become healthy on 6185' }
+            Write-ActionStatus 'done' 100 'AgentRuntime 已重启'
+            Write-ActionLog 'AgentRuntime restart OK; broker was not stopped'
         }
         'ReleaseVram' {
             Write-ActionStatus 'releasing' 30 '正在释放本地模型显存...'
@@ -160,24 +165,24 @@ try {
         'Fuse' {
             if ($ConfirmationText -cne 'FUSE') { throw 'FUSE confirmation rejected' }
             Write-ActionStatus 'fuse' 30 '正在执行紧急熔断...'
-            Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-            Stop-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
+            Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+            Stop-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
-            Stop-AstrBotProcesses -IncludeBroker
-            Write-ActionStatus 'done' 100 '紧急熔断完成：AstrBot 与 Broker 已停止'
-            Write-ActionLog 'FUSE executed; AstrBot and Broker stopped'
+            Stop-AgentRuntimeProcesses -IncludeBroker
+            Write-ActionStatus 'done' 100 '紧急熔断完成：AgentRuntime 与 Broker 已停止'
+            Write-ActionLog 'FUSE executed; AgentRuntime and Broker stopped'
         }
         'ClearConversation' {
             if (-not $Umo) { throw 'Umo is required' }
-            $db = Join-Path $root 'AstrBot\data\data_v4.db'
+            $db = Join-Path $root 'AgentRuntime\data\data_v4.db'
             if (-not (Test-Path -LiteralPath $db)) { throw "database missing: $db" }
-            Write-ActionStatus 'stopping' 20 '正在停止 AstrBot 以清理对话...'
-            Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+            Write-ActionStatus 'stopping' 20 '正在停止 AgentRuntime 以清理对话...'
+            Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 2
-            Stop-AstrBotProcesses
+            Stop-AgentRuntimeProcesses
             $backup = $db + '.bak-dashboard-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
             Copy-Item -LiteralPath $db -Destination $backup -Force
-            $python = Join-Path $root 'AstrBot\.venv\Scripts\python.exe'
+            $python = Join-Path $root 'AgentRuntime\.venv\Scripts\python.exe'
             $code = @'
 import sqlite3, sys
 path, user = sys.argv[1], sys.argv[2]
@@ -196,9 +201,9 @@ finally:
             } finally {
                 Remove-Item -LiteralPath $codePath -Force -ErrorAction SilentlyContinue
             }
-            Write-ActionStatus 'starting' 80 '正在重启 AstrBot...'
-            Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-            if (-not (Wait-Port 6185 60)) { throw 'AstrBot did not recover after conversation clear' }
+            Write-ActionStatus 'starting' 80 '正在重启 AgentRuntime...'
+            Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+            if (-not (Wait-Port 6185 60)) { throw 'AgentRuntime did not recover after conversation clear' }
             Write-ActionStatus 'done' 100 '当前对话已清空'
             Write-ActionLog ('conversation cleared for ' + $Umo)
         }
@@ -208,7 +213,7 @@ finally:
             $secretHelper = Join-Path $PSScriptRoot 'dashboard_secret.ps1'
             & $secretHelper -InputFile $SecretFile -OutputFile (Join-Path $root 'tools\deepseek.key.dpapi')
             if ($LASTEXITCODE -ne 0) { throw 'API key save failed' }
-            Write-ActionStatus 'done' 100 'API Key 已保存；重启 AstrBot 后生效'
+            Write-ActionStatus 'done' 100 'API Key 已保存；重启 AgentRuntime 后生效'
             Write-ActionLog 'API key saved'
         }
         'SetBrokerChannel' {

@@ -15,7 +15,7 @@ param(
     [string]$InstallPath = 'C:\CyberButler',
     [string]$ServiceAccountName = 'CyberButlerSvc',
     [string]$DesktopAccount = '',
-    [string]$ExternalAgentAccount = '',
+    [string]$AgentRuntimeAccount = '',
     [string]$DataPath = '',
     [string]$WorkspacePath = '',
     [string]$TotpVaultPath = '',
@@ -58,8 +58,8 @@ if ($modes.Count -ne 1) {
 if ([string]::IsNullOrWhiteSpace($DesktopAccount)) {
     $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
-if ([string]::IsNullOrWhiteSpace($ExternalAgentAccount)) {
-    $ExternalAgentAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+if ([string]::IsNullOrWhiteSpace($AgentRuntimeAccount)) {
+    $AgentRuntimeAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
 if ([string]::IsNullOrWhiteSpace($TotpVaultPath)) {
     $TotpVaultPath = Join-Path $InstallPath 'tools\totp-vault'
@@ -79,6 +79,12 @@ if ([string]::IsNullOrWhiteSpace($ReportDirectory)) {
     }
 }
 
+<#
+.SYNOPSIS
+    Write-MigrationReport performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Write-MigrationReport {
     param(
         [string]$Mode,
@@ -98,8 +104,8 @@ function Write-MigrationReport {
         tier = $Tier
         service_account = $ServiceAccountName
         desktop_account = $DesktopAccount
-        astrbot_account = $ExternalAgentAccount
-        snowluma = 'unchanged'
+        agentruntime_account = $AgentRuntimeAccount
+        auxruntime = 'unchanged'
         broker = 'unchanged'
         downtime_estimate = '2-5 minutes (must be measured on the clean VM)'
         steps = @($Steps)
@@ -120,7 +126,7 @@ function Write-MigrationReport {
     $lines.Add('- Status: ' + $Status)
     $lines.Add('- Tier: ' + $Tier)
     $lines.Add('- Service account: ' + $ServiceAccountName)
-    $lines.Add('- ExternalApplication: unchanged')
+    $lines.Add('- AuxRuntimeApplication: unchanged')
     $lines.Add('- Broker: unchanged')
     $lines.Add('- Downtime estimate: ' + $report.downtime_estimate)
     if ($Journal) { $lines.Add('- Journal: ' + $Journal.StatePath) }
@@ -135,23 +141,29 @@ function Write-MigrationReport {
     return [pscustomobject]@{ json = $jsonPath; markdown = $mdPath }
 }
 
+<#
+.SYNOPSIS
+    Get-MigrationState performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-MigrationState {
     param($Handlers)
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'migration.test') {
-        $state = Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.test' -Context ([pscustomobject]@{ ServiceAccountName = $ServiceAccountName; ExternalAgentAccount = $ExternalAgentAccount })
+        $state = Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.test' -Context ([pscustomobject]@{ ServiceAccountName = $ServiceAccountName; AgentRuntimeAccount = $AgentRuntimeAccount })
         return $state
     }
     $user = Get-LocalUser -Name $ServiceAccountName -ErrorAction SilentlyContinue
-    $astrbotTask = Get-ScheduledTask -TaskName 'ExternalAgent Service' -ErrorAction SilentlyContinue
+    $agentruntimeTask = Get-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
     $webTask = Get-ScheduledTask -TaskName 'Cyber-Butler Web UI Services' -ErrorAction SilentlyContinue
-    $astrbotPrincipal = if ($astrbotTask) { [string]$astrbotTask.Principal.UserId } else { $null }
+    $agentruntimePrincipal = if ($agentruntimeTask) { [string]$agentruntimeTask.Principal.UserId } else { $null }
     $webPrincipal = if ($webTask) { [string]$webTask.Principal.UserId } else { $null }
     return [pscustomobject]@{
-        satisfied = ([bool]$user -and $astrbotPrincipal -ieq $ServiceAccountName -and $webPrincipal -ieq $ServiceAccountName)
+        satisfied = ([bool]$user -and $agentruntimePrincipal -ieq $ServiceAccountName -and $webPrincipal -ieq $ServiceAccountName)
         account_exists = [bool]$user
-        astrbot_principal = $astrbotPrincipal
+        agentruntime_principal = $agentruntimePrincipal
         webui_principal = $webPrincipal
-        snowluma = 'unchanged'
+        auxruntime = 'unchanged'
         broker = 'unchanged'
         reason = 'migration state checked'
     }
@@ -164,13 +176,13 @@ function Format-MigrationPlan {
     $lines.Add('Mode: ' + $Mode)
     $lines.Add('Tier: ' + $Tier)
     $lines.Add('Service account: ' + $ServiceAccountName)
-    $lines.Add('Current ExternalAgent principal: ' + $(if ($State.astrbot_principal) { $State.astrbot_principal } else { 'unknown' }))
+    $lines.Add('Current AgentRuntime principal: ' + $(if ($State.agentruntime_principal) { $State.agentruntime_principal } else { 'unknown' }))
     $lines.Add('Current Web UI principal: ' + $(if ($State.webui_principal) { $State.webui_principal } else { 'unknown' }))
-    $lines.Add('ExternalApplication: unchanged (not migrated)')
+    $lines.Add('AuxRuntimeApplication: unchanged (not migrated)')
     $lines.Add('Broker: unchanged (not migrated)')
     $lines.Add('Steps: preflight -> snapshot -> account -> acl -> dpapi -> stop -> tasks -> start -> verify -> commit')
     $lines.Add('Downtime estimate: 2-5 minutes (must be measured on the clean VM)')
-    $lines.Add('Rollback: restore task XML, ACL, secret backups; start old ExternalAgent/Web UI; data is not copied')
+    $lines.Add('Rollback: restore task XML, ACL, secret backups; start old AgentRuntime/Web UI; data is not copied')
     $lines.Add('Data: never copied or rolled back')
     return ($lines -join [Environment]::NewLine)
 }
@@ -188,14 +200,14 @@ function Invoke-MigrationSnapshot {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'migration.snapshot') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.snapshot' -Context ([pscustomobject]@{ Journal = $Journal }))
     }
-    $taskNames = @('ExternalAgent Service', 'Cyber-Butler Web UI Services')
+    $taskNames = @('AgentRuntime Service', 'Cyber-Butler Web UI Services')
     foreach ($taskName in $taskNames) {
         if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
             $backup = Backup-CyberButlerScheduledTask -Journal $Journal -Step 'snapshot' -TaskName $taskName
             Add-CyberButlerReverseAction -Journal $Journal -Step 'snapshot' -Action ([pscustomobject]@{ type = 'restore-scheduled-task'; task_name = $taskName; backup = $backup })
         }
     }
-    foreach ($path in @((Join-Path $InstallPath 'ExternalAgent'), (Join-Path $InstallPath 'tools'), (Join-Path $InstallPath 'ExternalAgent\data'), $TotpVaultPath)) {
+    foreach ($path in @((Join-Path $InstallPath 'AgentRuntime'), (Join-Path $InstallPath 'tools'), (Join-Path $InstallPath 'AgentRuntime\data'), $TotpVaultPath)) {
         if (Test-Path -LiteralPath $path) {
             $backup = Backup-CyberButlerAcl -Journal $Journal -Step 'snapshot' -Path $path -NoTrack
             Add-CyberButlerReverseAction -Journal $Journal -Step 'snapshot' -Action ([pscustomobject]@{ type = 'restore-acl'; target = [IO.Path]::GetFullPath($path); backup = $backup })
@@ -210,9 +222,9 @@ function Invoke-MigrationAcl {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.acl' -Context ([pscustomobject]@{ Journal = $Journal; ServiceAccountName = $ServiceAccountName }))
     }
     $targets = @(
-        @{ path = (Join-Path $InstallPath 'ExternalAgent'); mode = 'RX' },
-        @{ path = (Join-Path $InstallPath 'ExternalAgent\.venv'); mode = 'RX' },
-        @{ path = (Join-Path $InstallPath 'ExternalAgent\data'); mode = 'RW' },
+        @{ path = (Join-Path $InstallPath 'AgentRuntime'); mode = 'RX' },
+        @{ path = (Join-Path $InstallPath 'AgentRuntime\.venv'); mode = 'RX' },
+        @{ path = (Join-Path $InstallPath 'AgentRuntime\data'); mode = 'RW' },
         @{ path = (Join-Path $InstallPath 'workspace'); mode = 'RW' },
         @{ path = $TotpVaultPath; mode = 'Deny' }
     )
@@ -240,6 +252,7 @@ function Invoke-MigrationDpapi {
             [IO.File]::WriteAllBytes($path, $bytes)
         } catch {
             # Machine-scope material may already be readable; leave it untouched.
+            Write-Verbose ('DPAPI migration skipped: ' + $_.Exception.Message)
         }
     }
     return [pscustomobject]@{ status = 'completed'; scope = 'LocalMachine' }
@@ -250,11 +263,11 @@ function Invoke-MigrationStop {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'migration.stop') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.stop' -Context ([pscustomobject]@{ Journal = $Journal }))
     }
-    foreach ($taskName in @('ExternalAgent Service', 'Cyber-Butler Web UI Services')) {
+    foreach ($taskName in @('AgentRuntime Service', 'Cyber-Butler Web UI Services')) {
         Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     }
     Start-Sleep -Seconds 2
-    return [pscustomobject]@{ status = 'completed'; stopped = 'ExternalAgent Service, Cyber-Butler Web UI Services'; snowluma = 'unchanged'; broker = 'unchanged' }
+    return [pscustomobject]@{ status = 'completed'; stopped = 'AgentRuntime Service, Cyber-Butler Web UI Services'; auxruntime = 'unchanged'; broker = 'unchanged' }
 }
 
 function Invoke-MigrationTasks {
@@ -262,11 +275,11 @@ function Invoke-MigrationTasks {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'migration.tasks') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.tasks' -Context ([pscustomobject]@{ Journal = $Journal; ServiceAccountName = $ServiceAccountName }))
     }
-    $python = Join-Path $InstallPath 'ExternalAgent\.venv\Scripts\python.exe'
+    $python = Join-Path $InstallPath 'AgentRuntime\.venv\Scripts\python.exe'
     $web = Join-Path $InstallPath 'webui\.venv\Scripts\python.exe'
-    New-CyberButlerScheduledTask -Name 'ExternalAgent Service' -Exe $python -Arguments 'main.py' -WorkingDirectory (Join-Path $InstallPath 'ExternalAgent') -PrincipalMode 'service' -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Trigger 'AtLogOn'
+    New-CyberButlerScheduledTask -Name 'AgentRuntime Service' -Exe $python -Arguments 'main.py' -WorkingDirectory (Join-Path $InstallPath 'AgentRuntime') -PrincipalMode 'service' -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Trigger 'AtLogOn'
     New-CyberButlerScheduledTask -Name 'Cyber-Butler Web UI Services' -Exe $web -Arguments 'run.py' -WorkingDirectory (Join-Path $InstallPath 'webui') -PrincipalMode 'service' -ServiceAccount $ServiceAccountName -DesktopAccount $DesktopAccount -Trigger 'AtLogOn'
-    return [pscustomobject]@{ status = 'completed'; tasks = @('ExternalAgent Service', 'Cyber-Butler Web UI Services'); snowluma = 'unchanged'; broker = 'unchanged' }
+    return [pscustomobject]@{ status = 'completed'; tasks = @('AgentRuntime Service', 'Cyber-Butler Web UI Services'); auxruntime = 'unchanged'; broker = 'unchanged' }
 }
 
 function Invoke-MigrationStart {
@@ -274,7 +287,7 @@ function Invoke-MigrationStart {
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'migration.start') {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.start' -Context ([pscustomobject]@{ InstallPath = $InstallPath }))
     }
-    foreach ($taskName in @('ExternalAgent Service', 'Cyber-Butler Web UI Services')) {
+    foreach ($taskName in @('AgentRuntime Service', 'Cyber-Butler Web UI Services')) {
         Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     }
     $deadline = (Get-Date).AddSeconds(60)
@@ -301,7 +314,7 @@ function Invoke-MigrationRollback {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'migration.undo' -Context ([pscustomobject]@{ Journal = $Journal }))
     }
     $result = Invoke-CyberButlerRollback -Journal $Journal -Handlers $RollbackHandlers
-    foreach ($taskName in @('ExternalAgent Service', 'Cyber-Butler Web UI Services')) {
+    foreach ($taskName in @('AgentRuntime Service', 'Cyber-Butler Web UI Services')) {
         Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     }
     return $result
@@ -428,14 +441,14 @@ try {
     if (Test-Path -LiteralPath $releaseVersionPath) {
         $migrationVersion = (Get-Content -LiteralPath $releaseVersionPath -Raw -ErrorAction SilentlyContinue).Trim()
     }
-} catch { }
+} catch { Write-Verbose 'optional operation failed' }
 try {
     $markerPath = Write-CyberButlerInstallStateMarker -InstallPath $InstallPath -Version $migrationVersion -Tier $Tier -Isolation $true -Source 'migration'
     Write-Output ('STATE ' + $markerPath)
 } catch {
     Write-InstallerLine ('Install state marker was not written: ' + $_.Exception.Message) -Level WARN
 }
-$report = Write-MigrationReport -Mode 'Apply' -Status 'success' -State $state -Steps @($journal.State.steps) -Approvals $approvals -Journal $journal -Failure $null -Message 'Dual-account isolation enabled; ExternalApplication and Broker unchanged.'
+$report = Write-MigrationReport -Mode 'Apply' -Status 'success' -State $state -Steps @($journal.State.steps) -Approvals $approvals -Journal $journal -Failure $null -Message 'Dual-account isolation enabled; AuxRuntimeApplication and Broker unchanged.'
 Write-Output 'MIGRATION_OK'
 Write-Output ('REPORT ' + $report.json)
 exit (Get-InstallerExitCode -Name Success)

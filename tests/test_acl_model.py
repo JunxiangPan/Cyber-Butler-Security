@@ -58,18 +58,18 @@ def test_service_account_is_denied_even_if_an_allow_ace_exists() -> None:
 
     with pytest.raises(PermissionError):
         read_vault(
-            r"YOUR_USER_PATH\Documents\苏瑾言TOTP保险箱",
+            r"YOUR_USER_PATH\Documents\local agentTOTP保险箱",
             "YOUR_SERVICE_USER",
             aces,
         )
 
 
 def test_owner_can_read_vault() -> None:
-    aces = [Ace("YOUR_USER_NAME", True, frozenset({"full"}))]
-    assert read_vault("vault", "YOUR_USER_NAME", aces).startswith("vault-")
+    aces = [Ace("test-user", True, frozenset({"full"}))]
+    assert read_vault("vault", "test-user", aces).startswith("vault-")
 
 
 def test_unrelated_account_is_denied_by_default() -> None:
-    aces = [Ace("YOUR_USER_NAME", True, frozenset({"full"}))]
+    aces = [Ace("test-user", True, frozenset({"full"}))]
     with pytest.raises(PermissionError):
         read_vault("vault", "YOUR_SERVICE_USER", aces)

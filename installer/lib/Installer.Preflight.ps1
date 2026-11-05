@@ -5,6 +5,12 @@ if (-not (Get-Command Get-CyberButlerExistingState -ErrorAction SilentlyContinue
     . (Join-Path $PSScriptRoot 'Installer.Common.ps1')
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerPortSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerPortSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -60,14 +66,20 @@ function Get-CyberButlerPortSnapshot {
     return $results.ToArray()
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerProcessSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerProcessSnapshot {
     param(
         [object[]]$PortSnapshot = @()
     )
 
     $result = [ordered]@{
-        astrbot = @()
-        snowluma = @()
+        agentruntime = @()
+        auxruntime = @()
         broker = @()
     }
 
@@ -77,42 +89,48 @@ function Get-CyberButlerProcessSnapshot {
         return [pscustomobject]$result
     }
 
-    $astrbot = New-Object System.Collections.Generic.List[object]
-    $snowluma = New-Object System.Collections.Generic.List[object]
+    $agentruntime = New-Object System.Collections.Generic.List[object]
+    $auxruntime = New-Object System.Collections.Generic.List[object]
     $broker = New-Object System.Collections.Generic.List[object]
-    $astrbotPids = @($PortSnapshot | Where-Object { $_.port -eq 6185 -and $_.pid } | ForEach-Object { [int]$_.pid })
+    $agentruntimePids = @($PortSnapshot | Where-Object { $_.port -eq 6185 -and $_.pid } | ForEach-Object { [int]$_.pid })
     $brokerPids = @($PortSnapshot | Where-Object { $_.port -eq 18090 -and $_.pid } | ForEach-Object { [int]$_.pid })
 
     foreach ($process in $processes) {
         $name = [string]$process.Name
         $command = [string]$process.CommandLine
         $pidValue = [int]$process.ProcessId
-        $isExternalAgentPort = $astrbotPids -contains $pidValue
+        $isAgentRuntimePort = $agentruntimePids -contains $pidValue
         $isBrokerPort = $brokerPids -contains $pidValue
-        if (-not $command -and -not $isExternalAgentPort -and -not $isBrokerPort) { continue }
+        if (-not $command -and -not $isAgentRuntimePort -and -not $isBrokerPort) { continue }
         $item = [pscustomobject][ordered]@{
             pid = $pidValue
             name = $name
             command_line = if ($command.Length -gt 320) { $command.Substring(0, 320) } else { $command }
-            detected_by = if ($isExternalAgentPort -or $isBrokerPort) { 'port' } else { 'command-line' }
+            detected_by = if ($isAgentRuntimePort -or $isBrokerPort) { 'port' } else { 'command-line' }
         }
-        if ($name -ieq 'python.exe' -and ($command -match 'main\.py' -or $isExternalAgentPort)) {
-            $astrbot.Add($item)
+        if ($name -ieq 'python.exe' -and ($command -match 'main\.py' -or $isAgentRuntimePort)) {
+            $agentruntime.Add($item)
         }
         if ($name -ieq 'python.exe' -and ($command -match 'tools[\/]broker\.py' -or $isBrokerPort)) {
             $broker.Add($item)
         }
-        if ($name -ieq 'node.exe' -and $command -match 'ExternalApplication') {
-            $snowluma.Add($item)
+        if ($name -ieq 'node.exe' -and $command -match 'AuxRuntimeApplication') {
+            $auxruntime.Add($item)
         }
     }
 
-    $result['astrbot'] = $astrbot.ToArray()
-    $result['snowluma'] = $snowluma.ToArray()
+    $result['agentruntime'] = $agentruntime.ToArray()
+    $result['auxruntime'] = $auxruntime.ToArray()
     $result['broker'] = $broker.ToArray()
     return [pscustomobject]$result
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerScheduledTaskSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerScheduledTaskSnapshot {
     param()
 
@@ -127,9 +145,9 @@ function Get-CyberButlerScheduledTaskSnapshot {
         $tasks = @(Get-ScheduledTask -ErrorAction Stop)
         $wanted = New-Object System.Collections.Generic.List[object]
         foreach ($task in $tasks) {
-            if ([string]$task.TaskName -notmatch 'ExternalAgent|ExternalApplication|Ollama|Game Mode|Cyber-Butler') { continue }
+            if ([string]$task.TaskName -notmatch 'AgentRuntime|AuxRuntimeApplication|Ollama|Game Mode|Cyber-Butler') { continue }
             $principal = $null
-            try { $principal = [string]$task.Principal.UserId } catch { }
+            try { $principal = [string]$task.Principal.UserId } catch { Write-Verbose 'optional operation failed' }
             $wanted.Add([pscustomobject][ordered]@{
                 task_name = [string]$task.TaskName
                 task_path = [string]$task.TaskPath
@@ -145,6 +163,12 @@ function Get-CyberButlerScheduledTaskSnapshot {
     return [pscustomobject]$result
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerDefenderSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerDefenderSnapshot {
     param()
 
@@ -173,6 +197,12 @@ function Get-CyberButlerDefenderSnapshot {
     return [pscustomobject]$result
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerPythonSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerPythonSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -191,7 +221,7 @@ function Get-CyberButlerPythonSnapshot {
         if ($command) { $paths.Add([string]$command.Source) }
         $launcher = Get-Command py.exe -ErrorAction SilentlyContinue
         if ($launcher) { $paths.Add([string]$launcher.Source) }
-        $paths.Add((Join-Path $InstallPath 'ExternalAgent\.venv\Scripts\python.exe'))
+        $paths.Add((Join-Path $InstallPath 'AgentRuntime\.venv\Scripts\python.exe'))
         # Python's official installer normally installs per-user into this
         # directory. It may not be on PATH, so probe it explicitly before
         # deciding that a bundled interpreter is required.
@@ -209,19 +239,19 @@ function Get-CyberButlerPythonSnapshot {
         # while the per-user Python belongs to the interactive owner. Probe
         # every profile and the official registry InstallPath as well.
         try {
-            foreach ($profile in @(Get-ChildItem -LiteralPath 'C:\Users' -Directory -ErrorAction SilentlyContinue)) {
+            foreach ($profile in @(Get-ChildItem -LiteralPath (Join-Path $env:SystemDrive 'Users') -Directory -ErrorAction SilentlyContinue)) {
                 foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
                     $paths.Add((Join-Path $profile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
                 }
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         foreach ($tree in @('HKCU:\Software\Python\PythonCore\3.13\InstallPath',
                             'HKLM:\Software\Python\PythonCore\3.13\InstallPath',
                             'HKLM:\Software\WOW6432Node\Python\PythonCore\3.13\InstallPath')) {
             try {
                 $value = (Get-ItemProperty -LiteralPath $tree -ErrorAction Stop).'(default)'
                 if ($value) { $paths.Add((Join-Path ([string]$value) 'python.exe')) }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
     }
 
@@ -273,6 +303,12 @@ function Get-CyberButlerPythonSnapshot {
     return $candidates.ToArray()
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerOllamaSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerOllamaSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -302,6 +338,12 @@ function Get-CyberButlerOllamaSnapshot {
     }
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerPreflight performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerPreflight {
     [CmdletBinding()]
     param(

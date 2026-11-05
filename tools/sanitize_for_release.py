@@ -35,6 +35,14 @@ SECRET_PATTERNS = [
 
 
 def iter_text_files(root: Path):
+    """Iter text files.
+    
+    Args:
+        root: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
             continue
@@ -44,6 +52,14 @@ def iter_text_files(root: Path):
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--qq", default="")
@@ -94,9 +110,9 @@ def main() -> int:
             if args.apply:
                 path.write_text(text, encoding="utf-8")
         for number, line in enumerate(text.splitlines(), 1):
-            for pattern in SECRET_PATTERNS:
-                if pattern.search(line):
-                    findings.append(f"{path}:{number}: {pattern.pattern}")
+            for secret_pattern in SECRET_PATTERNS:
+                if secret_pattern.search(line):
+                    findings.append(f"{path}:{number}: {secret_pattern.pattern}")
                     break
 
     print(f"\nfiles changed: {changed}")

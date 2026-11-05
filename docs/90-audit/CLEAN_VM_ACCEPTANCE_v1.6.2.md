@@ -1,4 +1,4 @@
-﻿# Clean-VM acceptance — v1.6.2
+# Clean-VM acceptance — v1.6.2
 
 Run on a clean Windows 10/11 x64 VM, logged in as the desktop account that will own the install.
 
@@ -39,7 +39,7 @@ The result must have:
 
 ```powershell
 Get-Content 'C:\CyberButler\VERSION' -Raw
-Get-Service CyberButlerAstrBot
+Get-Service CyberButlerAgentRuntime
 Get-NetTCPConnection -State Listen |
   Where-Object { $_.LocalPort -in 6185,18090,8765,8766,5099 }
 ```
@@ -50,11 +50,11 @@ Open:
 http://127.0.0.1:8765/
 ```
 
-Check the SnowLuma card:
+Check the AuxRuntime card:
 
-- If `SnowLuma\logs\startup-snowluma.out.log` contains `initial credentials`, the password is displayed after `[显示]`.
-- If not, the card shows the red manual guidance. CBS does not reset SnowLuma.
-- OneBot Token has its own `[显示] [复制]` controls.
+- If `AuxRuntime\logs\startup-auxruntime.out.log` contains `initial credentials`, the password is displayed after `[显示]`.
+- If not, the card shows the red manual guidance. CBS does not reset AuxRuntime.
+- AgentProtocol Token has its own `[显示] [复制]` controls.
 
 Check the game-mode runtime:
 
@@ -66,7 +66,7 @@ There must be no new game-mode files under the Desktop.
 
 ## 4. Uninstall
 
-Run the installer as administrator and choose the project removal. The uninstaller now stops and deletes `CyberButlerAstrBot` before removing its binary, and removes:
+Run the installer as administrator and choose the project removal. The uninstaller now stops and deletes `CyberButlerAgentRuntime` before removing its binary, and removes:
 
 ```text
 C:\CyberButler

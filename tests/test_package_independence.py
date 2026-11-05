@@ -1,4 +1,4 @@
-"""v1.6.3 package boundary: CBS must not ship AstrBot or SnowLuma runtimes."""
+"""v1.6.3 package boundary: CBS must not ship AgentRuntime or AuxRuntime runtimes."""
 
 from __future__ import annotations
 
@@ -6,10 +6,10 @@ from package_release import is_forbidden_payload
 
 
 def test_external_runtime_payloads_are_forbidden():
-    assert is_forbidden_payload("AstrBot/main.py")
-    assert is_forbidden_payload("SnowLuma/index.mjs")
-    assert is_forbidden_payload("astrbot/.venv/Scripts/python.exe")
-    assert is_forbidden_payload("snowluma/config/webui.json")
+    assert is_forbidden_payload("AgentRuntime/main.py")
+    assert is_forbidden_payload("AuxRuntime/index.mjs")
+    assert is_forbidden_payload("agentruntime/.venv/Scripts/python.exe")
+    assert is_forbidden_payload("auxruntime/config/webui.json")
 
 
 def test_cbs_files_remain_allowed():

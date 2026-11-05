@@ -13,20 +13,20 @@
     "update_pubkey.pem": "2309d4ac5ba9dadc2300a3f5d038fbbcee8f81507479e9cc246b6ed77b033398"
   },
   "completed_inherited": [
-    "v1.6.2 native SCM service CyberButlerAstrBot and CyberButlerSvc",
+    "v1.6.2 native SCM service CyberButlerAgentRuntime and CyberButlerSvc",
     "v1.6.2 High/Medium/Light real-machine installation",
-    "v1.6.2 AstrBot service-account data write probe",
+    "v1.6.2 AgentRuntime service-account data write probe",
     "v1.6.2 Job Object child-tree containment",
     "v1.6.2 signed release verification VALID",
-    "v1.6.2 SnowLuma credential display is read-only",
+    "v1.6.2 AuxRuntime credential display is read-only",
     "v1.6.2 Game Mode runtime moved to LocalAppData",
     "v1.6.2 uninstaller removes SCM service before binary"
   ],
   "in_progress": [
-    "PR-01 packaging split: forbid AstrBot/SnowLuma payloads in the CBS ZIP; installer decoupling follows in PR-02"
+    "PR-01 packaging split: forbid AgentRuntime/AuxRuntime payloads in the CBS ZIP; installer decoupling follows in PR-02"
   ],
   "planned_modules": {
-    "module-01": "Decouple AstrBot and SnowLuma from CBS packaging, service registration, ACL, and configuration",
+    "module-01": "Decouple AgentRuntime and AuxRuntime from CBS packaging, service registration, ACL, and configuration",
     "module-02": "Stable REST API and thin Python/Node.js clients",
     "module-03": "Offline OTP and recovery-code lifecycle",
     "module-04": "Nonce boundaries, local CVE check, YAML policy, quarantine browser",
@@ -38,14 +38,14 @@
     "module-10": "Optional WFP enforce and Credential Proxy integration",
     "module-11": "Port conflict preflight, audit rotation, login lockout, TOTP tolerance",
     "module-12": "SSE credential-proxy streaming and FIFO approval queue",
-    "module-13": "AstrBot upgrade circuit breaker and fully offline WebUI assets",
+    "module-13": "AgentRuntime upgrade circuit breaker and fully offline WebUI assets",
     "module-14": "Panic button and approval timeout",
     "module-15": "Encrypted CBS backup and offline restore",
     "module-16": "Windows tray application and native toast notifications",
     "module-17": "Zero-trace uninstall and eight-language UI coverage"
   },
   "not_completed": [
-    "PR-01 packaging split: AstrBot/SnowLuma payload removal",
+    "PR-01 packaging split: AgentRuntime/AuxRuntime payload removal",
     "PR-02 installer decoupling and external runtime detection",
     "PR-03 read-only credential UI hardening",
     "PR-04 decoupling and anti-virtualization-fingerprint documentation",
@@ -56,7 +56,7 @@
     "PR-15 v1.6.2 migration and PR-16 overlay self-healing",
     "PR-17 documentation governance and status gate",
     "PR-19 Custom capability model, PR-20 Custom UI, PR-21 configuration mapping",
-    "PR-22 WFP enforce, PR-23 Credential Proxy, PR-24 explicit AstrBot access",
+    "PR-22 WFP enforce, PR-23 Credential Proxy, PR-24 explicit AgentRuntime access",
     "PR-25 port preflight, PR-26 audit rotation, PR-27 login lockout, PR-28 TOTP tolerance",
     "PR-29 SSE proxy and PR-30 FIFO approval queue",
     "PR-31 circuit breaker and PR-32 offline UI assets",
@@ -68,28 +68,28 @@
   ],
   "decisions": {
     "panic": "Stop only CBS-registered agent process trees; keep WebUI and Broker running; do not disconnect the whole machine",
-    "astrbot_breaker": "Disable the CBS bridge by default; stop AstrBot only when the user explicitly opts into CBS-managed lifecycle",
+    "agentruntime_breaker": "Disable the CBS bridge by default; stop AgentRuntime only when the user explicitly opts into CBS-managed lifecycle",
     "zero_trace_uninstall": "Delete SCM service, WFP rules, and the service account by default; preserve user data unless the user explicitly selects full deletion",
     "custom_tier": "High-based allow-listed combinations; disallow contradictory configurations",
-    "credential_proxy": "Explicit opt-in for any AstrBot base_url write; backup and rollback required"
+    "credential_proxy": "Explicit opt-in for any AgentRuntime base_url write; backup and rollback required"
   },
   "ports": {
-    "6185": "AstrBot external application",
-    "5099": "SnowLuma external application",
+    "6185": "AgentRuntime external application",
+    "5099": "AuxRuntime external application",
     "18090": "CBS approval Broker",
     "18091": "CBS Credential Proxy",
     "8765": "CBS WebUI",
     "8766": "CBS OTP Mailer"
   },
   "third_party": {
-    "astrbot": "external upstream application; CBS validates only the integration boundary",
-    "snowluma": "external upstream application; CBS validates only the integration boundary",
+    "agentruntime": "external upstream application; CBS validates only the integration boundary",
+    "auxruntime": "external upstream application; CBS validates only the integration boundary",
     "guarantee": "No guarantee for hidden third-party defects or future upstream changes"
   },
   "known_limits_inherited": [
     "WFP is audit-only in v1.6.2; WFP enforce is planned for v1.6.3 and not yet implemented",
-    "6199 is opened dynamically by the AstrBot OneBot adapter, not a CBS service",
-    "No guarantee for AstrBot/SnowLuma internal or plugin behavior",
+    "6199 is opened dynamically by the AgentRuntime AgentProtocol adapter, not a CBS service",
+    "No guarantee for AgentRuntime/AuxRuntime internal or plugin behavior",
     "clean-VM uninstall acceptance is not claimed by v1.6.2"
   ],
   "test_baseline": {

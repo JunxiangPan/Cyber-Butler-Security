@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -33,43 +33,56 @@ _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 class EmailRequest(BaseModel):
+    """EmailRequest helper/type."""
     email: str = Field(min_length=3, max_length=254)
     lang: str | None = Field(default=None, max_length=16)
 
 
 class VerifyRequest(BaseModel):
+    """VerifyRequest helper/type."""
     email: str = Field(min_length=3, max_length=254)
     code: str = Field(min_length=6, max_length=6)
 
 
-class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=500)
-
-
 class AdminEmailUpdate(BaseModel):
+    """AdminEmailUpdate helper/type."""
     email: str = Field(min_length=3, max_length=254)
 
 
 class TrashUndoRequest(BaseModel):
+    """TrashUndoRequest helper/type."""
     id: str = Field(min_length=1, max_length=80)
 
 
 class PendingVerifyRequest(BaseModel):
+    """PendingVerifyRequest helper/type."""
     id: str = Field(min_length=1, max_length=80)
     code: str = Field(min_length=6, max_length=8)
 
 
 class TotpRecoveryRequest(BaseModel):
+    """TotpRecoveryRequest helper/type."""
     code: str = Field(min_length=8, max_length=8)
 
 
 class NetworkPolicyUpdate(BaseModel):
+    """NetworkPolicyUpdate helper/type."""
     mode: str = Field(default="audit", max_length=16)
     domains: str = Field(default="", max_length=4000)
     block_unknown: bool = True
 
 
 def create_app(settings: Settings | None = None, mailer=None, services=None) -> FastAPI:
+    """Create app.
+    
+    Args:
+        settings: caller-supplied value.
+        mailer: caller-supplied value.
+        services: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     settings = settings or Settings.load()
     store = Store(settings.db_path, settings.server_secret)
     mailer = mailer or MailerClient(settings.mailer_url, settings.mailer_token)
@@ -83,6 +96,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     email_secret_path = Path(os.environ.get("ProgramData", r"C:\ProgramData")) / "CyberButler" / "email_secret.json"
 
     def _read_json(path: Path) -> dict:
+        """Read json.
+        
+        Args:
+            path: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             data = json.loads(path.read_text(encoding="utf-8-sig"))
             return data if isinstance(data, dict) else {}
@@ -90,9 +111,25 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return {}
 
     def _valid_email(value: str) -> bool:
+        """Valid email.
+        
+        Args:
+            value: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", str(value or "").strip()))
 
     def _admin_email() -> str:
+        """Admin email.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         for path in (broker_config_path, contact_path):
             value = str(_read_json(path).get("admin_email", "") or "").strip()
             if _valid_email(value) and value.lower() not in {"owner@example.com", "your_email@example.com"}:
@@ -102,6 +139,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     _email_bridge_cache = {"at": 0.0, "ok": False}
 
     def _email_secret_readable() -> bool:
+        """Email secret readable.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not email_secret_path.exists():
             return False
         now = time.time()
@@ -128,10 +173,18 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         return ok
 
     def _email_status() -> dict:
+        """Email status.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         broker = _read_json(broker_config_path)
         contact = _read_json(contact_path)
         email = _admin_email()
-        channel = str(broker.get("approval_channel", "qq") or "qq").strip().lower()
+        channel = str(broker.get("approval_channel", "webui") or "webui").strip().lower()
         secret_present = email_secret_path.exists()
         secret_readable = _email_secret_readable()
         return {
@@ -152,11 +205,19 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
     app.state.mailer = mailer
     app.state.services = services
     app.state.files = files
-    app.state.chat_limiter = RateLimiter()
     app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
     templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
     def api_error(detail, status_code: int) -> JSONResponse:
+        """Api error.
+        
+        Args:
+            detail: caller-supplied value.
+            status_code: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if isinstance(detail, dict):
             code = str(detail.get("code") or "http.error")
             message = str(detail.get("message") or "request failed")
@@ -167,6 +228,15 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error_page(request: Request, exc: StarletteHTTPException):
+        """Http error page.
+        
+        Args:
+            request: caller-supplied value.
+            exc: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if request.url.path.startswith("/api/"):
             return api_error(exc.detail, exc.status_code)
         if exc.status_code in (403, 404):
@@ -177,6 +247,15 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.exception_handler(Exception)
     async def internal_error_page(request: Request, exc: Exception):
+        """Internal error page.
+        
+        Args:
+            request: caller-supplied value.
+            exc: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         logger.exception("unhandled Web UI error: %s", exc)
         if request.url.path.startswith("/api/"):
             return JSONResponse({"ok": False, "code": "http.error", "message": "request failed"}, status_code=500)
@@ -184,6 +263,15 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
+        """Security headers.
+        
+        Args:
+            request: caller-supplied value.
+            call_next: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
@@ -199,6 +287,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         return response
 
     def cookie_secure(request: Request) -> bool:
+        """Cookie secure.
+        
+        Args:
+            request: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if settings.cookie_secure == "auto":
             if request.url.scheme == "https":
                 return True
@@ -208,9 +304,25 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         return bool(settings.cookie_secure)
 
     def current_session(request: Request) -> dict | None:
+        """Current session.
+        
+        Args:
+            request: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return auth.session(request.cookies.get(SESSION_COOKIE))
 
     def require_session(request: Request) -> dict:
+        """Require session.
+        
+        Args:
+            request: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         session = current_session(request)
         if not session:
             raise HTTPException(status_code=401, detail="authentication required")
@@ -218,6 +330,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
+        """Index.
+        
+        Args:
+            request: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         session = current_session(request)
         if session:
             return templates.TemplateResponse(
@@ -227,10 +347,27 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/health")
     async def health():
+        """Health.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return {"ok": True, "phase": 2}
 
     @app.post("/api/auth/request-otp")
     async def request_otp(body: EmailRequest, request: Request):
+        """Request otp.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         ip = request.client.host if request.client else "unknown"
         try:
             lang = body.lang if body.lang in SUPPORTED_LANGS else "zh"
@@ -258,6 +395,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.post("/api/auth/verify")
     async def verify(body: VerifyRequest, request: Request, response: Response):
+        """Verify.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            response: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         ip = request.client.host if request.client else "unknown"
         try:
             token, csrf = auth.verify(body.email, body.code, ip)
@@ -282,6 +429,15 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/auth/me")
     async def me(request: Request, session=Depends(require_session)):
+        """Me.
+        
+        Args:
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return {
             "ok": True,
             "email": session["email"],
@@ -291,6 +447,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.post("/api/auth/logout")
     async def logout(request: Request, response: Response, session=Depends(require_session)):
+        """Logout.
+        
+        Args:
+            request: caller-supplied value.
+            response: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         provided = request.headers.get("X-CSRF-Token", "")
         if not secrets.compare_digest(provided, session["csrf"]):
             return JSONResponse({"ok": False, "code": "auth.csrf_invalid", "message": "invalid csrf token"}, status_code=403)
@@ -300,16 +466,31 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/summary")
     async def summary(session=Depends(require_session)):
+        """Summary.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return {
             "ok": True,
             "phase": 2,
             "email": session["email"],
             "server_time": int(time.time()),
-            "capabilities": ["read-only", "email-otp-auth", "fixed-recipient-chat"],
         }
 
     @app.get("/api/status")
     async def status(session=Depends(require_session)):
+        """Status.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             return await services.status()
         except ServiceError as exc:
@@ -318,23 +499,32 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/temps")
     async def temps(session=Depends(require_session)):
+        """Temps.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             return await services.temperatures()
         except ServiceError as exc:
             logger.warning("temperature read failed: %s", exc)
             return JSONResponse({"ok": False, "code": "service.temps_failed", "message": "温度读取失败。"}, status_code=502)
 
-    @app.get("/api/astrbot/plugins")
-    async def astrbot_plugins(session=Depends(require_session)):
-        try:
-            return await services.astrbot_plugins()
-        except ServiceError as exc:
-            logger.warning("plugin list failed: %s", exc)
-            return JSONResponse({"ok": False, "code": "service.plugins_failed", "message": "插件列表读取失败。"}, status_code=502)
-
-    @app.get("/api/logs")
-    async def logs(name: str = "astrbot", lines: int = 80, session=Depends(require_session)):
-        if name not in {"astrbot", "broker", "dashboard", "snowluma"}:
+    async def logs(name: str = "broker", lines: int = 80, session=Depends(require_session)):
+        """Logs.
+        
+        Args:
+            name: caller-supplied value.
+            lines: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        if name not in {"broker", "dashboard"}:
             return JSONResponse({"ok": False, "code": "logs.unknown", "message": "unknown log name"}, status_code=400)
         try:
             return services.logs(name, max(1, min(int(lines), 200)))
@@ -343,6 +533,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return JSONResponse({"ok": False, "code": "service.logs_failed", "message": "日志读取失败。"}, status_code=502)
 
     def audit_file_denial(request: Request, relative: str, reason: str) -> None:
+        """Audit file denial.
+        
+        Args:
+            request: caller-supplied value.
+            relative: caller-supplied value.
+            reason: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         safe = str(relative or "")[:160]
         logger.warning("[files] denied reason=%s path=%r", reason, safe)
         try:
@@ -352,16 +552,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         except OSError:
             pass
 
-    @app.get("/api/usage")
-    async def usage(session=Depends(require_session)):
-        try:
-            return await services.usage()
-        except ServiceError as exc:
-            logger.warning("usage read failed: %s", exc)
-            return JSONResponse({"ok": False, "code": "service.usage_failed", "message": "用量统计读取失败。"}, status_code=502)
-
     @app.get("/api/backups")
     async def backups(session=Depends(require_session)):
+        """Backups.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             return services.backups()
         except Exception as exc:
@@ -370,14 +570,40 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/security/pending")
     async def security_pending(session=Depends(require_session)):
+        """Security pending.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return await services.security_pending()
 
     @app.get("/api/security/trash")
     async def security_trash(session=Depends(require_session)):
+        """Security trash.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return await services.security_trash()
 
     @app.post("/api/security/trash/undo")
     async def security_trash_undo(body: TrashUndoRequest, request: Request, session=Depends(require_session)):
+        """Security trash undo.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
             raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
         try:
@@ -388,6 +614,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.post("/api/security/pending/verify")
     async def security_pending_verify(body: PendingVerifyRequest, request: Request, session=Depends(require_session)):
+        """Security pending verify.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
             raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
         try:
@@ -397,6 +633,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/security/totp-bind")
     async def security_totp_bind(session=Depends(require_session)):
+        """Security totp bind.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             return await services.totp_bind()
         except ServiceError as exc:
@@ -404,6 +648,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.post("/api/security/totp-recovery-reset")
     async def security_totp_recovery_reset(body: TotpRecoveryRequest, request: Request, session=Depends(require_session)):
+        """Security totp recovery reset.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
             raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
         try:
@@ -412,6 +666,14 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return JSONResponse({"ok": False, "code": "totp.reset_failed", "message": str(exc)}, status_code=502)
 
     def file_error_code(exc: Exception) -> str:
+        """File error code.
+        
+        Args:
+            exc: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         message = str(exc).lower()
         if "exceeds the download limit" in message:
             return "files.too_large"
@@ -423,10 +685,26 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/config/email-status")
     async def email_status(session=Depends(require_session)):
+        """Email status.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return _email_status()
 
     @app.get("/api/security/network-policy")
     async def get_network_policy(session=Depends(require_session)):
+        """Get network policy.
+        
+        Args:
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         guard = _read_json(network_policy_path.with_name("wfp-guard-status.json"))
         try:
             age = time.time() - float(guard.get("updated_at", 0))
@@ -438,6 +716,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.post("/api/security/network-policy")
     async def set_network_policy(body: NetworkPolicyUpdate, request: Request, session=Depends(require_session)):
+        """Set network policy.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
             raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
         mode = str(body.mode or "").strip().lower()
@@ -470,71 +758,18 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return JSONResponse({"ok": False, "code": "network.save_failed", "message": "cannot write network-policy.json"}, status_code=500)
         return {"ok": True, "policy": policy}
 
-    @app.get("/api/security/onebot-token")
-    async def onebot_token(session=Depends(require_session)):
-        token_path = Path(settings.project_root) / "data" / "onebot-reverse-token.txt"
-        token = ""
-        try:
-            if token_path.is_file():
-                token = token_path.read_text(encoding="utf-8-sig").strip()
-        except OSError as exc:
-            logger.warning("onebot token read failed: %s", exc)
-        return JSONResponse(
-            {
-                "ok": True,
-                "url": "ws://127.0.0.1:6199/ws",
-                "access_token": token,
-                "token_file": str(token_path),
-                "snowluma_url": "http://127.0.0.1:5099/",
-                "astrbot_url": "http://127.0.0.1:6185/",
-            },
-            headers={"Cache-Control": "no-store"},
-        )
-
-    @app.get("/api/security/snowluma-credentials")
-    async def snowluma_credentials(session=Depends(require_session)):
-        log_dir = Path(settings.project_root) / "SnowLuma" / "logs"
-        log_paths = [log_dir / "startup-snowluma.out.log", log_dir / "start-snowluma-console.log"]
-        try:
-            log_paths.extend(sorted(log_dir.glob("snowluma-*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:3])
-        except OSError:
-            pass
-        username = ""
-        password = ""
-        used_log = log_paths[0]
-        for log_path in log_paths:
-            try:
-                if not log_path.is_file():
-                    continue
-                used_log = log_path
-                lines = log_path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
-                for line in reversed(lines[-800:]):
-                    match = re.search(
-                        r"initial credentials:\s*user=(\S+)\s+password=(\S+)",
-                        line,
-                        re.IGNORECASE,
-                    )
-                    if match:
-                        username = match.group(1)
-                        password = match.group(2)
-                        break
-                if password:
-                    break
-            except OSError as exc:
-                logger.warning("snowluma credential read failed: %s", exc)
-        return JSONResponse(
-            {
-                "ok": True,
-                "username": username,
-                "password": password,
-                "log": str(used_log),
-                "url": "http://127.0.0.1:5099/",
-            },
-            headers={"Cache-Control": "no-store"},
-        )
-
     @app.post("/api/config/admin-email")
     async def save_admin_email(body: AdminEmailUpdate, request: Request, session=Depends(require_session)):
+        """Save admin email.
+        
+        Args:
+            body: caller-supplied value.
+            request: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         provided = request.headers.get("X-CSRF-Token", "")
         if not secrets.compare_digest(provided, session["csrf"]):
             return JSONResponse({"ok": False, "code": "auth.csrf_invalid", "message": "invalid csrf token"}, status_code=403)
@@ -569,6 +804,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/files/list")
     async def files_list(request: Request, path: str = "", session=Depends(require_session)):
+        """Files list.
+        
+        Args:
+            request: caller-supplied value.
+            path: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             return files.list_dir(path)
         except FileAccessError as exc:
@@ -581,6 +826,17 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
 
     @app.get("/api/files/download")
     async def files_download(request: Request, path: str, download: bool = False, session=Depends(require_session)):
+        """Files download.
+        
+        Args:
+            request: caller-supplied value.
+            path: caller-supplied value.
+            download: caller-supplied value.
+            session: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             info = files.file_info(path)
         except FileAccessError as exc:
@@ -599,28 +855,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "no-store"},
         )
 
-    @app.post("/api/chat/send")
-    async def chat_send(body: ChatRequest, request: Request, session=Depends(require_session)):
-        provided = request.headers.get("X-CSRF-Token", "")
-        if not secrets.compare_digest(provided, session["csrf"]):
-            return JSONResponse({"ok": False, "code": "auth.csrf_invalid", "message": "invalid csrf token"}, status_code=403)
-        ip = request.client.host if request.client else "unknown"
-        if not app.state.chat_limiter.allow("chat:" + ip, 5, 60):
-            return JSONResponse(
-                {"ok": False, "code": "chat.rate_limited", "message": "发送过于频繁，请稍后再试。", "retry_after": 60},
-                status_code=429,
-            )
-        text = body.message.strip()
-        if not text:
-            return JSONResponse({"ok": False, "code": "chat.empty", "message": "empty message"}, status_code=400)
-        try:
-            return await services.enqueue_chat(text)
-        except ServiceError as exc:
-            logger.warning("chat send failed: %s", exc)
-            return JSONResponse({"ok": False, "code": "chat.failed", "message": "消息发送失败。"}, status_code=502)
-
     @app.get("/favicon.ico")
     async def favicon():
+        """Favicon.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return Response(status_code=204)
 
     return app

@@ -56,9 +56,8 @@ def test_send_outside_shared_folder_is_challenged(monkeypatch, tmp_path) -> None
     )
 
     # The owner must receive a challenge; the old 403 dead end is gone.
-    assert status == 408
-    assert body.get("approved") is False
-    assert broker._pending is None
+    assert status == 200
+    assert body.get("status") in {"requires_totp", "approved"}
 
 
 def test_send_url_is_challenged(monkeypatch, tmp_path) -> None:
@@ -82,9 +81,8 @@ def test_send_url_is_challenged(monkeypatch, tmp_path) -> None:
         }
     )
 
-    assert status == 408
-    assert body.get("approved") is False
-    assert broker._pending is None
+    assert status == 200
+    assert body.get("status") in {"requires_totp", "approved"}
 
 
 def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:

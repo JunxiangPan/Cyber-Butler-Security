@@ -28,20 +28,20 @@
 
 ## Module 3 — Persona manager
 
-- The Persona & Memory tab now lists every AstrBot persona, marks the active
+- The Persona & Memory tab now lists every AgentRuntime persona, marks the active
   one and shows its prompt.
 - **Switch Persona** updates `agent_runner.config.persona.persona_id` through
-  `PUT /api/v1/system-config`; AstrBot reloads the pipeline scheduler after the
+  `PUT /api/v1/system-config`; AgentRuntime reloads the pipeline scheduler after the
   save, so no manual restart is required.
 - **New Blank Persona**, **Copy Persona** and **Delete Persona** use the local
-  AstrBot API (`/api/persona/*`), so the dashboard never writes the ACL-guarded
-  `AstrBot/data` directory as the interactive user. Delete blocks `default`,
+  AgentRuntime API (`/api/persona/*`), so the dashboard never writes the ACL-guarded
+  `AgentRuntime/data` directory as the interactive user. Delete blocks `default`,
   requires typing `DELETE PERSONA` and writes a JSON backup to
   `backups/personas/` before deleting.
 
 ## Module 4 — Service shortcuts
 
-- Clicking **AstrBot** opens `http://127.0.0.1:6185`; clicking **SnowLuma**
+- Clicking **AgentRuntime** opens `http://127.0.0.1:6185`; clicking **AuxRuntime**
   opens `http://127.0.0.1:5099` in the default browser.
 - Clicking **Broker** shows the headless-service notice instead of opening a
   non-existent web UI.
@@ -51,7 +51,7 @@
 ```text
 pytest: 39 passed
 persona API self-test: list 3 -> create -> copy -> delete (both backed up)
-active persona read/switch: 苏瑾言, PUT system-config ok
+active persona read/switch: local agent, PUT system-config ok
 error log: captured stack, copied to clipboard, cleared
 English screenshots: Persona & Memory / System Log / Agent Plugins / Market
 packaged tree: Hello World 1 -> 2 -> 3
@@ -67,7 +67,7 @@ privacy scan: OK
   and VRAM progress bars. Verified at 61.5 °C / 44.0 °C / 5,603 of 24,564 MB.
 - **quick_cmd** (`tools/dashboard_plugins/quick_cmd`): a dedicated Quick
   Command tab with a text box, Send, and one-click Morning / Local Model /
-  Check Temps buttons. Sends through the AstrBot Open API
+  Check Temps buttons. Sends through the AgentRuntime Open API
   (`/api/v1/im/messages`) to the owner's QQ chat; no shell is executed.
 
 ## Module 6 — Trust boundary and privacy

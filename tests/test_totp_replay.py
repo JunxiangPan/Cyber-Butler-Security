@@ -22,7 +22,7 @@ def test_valid_totp_is_accepted_once(monkeypatch) -> None:
     monkeypatch.setattr(broker, "secret", lambda: "test-secret")
 
     assert broker.verify_code("123456") == "totp"
-    assert broker.verify_code("123456") == ""
+    assert broker.verify_code("123456") == "replay"
 
 
 def test_recovery_code_is_single_use(monkeypatch, tmp_path) -> None:
@@ -35,4 +35,4 @@ def test_recovery_code_is_single_use(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(broker, "RECOVERY_FILE", recovery)
 
     assert broker.verify_code("ABCD1234") == "recovery"
-    assert broker.verify_code("ABCD1234") == ""
+    assert broker.verify_code("ABCD1234") == "replay"

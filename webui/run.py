@@ -7,6 +7,14 @@ from settings import Settings
 
 
 def main() -> None:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     settings = Settings.load()
     app = create_app(settings)
     uvicorn.run(app, host=settings.host, port=settings.port, log_level="info")

@@ -36,7 +36,7 @@
 - The sender must exactly equal the configured `allowed_sender`; the challenge
   must match the pending request; the TOTP must be valid; target/source hashes
   are rechecked; the approval is one-time and expires after 5 minutes.
-- `/verify` refuses an email-mode pending, so AstrBot cannot approve it.
+- `/verify` refuses an email-mode pending, so AgentRuntime cannot approve it.
 
 ### Dual channel
 

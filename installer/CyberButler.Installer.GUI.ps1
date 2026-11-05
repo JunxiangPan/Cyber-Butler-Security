@@ -271,11 +271,11 @@ $smtpPortBox = $window.FindName('SmtpPortBox')
 $mainScroll = $window.FindName('MainScroll')
 if ($mainScroll) {
     $mainScroll.Add_PreviewMouseWheel({
-        param($sender, $eventArgs)
-        $step = [Math]::Max(24, [Math]::Abs([int]$eventArgs.Delta) / 2)
-        if ($eventArgs.Delta -gt 0) { $sender.ScrollToVerticalOffset($sender.VerticalOffset - $step) }
-        else { $sender.ScrollToVerticalOffset($sender.VerticalOffset + $step) }
-        $eventArgs.Handled = $true
+        param($eventSender, $eventArgsData)
+        $step = [Math]::Max(24, [Math]::Abs([int]$eventArgsData.Delta) / 2)
+        if ($eventArgsData.Delta -gt 0) { $eventSender.ScrollToVerticalOffset($eventSender.VerticalOffset - $step) }
+        else { $eventSender.ScrollToVerticalOffset($eventSender.VerticalOffset + $step) }
+        $eventArgsData.Handled = $true
     })
 }
 $startButton = $window.FindName('StartButton')
@@ -778,7 +778,7 @@ try {
         $guideData = Get-Content -LiteralPath $guideFile -Raw -Encoding UTF8 | ConvertFrom-Json
         foreach ($property in $guideData.PSObject.Properties) { $script:LaunchGuides[[string]$property.Name] = [string]$property.Value }
     }
-} catch { }
+} catch { Write-Verbose 'optional operation failed' }
 
 function Get-LaunchGuideText {
     $langs = @('zh', 'en', 'de', 'es', 'fr', 'ja', 'ko', 'ru')
@@ -817,6 +817,12 @@ $script:EmailHelpText = @{
     ru = "WebUI email / SMTP: подробности`n`nCBS WebUI 8765 использует почту администратора + OTP; external Agent 6185 — логин/пароль.`nWebUI email: почта администратора для входа и TOTP/оповещений, не QQ бота.`nSMTP host: сервер исходящей почты, например smtp.163.com или smtp.gmail.com.`nSMTP port: в этой сборке неявный SSL, поэтому 465; 587/STARTTLS не поддерживается.`nSMTP auth code: пароль приложения/код авторизации, не пароль входа; шифруется DPAPI.`nSMTP user: обычно тот же адрес.`n`n163: mail.163.com -> Настройки -> POP3/SMTP/IMAP -> включить SMTP -> создать код.`nGmail: аккаунт Google -> Безопасность -> 2FA -> пароли приложений.`nOutlook/другие: настройки SMTP/IMAP -> пароль приложения.`n`nЕсли не задано: красный баннер и Broker HTTP 503. IMAP для подтверждений по умолчанию 163."
 }
 
+<#
+.SYNOPSIS
+    Show-CyberButlerHelp performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerHelp {
     $helpXaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -848,6 +854,12 @@ function Show-CyberButlerHelp {
     $dialog.ShowDialog() | Out-Null
 }
 
+<#
+.SYNOPSIS
+    Apply-GuiLanguage performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Apply-GuiLanguage {
     $window.Title = Get-UiText 'Title'
     $headerTitle.Text = Get-UiText 'Title'
@@ -962,6 +974,12 @@ function Get-GuiReportPath {
     return $candidates[0]
 }
 
+<#
+.SYNOPSIS
+    Get-GuiInstallStatusText performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-GuiInstallStatusText {
     $reportPath = Get-GuiReportPath
     $reportStatus = ''
@@ -973,7 +991,7 @@ function Get-GuiInstallStatusText {
             if ($m.Success) { $reportStatus = $m.Groups[1].Value }
             $f = [regex]::Match($raw, '"failure"\s*:\s*\{[^\}]*?"message"\s*:\s*"([^"]+)"', [Text.RegularExpressions.RegexOptions]::Singleline)
             if ($f.Success) { $reportFailure = $f.Groups[1].Value.Replace('\n', "`n") }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 
     $running = $false
@@ -989,7 +1007,7 @@ function Get-GuiInstallStatusText {
                 $elapsedSec = [int]((Get-Date) - $proc.StartTime).TotalSeconds
                 $processDetail = ('CPU {0:N1}s, WS {1:N0} MB, started {2:yyyy-MM-dd HH:mm:ss}' -f $proc.CPU, ($proc.WorkingSet64 / 1MB), $proc.StartTime)
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 
     if ($elapsedSec -eq 0 -and $script:cbGuiStartTime) { $elapsedSec = [int]((Get-Date) - $script:cbGuiStartTime).TotalSeconds }
@@ -1002,7 +1020,7 @@ function Get-GuiInstallStatusText {
             $lastText = $last.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')
             $ageSeconds = [int]((Get-Date) - $last.LastWriteTime).TotalSeconds
             $tail = @(Get-Content -LiteralPath $script:cbGuiLogPath -Tail 60 -Encoding UTF8 -ErrorAction SilentlyContinue | ForEach-Object { Get-CyberButlerSafeLogLine ([string]$_) } | Select-Object -Last 12)
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     $logText = ($tail -join "`n")
 
@@ -1018,7 +1036,7 @@ function Get-GuiInstallStatusText {
     $stageStartedAt = $script:GuiStageStartedAt
     if (-not $stageStartedAt -and $script:cbGuiStartTime) { $stageStartedAt = $script:cbGuiStartTime }
     if (-not $stageStartedAt -and $script:cbGuiProcess) {
-        try { $stageStartedAt = $script:cbGuiProcess.StartTime } catch { }
+        try { $stageStartedAt = $script:cbGuiProcess.StartTime } catch { Write-Verbose 'optional operation failed' }
     }
     $stageElapsed = if ($stageStartedAt) { [int]((Get-Date) - $stageStartedAt).TotalSeconds } else { 0 }
     $stageStart = 0; $stageEnd = 10; $stageNominal = 60
@@ -1075,7 +1093,7 @@ function Get-GuiInstallStatusText {
     if ($reportStatus -eq 'success') { $headline = Get-UiText 'StatusCompleted' }
     elseif ($reportStatus -eq 'failed' -or ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited)) { $headline = Get-UiText 'StatusFailed' }
     elseif ($totpReady -and -not $totpConfirmed) { $headline = Get-UiText 'StatusWaitingTotp' }
-    elseif ($running -and $ageSeconds -ne $null -and $ageSeconds -gt 300) { $headline = Get-UiText 'StatusStalled' }
+    elseif ($running -and $null -ne $ageSeconds -and $ageSeconds -gt 300) { $headline = Get-UiText 'StatusStalled' }
     elseif (-not $running -and -not $reportStatus) { $headline = Get-UiText 'StatusNoActive' }
 
     $lines.Add('STATUS: ' + $headline)
@@ -1109,6 +1127,12 @@ function Show-GuiInstallStatus {
     Show-CyberButlerStatusWindow -Owner $window -Title (Get-UiText 'StatusTitle') -Text $text -Copy (Get-UiText 'Copy') -Close (Get-UiText 'Close') -Refresh (Get-UiText 'RefreshStatus') -RefreshScript { Get-GuiInstallStatusText }
 }
 
+<#
+.SYNOPSIS
+    Show-GuiCompletionIfReady performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-GuiCompletionIfReady {
     if ($script:GuiCompletionShown) { return }
     $reportPath = Get-GuiReportPath
@@ -1121,7 +1145,7 @@ function Show-GuiCompletionIfReady {
             if ($m.Success) { $status = $m.Groups[1].Value }
             $f = [regex]::Match($raw, '"failure"\s*:\s*\{[^\}]*?"message"\s*:\s*"([^"]+)"', [Text.RegularExpressions.RegexOptions]::Singleline)
             if ($f.Success) { $failure = $f.Groups[1].Value.Replace('\n', "`n") }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     if ($status -eq 'success') {
         $script:GuiCompletionShown = $true
@@ -1154,20 +1178,28 @@ function Show-GuiCompletionIfReady {
         $message = "Installation failed.`n`nReport: $reportPath"
         if ($failure) { $message += "`n`nFailure: $failure" }
         [System.Windows.MessageBox]::Show($message, (Get-UiText 'Title')) | Out-Null
-    } elseif ($script:GuiInstallProcess -and $script:GuiInstallProcess.HasExited) {
+    } elseif ($script:cbGuiProcess -and $script:cbGuiProcess.HasExited) {
         if (-not $script:GuiExitNoticeAt) { $script:GuiExitNoticeAt = Get-Date }
-        if (((Get-Date) - $script:GuiExitNoticeAt).TotalSeconds -ge 5) {
+        if (((Get-Date) - $script:GuiExitNoticeAt).TotalSeconds -ge 1) {
             $script:GuiCompletionShown = $true
             if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }
             Set-GuiBusy $false
-            $stateRoot = Join-Path $env:ProgramData 'CyberButler\installer\state'
+            $script:cbGuiPercent = 0
+            $errText = if ($script:cbGuiErrPath -and (Test-Path -LiteralPath $script:cbGuiErrPath)) { Get-Content -LiteralPath $script:cbGuiErrPath -Raw -ErrorAction SilentlyContinue } else { '(no installer.err.log)' }
+            try { & $script:cbGuiOnStatus ('Installer exited: ' + $errText) } catch { Write-Verbose 'optional operation failed' }
             [System.Windows.MessageBox]::Show(
-                ("Installer exited without a completion report.`n`nReport: " + $reportPath + "`nState: " + $stateRoot + "`n`nOpen the status window for the latest log tail."),
+                ('Installer exited: ' + $errText + "`n`nReport: " + $reportPath),
                 (Get-UiText 'Title')) | Out-Null
         }
     }
 }
 
+<#
+.SYNOPSIS
+    Remove-CyberButlerServiceAccountProfile performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Remove-CyberButlerServiceAccountProfile {
     $name = 'CyberButlerSvc'
     $current = [Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -1175,8 +1207,8 @@ function Remove-CyberButlerServiceAccountProfile {
         return [pscustomobject]@{ removed = $false; reason = 'refusing to remove the currently logged-on service account' }
     }
     $user = Get-LocalUser -Name $name -ErrorAction SilentlyContinue
-    $profilePath = Join-Path $env:SystemDrive ('Users\' + $name)
-    if (-not $user -and -not (Test-Path -LiteralPath $profilePath)) {
+    $userProfilePath = Join-Path $env:SystemDrive ('Users\' + $name)
+    if (-not $user -and -not (Test-Path -LiteralPath $userProfilePath)) {
         return [pscustomobject]@{ removed = $false; reason = 'service account/profile not present' }
     }
     $errors = New-Object System.Collections.Generic.List[string]
@@ -1187,9 +1219,9 @@ function Remove-CyberButlerServiceAccountProfile {
     foreach ($item in @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)) {
         $exe = [string]$item.ExecutablePath
         $cmd = [string]$item.CommandLine
-        if (($exe -and $exe.StartsWith($profilePath, [StringComparison]::OrdinalIgnoreCase)) -or
-            ($cmd -and $cmd.IndexOf($profilePath, [StringComparison]::OrdinalIgnoreCase) -ge 0)) {
-            try { & taskkill.exe /PID $item.ProcessId /T /F 2>$null | Out-Null } catch { }
+        if (($exe -and $exe.StartsWith($userProfilePath, [StringComparison]::OrdinalIgnoreCase)) -or
+            ($cmd -and $cmd.IndexOf($userProfilePath, [StringComparison]::OrdinalIgnoreCase) -ge 0)) {
+            try { & taskkill.exe /PID $item.ProcessId /T /F 2>$null | Out-Null } catch { Write-Verbose 'optional operation failed' }
         }
     }
     Start-Sleep -Seconds 3
@@ -1198,21 +1230,21 @@ function Remove-CyberButlerServiceAccountProfile {
         try { Remove-LocalUser -Name $name -ErrorAction Stop }
         catch { $errors.Add('user: ' + $_.Exception.Message) }
     }
-    $profileRemoved = $false
+    $userProfileRemoved = $false
     for ($attempt = 1; $attempt -le 6; $attempt++) {
         try {
-            $profile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
-                Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $profilePath.TrimEnd('\') } |
+            $userProfile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
+                Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $userProfilePath.TrimEnd('\') } |
                 Select-Object -First 1
-            if ($profile) { Remove-CimInstance -InputObject $profile -ErrorAction Stop }
-            $profileRemoved = $true
+            if ($userProfile) { Remove-CimInstance -InputObject $userProfile -ErrorAction Stop }
+            $userProfileRemoved = $true
             break
         } catch {
             $errors.Add('profile try ' + $attempt + ': ' + $_.Exception.Message)
             Start-Sleep -Seconds 3
         }
     }
-    if (-not $profileRemoved -and (Test-Path -LiteralPath $profilePath)) {
+    if (-not $userProfileRemoved -and (Test-Path -LiteralPath $userProfilePath)) {
         # The profile is still loaded. Schedule a one-time cleanup for the next
         # reboot instead of forcibly deleting a live Windows profile. This
         # never touches the interactive CBS profile.
@@ -1221,13 +1253,13 @@ function Remove-CyberButlerServiceAccountProfile {
             $cleanupScript = Join-Path $cleanupDir 'CyberButler-svc-profile-cleanup.ps1'
             @'
 $name = 'CyberButlerSvc'
-$profilePath = Join-Path $env:SystemDrive ('Users\' + $name)
-$profile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
-    Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $profilePath.TrimEnd('\') } |
+$userProfilePath = Join-Path $env:SystemDrive ('Users\' + $name)
+$userProfile = Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue |
+    Where-Object { $_.LocalPath -and ([string]$_.LocalPath).TrimEnd('\') -ieq $userProfilePath.TrimEnd('\') } |
     Select-Object -First 1
-if ($profile) { Remove-CimInstance -InputObject $profile -ErrorAction SilentlyContinue }
+if ($userProfile) { Remove-CimInstance -InputObject $userProfile -ErrorAction SilentlyContinue }
 Get-LocalUser -Name $name -ErrorAction SilentlyContinue | Remove-LocalUser -ErrorAction SilentlyContinue
-if (Test-Path -LiteralPath $profilePath) { Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction SilentlyContinue }
+if (Test-Path -LiteralPath $userProfilePath) { Remove-Item -LiteralPath $userProfilePath -Recurse -Force -ErrorAction SilentlyContinue }
 Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
 '@ | Set-Content -LiteralPath $cleanupScript -Encoding UTF8
             $runOnce = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce'
@@ -1236,11 +1268,11 @@ Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
                 -Value ('powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $cleanupScript + '"')
             $errors.Add('profile still loaded; cleanup scheduled for next reboot')
         } catch { $errors.Add('schedule: ' + $_.Exception.Message) }
-    } elseif (Test-Path -LiteralPath $profilePath) {
-        try { Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction Stop }
+    } elseif (Test-Path -LiteralPath $userProfilePath) {
+        try { Remove-Item -LiteralPath $userProfilePath -Recurse -Force -ErrorAction Stop }
         catch { $errors.Add('folder: ' + $_.Exception.Message) }
     }
-    $still = (Get-LocalUser -Name $name -ErrorAction SilentlyContinue) -or (Test-Path -LiteralPath $profilePath)
+    $still = (Get-LocalUser -Name $name -ErrorAction SilentlyContinue) -or (Test-Path -LiteralPath $userProfilePath)
     return [pscustomobject]@{
         removed = (-not $still)
         pending_reboot = ($still -and (Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'CyberButlerSvcProfileCleanup' -ErrorAction SilentlyContinue))
@@ -1248,6 +1280,12 @@ Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
     }
 }
 
+<#
+.SYNOPSIS
+    Show-CyberButlerRemoveProgress performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-CyberButlerRemoveProgress {
     param($Owner)
     $xaml = @'
@@ -1285,9 +1323,15 @@ function Update-CyberButlerRemoveProgress($Progress, [double]$Percent, [string]$
         $Progress.Bar.Value = [Math]::Max(0, [Math]::Min(100, $Percent))
         $Progress.Detail.Text = $Message
         $Progress.Window.Dispatcher.Invoke([Action]{}, [System.Windows.Threading.DispatcherPriority]::Background) | Out-Null
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
+<#
+.SYNOPSIS
+    Remove-CyberButlerGuiInstall performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = $null) {
     $full = [IO.Path]::GetFullPath($Root).TrimEnd([char]92)
     $report = { param($pct, $msg) if ($OnProgress) { & $OnProgress $pct $msg } }
@@ -1363,8 +1407,8 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
     }
     & $report 18 ('结束关联进程 / Stopping processes: ' + @($pids).Count)
     foreach ($processId in @($pids)) {
-        try { & taskkill.exe /PID $processId /T /F 2>$null | Out-Null } catch { }
-        try { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue } catch { }
+        try { & taskkill.exe /PID $processId /T /F 2>$null | Out-Null } catch { Write-Verbose 'optional operation failed' }
+        try { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
     }
     Start-Sleep -Seconds 2
     & $report 28 '删除计划任务 / Unregistering tasks'
@@ -1402,7 +1446,7 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
                     try {
                         & takeown.exe /F $full /A 2>$null | Out-Null
                         & icacls.exe $full /grant '*S-1-5-32-544:(F)' 2>$null | Out-Null
-                    } catch { }
+                    } catch { Write-Verbose 'optional operation failed' }
                 } elseif ($attempt -eq 3) {
                     $aclSteps = @(
                         @{ Exe = 'takeown.exe'; Args = @('/F', $full, '/A', '/R', '/D', 'Y'); Label = '递归获取所有权 / Recursive takeown' },
@@ -1418,7 +1462,7 @@ function Remove-CyberButlerGuiInstall([string]$Root, [scriptblock]$OnProgress = 
                                 $elapsed = [int]((Get-Date) - $aclProcess.StartTime).TotalSeconds
                                 & $report 78 ($aclStep.Label + ' — ' + $elapsed + 's elapsed, still working…')
                                 if ((Get-Date) -gt $aclDeadline) {
-                                    try { Stop-Process -Id $aclProcess.Id -Force } catch { }
+                                    try { Stop-Process -Id $aclProcess.Id -Force } catch { Write-Verbose 'optional operation failed' }
                                     throw ($aclStep.Label + ' timed out after 10 minutes')
                                 }
                                 Start-Sleep -Seconds 2
@@ -1459,6 +1503,12 @@ function Get-SelectedComboText($combo) {
     return [string]$combo.SelectedItem
 }
 
+<#
+.SYNOPSIS
+    Invoke-GuiPreflight performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-GuiPreflight {
     try {
         $installPath = [string]$installPathBox.Text
@@ -1577,7 +1627,7 @@ $startButton.Add_Click({
         $installProgress.Value = 2
         Start-CyberButlerGuiInstall `
             -Window $window -InstallerPath $installerPath -InstallPath $installPath `
-            -Tier $tierValue -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
+            -Tier $tierValue -DesktopAccount $(try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name }) -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
             -PersonalPluginsPath ([string]$personalPluginsBox.Text) `
             -ApiKeyFile ([string]$apiKeyFileBox.Text) `
             -WebUIAdminEmail ([string]$webUIEmailBox.Text) `
@@ -1605,7 +1655,7 @@ $startButton.Add_Click({
             -Text $text | Out-Null
         $script:GuiCompletionTimer = New-Object System.Windows.Threading.DispatcherTimer
         $script:GuiCompletionTimer.Interval = [TimeSpan]::FromSeconds(2)
-        $script:GuiCompletionTimer.add_Tick({ try { Show-GuiCompletionIfReady } catch { } })
+        $script:GuiCompletionTimer.add_Tick({ try { Show-GuiCompletionIfReady } catch { Write-Verbose 'optional operation failed' } })
         $script:GuiCompletionTimer.Start()
     } catch {
         Set-GuiBusy $false
@@ -1680,27 +1730,27 @@ $removeButton.Add_Click({
             $serviceAccountMessage = '保留了 CyberButlerSvc 服务账户/profile；如确认不再使用，可重新运行删除并勾选清理。'
         }
         $desktopPath = [Environment]::GetFolderPath('Desktop')
-        $bigFishPath = Join-Path $desktopPath '大肥鱼专用文件夹'
+        $bigFishPath = Join-Path $desktopPath 'shared专用文件夹'
         $dashboardShortcut = Join-Path $desktopPath 'Cyber-Butler 主控台.lnk'
         $dataNote = ''
         if ($script:cbRemoveBigFish) {
-            Update-CyberButlerRemoveProgress -Progress $removeProgress -Percent 98 -Message '删除桌面大肥鱼专用文件夹 / Removing Big Fish folder'
+            Update-CyberButlerRemoveProgress -Progress $removeProgress -Percent 98 -Message '删除桌面shared专用文件夹 / Removing Big Fish folder'
             try {
                 if (Test-Path -LiteralPath $bigFishPath) { Remove-Item -LiteralPath $bigFishPath -Recurse -Force -ErrorAction Stop }
-                $dataNote = '桌面大肥鱼专用文件夹已删除。'
-            } catch { $dataNote = '大肥鱼专用文件夹删除失败：' + $_.Exception.Message }
+                $dataNote = '桌面shared专用文件夹已删除。'
+            } catch { $dataNote = 'shared专用文件夹删除失败：' + $_.Exception.Message }
         } else {
-            $dataNote = '保留桌面大肥鱼专用文件夹（用户文件）：' + $bigFishPath
+            $dataNote = '保留桌面shared专用文件夹（用户文件）：' + $bigFishPath
         }
         if ($script:cbRemoveDashboardShortcut) {
             try { if (Test-Path -LiteralPath $dashboardShortcut) { Remove-Item -LiteralPath $dashboardShortcut -Force -ErrorAction Stop } }
             catch { $dataNote += "`n主控台快捷方式删除失败：" + $_.Exception.Message }
         }
         if ($removeProgress) { $removeProgress.Window.Close() }
-        $profileNote = $env:USERPROFILE + ' 是 Windows 当前用户 profile（不是项目数据），不能删除。项目数据原本在 C:\CyberButler 和 C:\ProgramData\CyberButler。'
-        if ($serviceAccountMessage) { $profileNote += "`n" + $serviceAccountMessage }
-        if ($dataNote) { $profileNote += "`n" + $dataNote }
-        [System.Windows.MessageBox]::Show((($messages -join "`n") + "`n`n" + $profileNote), (Get-UiText 'Remove')) | Out-Null
+        $userProfileNote = $env:USERPROFILE + ' 是 Windows 当前用户 profile（不是项目数据），不能删除。项目数据原本在 C:\CyberButler 和 C:\ProgramData\CyberButler。'
+        if ($serviceAccountMessage) { $userProfileNote += "`n" + $serviceAccountMessage }
+        if ($dataNote) { $userProfileNote += "`n" + $dataNote }
+        [System.Windows.MessageBox]::Show((($messages -join "`n") + "`n`n" + $userProfileNote), (Get-UiText 'Remove')) | Out-Null
         if ($choice -in @('package', 'both')) { $window.Close() }
     } catch {
         if ($removeProgress) { $removeProgress.Window.Close() }
@@ -1713,19 +1763,19 @@ function Stop-GuiProcessTree([int]$ProcessId) {
         foreach ($child in @(Get-CimInstance Win32_Process -Filter ("ParentProcessId = " + $ProcessId) -ErrorAction SilentlyContinue)) {
             Stop-GuiProcessTree -ProcessId ([int]$child.ProcessId)
         }
-    } catch { }
-    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
+    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
 }
 
 $script:GuiCloseConfirmed = $false
 $window.Add_Closing({
-    param($sender, $eventArgs)
+    param($eventSender, $eventArgsData)
     if ($script:GuiCloseConfirmed) { return }
     if ($script:cbGuiProcess -and -not $script:cbGuiProcess.HasExited) {
         $answer = [System.Windows.MessageBox]::Show(
             (Get-UiText 'CloseConfirm'), (Get-UiText 'CloseConfirmTitle'), 'YesNo', 'Warning')
         if ($answer -ne 'Yes') {
-            $eventArgs.Cancel = $true
+            $eventArgsData.Cancel = $true
             return
         }
         if ($script:GuiCompletionTimer) { $script:GuiCompletionTimer.Stop() }

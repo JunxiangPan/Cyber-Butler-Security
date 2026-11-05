@@ -16,25 +16,34 @@ import win32crypt
 ROOT = Path(r"YOUR_PROJECT_PATH")
 SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
 RECOVERY_STORE = ROOT / "tools" / "totp_recovery.json"
-QR_PATH = Path(r"YOUR_USER_PATH\Desktop\苏瑾言TOTP.png")
-RECOVERY_TXT = Path(r"YOUR_USER_PATH\Desktop\苏瑾言TOTP恢复码.txt")
-ISSUER = "苏瑾言"
+QR_PATH = Path(r"YOUR_USER_PATH\Desktop\local agentTOTP.png")
+RECOVERY_TXT = Path(r"YOUR_USER_PATH\Desktop\local agentTOTP恢复码.txt")
+ISSUER = "local agent"
 ACCOUNT = "YOUR_QQ_ID"
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     secret = pyotp.random_base32()
     uri = pyotp.TOTP(secret).provisioning_uri(name=ACCOUNT, issuer_name=ISSUER)
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(uri)
     qr.make(fit=True)
-    qr.make_image(fill_color="black", back_color="white").save(QR_PATH)
+    with QR_PATH.open("wb") as qr_file:
+        qr.make_image(fill_color="black", back_color="white").save(qr_file)
 
     # 0x4 is CRYPTPROTECT_LOCAL_MACHINE: the Broker (SYSTEM) can decrypt it,
     # but any local principal that can read the wrapped file can also decrypt
     # it. The vault ACL is the effective boundary; this is not user binding.
     encrypted = win32crypt.CryptProtectData(
-        secret.encode("utf-8"), "AstrBot TOTP", None, None, None, 0x4
+        secret.encode("utf-8"), "AgentRuntime TOTP", None, None, None, 0x4
     )
     SECRET_FILE.write_bytes(encrypted)
 
@@ -45,19 +54,19 @@ def main() -> int:
         encoding="utf-8",
     )
     RECOVERY_TXT.write_text(
-        "苏瑾言 TOTP 一次性恢复码（每码仅可用一次，手机丢失时使用）\n\n"
+        "local agent TOTP 一次性恢复码（每码仅可用一次，手机丢失时使用）\n\n"
         + "\n".join(f"{i + 1}. {code}" for i, code in enumerate(codes))
         + "\n",
         encoding="utf-8",
     )
-    # The broker runs as SYSTEM; the QR/recovery text belong to YOUR_USER_NAME.
+    # The broker runs as SYSTEM; the QR/recovery text belong to test-user.
     def _lock_down(path: Path) -> None:
         """Apply a fail-closed ACL; a failed icacls call aborts setup."""
         result = subprocess.run(
             [
                 "icacls", str(path), "/inheritance:r", "/grant:r",
                 "SYSTEM:(F)", "*S-1-5-32-544:(F)",
-                "/deny", "AstrBot_User:(R)",
+                "/deny", "AgentRuntime_User:(R)",
             ],
             check=False,
             capture_output=True,

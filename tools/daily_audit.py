@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Daily AstrBot operation audit, sent to QQ through AstrBot's Open API."""
+"""Daily AgentRuntime operation audit, sent to QQ through AgentRuntime's Open API."""
 
 from __future__ import annotations
 
@@ -13,20 +13,36 @@ from pathlib import Path
 import requests
 
 ROOT = Path(r"YOUR_PROJECT_PATH")
-LOG = ROOT / "AstrBot" / "data" / "service-astrbot.out.log"
-TOKEN = ROOT / ".astrbot_token"
+LOG = ROOT / "AgentRuntime" / "data" / "service-agentruntime.out.log"
+TOKEN = ROOT / ".agentruntime_token"
 REPORT = ROOT / "tools" / "daily-audit.jsonl"
 UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
-SHARED = r"YOUR_USER_PATH\Desktop\大肥鱼专用文件夹"
+SHARED = r"YOUR_USER_PATH\Desktop\shared专用文件夹"
 
 
 def strip_ansi(text: str) -> str:
+    """Strip ansi.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 def build_report() -> dict:
+    """Build report.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not LOG.exists():
-        return {"date": dt.date.today().isoformat(), "error": "AstrBot log missing"}
+        return {"date": dt.date.today().isoformat(), "error": "AgentRuntime log missing"}
     text = strip_ansi(LOG.read_text(encoding="utf-8", errors="ignore"))
     tool_names = re.findall(r"使用工具：([A-Za-z0-9_\-]+)", text)
     agent_tools = re.findall(r"Agent 使用工具: \[([^\]]+)\]", text)
@@ -36,7 +52,7 @@ def build_report() -> dict:
     # "使用工具：" line and add agent-only entries that are not duplicated.
     tool_calls = len(re.findall(r"使用工具：", text))
     files = sorted(set(re.findall(re.escape(SHARED) + r"[^\s\"')\]]+", text)))
-    code_calls = len(re.findall(r"使用工具：astrbot_execute_python", text))
+    code_calls = len(re.findall(r"使用工具：agentruntime_execute_python", text))
     denied = re.findall(
         r"访问被拒绝|Access is denied|Access denied|permission denied|越权|Permission denied",
         text,
@@ -54,6 +70,14 @@ def build_report() -> dict:
 
 
 def send_qq(text: str) -> bool:
+    """Send qq.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not TOKEN.exists():
         return False
     token = TOKEN.read_text(encoding="utf-8").strip()
@@ -70,6 +94,14 @@ def send_qq(text: str) -> bool:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-send", action="store_true")
     args = parser.parse_args()
@@ -90,7 +122,7 @@ def main() -> int:
             text += f" 等 {report['file_count']} 个"
         text += "\n"
     if report["denied_count"]:
-        text += "检测到权限拒绝记录，建议查看 tools\\snowluma_guard.log。"
+        text += "检测到权限拒绝记录，建议查看 tools\\auxruntime_guard.log。"
     else:
         text += "未检测到越权行为。"
     print(text)

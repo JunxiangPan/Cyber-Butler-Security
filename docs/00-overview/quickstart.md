@@ -8,8 +8,8 @@
 | TOTP Broker | ✅ | 18090 |
 | WebUI | ✅ | 8765 |
 | WFP outbound blocking | ⚠️ | audit only |
-| OTP Mailer / SnowLuma | ✅ | 8766 / 5099 |
-| 6199 OneBot adapter | ❌ | configure manually |
+| OTP Mailer / AuxRuntime | ✅ | 8766 / 5099 |
+| 6199 AgentProtocol adapter | ❌ | configure manually |
 | Light tier | ✅ | install passed; reduced isolation |
 
 
@@ -21,7 +21,7 @@
 6. After installation verify:
 
 ```powershell
-Get-Service CyberButlerAstrBot
+Get-Service CyberButlerAgentRuntime
 Get-NetTCPConnection -State Listen |
   Where-Object { $_.LocalPort -in 6185,18090,8765,8766,5099 }
 ```

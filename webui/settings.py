@@ -11,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 @dataclass
 class Settings:
+    """Settings helper/type."""
     admin_email: str
     data_dir: Path
     config_path: Path | None = None
@@ -23,15 +24,11 @@ class Settings:
     otp_ttl_seconds: int = 300
     otp_max_attempts: int = 5
     project_root: Path = field(default_factory=lambda: BASE_DIR.parent.parent)
-    astrbot_api: str = "http://127.0.0.1:6185"
-    astrbot_token_file: Path | None = None
     lhm_url: str = "http://127.0.0.1:18085/data.json"
     broker_port: int = 18090
-    snowluma_port: int = 5099
     log_max_lines: int = 80
     file_root: str = ""
     file_max_mb: int = 20
-    token_pricing: dict = field(default_factory=dict)
     file_deny_patterns: tuple[str, ...] = (
         "*.key", "*.pem", "*.pfx", "*.p12", "*secret*", "*password*", "*token*",
     )
@@ -44,6 +41,14 @@ class Settings:
 
     @classmethod
     def load(cls, path: str | Path | None = None) -> "Settings":
+        """Load.
+        
+        Args:
+            path: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         config_path = Path(path or os.environ.get("WEBUI_CONFIG") or BASE_DIR / "config.json")
         if not config_path.exists():
             raise FileNotFoundError(
@@ -56,10 +61,6 @@ class Settings:
         project_root = Path(raw.get("project_root") or BASE_DIR.parent.parent)
         if not project_root.is_absolute():
             project_root = BASE_DIR / project_root
-        token_file = raw.get("astrbot_token_file")
-        token_path = Path(token_file) if token_file else project_root / ".astrbot_token"
-        if not token_path.is_absolute():
-            token_path = project_root / token_path
         raw_cookie_secure = raw.get("cookie_secure", False)
         if isinstance(raw_cookie_secure, str) and raw_cookie_secure.strip().lower() == "auto":
             cookie_secure: bool | str = "auto"
@@ -77,15 +78,11 @@ class Settings:
             otp_ttl_seconds=int(raw.get("otp_ttl_seconds") or 300),
             otp_max_attempts=int(raw.get("otp_max_attempts") or 5),
             project_root=project_root,
-            astrbot_api=str(raw.get("astrbot_api") or "http://127.0.0.1:6185"),
-            astrbot_token_file=token_path,
             lhm_url=str(raw.get("lhm_url") or "http://127.0.0.1:18085/data.json"),
             broker_port=int(raw.get("broker_port") or 18090),
-            snowluma_port=int(raw.get("snowluma_port") or 5099),
             log_max_lines=int(raw.get("log_max_lines") or 80),
             file_root=str(raw.get("file_root") or ""),
             file_max_mb=int(raw.get("file_max_mb") or 20),
-            token_pricing=dict(raw.get("token_pricing") or {}),
             file_deny_patterns=tuple(raw.get("file_deny_patterns") or (
                 "*.key", "*.pem", "*.pfx", "*.p12", "*secret*", "*password*", "*token*",
             )),
@@ -96,6 +93,14 @@ class Settings:
         return settings
 
     def ensure_data(self) -> None:
+        """Ensure data.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.data_dir.mkdir(parents=True, exist_ok=True)
         for name in ("server_secret", "mailer_token"):
             path = self.data_dir / name
@@ -111,20 +116,60 @@ class Settings:
 
     @property
     def db_path(self) -> Path:
+        """Db path.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return self.data_dir / "webui.db"
 
     @property
     def server_secret(self) -> bytes:
+        """Server secret.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return (self.data_dir / "server_secret").read_bytes()
 
     @property
     def mailer_token_path(self) -> Path:
+        """Mailer token path.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return self.data_dir / "mailer_token"
 
     @property
     def mailer_token(self) -> str:
+        """Mailer token.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return self.mailer_token_path.read_text(encoding="ascii").strip()
 
     @property
     def session_seconds(self) -> int:
+        """Session seconds.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         return self.session_days * 86400

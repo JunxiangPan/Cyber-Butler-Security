@@ -32,10 +32,10 @@ $manifest = New-Object System.Collections.Generic.List[object]
 
 try {
     $targets = @(
-        @{ Source = (Join-Path $root 'AstrBot\data'); Dest = 'AstrBot/data' },
-        @{ Source = (Join-Path $root 'SnowLuma\config'); Dest = 'SnowLuma/config' },
-        @{ Source = (Join-Path $root 'SnowLuma\data'); Dest = 'SnowLuma/data' },
-        @{ Source = (Join-Path $root 'SnowLuma\logs'); Dest = 'SnowLuma/logs' },
+        @{ Source = (Join-Path $root 'AgentRuntime\data'); Dest = 'AgentRuntime/data' },
+        @{ Source = (Join-Path $root 'AuxRuntime\config'); Dest = 'AuxRuntime/config' },
+        @{ Source = (Join-Path $root 'AuxRuntime\data'); Dest = 'AuxRuntime/data' },
+        @{ Source = (Join-Path $root 'AuxRuntime\logs'); Dest = 'AuxRuntime/logs' },
         @{ Source = (Join-Path $root 'tools\totp-vault'); Dest = 'tools/totp-vault' },
         @{ Source = (Join-Path $root 'webui\data'); Dest = 'webui/data' },
         @{ Source = (Join-Path $root 'data'); Dest = 'data' }

@@ -21,14 +21,14 @@ Block 1 through Block 7 are implemented:
 - `lib/Installer.Secrets.ps1` DPAPI secrets and `local-overlay.json`
 - `lib/Installer.Services.ps1` scheduled tasks and port health
 - `lib/Installer.Core.ps1` real download, SHA-256, extraction, venv, overlay merge
-- `core-sources.json` pinned AstrBot/SnowLuma source descriptors
+- `core-sources.json` pinned AgentRuntime/AuxRuntime source descriptors
 - `lib/Installer.Diagnostics.ps1` eight-item defense checklist
 - `lib/Installer.Report.ps1` JSON/Markdown install reports
 - `lib/totp_material.py` TOTP/QR/recovery generator (no secret output)
 
-Core deployment is implemented with pinned official AstrBot and SnowLuma
+Core deployment is implemented with pinned official AgentRuntime and AuxRuntime
 URLs/SHA-256 in `core-sources.json`. Local packages can be supplied with
-`-AstrBotPackage` / `-SnowLumaPackage`. Real privileged execution still
+`-AgentRuntimePackage` / `-AuxRuntimePackage`. Real privileged execution still
 remains a clean-Windows-VM acceptance step.
 
 ## Visual installer
@@ -173,9 +173,9 @@ handler injection so the test suite does not modify the host.
 - TOTP requires both `APPROVE TOTP` and explicit `-Scanned` /
   `-RecoverySaved` confirmation.
 - The vault ACL allows SYSTEM, Administrators, and the nominated reader.
-  In isolation mode the separate AstrBot service account is denied. In
-  single-account mode the AstrBot identity is the administrator, so the deny
-  rule is skipped to avoid locking out the installer; reader and AstrBot must
+  In isolation mode the separate AgentRuntime service account is denied. In
+  single-account mode the AgentRuntime identity is the administrator, so the deny
+  rule is skipped to avoid locking out the installer; reader and AgentRuntime must
   still differ.
 - Secrets are DPAPI-protected before they touch disk. Tests use fake values and
   assert the journal/result never contain them.
@@ -218,7 +218,7 @@ run the real account/ACL/firewall paths on a clean Windows 11 Pro VM and record:
 
 - the service account can be created and can log on as the intended service
   principal;
-- after the ACL is applied, AstrBot starts and can read/write only its intended
+- after the ACL is applied, AgentRuntime starts and can read/write only its intended
   data/workspace paths;
 - with the firewall rules active, ports 6185, 18090, and 8765 remain reachable
   only from the intended loopback/Tailscale boundary.
@@ -235,7 +235,7 @@ run the real account/ACL/firewall paths on a clean Windows 11 Pro VM and record:
 ```
 
 `-Apply` requires `APPROVE MIGRATE-ISOLATION`; `-NonInteractive` without it
-exits 10. SnowLuma and the TOTP Broker are never migrated. Data is not copied;
+exits 10. AuxRuntime and the TOTP Broker are never migrated. Data is not copied;
 rollback restores task XML, ACLs, and secret references only.
 
 ## Prerequisites
@@ -294,16 +294,16 @@ venv + requirements -> overlay merge -> assert
 
 - `None` installs a fresh tree.
 - `Legacy` / `Installed` merges code over the existing tree, excludes
-  `data`, `.venv`, SnowLuma `data`/`config`/`logs`, and preserves all existing
+  `data`, `.venv`, AuxRuntime `data`/`config`/`logs`, and preserves all existing
   data and extra files.
 - New directories and replaced files are journaled; a failure removes the
   staging tree and any directories created by the failed fresh install.
 - A SHA-256 mismatch aborts before target directories are created.
 
 Source descriptors live in `installer/core-sources.json` with pinned official
-AstrBot v4.29.3 and SnowLuma v2.2.1 URLs/SHA-256. Downloads support timeout,
+AgentRuntime v4.29.3 and AuxRuntime v2.2.1 URLs/SHA-256. Downloads support timeout,
 retry, optional `-ResumeDownload`, and a GitHub-specific failure hint. Use
-`-AstrBotPackage` / `-SnowLumaPackage` for local VM packages when needed.
+`-AgentRuntimePackage` / `-AuxRuntimePackage` for local VM packages when needed.
 
 ## Troubleshooting / 常见问题
 
@@ -324,7 +324,7 @@ Python 3.10 - 3.13
 
 如果系统 Python 是 3.14 / 3.15，安装器不会强迫你降级：
 Preflight 会标记 `python_needs_bundle=true`，在 `APPROVE PLAN` 之后自动下载
-Python 3.13.17 到 `<InstallPath>\.python`，并用它创建 AstrBot venv。
+Python 3.13.17 到 `<InstallPath>\.python`，并用它创建 AgentRuntime venv。
 
 旧版本或手动创建的 venv 如果直接使用 3.15，pip 仍可能报：
 
@@ -352,7 +352,7 @@ python -c "import sys; print(sys.executable); print(sys.version)"
 如果 `where.exe python` 第一条是：
 
 ```text
-C:\Users\<YourUsername>\AppData\Local\Microsoft\WindowsApps\python.exe
+C:\CyberButler\<YourUsername>\AppData\Local\Microsoft\WindowsApps\python.exe
 ```
 
 这是 Windows Store 的 App Execution Alias，不是可用的 Python。处理方式：
@@ -453,10 +453,10 @@ C:\CyberButler\installer-report\pip-install.log
 .\installer\Install-CyberButler.ps1 `
   -Tier Medium `
   -OwnerQQ <YourQQ> `
-  -AstrBotPackage .\AstrBot-4.29.3.zip `
-  -SnowLumaPackage .\SnowLuma-v2.2.1-win-x64.zip `
-  -AstrBotSha256 <AstrBotSHA256> `
-  -SnowLumaSha256 <SnowLumaSHA256>
+  -AgentRuntimePackage .\AgentRuntime-4.29.3.zip `
+  -AuxRuntimePackage .\AuxRuntime-v2.2.1-win-x64.zip `
+  -AgentRuntimeSha256 <AgentRuntimeSHA256> `
+  -AuxRuntimeSha256 <AuxRuntimeSHA256>
 ```
 
 如果系统 Python 不可用或版本过高，可同时指定：
@@ -535,13 +535,13 @@ whoami
 $env:USERDOMAIN
 $env:USERNAME
 Get-LocalUser
-Get-ScheduledTask -TaskName 'AstrBot Service' | Select-Object -ExpandProperty Principal
+Get-ScheduledTask -TaskName 'AgentRuntime Service' | Select-Object -ExpandProperty Principal
 ```
 
 规则：
 
-- Medium / Light 单账户：AstrBot Service 使用当前登录用户，principal 为 `Interactive`。
-- High 隔离：AstrBot 使用原生 Windows 服务 `CyberButlerAstrBot`，运行账户为 `<YourComputer>\CyberButlerSvc`；服务由 SCM 托管，不再使用 S4U 计划任务。
+- Medium / Light 单账户：AgentRuntime Service 使用当前登录用户，principal 为 `Interactive`。
+- High 隔离：AgentRuntime 使用原生 Windows 服务 `CyberButlerAgentRuntime`，运行账户为 `<YourComputer>\CyberButlerSvc`；服务由 SCM 托管，不再使用 S4U 计划任务。
 - TOTP Broker 使用 `NT AUTHORITY\SYSTEM`。
 
 安装器现在会打印：
@@ -617,17 +617,17 @@ icacls "C:\CyberButler\tools\totp-vault" /grant "BUILTIN\Administrators:(OI)(CI)
 CBS 开源包只包含安全层插件。以下三个插件是个人定制插件，不随开源包发布：
 
 ```text
-astrbot_plugin_private_companion
-astrbot_plugin_livingmemory
-astrbot_plugin_memorix
+agentruntime_plugin_private_companion
+agentruntime_plugin_livingmemory
+agentruntime_plugin_memorix
 ```
 
-需要完整苏瑾言时，用 `-PersonalPluginsPath` 指定这三个插件的源目录：
+需要完整local agent时，用 `-PersonalPluginsPath` 指定这三个插件的源目录：
 
 ```powershell
 .\installer\Install-CyberButler.ps1 `
   -Tier Medium `
-  -PersonalPluginsPath D:\qq苏瑾言大肥鱼\AstrBot\data\plugins
+  -PersonalPluginsPath D:\qqlocal agentshared\AgentRuntime\data\plugins
 ```
 
 规则：
@@ -642,20 +642,20 @@ astrbot_plugin_memorix
 
 ### 从 v1.5.x 迁移
 
-v1.5.x 通常安装在 `D:\qq苏瑾言大肥鱼`，v1.6.0 默认安装到 `C:\CyberButler`。这不是原地升级。
+v1.5.x 通常安装在 `D:\qqlocal agentshared`，v1.6.0 默认安装到 `C:\CyberButler`。这不是原地升级。
 
 ```text
-旧安装：D:\qq苏瑾言大肥鱼\AstrBot\data\plugins
-新安装：C:\CyberButler\AstrBot\data\plugins
+旧安装：D:\qqlocal agentshared\AgentRuntime\data\plugins
+新安装：C:\CyberButler\AgentRuntime\data\plugins
 ```
 
 安装时指定旧插件源：
 
 ```powershell
--PersonalPluginsPath "D:\qq苏瑾言大肥鱼\AstrBot\data\plugins"
+-PersonalPluginsPath "D:\qqlocal agentshared\AgentRuntime\data\plugins"
 ```
 
-旧安装的 `AstrBot/data/`（记忆、对话历史、数据库）不会自动迁移，需要手动处理。v1.6.0 目标目录已有个人插件时，不传 `-PersonalPluginsPath` 会保留现有插件。
+旧安装的 `AgentRuntime/data/`（记忆、对话历史、数据库）不会自动迁移，需要手动处理。v1.6.0 目标目录已有个人插件时，不传 `-PersonalPluginsPath` 会保留现有插件。
 
 ## Manifest integration
 

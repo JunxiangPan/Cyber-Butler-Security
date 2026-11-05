@@ -110,6 +110,12 @@ function Test-CyberButlerInteractiveStdin {
     }
 }
 
+<#
+.SYNOPSIS
+    Read-CyberButlerSecureSecret performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Read-CyberButlerSecureSecret {
     param(
         [Parameter(Mandatory = $true)]
@@ -179,6 +185,12 @@ function Get-CyberButlerExistingState {
     return 'Legacy'
 }
 
+<#
+.SYNOPSIS
+    Write-CyberButlerInstallStateMarker performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Write-CyberButlerInstallStateMarker {
     param(
         [Parameter(Mandatory = $true)]
@@ -306,4 +318,23 @@ function Invoke-CyberButlerHandler {
     return (& $Handlers[$Name] $Context)
 }
 
+<#
+.SYNOPSIS
+    Returns the interactive desktop user, never the service account by default.
+#>
+function Get-CyberButlerInteractiveUser {
+    $name = ''
+    try { $name = [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { $name = '' }
+    if ([string]::IsNullOrWhiteSpace($name) -or $name -ieq 'NT AUTHORITY\SYSTEM') {
+        try {
+            $explorer = Get-CimInstance -ClassName Win32_Process -Filter "Name='explorer.exe'" -ErrorAction Stop | Select-Object -First 1
+            if ($explorer) {
+                $owner = Invoke-CimMethod -InputObject $explorer -MethodName GetOwner -ErrorAction Stop
+                if ($owner -and $owner.User) { $name = if ($owner.Domain) { $owner.Domain + '' + $owner.User } else { $owner.User } }
+            }
+        } catch { Write-Verbose 'interactive user fallback failed' }
+    }
+    if ([string]::IsNullOrWhiteSpace($name)) { $name = [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+    return $name
+}
 

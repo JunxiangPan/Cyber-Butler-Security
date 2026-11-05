@@ -4,7 +4,7 @@
 Elevated recovery helper for the Cyber-Butler dashboard.
 
 Modes:
-  Restore   - safety backup current data, stop AstrBot, replace data, restart
+  Restore   - safety backup current data, stop AgentRuntime, replace data, restart
   Downgrade - safety backup data, then call update_merge.ps1 for a selected release
 
 This helper is intentionally separate from the WPF UI: all destructive work
@@ -22,10 +22,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $target = (Resolve-Path -LiteralPath $TargetRoot).Path
-$dataDir = Join-Path $target 'AstrBot\data'
+$dataDir = Join-Path $target 'AgentRuntime\data'
 $backupDir = Join-Path $target 'backups'
 $mergeScript = Join-Path $target 'tools\update_merge.ps1'
-$python = Join-Path $target 'AstrBot\.venv\Scripts\python.exe'
+$python = Join-Path $target 'AgentRuntime\.venv\Scripts\python.exe'
 if (-not $LogFile) { $LogFile = Join-Path $backupDir 'restore_history.log' }
 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
 
@@ -36,15 +36,21 @@ function Write-Status([string]$stage, [int]$progress, [string]$message) {
         if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
         [ordered]@{ stage = $stage; progress = $progress; message = $message; updated_at = (Get-Date).ToString('o') } |
             ConvertTo-Json -Compress | Set-Content -LiteralPath $StatusFile -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Write-Log([string]$message) {
     try {
         Add-Content -LiteralPath $LogFile -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
+<#
+.SYNOPSIS
+    New-SafetyBackup performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-SafetyBackup([string]$label) {
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
     $zip = Join-Path $backupDir ('pre-' + $label + '-' + $stamp + '.zip')
@@ -58,7 +64,7 @@ function New-SafetyBackup([string]$label) {
             (Join-Path $dataDir 'plugin_data\meme_manager\packs'),
             (Join-Path $dataDir 'workspaces')
         )
-        $args = @($dataDir, $temp, '/E', '/R:1', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/NP', '/XD') + $exclude + @('/XF', '*.log', '*.tmp', '*.lock')
+        $robocopyArgs = @($dataDir, $temp, '/E', '/R:1', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/NP', '/XD') + $exclude + @('/XF', '*.log', '*.tmp', '*.lock')
         & robocopy.exe @args | Out-Null
         if ($LASTEXITCODE -gt 7) { throw ('safety robocopy failed: ' + $LASTEXITCODE) }
         Compress-Archive -Path (Join-Path $temp '*') -DestinationPath $zip -CompressionLevel Fastest -Force
@@ -69,45 +75,51 @@ function New-SafetyBackup([string]$label) {
     }
 }
 
-function Stop-AstrBot {
-    Write-Status 'stopping' 25 '正在停止 AstrBot 服务...'
-    Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+function Stop-AgentRuntime {
+    Write-Status 'stopping' 25 '正在停止 AgentRuntime 服务...'
+    Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
     $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -and $_.CommandLine -match 'main\.py' })
-    foreach ($p in $procs) { try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop } catch { } }
+    foreach ($p in $procs) { try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop } catch { Write-Verbose 'optional operation failed' } }
     $deadline = (Get-Date).AddSeconds(30)
     while ((Get-Date) -lt $deadline) {
         $listen = @(Get-NetTCPConnection -LocalPort 6185 -State Listen -ErrorAction SilentlyContinue)
         if ($listen.Count -eq 0) { return }
         Start-Sleep -Seconds 1
     }
-    throw 'AstrBot did not release port 6185'
+    throw 'AgentRuntime did not release port 6185'
 }
 
-function Start-AstrBot {
-    Write-Status 'starting' 85 '正在启动 AstrBot 服务...'
-    Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+function Start-AgentRuntime {
+    Write-Status 'starting' 85 '正在启动 AgentRuntime 服务...'
+    Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
     $deadline = (Get-Date).AddSeconds(60)
     while ((Get-Date) -lt $deadline) {
         try {
             if ((Invoke-WebRequest -Uri 'http://127.0.0.1:6185' -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200) { return }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         Start-Sleep -Seconds 2
     }
-    throw 'AstrBot did not become healthy after restart'
+    throw 'AgentRuntime did not become healthy after restart'
 }
 
+<#
+.SYNOPSIS
+    Invoke-Restore performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-Restore {
     if (-not $BackupPath -or -not (Test-Path -LiteralPath $BackupPath)) { throw ('备份文件不存在：' + $BackupPath) }
     if (-not (Test-Path -LiteralPath $dataDir)) { throw ('数据目录不存在：' + $dataDir) }
     Write-Status 'preparing' 10 '正在准备恢复...'
     Write-Log ('RESTORE requested backup=' + $BackupPath)
-    Stop-AstrBot
+    Stop-AgentRuntime
     try {
         $safety = New-SafetyBackup 'restore'
     } catch {
-        Start-AstrBot
+        Start-AgentRuntime
         throw
     }
     $extract = Join-Path $env:TEMP ('cbs-restore-' + [guid]::NewGuid().ToString('N'))
@@ -122,7 +134,7 @@ function Invoke-Restore {
         New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
         Copy-Item -Path (Join-Path $extract '*') -Destination $dataDir -Recurse -Force
         Write-Status 'restarting' 80 '数据已恢复，正在重启服务...'
-        Start-AstrBot
+        Start-AgentRuntime
         Write-Status 'done' 100 '恢复完成'
         Write-Log ('RESTORE OK safety=' + $safety + ' old=' + $oldData)
         return [ordered]@{ status = 'ok'; safety_backup = $safety; old_data = $oldData }
@@ -131,14 +143,20 @@ function Invoke-Restore {
         try {
             if (Test-Path -LiteralPath $dataDir) { Remove-Item -LiteralPath $dataDir -Recurse -Force -ErrorAction SilentlyContinue }
             if (Test-Path -LiteralPath $oldData) { Move-Item -LiteralPath $oldData -Destination $dataDir -Force }
-            Start-AstrBot
-        } catch { }
+            Start-AgentRuntime
+        } catch { Write-Verbose 'optional operation failed' }
         throw
     } finally {
         Remove-Item -LiteralPath $extract -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-Downgrade performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-Downgrade {
     if (-not $AssetUrl) { throw '缺少历史版本资产 URL' }
     if (-not (Test-Path -LiteralPath $mergeScript)) { throw ('更新脚本不存在：' + $mergeScript) }

@@ -33,14 +33,14 @@ param(
     [Security.SecureString]$ServiceAccountPassword = $null,
     [switch]$UseExistingServiceAccount,
 
-    [string]$ExternalAgentAccount = '',
+    [string]$AgentRuntimeAccount = '',
     [string]$DesktopAccount = '',
     [string]$TotpReaderAccount = 'BUILTIN\Administrators',
 
     [string]$DataPath = '',
     [string]$WorkspacePath = '',
 
-    [int]$ExternalAgentPort = 6185,
+    [int]$AgentRuntimePort = 6185,
     [int]$BrokerPort = 18090,
     [int]$WebUIPort = 8765,
     [int]$OtpMailerPort = 8766,
@@ -53,10 +53,10 @@ param(
     [int]$SmtpPort = 465,
     [string]$SmtpUser = '',
 
-    [string]$ExternalAgentPackage = '',
-    [string]$ExternalApplicationPackage = '',
-    [string]$ExternalAgentSha256 = '',
-    [string]$ExternalApplicationSha256 = '',
+    [string]$AgentRuntimePackage = '',
+    [string]$AuxRuntimeApplicationPackage = '',
+    [string]$AgentRuntimeSha256 = '',
+    [string]$AuxRuntimeApplicationSha256 = '',
     [string]$CoreSourcesPath = '',
     [string]$PythonPackage = '',
     [string]$PythonSha256 = '',
@@ -101,7 +101,7 @@ if (-not $installerMutex.WaitOne(0)) {
 }
 if (-not $Resume -and $ReportDirectory -and (Test-Path -LiteralPath (Join-Path $ReportDirectory 'install-report.json'))) {
     $previousReport = Join-Path $ReportDirectory ('install-report.previous-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.json')
-    try { Move-Item -LiteralPath (Join-Path $ReportDirectory 'install-report.json') -Destination $previousReport -Force } catch { }
+    try { Move-Item -LiteralPath (Join-Path $ReportDirectory 'install-report.json') -Destination $previousReport -Force } catch { Write-Verbose 'optional operation failed' }
 }
 $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
@@ -119,8 +119,6 @@ $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Report.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Python.ps1')
-. (Join-Path $installerRoot 'lib\Installer.PersonalPlugins.ps1')
-. (Join-Path $installerRoot 'lib\Installer.Overlay.ps1')
 
 if (-not [string]::IsNullOrWhiteSpace($TestConfigPath)) {
     if (-not (Test-Path -LiteralPath $TestConfigPath)) { throw "TestConfigPath not found: $TestConfigPath" }
@@ -174,6 +172,12 @@ function Add-MainApproval {
     [void]$Approvals.Add([pscustomobject]@{ token = $Token; step = $Step; at = Get-InstallerUtcTimestamp })
 }
 
+<#
+.SYNOPSIS
+    Request-MainApproval performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Request-MainApproval {
     param(
         [string]$Token,
@@ -200,6 +204,12 @@ function Request-MainApproval {
     return $false
 }
 
+<#
+.SYNOPSIS
+    Request-MainConfirmation performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Request-MainConfirmation {
     param(
         [string]$Token,
@@ -285,6 +295,8 @@ if (-not [string]::IsNullOrWhiteSpace($EnableIsolation)) {
     }
 }
 
+try {
+$failure = $null
 $resolution = Resolve-CyberButlerTier `
     -Tier $Tier `
     -EnableIsolation $isolationValue `
@@ -295,7 +307,7 @@ $resolution = Resolve-CyberButlerTier `
     -WebUIBind $WebUIBind `
     -EnableTailscaleServe:$EnableTailscaleServe `
     -OwnerQQ $OwnerQQ `
-    -ExternalAgentPort $ExternalAgentPort `
+    -AgentRuntimePort $AgentRuntimePort `
     -BrokerPort $BrokerPort `
     -WebUIPort $WebUIPort `
     -OtpMailerPort $OtpMailerPort
@@ -305,11 +317,17 @@ if ($resolution.Errors.Count -gt 0) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 
-if ([string]::IsNullOrWhiteSpace($ExternalAgentAccount)) {
-    $ExternalAgentAccount = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+if ([string]::IsNullOrWhiteSpace($AgentRuntimeAccount)) {
+    $AgentRuntimeAccount = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+}
+$currentDesktopUser = Get-CyberButlerInteractiveUser
+$desktopLeaf = if ($DesktopAccount) { ($DesktopAccount -split '[\/]')[-1] } else { '' }
+$serviceLeaf = ($ServiceAccountName -split '[\/]')[-1]
+if ([string]::IsNullOrWhiteSpace($DesktopAccount) -or $desktopLeaf -ieq $serviceLeaf -or $DesktopAccount -match '^NT AUTHORITY\SYSTEM$') {
+    $DesktopAccount = $currentDesktopUser
 }
 if ([string]::IsNullOrWhiteSpace($DesktopAccount)) {
-    $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+    throw 'DesktopAccount could not be resolved; refusing to grant broker token ACL.'
 }
 if ([string]::IsNullOrWhiteSpace($JournalRoot)) {
     $JournalRoot = if (Test-InstallerAdministrator) {
@@ -368,7 +386,7 @@ $pythonBlocking = @($preflight.blocking | Where-Object { $_.id -eq 'python' }).C
 if ($preflight.python_needs_bundle -or -not $preflight.python_usable -or $pythonBlocking) {
     foreach ($line in @(
         'Install Python 3.10-3.13 and add it to PATH before running this installer.',
-        'Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this ExternalAgent release.',
+        'Python 3.14+ is not supported by faiss-cpu; use Python 3.13 for this AgentRuntime release.',
         'Supply -PythonPackage <path> for offline Python installation.'
     )) {
         if (-not $resolution.ManualSteps.Contains($line)) { $resolution.ManualSteps.Add($line) }
@@ -394,7 +412,7 @@ if ($PlanOnly) {
 if ($Repair) {
     $diagnostics = Get-CyberButlerDiagnostics -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel `
         -Isolation $resolution.Isolation -Root $InstallPath -ServiceAccount $ServiceAccountName `
-        -TotpReaderAccount $TotpReaderAccount -ExternalAgentAccount $ExternalAgentAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
+        -TotpReaderAccount $TotpReaderAccount -AgentRuntimeAccount $AgentRuntimeAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
     $report = Write-MainReport -Status 'repair' -Diagnostics $diagnostics -Journal $null -Approvals @() `
         -Steps @() -Failure $null -Message 'Repair mode runs diagnostics only.' -ReportDirectory $ReportDirectory `
         -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel -Isolation $resolution.Isolation -Handlers $Handlers
@@ -546,12 +564,12 @@ if (-not $failure -and $coreNeedsDeploy) {
     Write-Output ('CORE start existing=' + $preflight.install_path.existing_state)
     $coreResult = Invoke-CyberButlerCoreDeploy -InstallPath $InstallPath `
         -ExistingState $preflight.install_path.existing_state -Tier $resolution.Tier `
-        -ExternalAgentPackage $ExternalAgentPackage -ExternalApplicationPackage $ExternalApplicationPackage `
-        -ExternalAgentSha256 $ExternalAgentSha256 -ExternalApplicationSha256 $ExternalApplicationSha256 `
+        -AgentRuntimePackage $AgentRuntimePackage -AuxRuntimeApplicationPackage $AuxRuntimeApplicationPackage `
+        -AgentRuntimeSha256 $AgentRuntimeSha256 -AuxRuntimeApplicationSha256 $AuxRuntimeApplicationSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `
         -DownloadTimeoutSeconds $DownloadTimeoutSeconds -DownloadRetryCount $DownloadRetryCount -ResumeDownload:$ResumeDownload -PythonPath $pythonPath -PythonSource $pythonSource -PythonVersion $pythonVersion -PipLogPath (Join-Path $ReportDirectory 'pip-install.log') `
         -PersonalPluginsPath $PersonalPluginsPath `
-        -OwnerQQ $OwnerQQ -ToolServiceAccount $ExternalAgentAccount -ToolDesktopAccount $DesktopAccount `
+        -OwnerQQ $OwnerQQ -ToolServiceAccount $AgentRuntimeAccount -ToolDesktopAccount $DesktopAccount `
         -WebUIAdminEmail $WebUIAdminEmail `
         -Repair:($Repair -or ($coreJournalDone -and -not $coreTree.satisfied)) `
         -Journal $journal -JournalStep 'core' -Handlers $Handlers
@@ -588,20 +606,10 @@ if (-not $failure -and $coreNeedsDeploy) {
     }
 }
 
-$aclIdentity = if ($resolution.Isolation) { $ServiceAccountName } else { $ExternalAgentAccount }
-$aclRoot = if ($coreResult -and $coreResult.paths -and $coreResult.paths.astrbot) { Split-Path -Parent ([string]$coreResult.paths.astrbot) } else { $InstallPath }
-$toolsPath = if ($coreResult -and $coreResult.paths -and $coreResult.paths.tools) { [string]$coreResult.paths.tools } else { Join-Path $aclRoot 'tools' }
-$aclPaths = if ($coreResult -and $coreResult.paths -and $coreResult.paths.astrbot) {
-    @(
-        [string]$coreResult.paths.astrbot,
-        (Join-Path ([string]$coreResult.paths.astrbot) '.venv'),
-        [string]$coreResult.paths.snowluma,
-        [string]$coreResult.paths.data,
-        [string]$coreResult.paths.workspace
-    )
-} else {
-    @(Get-CyberButlerAclTargets -InstallPath $aclRoot)
-}
+$aclIdentity = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+$aclRoot = $InstallPath
+$toolsPath = Join-Path $aclRoot 'tools'
+$aclPaths = @(Get-CyberButlerAclTargets -InstallPath $aclRoot)
 $vaultPath = Join-Path $toolsPath 'totp-vault'
 $pythonAclPath = Join-Path $aclRoot '.python'
 if (Test-Path -LiteralPath $pythonAclPath) { $aclPaths = @($aclPaths) + $pythonAclPath }
@@ -659,7 +667,8 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
     } else {
         foreach ($aclTarget in $aclPaths) {
             if ($failure) { break }
-            $result = Invoke-CyberButlerAcl -Path $aclTarget -Identity $aclIdentity -Mode 'RX' -JournalStep 'acl' -Journal $journal -Approval 'APPROVE ACL' -NonInteractive:$NonInteractive -Handlers $Handlers
+            $aclMode = if ((Split-Path -Leaf $aclTarget) -ieq 'workspace') { 'RW' } else { 'RX' }
+            $result = Invoke-CyberButlerAcl -Path $aclTarget -Identity $aclIdentity -Mode $aclMode -JournalStep 'acl' -Journal $journal -Approval 'APPROVE ACL' -NonInteractive:$NonInteractive -Handlers $Handlers
             if ([string]$result.status -notin @('completed', 'skipped')) {
                 $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL: ' + [string]$result.status + ' ' + [string]$result.message) }
             }
@@ -670,26 +679,13 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'acl')) {
                 $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL test-file protection: ' + [string]$testProtection.reason) }
             }
         }
-        if (-not $failure -and $resolution.Isolation -and $coreResult -and $coreResult.paths) {
-            $writableTargets = @(
-                [string]$coreResult.paths.data,
-                [string]$coreResult.paths.workspace
-            ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
-            foreach ($writeTarget in $writableTargets) {
-                $result = Invoke-CyberButlerAcl -Path $writeTarget -Identity $aclIdentity -Mode 'RW' -JournalStep 'acl' -Journal $journal -Approval 'APPROVE ACL' -NonInteractive:$NonInteractive -Handlers $Handlers
-                if ([string]$result.status -notin @('completed', 'skipped')) {
-                    $failure = [pscustomobject]@{ step = 'acl'; message = ('ACL RW: ' + [string]$result.status + ' ' + [string]$result.message) }
-                    break
-                }
-            }
-        }
     }
 }
 
-# Harden tools/ and ExternalAgent/.venv before the TOTP vault deny ACE is applied.
+# Harden tools/ and AgentRuntime/.venv before the TOTP vault deny ACE is applied.
 if (-not $failure) {
     try {
-        $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $ExternalAgentAccount -DesktopUser $DesktopAccount -Handlers $Handlers
+        $brokerAcl = Invoke-CyberButlerBrokerAclHardening -Root $aclRoot -ServiceUser $AgentRuntimeAccount -DesktopUser $DesktopAccount -Handlers $Handlers
         Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status ([string]$brokerAcl.status) -Reason ([string]$brokerAcl.reason)
         if ([string]$brokerAcl.status -eq 'failed') {
             Write-InstallerLine ('Broker ACL 加固警告，继续安装：' + [string]$brokerAcl.message) -Level WARN
@@ -754,7 +750,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'totp')) 
             }
             if (-not $failure) {
                 Add-MainJournalStep -Journal $journal -Name 'totp' -Status 'in_progress'
-                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -ExternalAgentAccount $ExternalAgentAccount -RequireExternalAgentDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
+                $result = Invoke-CyberButlerTotp -Root $InstallPath -VaultPath $vaultPath -ReaderAccount $TotpReaderAccount -AgentRuntimeAccount $AgentRuntimeAccount -RequireAgentRuntimeDeny:$resolution.Isolation -Issuer 'Cyber-Butler' -Account $OwnerQQ -JournalStep 'totp' -Journal $journal -Approval 'APPROVE TOTP' -Scanned:$totpScanned -RecoverySaved:$totpRecovery -SkipMaterialGeneration -NonInteractive:$NonInteractive -Handlers $Handlers
                 if (-not (Complete-MainSecurityStep -Name 'totp' -Result $result)) {
                     $failure = [pscustomobject]@{ step = 'totp'; message = ('TOTP: ' + [string]$result.status + ' ' + [string]$result.message) }
                 } else {
@@ -775,7 +771,7 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'firewall
         $failure = [pscustomobject]@{ step = 'firewall'; message = 'APPROVE FIREWALL required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'firewall' -Status 'in_progress'
-        $result = Invoke-CyberButlerFirewallRule -RuleName 'Cyber-Butler Web UI 8765' -DisplayName 'Cyber-Butler Web UI 8765' -Direction Inbound -Profile Private -RemoteAddress '127.0.0.1' -Port $WebUIPort -Protocol TCP -Action Allow -JournalStep 'firewall' -Journal $journal -Approval 'APPROVE FIREWALL' -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerFirewallRule -RuleName 'Cyber-Butler Web UI 8765' -DisplayName 'Cyber-Butler Web UI 8765' -Direction Inbound -FirewallProfile Private -RemoteAddress '127.0.0.1' -Port $WebUIPort -Protocol TCP -Action Allow -JournalStep 'firewall' -Journal $journal -Approval 'APPROVE FIREWALL' -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'firewall' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'firewall'; message = ('firewall: ' + [string]$result.status + ' ' + [string]$result.message) }
         }
@@ -802,14 +798,14 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
     Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'skipped' -Reason 'skipped by GUI mode'
 } elseif (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'secrets')) {
     if ((Test-CyberButlerSecureStringEmpty $ApiKey) -and $ApiKeyFile -and (Test-Path -LiteralPath $ApiKeyFile)) {
-        try { $ApiKey = ConvertTo-SecureString ((Get-Content -LiteralPath $ApiKeyFile -Raw).Trim()) -AsPlainText -Force } catch { }
+        try { $ApiKey = ConvertTo-SecureString ((Get-Content -LiteralPath $ApiKeyFile -Raw).Trim()) -AsPlainText -Force } catch { Write-Verbose 'optional operation failed' }
     }
     if (-not (Request-MainApproval -Token 'APPROVE SECRETS' -Step 'secrets' -ApprovalTokens $ApprovalTokens -Approvals $approvals -NonInteractive:$NonInteractive)) {
         Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'failed' -Reason 'needs approval'
         $failure = [pscustomobject]@{ step = 'secrets'; message = 'APPROVE SECRETS required'; kind = 'needs_approval' }
     } else {
         Add-MainJournalStep -Journal $journal -Name 'secrets' -Status 'in_progress'
-        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $ExternalAgentAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -SkipSmtp:$SkipSmtp -NonInteractive:$NonInteractive -Handlers $Handlers
+        $result = Invoke-CyberButlerSecrets -Root $InstallPath -ReaderAccount $(if ($resolution.Isolation) { $ServiceAccountName } else { $AgentRuntimeAccount }) -OwnerQQ $OwnerQQ -ApiKey $ApiKey -SmtpSecret $SmtpSecret -JournalStep 'secrets' -Journal $journal -Approval 'APPROVE SECRETS' -SkipSmtp:$SkipSmtp -NonInteractive:$NonInteractive -Handlers $Handlers
         if (-not (Complete-MainSecurityStep -Name 'secrets' -Result $result)) {
             $failure = [pscustomobject]@{ step = 'secrets'; message = ('secrets: ' + [string]$result.status + ' ' + [string]$result.message) }
         } elseif ($result.partial) {
@@ -822,7 +818,7 @@ if (-not $failure -and $SkipSecrets -and -not (Test-MainStepDone -Journal $journ
 if (-not $failure -and (Test-Path -LiteralPath $vaultPath)) {
     $singleAccountMarker = Join-Path $vaultPath 'single-account.marker'
     if (-not $resolution.Isolation) {
-        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: ExternalAgent and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
+        Set-Content -LiteralPath $singleAccountMarker -Value 'single-account mode: AgentRuntime and desktop user share an identity; TOTP vault deny is not enforceable' -Encoding ASCII
     } else {
         Remove-Item -LiteralPath $singleAccountMarker -Force -ErrorAction SilentlyContinue
     }
@@ -841,19 +837,47 @@ if (-not $failure -and -not (Test-MainStepDone -Journal $journal -Name 'services
     }
 }
 
-if (-not $failure -and [string]::IsNullOrWhiteSpace($TestConfigPath)) {
+if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPath))) {
+    $brokerConfigPath = Join-Path $InstallPath 'tools\broker_config.json'
+    $brokerConfig = if (Test-Path -LiteralPath $brokerConfigPath) {
+        try { Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' } }
+    } else {
+        [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' }
+    }
+    $workspaceRoot = Join-Path $InstallPath 'workspace'
+    $brokerConfig | Add-Member -NotePropertyName workspace_root -NotePropertyValue $workspaceRoot -Force
+    $brokerConfig | Add-Member -NotePropertyName workspace_path -NotePropertyValue $workspaceRoot -Force
+    $brokerConfig | Add-Member -NotePropertyName shared_roots -NotePropertyValue @($workspaceRoot) -Force
+    Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
+    $writtenConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $writtenConfig.workspace_root -or @($writtenConfig.shared_roots) -notcontains $workspaceRoot) {
+        $failure = [pscustomobject]@{ step = 'config'; message = ('broker_config missing workspace: ' + $workspaceRoot); kind = 'configuration' }
+    }
+}
+
+if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPath))) {
     $brokerToken = Join-Path $InstallPath 'tools/broker_token.txt'
     $tokenDeadline = (Get-Date).AddSeconds(90)
     while (-not (Test-Path -LiteralPath $brokerToken) -and (Get-Date) -lt $tokenDeadline) {
         Start-Sleep -Seconds 1
     }
     if (Test-Path -LiteralPath $brokerToken) {
-        $tokenReader = if ($DesktopAccount) { $DesktopAccount } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
-        & icacls.exe $brokerToken /grant "${tokenReader}:(R)" | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-InstallerLine ('Broker token desktop ACL warning: ' + $tokenReader) -Level WARN
+        $tokenReaders = @($DesktopAccount, $currentDesktopUser) | Where-Object { $_ } | Select-Object -Unique
+        if ($tokenReaders.Count -eq 0) { throw 'DesktopAccount is empty; refusing broker token ACL grant.' }
+        foreach ($tokenReader in $tokenReaders) {
+            & icacls.exe $brokerToken /grant "${tokenReader}:(R)" | Out-Null
+        }
+        $aclText = (& icacls.exe $brokerToken) -join "`n"
+        $missingReaders = @($tokenReaders | Where-Object { $aclText -notmatch [regex]::Escape($_) })
+        if ($LASTEXITCODE -ne 0 -or $missingReaders.Count -gt 0) {
+            $failure = [pscustomobject]@{
+                step = 'acl'
+                message = ('broker token ACL missing desktop read: ' + ($missingReaders -join ','))
+                kind = 'security'
+            }
+            Write-InstallerLine ('Broker token desktop ACL FAILED: ' + ($missingReaders -join ',')) -Level ERROR
         } else {
-            Write-InstallerLine ('Broker token desktop read granted: ' + $tokenReader) -Level INFO
+            Write-InstallerLine ('Broker token desktop read granted: ' + ($tokenReaders -join ',')) -Level INFO
         }
     }
 }
@@ -895,7 +919,7 @@ if ($failure) {
     exit (Get-InstallerExitCode -Name ValidationFailed)
 }
 
-# External Agent detection: CBS never installs or manages ExternalAgent/ExternalApplication.
+# External Agent detection: CBS never installs or manages AgentRuntime/AuxRuntimeApplication.
 $detectedAgents = @()
 foreach ($agentPort in @(6185, 5099)) {
     if (Get-NetTCPConnection -State Listen -LocalPort $agentPort -ErrorAction SilentlyContinue) {
@@ -906,7 +930,7 @@ if ($detectedAgents.Count -gt 0) {
     Write-InstallerLine ('检测到外部 Agent 正在运行（端口 ' + ($detectedAgents -join ', ') + '）。请参考 docs/API_SPEC.md 进行标准接入。') -Level INFO
     Write-Output ('EXTERNAL_AGENT detected=' + ($detectedAgents -join ','))
 } else {
-    Write-InstallerLine 'CBS 核心已就绪。请自行安装你喜欢的 Agent 框架（如 ExternalAgent/DSH），并接入 18090 端口。' -Level INFO
+    Write-InstallerLine 'CBS 核心已就绪。请自行安装你喜欢的 Agent 框架（如 AgentRuntime/DSH），并接入 18090 端口。' -Level INFO
     Write-Output 'EXTERNAL_AGENT none'
 }
 
@@ -914,7 +938,7 @@ if ($detectedAgents.Count -gt 0) {
 if ($null -eq $diagnostics) {
     $diagnostics = Get-CyberButlerDiagnostics -Tier $resolution.Tier -EffectiveTier $resolution.EffectiveLabel `
         -Isolation $resolution.Isolation -Root $InstallPath -ServiceAccount $ServiceAccountName `
-        -ExternalAgentAccount $ExternalAgentAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
+        -AgentRuntimeAccount $AgentRuntimeAccount -WebUIBind $resolution.WebUIBind -Handlers $Handlers
 }
 if (-not (Test-MainStepDone -Journal $journal -Name 'diagnostics')) {
     Add-MainJournalStep -Journal $journal -Name 'diagnostics' -Status 'completed'
@@ -927,7 +951,7 @@ try {
     if (Test-Path -LiteralPath $releaseVersionPath) {
         $markerVersion = (Get-Content -LiteralPath $releaseVersionPath -Raw -ErrorAction SilentlyContinue).Trim()
     }
-} catch { }
+} catch { Write-Verbose 'optional operation failed' }
 try {
     $markerPath = Write-CyberButlerInstallStateMarker -InstallPath $InstallPath -Version $markerVersion -Tier $resolution.Tier -Isolation $resolution.Isolation -Source 'installer'
     Write-Output ('STATE ' + $markerPath)
@@ -941,3 +965,27 @@ Add-MainJournalStep -Journal $journal -Name 'report' -Status 'completed' -Reason
 Write-Output 'INSTALLER_OK'
 Write-Output ('REPORT ' + $report.json)
 exit (Get-InstallerExitCode -Name Success)
+} catch {
+    if ($null -eq $failure) {
+        $failure = [pscustomobject]@{ step = 'unhandled'; message = $_.Exception.Message; kind = 'unexpected' }
+    } else {
+        $failure | Add-Member -NotePropertyName stack -NotePropertyValue $_.ScriptStackTrace -Force
+    }
+    if ($null -ne $journal) {
+        try { Add-MainJournalStep -Journal $journal -Name ([string]$failure.step) -Status 'failed' -Reason ([string]$failure.message) } catch { Write-Verbose 'journal failure' }
+    }
+    $catchReportDir = if ($ReportDirectory) { $ReportDirectory } else { Join-Path $env:ProgramData 'CyberButler\installer-report' }
+    try {
+        New-Item -ItemType Directory -Path $catchReportDir -Force | Out-Null
+        $catchReport = [ordered]@{
+            schema = 1
+            status = 'failed'
+            failure = [ordered]@{ step = [string]$failure.step; message = [string]$failure.message; stack = $_.ScriptStackTrace }
+            generated_at = (Get-Date).ToUniversalTime().ToString('o')
+        }
+        [IO.File]::WriteAllText((Join-Path $catchReportDir 'install-report.json'), ($catchReport | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
+    } catch { Write-InstallerLine ('Failed to write failure report: ' + $_.Exception.Message) -Level ERROR }
+    Write-Output ('FAILED ' + [string]$failure.step + ': ' + [string]$failure.message)
+    Write-Output ('REPORT ' + (Join-Path $catchReportDir 'install-report.json'))
+    exit (Get-InstallerExitCode -Name ValidationFailed)
+}

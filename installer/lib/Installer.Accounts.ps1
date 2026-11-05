@@ -17,6 +17,12 @@ function New-CyberButlerRandomPassword {
     return (-join $chars)
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerAccountLogonRights performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerAccountLogonRights {
     param(
         [Parameter(Mandatory = $true)]
@@ -46,6 +52,7 @@ function Get-CyberButlerAccountLogonRights {
 }
 
 function Set-CyberButlerLogonRight {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
         [string]$AccountName,
@@ -64,6 +71,12 @@ function Set-CyberButlerLogonRight {
     if (-not $verified.readable) { throw ('LSA rights are unreadable: ' + $verified.error) }
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerAccount performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerAccount {
     param(
         [Parameter(Mandatory = $true)]
@@ -150,6 +163,12 @@ function Assert-CyberButlerAccount {
     return [bool]$test.satisfied
 }
 
+<#
+.SYNOPSIS
+    New-CyberButlerLocalAccount performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CyberButlerLocalAccount {
     param(
         [Parameter(Mandatory = $true)]
@@ -173,7 +192,7 @@ function New-CyberButlerLocalAccount {
             try {
                 $members = @(Get-LocalGroupMember -Group $usersGroupName -ErrorAction SilentlyContinue)
                 $alreadyMember = [bool](@($members | Where-Object { [string]$_.SID.Value -eq [string]$user.SID.Value }).Count -gt 0)
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
             if (-not $alreadyMember) { throw ('Add-LocalGroupMember failed: ' + $_.Exception.Message) }
         }
         $rightErrors = @()
@@ -188,6 +207,12 @@ function New-CyberButlerLocalAccount {
     }
 }
 
+<#
+.SYNOPSIS
+    Undo-CyberButlerAccount performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Undo-CyberButlerAccount {
     param(
         [Parameter(Mandatory = $true)]
@@ -215,6 +240,12 @@ function Undo-CyberButlerAccount {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerAccountSetup performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerAccountSetup {
     [CmdletBinding()]
     param(
@@ -305,7 +336,7 @@ function Invoke-CyberButlerAccountSetup {
         return [pscustomobject]$base
     } catch {
         $after = $null
-        try { $after = Test-CyberButlerAccount -AccountName $AccountName -Handlers $Handlers } catch { }
+        try { $after = Test-CyberButlerAccount -AccountName $AccountName -Handlers $Handlers } catch { Write-Verbose 'optional operation failed' }
         $undo = Undo-CyberButlerAccount -AccountName $AccountName -Created $created -Handlers $Handlers
         $base.status = 'failed'
         $base.message = $_.Exception.Message

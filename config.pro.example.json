@@ -1,5 +1,5 @@
 {
-  "_comment": "Pro deployment profile for a machine with a local Ollama model. This is a project profile, not a full AstrBot cmd_config.json. Replace YOUR_* values.",
+  "_comment": "Pro deployment profile for a machine with a local Ollama model. This is a project profile, not a full AgentRuntime cmd_config.json. Replace YOUR_* values.",
   "profile": "pro",
   "local_model_enabled": true,
   "fallback_to_cloud": true,

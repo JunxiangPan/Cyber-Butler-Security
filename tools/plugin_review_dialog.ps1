@@ -2,12 +2,18 @@
 <#
 Installation review dialog for the plugin market.
 
-Shows the security scan verdict, the AstrBot compatibility result and every
+Shows the security scan verdict, the AgentRuntime compatibility result and every
 finding with file/line context. High-risk findings turn the banner red and
 require the user to type INSTALL ANYWAY; a version mismatch requires the same
 explicit override.
 #>
 
+<#
+.SYNOPSIS
+    Show-PluginReviewDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-PluginReviewDialog {
     param(
         [Parameter(Mandatory = $true)]$Review,
@@ -79,7 +85,7 @@ function Show-PluginReviewDialog {
     $verdictSuffix = if ($scan.Verdict -eq 'unsafe') { '高危' } elseif ($scan.Verdict -eq 'review') { '需复核' } elseif ($scan.Verdict -eq 'safe') { '未命中高危规则' } else { '扫描失败' }
     $dialog.FindName('VerdictText').Text = ('扫描结论：{0}（high {1} / medium {2} / low {3}，{4} 个 .py 文件）' -f $verdictSuffix, $scan.High, $scan.Medium, $scan.Low, $scan.Files)
     $compatLine = if ($compat.Ok) { '版本兼容：通过' } else { '版本不兼容：' + [string]$compat.Reason }
-    $dialog.FindName('CompatText').Text = $compatLine + [Environment]::NewLine + ('插件要求：' + [string]$metadata.astrbot_version)
+    $dialog.FindName('CompatText').Text = $compatLine + [Environment]::NewLine + ('插件要求：' + [string]$metadata.agentruntime_version)
 
     if ($danger) {
         $border = $dialog.FindName('VerdictBorder')
@@ -107,7 +113,7 @@ function Show-PluginReviewDialog {
     [void]$lines.Add('')
     [void]$lines.Add('=== 说明 ===')
     [void]$lines.Add('静态规则只能识别常见危险调用，不能发现混淆、反射或运行时下载的代码。')
-    [void]$lines.Add('安装后插件将使用 AstrBot 的权限运行，请只安装可信作者的作品。')
+    [void]$lines.Add('安装后插件将使用 AgentRuntime 的权限运行，请只安装可信作者的作品。')
     $dialog.FindName('ReviewBody').Text = ($lines -join [Environment]::NewLine)
 
     $requiresPhrase = $danger

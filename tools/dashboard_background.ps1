@@ -20,7 +20,7 @@ Written for PowerShell 5.1 / .NET Framework 4.8 (the dashboard host).
 #>
 
 Add-Type -AssemblyName PresentationFramework
-try { Add-Type -AssemblyName System.Drawing -ErrorAction Stop } catch { }
+try { Add-Type -AssemblyName System.Drawing -ErrorAction Stop } catch { Write-Verbose 'optional operation failed' }
 
 $script:BgLimits = @{
     ImageBytes     = 64MB
@@ -76,7 +76,7 @@ function Write-BgLog([string]$Message) {
             Move-Item -LiteralPath $log -Destination ($log + '.1') -Force -ErrorAction SilentlyContinue
         }
         Add-Content -LiteralPath $log -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Get-BgKind([string]$Path) {
@@ -111,6 +111,12 @@ function Get-BgFileHeader([string]$Path, [int]$Count = 64) {
     }
 }
 
+<#
+.SYNOPSIS
+    Test-BgMagic performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-BgMagic([string]$Path, [string]$Kind) {
     $header = Get-BgFileHeader $Path 64
     if ($header.Length -lt 4) { return $false }
@@ -146,6 +152,12 @@ function Test-BgMagic([string]$Path, [string]$Kind) {
     }
 }
 
+<#
+.SYNOPSIS
+    Test-BgFile performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-BgFile([string]$Path) {
     $result = [pscustomobject]@{ Ok = $false; Kind = 'none'; Reason = ''; SizeBytes = 0 }
     if (-not $Path) {
@@ -206,7 +218,7 @@ function Clear-BgLayer {
         } elseif ($backgroundLayer -is [Windows.Controls.Decorator]) {
             $backgroundLayer.Child = $null
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Set-BgVisual($Element) {
@@ -221,12 +233,12 @@ function Set-BgVisual($Element) {
             $backgroundLayer.Background = $null
             $backgroundLayer.Child = $Element
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Set-BgOverlay([bool]$Visible) {
     if (-not $backgroundOverlay) { return }
-    try { $backgroundOverlay.Visibility = if ($Visible) { 'Visible' } else { 'Collapsed' } } catch { }
+    try { $backgroundOverlay.Visibility = if ($Visible) { 'Visible' } else { 'Collapsed' } } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Set-BgSolid {
@@ -245,6 +257,12 @@ function Set-BgSolid {
     Set-BgOverlay $false
 }
 
+<#
+.SYNOPSIS
+    Stop-BgMedia performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Stop-BgMedia {
     $state = $script:BgState
     $state.Generation = [int]$state.Generation + 1
@@ -253,29 +271,29 @@ function Stop-BgMedia {
     $state.MediaStarted = $false
 
     if ($script:BgStartTimer) {
-        try { $script:BgStartTimer.Stop() } catch { }
+        try { $script:BgStartTimer.Stop() } catch { Write-Verbose 'optional operation failed' }
         $script:BgStartTimer = $null
     }
     if ($state.Timer) {
-        try { $state.Timer.Stop() } catch { }
+        try { $state.Timer.Stop() } catch { Write-Verbose 'optional operation failed' }
         $state.Timer = $null
     }
 
     if ($state.Media) {
         $media = $state.Media
         $state.Media = $null
-        try { $media.Stop() } catch { }
-        try { $media.Close() } catch { }
-        try { $media.Source = $null } catch { }
-        try { $media.Visibility = 'Collapsed' } catch { }
+        try { $media.Stop() } catch { Write-Verbose 'optional operation failed' }
+        try { $media.Close() } catch { Write-Verbose 'optional operation failed' }
+        try { $media.Source = $null } catch { Write-Verbose 'optional operation failed' }
+        try { $media.Visibility = 'Collapsed' } catch { Write-Verbose 'optional operation failed' }
     }
 
     if ($script:BgGifState.Image) {
-        try { $script:BgGifState.Image.Dispose() } catch { }
+        try { $script:BgGifState.Image.Dispose() } catch { Write-Verbose 'optional operation failed' }
         $script:BgGifState.Image = $null
     }
     if ($script:BgGifState.Stream) {
-        try { $script:BgGifState.Stream.Dispose() } catch { }
+        try { $script:BgGifState.Stream.Dispose() } catch { Write-Verbose 'optional operation failed' }
         $script:BgGifState.Stream = $null
     }
 
@@ -305,6 +323,12 @@ function Resize-BgBitmap($Source, [int]$Width, [int]$Height) {
     return [Windows.Media.Imaging.BitmapSource]::Create($Width, $Height, 96, 96, [Windows.Media.PixelFormats]::Bgra32, $null, $pixels, $Width * 4)
 }
 
+<#
+.SYNOPSIS
+    New-BgImage performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-BgImage([string]$Path) {
     $width = 0
     $height = 0
@@ -340,6 +364,12 @@ function New-BgImage([string]$Path) {
     return [pscustomobject]@{ Element = $image; Width = $bitmap.PixelWidth; Height = $bitmap.PixelHeight }
 }
 
+<#
+.SYNOPSIS
+    ConvertTo-BgGifFrames performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function ConvertTo-BgGifFrames([string]$Path) {
     $bytes = [IO.File]::ReadAllBytes($Path)
     $stream = New-Object IO.MemoryStream (, $bytes)
@@ -360,7 +390,7 @@ function ConvertTo-BgGifFrames([string]$Path) {
         try {
             $property = $gif.GetPropertyItem(0x5100)
             $rawDelays = $property.Value
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         for ($i = 0; $i -lt $count; $i++) {
             $hundredths = 10
             if ($rawDelays -and ($i * 4 + 3) -lt $rawDelays.Length) {
@@ -445,8 +475,8 @@ function ConvertTo-BgGifFrames([string]$Path) {
             Stream       = $stream
         }
     } catch {
-        if ($gif) { try { $gif.Dispose() } catch { } }
-        try { $stream.Dispose() } catch { }
+        if ($gif) { try { $gif.Dispose() } catch { Write-Verbose 'optional operation failed' } }
+        try { $stream.Dispose() } catch { Write-Verbose 'optional operation failed' }
         throw
     }
 }
@@ -465,18 +495,24 @@ function Start-BgGifTimer {
 function Step-BgGif {
     $state = $script:BgState
     if ($state.Kind -ne 'gif' -or -not $state.Frames -or $state.Frames.Count -le 1) {
-        if ($state.Timer) { try { $state.Timer.Stop() } catch { } }
+        if ($state.Timer) { try { $state.Timer.Stop() } catch { Write-Verbose 'optional operation failed' } }
         return
     }
     $state.Index = ($state.Index + 1) % $state.Frames.Count
     if ($state.Image) {
-        try { $state.Image.Source = $state.Frames[$state.Index] } catch { }
+        try { $state.Image.Source = $state.Frames[$state.Index] } catch { Write-Verbose 'optional operation failed' }
     }
     if ($state.Timer) {
         $state.Timer.Interval = [TimeSpan]::FromMilliseconds([math]::Max(20, [int]$state.Delays[$state.Index]))
     }
 }
 
+<#
+.SYNOPSIS
+    Find-BgFFmpeg performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Find-BgFFmpeg {
     if ($script:BgFFmpegResolved) { return $script:BgFFmpeg }
     $script:BgFFmpegResolved = $true
@@ -500,7 +536,7 @@ function Find-BgFFmpeg {
         }
         $command = Get-Command 'ffmpeg.exe' -ErrorAction SilentlyContinue
         if ($command) { $script:BgFFmpeg = $command.Source }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $script:BgFFmpeg
 }
 
@@ -536,12 +572,18 @@ function Invoke-BgProcess([string]$FilePath, [string[]]$Arguments, [int]$Timeout
     $stdout = $process.StandardOutput.ReadToEndAsync()
     $stderr = $process.StandardError.ReadToEndAsync()
     if (-not $process.WaitForExit($TimeoutMs)) {
-        try { $process.Kill() } catch { }
+        try { $process.Kill() } catch { Write-Verbose 'optional operation failed' }
         return -1
     }
     return $process.ExitCode
 }
 
+<#
+.SYNOPSIS
+    Get-BgPoster performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-BgPoster([string]$Path) {
     $ffmpeg = Find-BgFFmpeg
     if (-not $ffmpeg) { return $null }
@@ -564,10 +606,16 @@ function Get-BgPoster([string]$Path) {
             }
         }
         Remove-Item -LiteralPath $poster -Force -ErrorAction SilentlyContinue
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $null
 }
 
+<#
+.SYNOPSIS
+    Get-BgTranscode performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-BgTranscode([string]$Path) {
     if ((Get-BgKind $Path) -ne 'video') { return $null }
     $ffmpeg = Find-BgFFmpeg
@@ -591,10 +639,16 @@ function Get-BgTranscode([string]$Path) {
             return $output
         }
         Remove-Item -LiteralPath $output -Force -ErrorAction SilentlyContinue
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $null
 }
 
+<#
+.SYNOPSIS
+    New-BgMediaElement performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-BgMediaElement([string]$Path, [bool]$Animated) {
     $media = New-Object Windows.Controls.MediaElement
     $media.LoadedBehavior = if ($Animated) { 'Play' } else { 'Manual' }
@@ -612,7 +666,7 @@ function New-BgMediaElement([string]$Path, [bool]$Animated) {
         $message = ''
         try {
             if ($args.Count -gt 1 -and $args[1].ErrorException) { $message = $args[1].ErrorException.Message }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         $script:BgState.LastMediaError = $message
         Handle-BgMediaFailed
     })
@@ -634,17 +688,23 @@ function Start-BgPendingMedia {
     }
 }
 
+<#
+.SYNOPSIS
+    Queue-BgMediaStart performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Queue-BgMediaStart {
     $state = $script:BgState
     if ($script:BgStartTimer) {
-        try { $script:BgStartTimer.Stop() } catch { }
+        try { $script:BgStartTimer.Stop() } catch { Write-Verbose 'optional operation failed' }
         $script:BgStartTimer = $null
     }
     if ($window.IsLoaded) {
         $timer = New-Object Windows.Threading.DispatcherTimer
         $timer.Interval = [TimeSpan]::FromMilliseconds(220)
         $timer.Add_Tick({
-            if ($script:BgStartTimer) { try { $script:BgStartTimer.Stop() } catch { } }
+            if ($script:BgStartTimer) { try { $script:BgStartTimer.Stop() } catch { Write-Verbose 'optional operation failed' } }
             Start-BgPendingMedia
         })
         $script:BgStartTimer = $timer
@@ -652,7 +712,7 @@ function Queue-BgMediaStart {
     } else {
         $script:BgStartHandler = [Windows.RoutedEventHandler]{
             Start-BgPendingMedia
-            try { $window.Remove_ContentRendered($script:BgStartHandler) } catch { }
+            try { $window.Remove_ContentRendered($script:BgStartHandler) } catch { Write-Verbose 'optional operation failed' }
         }
         $window.Add_ContentRendered($script:BgStartHandler)
     }
@@ -664,7 +724,7 @@ function Continue-BgMediaLoop {
     try {
         $state.Media.Position = [TimeSpan]::Zero
         $state.Media.Play()
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Handle-BgMediaOpened {
@@ -676,10 +736,16 @@ function Handle-BgMediaOpened {
         try {
             $state.Media.Pause()
             $state.Media.Position = [TimeSpan]::Zero
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 }
 
+<#
+.SYNOPSIS
+    Handle-BgMediaFailed performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Handle-BgMediaFailed {
     $state = $script:BgState
     if ($state.Kind -ne 'video' -or -not $state.Path) { return }
@@ -698,7 +764,7 @@ function Handle-BgMediaFailed {
                 $state.Media.Play()
                 Write-BgLog ('retrying with transcoded file: ' + $transcoded)
                 return
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
     }
 
@@ -708,6 +774,12 @@ function Handle-BgMediaFailed {
     }
 }
 
+<#
+.SYNOPSIS
+    Apply-BgFallback performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Apply-BgFallback {
     $state = $script:BgState
     $path = $state.Path
@@ -766,7 +838,7 @@ function Show-BgPendingWarning {
     if (-not $script:BgInteractive) { return }
     try {
         [Windows.MessageBox]::Show($message, (T '背景' 'Background'), 'OK', 'Warning') | Out-Null
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Restart-UiBackground {
@@ -780,10 +852,16 @@ function Restart-UiBackground {
 }
 
 function Close-BackgroundEngine {
-    try { Stop-BgMedia } catch { }
+    try { Stop-BgMedia } catch { Write-Verbose 'optional operation failed' }
     $script:BgClosed = $true
 }
 
+<#
+.SYNOPSIS
+    Set-UiBackground performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-UiBackground {
     param([string]$Path, $Settings = $null)
 
@@ -932,17 +1010,23 @@ function Set-UiBackground {
     return $result
 }
 
+<#
+.SYNOPSIS
+    Get-BgStateSnapshot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-BgStateSnapshot {
     $state = $script:BgState
     $mediaState = ''
     if ($state.Media) {
-        try { $mediaState = 'source=' + [IO.Path]::GetFileName([string]$state.Media.Source) } catch { }
-        try { $mediaState += ' pos=' + [math]::Round($state.Media.Position.TotalSeconds, 2) } catch { }
-        try { $mediaState += ' video=' + $state.Media.NaturalVideoWidth + 'x' + $state.Media.NaturalVideoHeight } catch { }
-        try { $mediaState += ' muted=' + $state.Media.IsMuted } catch { }
+        try { $mediaState = 'source=' + [IO.Path]::GetFileName([string]$state.Media.Source) } catch { Write-Verbose 'optional operation failed' }
+        try { $mediaState += ' pos=' + [math]::Round($state.Media.Position.TotalSeconds, 2) } catch { Write-Verbose 'optional operation failed' }
+        try { $mediaState += ' video=' + $state.Media.NaturalVideoWidth + 'x' + $state.Media.NaturalVideoHeight } catch { Write-Verbose 'optional operation failed' }
+        try { $mediaState += ' muted=' + $state.Media.IsMuted } catch { Write-Verbose 'optional operation failed' }
     }
     $children = 0
-    try { if ($backgroundLayer -is [Windows.Controls.Panel]) { $children = $backgroundLayer.Children.Count } } catch { }
+    try { if ($backgroundLayer -is [Windows.Controls.Panel]) { $children = $backgroundLayer.Children.Count } } catch { Write-Verbose 'optional operation failed' }
     [pscustomobject]@{
         Kind       = $state.Kind
         Animated   = $state.Animated
@@ -962,7 +1046,7 @@ function Wait-BgDispatcher([int]$Milliseconds) {
     while ($watch.ElapsedMilliseconds -lt $Milliseconds) {
         try {
             [Windows.Threading.Dispatcher]::CurrentDispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [Action]{}) | Out-Null
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         Start-Sleep -Milliseconds 40
     }
 }
@@ -986,6 +1070,12 @@ function Save-BgScreenshot([string]$Path) {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-BgSmokeTest performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-BgSmokeTest([string]$AssetDir) {
     if (-not $AssetDir) { $AssetDir = $env:TEMP }
     $report = New-Object System.Collections.ArrayList

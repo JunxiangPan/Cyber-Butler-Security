@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import json
@@ -34,6 +34,14 @@ _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def load_email_config(bridge: Path) -> dict:
+    """Load email config.
+    
+    Args:
+        bridge: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     completed = subprocess.run(
         ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
         capture_output=True,
@@ -47,6 +55,14 @@ def load_email_config(bridge: Path) -> dict:
 
 
 def load_email_strings(lang: str) -> dict:
+    """Load email strings.
+    
+    Args:
+        lang: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     code = lang if lang in SUPPORTED_LANGS else "zh"
     for candidate in (code, "zh"):
         path = I18N_DIR / f"{candidate}.json"
@@ -58,6 +74,17 @@ def load_email_strings(lang: str) -> dict:
 
 
 def send_mail(config: dict, code: str, ttl: int, lang: str = "zh") -> None:
+    """Send mail.
+    
+    Args:
+        config: caller-supplied value.
+        code: caller-supplied value.
+        ttl: caller-supplied value.
+        lang: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     strings = load_email_strings(lang)
     subject = strings.get("email.subject") or "Cyber-Butler"
     body = strings.get("email.body") or "{code}"
@@ -77,12 +104,22 @@ def send_mail(config: dict, code: str, ttl: int, lang: str = "zh") -> None:
 
 
 class Handler(BaseHTTPRequestHandler):
+    """Handler helper/type."""
     server_version = "CyberButlerOtpMailer/1.0"
     token = ""
     bridge = DEFAULT_BRIDGE
     _hits: dict[str, deque[float]] = defaultdict(deque)
 
     def _json(self, status: int, payload: dict) -> None:
+        """Json.
+        
+        Args:
+            status: caller-supplied value.
+            payload: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -91,11 +128,27 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _auth(self) -> bool:
+        """Auth.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         provided = self.headers.get("Authorization", "")
         expected = f"Bearer {self.token}"
         return secrets.compare_digest(provided, expected)
 
     def _rate_ok(self) -> bool:
+        """Rate ok.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = time.monotonic()
         bucket = self._hits["send"]
         while bucket and now - bucket[0] > 60:
@@ -106,12 +159,28 @@ class Handler(BaseHTTPRequestHandler):
         return True
 
     def do_GET(self) -> None:
+        """Do get.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if self.path == "/health":
             self._json(200, {"ok": True})
         else:
             self._json(404, {"ok": False})
 
     def do_POST(self) -> None:
+        """Do post.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if self.path != "/send-otp":
             self._json(404, {"ok": False})
             return
@@ -141,11 +210,28 @@ class Handler(BaseHTTPRequestHandler):
             logger.error("OTP mail failed: %s", exc)
             self._json(500, {"ok": False, "error": "send failed"})
 
-    def log_message(self, fmt: str, *args) -> None:
-        logger.info("http: " + fmt, *args)
+    def log_message(self, format: str, *args) -> None:
+        """Log message.
+        
+        Args:
+            fmt: caller-supplied value.
+            args: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        logger.info("http: " + format, *args)
 
 
 def main() -> None:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8766)

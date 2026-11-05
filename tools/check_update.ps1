@@ -3,7 +3,7 @@
 Read-only GitHub release checker for Cyber-Butler.
 
 This script never downloads or applies an update. It compares VERSION with the
-latest GitHub release and optionally sends a QQ notification through AstrBot.
+latest GitHub release and optionally sends a QQ notification through AgentRuntime.
 #>
 param(
     [string]$Repo = 'JunxiangPan/Cyber-Butler-Security',
@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($ProjectRoot) { $root = (Resolve-Path -LiteralPath $ProjectRoot).Path } else { $root = Split-Path -Parent $PSScriptRoot }
 $versionFile = Join-Path $root 'VERSION'
-$tokenFile = Join-Path $root '.astrbot_token'
+$tokenFile = Join-Path $root '.agentruntime_token'
 if (-not $SkipFile) { $SkipFile = Join-Path $root 'tools\skip_version.json' }
 
 function Get-RemoteVersion([string]$tag) {

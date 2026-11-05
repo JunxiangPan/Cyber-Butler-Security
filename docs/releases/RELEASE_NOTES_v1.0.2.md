@@ -7,14 +7,14 @@
 **Scope:** emergency security release for the public-release branch
 
 > [!WARNING]
-> **This project still depends on unofficial QQ protocol clients such as SnowLuma.** Use a test account only. Account restriction, suspension, or permanent bans remain possible. The project is for personal study, research, and local security-technical exchange; commercial, illegal-profit, black-market, or malicious use is prohibited. See [SECURITY.md](SECURITY.md) and [README.md](README.md) for the full disclaimer.
+> **This project still depends on unofficial QQ protocol clients such as AuxRuntime.** Use a test account only. Account restriction, suspension, or permanent bans remain possible. The project is for personal study, research, and local security-technical exchange; commercial, illegal-profit, black-market, or malicious use is prohibited. See [SECURITY.md](SECURITY.md) and [README.md](README.md) for the full disclaimer.
 
 ## Why This Release Exists
 
 A white-box review found four gaps that documentation alone could not close:
 
 1. A TOTP approval was bound to one file path, not to the complete set of files being sent.
-2. The ACL verifier did not explicitly deny write access for the AstrBot service account.
+2. The ACL verifier did not explicitly deny write access for the AgentRuntime service account.
 3. The live Broker process was still running an older 351-line build.
 4. Code-execution tools remained available to the QQ private agent, allowing a plain-text/code path around TOTP.
 
@@ -24,7 +24,7 @@ V1.0.2 closes these gaps in code, tests, and runtime configuration.
 
 ### 1. Complete manifest binding
 
-AstrBot now builds a manifest for **every file** in the send operation:
+AgentRuntime now builds a manifest for **every file** in the send operation:
 
 ```json
 {
@@ -40,7 +40,7 @@ The manifest is sent with `POST /request` and is stored with the pending challen
 - The Broker displays every path, size, and SHA-256 in the TOTP challenge.
 - The Broker rehashes all files before the challenge and again at `/verify`.
 - A changed size/hash returns `409`, clears the pending request, and writes an audit record.
-- AstrBot rehashes the manifest immediately before `send_message`; any mismatch cancels the send.
+- AgentRuntime rehashes the manifest immediately before `send_message`; any mismatch cancels the send.
 - A `send` request without a manifest is rejected.
 
 This prevents a “approve file A, replace it with file B” gap.
@@ -54,18 +54,18 @@ This prevents a “approve file A, replace it with file B” gap.
 - `Authenticated Users`
 - the desktop user
 
-If `tools/` or `AstrBot/.venv` grants write/modify/full-control to the service account, `tools/broker.py` refuses to start.
+If `tools/` or `AgentRuntime/.venv` grants write/modify/full-control to the service account, `tools/broker.py` refuses to start.
 
 ### 3. Live runtime synchronized
 
 The deployment was updated in this order:
 
 1. New `broker.py`, `message_tools.py`, Security Gate, and ACL scripts copied into the live tree while the old process was still running.
-2. `tools/` and `AstrBot/.venv` ownership moved to `Administrators`; inherited broad write access removed.
+2. `tools/` and `AgentRuntime/.venv` ownership moved to `Administrators`; inherited broad write access removed.
 3. `tools/verify_broker_acl.ps1` returned `Broker runtime ACL: OK`.
 4. The old Broker process was stopped by the restart script and the latest Broker started.
-5. AstrBot was restarted to load the manifest guard and tool denylist.
-6. Health checks: AstrBot `200`, Broker `200`.
+5. AgentRuntime was restarted to load the manifest guard and tool denylist.
+6. Health checks: AgentRuntime `200`, Broker `200`.
 
 The live runtime is no longer the old 351-line Broker.
 
@@ -76,10 +76,10 @@ The live runtime is no longer the old 351-line Broker.
 The Security Gate now registers an `on_llm_request` hook that removes, for QQ private requests:
 
 ```text
-astrbot_execute_python
-astrbot_execute_ipython
-astrbot_execute_shell
-astrbot_shell_session
+agentruntime_execute_python
+agentruntime_execute_ipython
+agentruntime_execute_shell
+agentruntime_shell_session
 ```
 
 This closes the direct QQ-private tool path. It is not a complete plain-text mediation layer: a different agent path, a plugin that re-adds the tools, or a plain-text exfiltration route can still bypass TOTP.
@@ -119,8 +119,8 @@ Included:
 ## Runtime Requirements
 
 - Windows 10/11
-- AstrBot v4.29.x
-- SnowLuma (unofficial; test account only)
+- AgentRuntime v4.29.x
+- AuxRuntime (unofficial; test account only)
 - Python 3.10+
 - Optional Ollama for local models
 
@@ -129,7 +129,7 @@ Included:
 - Run `tools/harden_broker_runtime.ps1` from an elevated shell after copying the new files.
 - Run `tools/verify_broker_acl.ps1`; it must print `Broker runtime ACL: OK`.
 - Restart the Broker **after** the ACL check passes.
-- Restart AstrBot to load the manifest guard and tool denylist.
+- Restart AgentRuntime to load the manifest guard and tool denylist.
 - If you use the optional `/lockapi` state file under `tools/`, account for the fact that `tools/` is now read-only to the desktop user; move writable state or grant explicit file-level access.
 
 ## Known Limitations
@@ -149,12 +149,12 @@ AGPL-3.0. See [LICENSE](LICENSE) and [SECURITY.md](SECURITY.md).
 With `tools/` now read-only to the desktop account, game-mode runtime state was moved out of `tools/`:
 
 ```text
-Desktop\大肥鱼专用文件夹\game-mode.log
-Desktop\大肥鱼专用文件夹\game-list.auto.txt
-Desktop\大肥鱼专用文件夹\game-library.auto.txt
+Desktop\shared专用文件夹\game-mode.log
+Desktop\shared专用文件夹\game-list.auto.txt
+Desktop\shared专用文件夹\game-library.auto.txt
 ```
 
-The old `tools/game-mode.log` is migrated on upgrade. The desktop account is granted read/execute on `tools/` and `AstrBot/.venv` (not write), so game-mode and weekly self-heal can still load their scripts.
+The old `tools/game-mode.log` is migrated on upgrade. The desktop account is granted read/execute on `tools/` and `AgentRuntime/.venv` (not write), so game-mode and weekly self-heal can still load their scripts.
 
 ## Game-Mode Exit Recovery
 

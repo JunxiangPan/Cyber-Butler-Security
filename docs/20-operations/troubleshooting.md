@@ -3,20 +3,20 @@
 ## Contents
 
 - [Quick fixes (read this first)](#quick-fixes-read-this-first)
-- [AstrBot 6185 does not listen](#astrbot-6185-does-not-listen)
+- [AgentRuntime 6185 does not listen](#agentruntime-6185-does-not-listen)
 - [Broker 18090 does not listen](#broker-18090-does-not-listen)
-- [SnowLuma 5099 does not listen](#snowluma-5099-does-not-listen)
+- [AuxRuntime 5099 does not listen](#auxruntime-5099-does-not-listen)
 - [6199 does not listen](#6199-does-not-listen)
 - [WFP reports `Remove-NetFirewallRule failed`](#wfp-reports-remove-netfirewallrule-failed)
 
 ## Quick fixes (read this first)
 
-### 1. AstrBot 6185 does not listen
+### 1. AgentRuntime 6185 does not listen
 
 ```powershell
-Get-Service CyberButlerAstrBot
-Start-Service CyberButlerAstrBot
-Get-Content '<InstallPath>\AstrBot\data\logs\service-astrbot.log' -Tail 60 -Encoding UTF8
+Get-Service CyberButlerAgentRuntime
+Start-Service CyberButlerAgentRuntime
+Get-Content '<InstallPath>\AgentRuntime\data\logs\service-agentruntime.log' -Tail 60 -Encoding UTF8
 ```
 
 Look for `SERVICE_START`, `SERVICE_DATA_WRITE_OK`, `SERVICE_CHILD ... job=assigned`.
@@ -45,17 +45,17 @@ The installer can rebuild `totp_qr.png` from the existing DPAPI secret. Do not d
 
 ### 5. 6199 does not listen
 
-6199 is opened dynamically by the AstrBot OneBot adapter; configure and enable that adapter first.
+6199 is opened dynamically by the AgentRuntime AgentProtocol adapter; configure and enable that adapter first.
 
 
-## AstrBot 6185 does not listen
+## AgentRuntime 6185 does not listen
 
 ```powershell
-Get-Service CyberButlerAstrBot
-Get-CimInstance Win32_Service -Filter "Name='CyberButlerAstrBot'" |
+Get-Service CyberButlerAgentRuntime
+Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" |
   Select-Object Name,State,StartName,ProcessId
 Get-NetTCPConnection -LocalPort 6185 -State Listen
-Get-Content '<InstallPath>\AstrBot\data\logs\service-astrbot.log' -Tail 100 -Encoding UTF8
+Get-Content '<InstallPath>\AgentRuntime\data\logs\service-agentruntime.log' -Tail 100 -Encoding UTF8
 ```
 
 The log must contain `SERVICE_START`, `SERVICE_DATA_WRITE_OK`, and `SERVICE_CHILD ... job=assigned`.
@@ -68,13 +68,13 @@ Get-Content '<InstallPath>	ools\logsbroker-startup.log' -Tail 80 -Encoding UTF8
 
 The Broker refuses to run if `tools` is writable by a low-privilege principal. Keep `tools` read-only for pjx20.
 
-## SnowLuma 5099 does not listen
+## AuxRuntime 5099 does not listen
 
-Check `SnowLuma\logs\start-snowluma-console.log` and `SnowLuma\logs\startup-snowluma.err.log`. Scripts containing Chinese paths must be UTF-8 with BOM for PowerShell 5.1.
+Check `AuxRuntime\logs\start-auxruntime-console.log` and `AuxRuntime\logs\startup-auxruntime.err.log`. Scripts containing Chinese paths must be UTF-8 with BOM for PowerShell 5.1.
 
 ## 6199 does not listen
 
-6199 is not a system service. Configure and enable the AstrBot OneBot adapter first; then the adapter creates the port.
+6199 is not a system service. Configure and enable the AgentRuntime AgentProtocol adapter first; then the adapter creates the port.
 
 ## WFP reports `Remove-NetFirewallRule failed`
 

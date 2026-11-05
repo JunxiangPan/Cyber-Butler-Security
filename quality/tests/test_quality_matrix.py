@@ -57,7 +57,7 @@ def test_q03_totp_replay_and_concurrency():
         with broker._replay_lock:
             broker._used_totp.clear()
         assert broker.verify_code(code) == "totp"
-        assert broker.verify_code(code) == ""
+        assert broker.verify_code(code) == "replay"
         results = []
         with broker._replay_lock:
             broker._used_totp.clear()

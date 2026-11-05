@@ -6,27 +6,27 @@ function Log([string]$m) { Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd 
 
 $launcher = Join-Path $root 'tools\CyberButlerLauncher.exe'
 
-$principal = New-ScheduledTaskPrincipal -UserId 'YOUR_HOST\YOUR_USER_NAME' -LogonType Interactive -RunLevel Limited
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User 'YOUR_HOST\YOUR_USER_NAME'
+$principal = New-ScheduledTaskPrincipal -UserId 'YOUR_HOST\test-user' -LogonType Interactive -RunLevel Limited
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User 'YOUR_HOST\test-user'
 $trigger.Delay = 'PT15S'
 $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 
-function Install-Task([string]$name, [string]$exe, [string]$args, [string]$workdir, [string]$desc) {
-    $action = New-ScheduledTaskAction -Execute $exe -Argument $args -WorkingDirectory $workdir
+function Install-Task([string]$name, [string]$exe, [string]$taskArgs, [string]$workdir, [string]$desc) {
+    $action = New-ScheduledTaskAction -Execute $exe -Argument $taskArgs -WorkingDirectory $workdir
     Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction SilentlyContinue
     Register-ScheduledTask -TaskName $name -Description $desc -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
     Log ("installed " + $name)
 }
 
-Install-Task 'SnowLuma Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-snowluma.ps1')) (Join-Path $root 'tools') 'SnowLuma + guardian as YOUR_USER_NAME at logon'
+Install-Task 'AuxRuntime Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-auxruntime.ps1')) (Join-Path $root 'tools') 'AuxRuntime + guardian as test-user at logon'
 Install-Task 'Ollama Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-ollama.ps1')) (Join-Path $root 'tools') 'Ollama + local model at logon'
-Install-Task 'Game Mode Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as YOUR_USER_NAME at logon'
+Install-Task 'Game Mode Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as test-user at logon'
 
-# Remove the old Startup shortcuts so they cannot double-start SnowLuma/Ollama.
+# Remove the old Startup shortcuts so they cannot double-start AuxRuntime/Ollama.
 $startup = 'YOUR_USER_PATH\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
 $backup = Join-Path $root 'tools\startup-backup'
 New-Item -ItemType Directory -Force -Path $backup | Out-Null
-foreach ($name in @('QQBot.lnk','Ollama.lnk','AstrBot Game Mode.lnk')) {
+foreach ($name in @('QQBot.lnk','Ollama.lnk','AgentRuntime Game Mode.lnk')) {
     $src = Join-Path $startup $name
     if (Test-Path -LiteralPath $src) {
         Move-Item -LiteralPath $src -Destination (Join-Path $backup $name) -Force

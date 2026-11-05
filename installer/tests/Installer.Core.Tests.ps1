@@ -3,9 +3,14 @@ $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
-. (Join-Path $installerRoot 'lib\Installer.PersonalPlugins.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Services.ps1')
 
+<#
+.SYNOPSIS
+    New-CoreFixture performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CoreFixture {
     param(
         [string]$Root,
@@ -42,7 +47,7 @@ Describe 'Installer core deployment' {
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
-    It 'deploys a CBS-only tree without ExternalAgent or ExternalApplication' {
+    It 'deploys a CBS-only tree without AgentRuntime or AuxRuntimeApplication' {
         $base = Join-Path $env:TEMP ('cb-core-cbs-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
@@ -53,8 +58,8 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $target 'webui\run.py')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'data')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'workspace')) | Should Be $true
-            (Test-Path -LiteralPath (Join-Path $target 'ExternalAgent')) | Should Be $false
-            (Test-Path -LiteralPath (Join-Path $target 'ExternalApplication')) | Should Be $false
+            (Test-Path -LiteralPath (Join-Path $target 'AgentRuntime')) | Should Be $false
+            (Test-Path -LiteralPath (Join-Path $target 'AuxRuntimeApplication')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $target 'webui\.venv\Scripts\python.exe')) | Should Be $true
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }

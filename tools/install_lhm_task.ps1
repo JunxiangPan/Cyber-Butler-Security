@@ -19,7 +19,7 @@ while ((Get-Date) -lt $deadline) {
     try {
         $r = Invoke-WebRequest -Uri 'http://127.0.0.1:18085/data.json' -UseBasicParsing -TimeoutSec 3
         if ($r.StatusCode -eq 200) { $ok = $true; break }
-    } catch {}
+    } catch { Write-Verbose 'optional operation failed' }
 }
 "ok=$ok time=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $marker -Encoding UTF8
 if (-not $ok) { exit 1 }

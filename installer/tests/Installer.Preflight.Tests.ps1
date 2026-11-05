@@ -53,13 +53,13 @@ Describe 'Installer preflight' {
         $target = Join-Path $env:TEMP ('cb-preflight-existing-' + [guid]::NewGuid().ToString('N'))
         $json = $target + '.json'
         try {
-            New-Item -ItemType Directory -Path (Join-Path $target 'ExternalAgent') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path $target 'AgentRuntime') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $target 'VERSION') -Value '1.6.0' -Encoding ASCII
             $p = Get-CyberButlerPreflight -InstallPath $target -OutputPath $json
             $p.install_path.existing_state | Should Be 'Legacy'
             $p.install_path.has_existing_install | Should Be $true
             $p.install_path.version | Should Be '1.6.0'
-            (Test-Path -LiteralPath (Join-Path $target 'ExternalAgent')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $target 'AgentRuntime')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'local-overlay.json')) | Should Be $false
         } finally {
             if (Test-Path -LiteralPath $json) { Remove-Item -LiteralPath $json -Force }

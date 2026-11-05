@@ -32,7 +32,7 @@ function Get-UiErrorText {
 
 function Update-UiErrorBox {
     if ($script:UiErrorBox) {
-        try { $script:UiErrorBox.Text = Get-UiErrorText } catch { }
+        try { $script:UiErrorBox.Text = Get-UiErrorText } catch { Write-Verbose 'optional operation failed' }
     }
     if ($script:UiErrorStatus) {
         try {
@@ -41,10 +41,16 @@ function Update-UiErrorBox {
             } else {
                 '{0} 条记录' -f $script:UiErrorEntries.Count
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 }
 
+<#
+.SYNOPSIS
+    Write-UiError performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Write-UiError {
     param(
         [Parameter(Mandatory = $true)][string]$Source,
@@ -64,9 +70,9 @@ function Write-UiError {
                 Move-Item -LiteralPath $script:UiErrorLogPath -Destination ($script:UiErrorLogPath + '.1') -Force -ErrorAction SilentlyContinue
             }
             Add-Content -LiteralPath $script:UiErrorLogPath -Value ($text + [Environment]::NewLine) -Encoding UTF8
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         Update-UiErrorBox
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Register-UiErrorBox {
@@ -75,7 +81,7 @@ function Register-UiErrorBox {
     $script:UiErrorStatus = $StatusText
     try {
         if ($script:UiErrorBox) { $script:UiErrorBox.Text = Get-UiErrorText }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     Update-UiErrorBox
 }
 
@@ -98,11 +104,11 @@ function Copy-UiErrorLog {
         try {
             Set-Clipboard -Value $text -ErrorAction Stop
             return $true
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         try {
             [Windows.Clipboard]::SetText($text)
             return $true
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
         Start-Sleep -Milliseconds 200
     }
     return $false
@@ -114,7 +120,7 @@ function Clear-UiErrorLog {
         if (Test-Path -LiteralPath $script:UiErrorLogPath) {
             Clear-Content -LiteralPath $script:UiErrorLogPath -ErrorAction SilentlyContinue
         }
-    } catch { }
-    if ($script:UiErrorBox) { try { $script:UiErrorBox.Text = '' } catch { } }
+    } catch { Write-Verbose 'optional operation failed' }
+    if ($script:UiErrorBox) { try { $script:UiErrorBox.Text = '' } catch { Write-Verbose 'optional operation failed' } }
     Update-UiErrorBox
 }

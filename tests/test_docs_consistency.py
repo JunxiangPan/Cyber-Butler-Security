@@ -19,14 +19,14 @@ README_LANGS = [
 def test_status_is_canonical_and_complete():
     assert STATUS["version"] == "1.6.2"
     assert "6185" in STATUS["ports"]
-    assert "CyberButlerAstrBot" in " ".join(STATUS["completed"])
+    assert "CyberButlerAgentRuntime" in " ".join(STATUS["completed"])
     assert any("WFP enforce" in item for item in STATUS["not_completed"])
 
 
 def test_eight_language_readmes_mirror_status():
     for name in README_LANGS:
         text = (ROOT / name).read_text(encoding="utf-8")
-        assert "CyberButlerAstrBot" in text, name
+        assert "CyberButlerAgentRuntime" in text, name
         assert "6199" in text, name
         assert "S4U" in text, name
         assert "status-v1.6.2.json" in text, name
@@ -50,10 +50,10 @@ def test_wfp_code_and_status_do_not_claim_enforcement():
 def test_6199_owned_by_adapter_not_service():
     ports = STATUS["ports"]
     assert "6199" in ports
-    assert "OneBot" in ports["6199"]
+    assert "AgentProtocol" in ports["6199"]
     assert "not a system service" in ports["6199"]
     for name in README_LANGS:
-        assert "OneBot" in (ROOT / name).read_text(encoding="utf-8"), name
+        assert "AgentProtocol" in (ROOT / name).read_text(encoding="utf-8"), name
 
 
 def test_active_markdown_links_and_fences():

@@ -7,7 +7,7 @@
 **Scope:** emergency white-box audit response
 
 > [!WARNING]
-> This project still depends on unofficial QQ protocol clients such as SnowLuma. Use a test account only. Account restriction, suspension, or permanent bans remain possible. See [SECURITY.md](SECURITY.md) and [README.md](README.md).
+> This project still depends on unofficial QQ protocol clients such as AuxRuntime. Use a test account only. Account restriction, suspension, or permanent bans remain possible. See [SECURITY.md](SECURITY.md) and [README.md](README.md).
 
 ## Summary
 
@@ -80,7 +80,7 @@ The per-request `attempts` counter is backed by a process-global failure ledger:
 `/锁定API` and `/解锁API` now write:
 
 ```text
-AstrBot/data/security-gate-api-lock.json
+AgentRuntime/data/security-gate-api-lock.json
 ```
 
 instead of the read-only `tools/` directory.
@@ -112,7 +112,7 @@ New regression coverage:
 ## Upgrade Notes
 
 - Copy the updated `message_tools.py` overlay and `broker.py`.
-- Restart AstrBot and the Broker after deployment.
+- Restart AgentRuntime and the Broker after deployment.
 - Shared-folder-only `send` is intentional: media generated in other directories will be rejected unless moved into the shared folder.
 - The `Game Mode Watchdog` silent VBS launcher and state recovery from v1.0.2 remain included.
 
@@ -139,25 +139,25 @@ Expected:
 
 ## Lock/Unlock Provider-Switch Fix
 
-The V1.0.3 lock/unlock command exposed a regression: `security_gate._switch_provider` called synchronous `requests.patch` from inside an async handler. That blocked AstrBot's event loop long enough for the API call to time out.
+The V1.0.3 lock/unlock command exposed a regression: `security_gate._switch_provider` called synchronous `requests.patch` from inside an async handler. That blocked AgentRuntime's event loop long enough for the API call to time out.
 
 Fixes:
 
 - the HTTP request now runs in `asyncio.to_thread`;
 - non-2xx responses log status and response body;
 - provider IDs are named constants (`local_qwen36`, `deepseek`);
-- the state file remains under `AstrBot/data/`.
+- the state file remains under `AgentRuntime/data/`.
 
 Live validation performed:
 
 - direct internal API `PATCH /api/v1/sessions/provider` → `status=ok` for deepseek and local_qwen36;
 - plugin lock/unlock flow → no timeout, state file written and cleared;
 - final private-session provider restored to `local_qwen36`;
-- AstrBot `6185` and Broker `18090` both `200`.
+- AgentRuntime `6185` and Broker `18090` both `200`.
 
 ## Cloud Fallback Startup Grace
 
-After a Windows reboot, Ollama and AstrBot start independently. The old fallback checked Ollama too early and switched the session to DeepSeek before the local model service was ready.
+After a Windows reboot, Ollama and AgentRuntime start independently. The old fallback checked Ollama too early and switched the session to DeepSeek before the local model service was ready.
 
 Changes:
 
@@ -180,14 +180,14 @@ Hardware guide added: `docs/HARDWARE_TROUBLESHOOTING.md` (NVIDIA `VIDEO_TDR_ERRO
 ## Boot SelfCheck and Wallpaper Ignore
 
 - Added `wallpaperui`, `wallpaperengine`, and `wallpaper engine` to game-mode ignored processes.
-- Added `tools/boot-selfcheck.ps1`: waits for the 2-minute boot window, checks Ollama/AstrBot/SnowLuma, warms `sujinyan-chat-24k`, and restores `local_qwen36`.
+- Added `tools/boot-selfcheck.ps1`: waits for the 2-minute boot window, checks Ollama/AgentRuntime/AuxRuntime, warms `sujinyan-chat-24k`, and restores `local_qwen36`.
 - Added `tools/install_boot_selfcheck.ps1` for an elevated scheduled task.
 - Added hidden `tools/boot-selfcheck.vbs` launcher for per-user Startup fallback when Task Scheduler registration is unavailable.
-- Boot log: `Desktop\大肥鱼专用文件夹\boot-selfcheck.log`.
+- Boot log: `Desktop\shared专用文件夹\boot-selfcheck.log`.
 
 ## Self-Healing Additions
 
 - **Wallpaper Engine false positive fixed:** `wallpaperui`, `wallpaperengine`, and `wallpaper engine` are now ignored by game-mode.
-- **Boot self-check:** `tools/boot-selfcheck.ps1` checks Ollama/AstrBot/SnowLuma, warms the local model, and restores `local_qwen36`. It is installed as a hidden startup launcher; an elevated `Boot SelfCheck` scheduled task installer is included.
-- **SnowLuma inbound-hook guard:** `snowluma_guard.py` now parses SnowLuma logs and restarts SnowLuma when an inbound `MsgPush` is seen but no `[Event]` private message is produced within 5 minutes. Pure idle periods do not trigger a restart.
-- Guard logs moved to `Desktop\大肥鱼专用文件夹\snowluma_guard.log` so the read-only `tools/` ACL no longer blocks startup.
+- **Boot self-check:** `tools/boot-selfcheck.ps1` checks Ollama/AgentRuntime/AuxRuntime, warms the local model, and restores `local_qwen36`. It is installed as a hidden startup launcher; an elevated `Boot SelfCheck` scheduled task installer is included.
+- **AuxRuntime inbound-hook guard:** `auxruntime_guard.py` now parses AuxRuntime logs and restarts AuxRuntime when an inbound `MsgPush` is seen but no `[Event]` private message is produced within 5 minutes. Pure idle periods do not trigger a restart.
+- Guard logs moved to `Desktop\shared专用文件夹\auxruntime_guard.log` so the read-only `tools/` ACL no longer blocks startup.

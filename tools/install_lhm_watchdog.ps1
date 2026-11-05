@@ -9,7 +9,7 @@ into the install root when this installer is run from the release tree, then
 performs a stop/start recovery self-test.
 
 Usage (elevated):
-    powershell -ExecutionPolicy Bypass -File tools\install_lhm_watchdog.ps1 -ProjectRoot D:\qq苏瑾言大肥鱼
+    powershell -ExecutionPolicy Bypass -File tools\install_lhm_watchdog.ps1 -ProjectRoot D:\qqlocal agentshared
 #>
 param(
     [string]$ProjectRoot = '',
@@ -36,7 +36,7 @@ $statusPath = Join-Path $root 'tmp-plugins\lhm-watchdog-install.json'
 function Write-InstallLog([string]$Message) {
     try {
         Add-Content -LiteralPath $installLog -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-SensorEndpoint {
@@ -133,7 +133,7 @@ try {
     $parent = Split-Path -Parent $statusPath
     if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
     $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $statusPath -Encoding UTF8
-} catch { }
+} catch { Write-Verbose 'optional operation failed' }
 
 if ($result.ok) { exit 0 }
 exit 1

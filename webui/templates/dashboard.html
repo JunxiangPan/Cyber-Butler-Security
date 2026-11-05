@@ -1,392 +1,62 @@
-﻿<!doctype html>
-<html lang="zh" data-theme="dark">
+<!doctype html>
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
-  <title data-i18n="app.dashboardTitle"></title>
-  <link rel="stylesheet" href="/static/theme.css">
+  <title>Cyber-Butler Console</title>
   <link rel="stylesheet" href="/static/theme-phase2.css">
   <link rel="stylesheet" href="/static/theme-phase2-extra.css">
 </head>
-<body class="dashboard-page">
-  <div class="orb orb-one"></div>
-  <div class="orb orb-two"></div>
-
+<body>
   <header class="topbar">
-    <a class="brand" href="/">
-      <span class="brand-dot"></span>
-      <span class="brand-name" data-i18n="app.name"></span>
-      <span class="brand-sub" data-i18n="app.console"></span>
-    </a>
-    <div class="top-actions">
-      <span class="online-pill"><span class="status-dot"></span><span data-i18n="dash.phase"></span></span>
-      <select class="language-select" data-language-select data-i18n-aria-label="app.language">
-        <option value="zh">中文</option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-        <option value="ko">한국어</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-        <option value="de">Deutsch</option>
-        <option value="ru">Русский</option>
-      </select>
-      <button class="icon-button" id="themeToggle" type="button" data-i18n-aria-label="app.themeToggle">◐</button>
-      <button class="ghost-button" id="logoutButton" type="button" data-i18n="dash.logout"></button>
+    <div>
+      <span class="network-eyebrow">CYBER-BUTLER</span>
+      <h1>安全控制台 / Security Console</h1>
+    </div>
+    <div class="session-meta">
+      <span id="accountEmail">—</span>
+      <button id="logoutButton" class="ghost-button" type="button">退出 / Sign out</button>
     </div>
   </header>
 
-  <main class="dashboard-shell">
-    <section id="securityBanner" class="security-banner" hidden>
-      <div class="security-icon">!</div>
-      <div>
-        <strong data-i18n="dash.security.pendingTitle"></strong>
-        <p id="securityDetail"></p>
-        <div id="securityVerifyRow" hidden style="margin:10px 0">
-          <input id="pendingCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="手机验证码 / Authenticator code"
-                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:220px">
-          <button id="pendingVerify" class="primary" type="button">验证 / Verify</button>
-          <span id="pendingStatus" class="network-status" role="status"></span>
-        </div>
-        <p class="security-note" data-i18n="dash.security.pendingNote"></p>
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>待审批的 TOTP 请求 / Pending TOTP approvals</h2>
+        <button id="pendingRefresh" class="ghost-button" type="button">刷新 / Refresh</button>
       </div>
+      <p id="pendingEmpty" class="muted-line">当前没有待审批请求。</p>
+      <div id="pendingCard" hidden>
+        <p><strong id="pendingAction">—</strong></p>
+        <p id="pendingTarget" class="muted-line"></p>
+        <p><strong>授权根目录 / Scope root</strong></p>
+        <p id="pendingScope" class="pending-scope"></p>
+        <label for="pendingCode">验证码 / Authenticator code</label>
+        <input id="pendingCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="6-digit code">
+        <button id="pendingVerify" class="primary" type="button">验证 / Verify</button>
+      </div>
+      <p id="pendingStatus" class="network-status" role="status"></p>
     </section>
 
-    <section id="totpPanel" class="wfp-card">
-      <div class="wfp-icon" aria-hidden="true">▣</div>
-      <div style="flex:1">
-        <strong>绑定验证器 / Bind authenticator</strong>
-        <p class="muted-line">把此二维码扫描到手机 Authenticator。CBS 不依赖 QQ/邮箱接收 TOTP。</p>
-        <button id="totpBindButton" class="ghost-button" type="button">显示二维码 / Show QR</button>
-        <div id="totpQrWrap" hidden style="margin-top:10px">
-          <img id="totpQr" alt="TOTP QR" style="max-width:220px;background:#fff;padding:8px;border-radius:6px">
-          <p id="totpUri" class="muted-line" style="word-break:break-all"></p>
-          <p class="muted-line">恢复码重置：输入一个一次性恢复码，旧验证器立即失效。</p>
-          <input id="totpRecoveryCode" maxlength="8" placeholder="恢复码 / Recovery code"
-                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:220px">
-          <button id="totpRecoveryReset" class="ghost-button" type="button">恢复码重置 / Reset</button>
-          <span id="totpStatus" class="network-status" role="status"></span>
-        </div>
-      </div>
-    </section>
-
-    <section id="trashPanel" class="wfp-card" hidden>
-      <div class="wfp-icon" aria-hidden="true">↺</div>
-      <div style="flex:1">
-        <strong>两阶段延迟删除 / Two-stage delayed delete</strong>
-        <p class="muted-line">文件已移入 SYSTEM-only 暂存区。10 分钟内可撤回；到期后安全粉碎。</p>
-        <ul id="trashList" class="plain-list"></ul>
-        <span id="trashStatus" class="network-status" role="status"></span>
-      </div>
-    </section>
-
-    <section id="physicalBanner" class="security-banner" hidden>
-      <div class="security-icon">!</div>
-      <div>
-        <strong>⚠️ TOTP 验证器与 Agent 在同一主机 / Authenticator is on this host</strong>
-        <p>物理隔离未确认。请把 TOTP 验证器放在另一台设备，或由安装器显式确认。</p>
-        <p>Physical separation is not acknowledged. Move the TOTP authenticator to another device or confirm it in the installer.</p>
-      </div>
-    </section>
-
-    <section id="emailBanner" class="security-banner" hidden>
-      <div class="security-icon">!</div>
-      <div>
-        <strong>⚠️ 管理员邮箱未配置 / Admin email is not configured</strong>
-        <p>邮件 TOTP 审批和告警无法工作。请填写管理员邮箱；SMTP 授权码在安装器中配置。</p>
-        <p>Email TOTP approvals and alerts will not work. Set the administrator email below; configure the SMTP auth code in the installer.</p>
-        <button id="emailSetupToggle" class="ghost-button" type="button">设置管理员邮箱 / Set admin email</button>
-        <div id="emailSetupPanel" hidden style="margin-top:10px">
-          <input id="adminEmailInput" type="email" autocomplete="email" placeholder="admin@example.com"
-                 style="padding:8px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:#f8fafc;width:min(100%,320px)">
-          <button id="adminEmailSave" class="primary" type="button">保存 / Save</button>
-          <span id="emailSaveStatus" role="status"></span>
-        </div>
-      </div>
-    </section>
-
-    <section id="wfpBanner" class="wfp-card wfp-card-warn">
-      <div class="wfp-icon" aria-hidden="true">!</div>
-      <div class="wfp-content">
-        <div class="wfp-title-row">
-          <strong id="wfpStatusTitle">网络门卫没有运行</strong>
-          <span id="wfpStatusBadge" class="wfp-badge">未运行</span>
-        </div>
-        <p id="wfpStatusDetail" class="wfp-detail">WFP Guard 是 AI 的“网络门卫”。它没有运行，不代表电脑中毒；但下面的白名单只是草稿，不会生效。</p>
-        <p class="wfp-detail wfp-detail-muted">WFP Guard is the network gatekeeper. If it is not running, the allowlist below is only a draft and is not enforced.</p>
-        <details class="wfp-help">
-          <summary>小白怎么看？怎么修？ / What does this mean, and how do I fix it?</summary>
-          <div class="wfp-help-body">
-            <p><strong>它是什么：</strong>一个独立的 Windows 任务，专门看住 AI 的出站网络。它不执行 AI 代码，也不杀进程。</p>
-            <p><strong>它有什么用：</strong>让 AI 只能访问你允许的网站。当前 v1.6.3 还是 <strong>audit（只记录）</strong>，不会真的断网；真正的强制拦截要等后续版本。</p>
-            <p><strong>怎么让它运行：</strong>先重启电脑；仍异常时，在管理员 PowerShell 中运行下面命令，或重新运行安装器选择“修复”。</p>
-            <pre class="wfp-command">Get-ScheduledTask -TaskName 'Cyber-Butler WFP Guard' | Start-ScheduledTask</pre>
-            <p class="wfp-detail-muted">如果任务不存在，说明安装器没有注册成功；请重新运行安装器修复，而不是反复点“保存策略”。</p>
-          </div>
-        </details>
-      </div>
-    </section>
-
-    <section id="networkPanel" class="network-panel">
-      <div class="network-head">
-        <div>
-          <span class="network-eyebrow">NETWORK ALLOWLIST</span>
-          <h2>AI 可以访问哪些网站？</h2>
-          <p class="network-lead">这不是“打开网络”的开关，而是给 AI 列一份访客名单。当前版本只观察，不会强制断网。</p>
-        </div>
-        <span class="network-badge">v1.6.3 · AUDIT ONLY</span>
-      </div>
-
-      <div class="network-steps">
-        <article class="network-step"><span>1</span><div><strong>写域名</strong><p>一行一个，只写域名，不要写 https://，例如 api.deepseek.com。</p></div></article>
-        <article class="network-step"><span>2</span><div><strong>保存</strong><p>点“保存白名单”。保存成功不等于已经拦截，当前只写策略。</p></div></article>
-        <article class="network-step"><span>3</span><div><strong>看状态</strong><p>上面的网络门卫必须显示“运行中”，白名单才有意义。</p></div></article>
-      </div>
-
-      <div class="network-form">
-        <div class="network-field">
-          <label for="networkMode">模式 / Mode</label>
-          <select id="networkMode">
-            <option value="audit">audit · 观察（当前唯一支持）</option>
-            <option value="enforce" disabled>enforce · 强制拦截（本版本未实现）</option>
-          </select>
-          <p class="network-help-text">小白建议保持 audit。enforce 需要后续版本和实机验收，不要在这里假装已经生效。</p>
-        </div>
-        <div class="network-field network-field-grow">
-          <label for="networkDomains">允许 AI 访问的域名</label>
-          <textarea id="networkDomains" rows="6" spellcheck="false" placeholder="api.deepseek.com&#10;api.openai.com&#10;（不知道就留空，不要一次放开整个网络）"></textarea>
-          <p class="network-help-text">留空通常最安全；每行一个域名。这里不是浏览器代理设置，不会影响你正常上网。</p>
-        </div>
-      </div>
-
+    <section class="panel">
+      <div class="panel-head"><h2>网络白名单（仅 Audit）/ Network allowlist</h2></div>
+      <p class="network-lead">只记录，不强制拦截。每行一个域名，例如 api.deepseek.com。</p>
+      <label for="networkDomains">域名 / Domains</label>
+      <textarea id="networkDomains" rows="7" spellcheck="false"></textarea>
       <div class="network-actions">
-        <button id="networkSave" class="primary" type="button">保存白名单 / Save allowlist</button>
-        <button id="networkRefresh" class="ghost-button" type="button">刷新门卫状态 / Refresh guard</button>
-        <span id="networkStatus" role="status" class="network-status"></span>
+        <button id="networkSave" class="primary" type="button">保存 / Save</button>
+        <button id="networkRefresh" class="ghost-button" type="button">刷新 / Refresh</button>
       </div>
-
-      <details class="network-help">
-        <summary>还是不懂？看这个例子 / A plain-language example</summary>
-        <p>如果 AI 只需要用 DeepSeek，就只写一行 <code>api.deepseek.com</code>。不要因为“怕不够用”就留空所有域名；当前版本本来也不会真正拦截。</p>
-        <p>真正要强制拦截时，需要后续版本启用 enforce，并完成 WFP 实机验收；当前版本不会给你一个假的“已保护”。</p>
-      </details>
+      <p id="networkStatus" class="network-status" role="status"></p>
     </section>
 
-    <section id="oneBotPanel" class="onebot-panel">
-      <div class="onebot-head">
-        <div>
-          <span class="network-eyebrow">ONEBOT / SNOWLUMA</span>
-          <h2>QQ 连接凭据</h2>
-          <p class="network-lead">这里显示 SnowLuma 和 AstrBot 要互相对上的 Access Token。它不是 SnowLuma 登录密码，也不是你 QQ 的密码。</p>
-        </div>
-        <span class="network-badge">仅本机控制台可见</span>
-      </div>
-      <div class="onebot-grid">
-        <div class="onebot-field">
-          <span class="onebot-label">反向 WebSocket 地址</span>
-          <code id="oneBotUrl">ws://127.0.0.1:6199/ws</code>
-        </div>
-        <div class="onebot-field">
-          <span class="onebot-label">Access Token</span>
-          <div class="onebot-token-row">
-            <code id="oneBotToken" class="onebot-token">••••••••••••</code>
-            <button id="oneBotReveal" class="ghost-button" type="button">显示</button>
-            <button id="oneBotCopy" class="primary" type="button">复制</button>
-          </div>
-        </div>
-      </div>
-      <p class="network-help-text">把这同一个 Token 粘贴到 AstrBot 的 OneBot 平台和 SnowLuma 的 WebSocket 客户端。Token 文件：<code id="oneBotTokenFile">data\onebot-reverse-token.txt</code></p>
-      <p id="oneBotStatus" class="network-status" role="status"></p>
+    <section class="panel">
+      <div class="panel-head"><h2>验证器绑定 / Authenticator binding</h2></div>
+      <button id="totpBind" class="ghost-button" type="button">显示绑定信息 / Show binding</button>
+      <pre id="totpInfo" class="muted-line"></pre>
     </section>
-
-
-    <section id="snowLumaPanel" class="onebot-panel">
-      <div class="onebot-head">
-        <div>
-          <span class="network-eyebrow">SNOWLUMA LOGIN</span>
-          <h2>SnowLuma 登录凭据</h2>
-          <p class="network-lead">这是 SnowLuma 自己 WebUI 的用户名和首次启动密码，不是 OneBot Token，也不是 QQ 密码。</p>
-        </div>
-        <span class="network-badge">密码来自首次启动日志</span>
-      </div>
-      <div class="onebot-grid">
-        <div class="onebot-field">
-          <span class="onebot-label">SnowLuma WebUI</span>
-          <code id="snowLumaUrl">http://127.0.0.1:5099/</code>
-        </div>
-        <div class="onebot-field">
-          <span class="onebot-label">用户名</span>
-          <code id="snowLumaUser">—</code>
-        </div>
-        <div class="onebot-field">
-          <span class="onebot-label">初始密码</span>
-          <div class="onebot-token-row">
-            <code id="snowLumaPassword" class="onebot-token">••••••••••••</code>
-            <button id="snowLumaReveal" class="ghost-button" type="button">显示</button>
-            <button id="snowLumaCopy" class="primary" type="button">复制</button>
-          </div>
-        </div>
-      </div>
-      <p id="snowLumaStatus" class="network-status" role="status"></p>
-      <p class="network-help-text">如果这里为空：<strong>未捕获初始密码</strong>。请前往 <code>http://127.0.0.1:5099</code> 登录 SnowLuma 后台修改，或在 SnowLuma 配置目录手动重置。CBS 只读取日志，不越权写入。</p>
-    </section>
-
-
-    <section class="welcome">
-      <p class="eyebrow" data-i18n="dash.eyebrow"></p>
-      <h1 data-i18n="dash.hero"></h1>
-      <p class="lede" data-i18n="dash.lede"></p>
-    </section>
-
-    <nav class="tab-bar" data-i18n-aria-label="dash.tabs">
-      <button class="tab-button active" type="button" data-tab="monitor" data-i18n="dash.tab.monitor"></button>
-      <button class="tab-button" type="button" data-tab="files" data-i18n="dash.tab.files"></button>
-    </nav>
-
-    <div id="monitorTab">
-      <section class="stat-grid">
-        <article class="stat-card">
-          <span class="stat-label" data-i18n="dash.card.auth"></span>
-          <strong data-i18n="dash.card.authValue"></strong>
-          <span class="stat-note" data-i18n="dash.card.authNote"></span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label" data-i18n="dash.card.account"></span>
-          <strong id="accountEmail">—</strong>
-          <span class="stat-note" data-i18n="dash.card.accountNote"></span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label" data-i18n="dash.card.token"></span>
-          <strong id="usageTokens">—</strong>
-          <span class="stat-note" id="usageCalls"></span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label" data-i18n="dash.card.cost"></span>
-          <strong id="usageCost" class="accent">—</strong>
-          <span class="stat-note" id="usagePricingNote"></span>
-        </article>
-      </section>
-
-      <section class="live-grid">
-        <article class="panel temp-panel">
-          <div class="panel-head"><h2 data-i18n="dash.temp.title"></h2><span id="tempsUpdated" class="panel-meta">—</span></div>
-          <div class="temp-readout">
-            <div><span data-i18n="dash.temp.cpu"></span><strong id="cpuValue">—</strong></div>
-            <div><span data-i18n="dash.temp.gpu"></span><strong id="gpuValue">—</strong></div>
-            <div><span data-i18n="dash.temp.vram"></span><strong id="vramValue">—</strong></div>
-          </div>
-          <svg id="tempChart" class="temp-chart" viewBox="0 0 600 170" preserveAspectRatio="none" role="img" data-i18n-aria-label="dash.temp.chartAria">
-            <line x1="0" y1="10" x2="600" y2="10" class="chart-grid"/>
-            <line x1="0" y1="60" x2="600" y2="60" class="chart-grid"/>
-            <line x1="0" y1="110" x2="600" y2="110" class="chart-grid"/>
-            <line x1="0" y1="160" x2="600" y2="160" class="chart-grid"/>
-            <polyline id="cpuLine" points="" class="chart-cpu"/>
-            <polyline id="gpuLine" points="" class="chart-gpu"/>
-          </svg>
-          <div class="chart-legend">
-            <span class="cpu" data-i18n="dash.temp.cpu"></span>
-            <span class="gpu" data-i18n="dash.temp.gpu"></span>
-            <span id="tempSource" class="panel-meta"></span>
-          </div>
-          <p class="panel-note" data-i18n="dash.temp.note"></p>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head"><h2 data-i18n="dash.status.title"></h2><span id="statusUpdated" class="panel-meta">—</span></div>
-          <div class="service-list" id="serviceList"><span class="muted-line" data-i18n="dash.status.probing"></span></div>
-          <div class="usage-providers" id="usageProviders"></div>
-        </article>
-
-        <article class="panel plugin-panel">
-          <div class="panel-head"><h2 data-i18n="dash.plugin.title"></h2><span id="pluginCount" class="panel-meta">—</span></div>
-          <ul class="plugin-list" id="pluginList"><li class="muted-line" data-i18n="dash.log.loading"></li></ul>
-        </article>
-
-        <article class="panel log-panel">
-          <div class="panel-head">
-            <h2 data-i18n="dash.log.title"></h2>
-            <select id="logSelect" data-i18n-aria-label="dash.log.select">
-              <option value="astrbot">AstrBot</option>
-              <option value="broker">Broker</option>
-              <option value="dashboard">Dashboard</option>
-              <option value="snowluma">SnowLuma</option>
-            </select>
-          </div>
-          <pre id="logView" data-i18n="dash.log.loading"></pre>
-        </article>
-
-        <article class="panel backup-panel">
-          <div class="panel-head"><h2 data-i18n="dash.backup.title"></h2><span id="backupTotal" class="panel-meta"></span></div>
-          <ul class="backup-list" id="backupList"><li class="muted-line" data-i18n="dash.log.loading"></li></ul>
-          <p class="panel-note" data-i18n="dash.backup.note"></p>
-        </article>
-      </section>
-
-      <section class="panel chat-panel">
-        <div class="panel-head"><h2 data-i18n="chat.title"></h2><span class="panel-meta" data-i18n="chat.meta"></span></div>
-        <div class="shortcut-row" id="shortcuts">
-          <button class="shortcut" type="button" data-shortcut="chat.shortcutWeather" data-i18n="chat.shortcutWeather"></button>
-          <button class="shortcut" type="button" data-shortcut="chat.shortcutVoice" data-i18n="chat.shortcutVoice"></button>
-          <button class="shortcut" type="button" data-shortcut="chat.shortcutModel" data-i18n="chat.shortcutModel"></button>
-        </div>
-        <div class="chat-log" id="chatLog"><p class="chat-empty" data-i18n="chat.empty"></p></div>
-        <textarea id="chatText" maxlength="500" rows="3" data-i18n-placeholder="chat.placeholder" data-i18n-aria-label="chat.placeholder"></textarea>
-        <div class="chat-foot">
-          <span id="chatCount" class="panel-meta"></span>
-          <button id="chatSend" class="primary chat-send" type="button" data-i18n="chat.send"></button>
-        </div>
-        <div id="chatStatus" class="chat-status" role="status" aria-live="polite"></div>
-      </section>
-
-      <section class="link-panel">
-        <div>
-          <h3 data-i18n="dash.link.title"></h3>
-          <p data-i18n="dash.link.text"></p>
-        </div>
-        <div class="session-meta">
-          <span data-i18n="dash.session.expiry"></span>
-          <strong id="sessionExpiry">—</strong>
-        </div>
-      </section>
-    </div>
-
-    <div id="filesTab" hidden>
-      <section class="panel files-panel">
-        <div class="panel-head">
-          <h2 data-i18n="files.title"></h2>
-          <span class="panel-meta" data-i18n="files.meta"></span>
-        </div>
-        <div class="file-toolbar">
-          <button class="ghost-button" id="fileUp" type="button" data-i18n="files.up"></button>
-          <span class="file-path" id="filePath">/</span>
-          <button class="ghost-button" id="fileRefresh" type="button" data-i18n="files.refresh"></button>
-        </div>
-        <ul class="file-list" id="fileList"><li class="muted-line" data-i18n="files.loading"></li></ul>
-        <p class="panel-note" data-i18n="files.note"></p>
-      </section>
-    </div>
   </main>
 
-  <div class="modal" id="fileModal" hidden>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="fileTitle">
-      <div class="panel-head">
-        <h2 id="fileTitle"></h2>
-        <button class="icon-button" id="fileClose" type="button" data-i18n-aria-label="app.close">×</button>
-      </div>
-      <div id="filePreview" class="file-preview"></div>
-      <div class="chat-foot">
-        <span id="fileMeta" class="panel-meta"></span>
-        <a id="fileDownload" class="primary chat-send" href="#" download data-i18n="files.download"></a>
-      </div>
-    </div>
-  </div>
-
-  <footer class="footer">
-    <span data-i18n="app.name"></span>
-    <span data-i18n="dash.footer"></span>
-  </footer>
-
-  <script src="/static/i18n.js" defer></script>
-  <script src="/static/dashboard.js" defer></script>
+  <script src="/static/dashboard.js"></script>
 </body>
 </html>

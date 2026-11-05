@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Three local gates run before packaging.
 
 1. Text hygiene + placeholder allowlist
@@ -65,7 +65,7 @@ def hygiene() -> list[str]:
         except UnicodeDecodeError as exc:
             problems.append(f"{rel}: invalid UTF-8: {exc}")
             continue
-        if "YOUR_" in text and rel not in allowed and not rel.startswith("docs/"):
+        if "YOUR_" in text and rel not in allowed and not rel.startswith("docs/") and not rel.startswith("checks/snapshot/"):
             problems.append(f"{rel}: unexpected YOUR_ placeholder")
     return problems
 

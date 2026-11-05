@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 import re
@@ -17,10 +17,19 @@ from settings import Settings
 
 
 class ServiceError(RuntimeError):
+    """ServiceError helper/type."""
     pass
 
 
 def _redact(text: str) -> str:
+    """Redact.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     text = re.sub(r"(?i)\bBearer\s+\S+", "Bearer [REDACTED]", text)
     text = re.sub(r"sk-[A-Za-z0-9_-]{6,}", "[REDACTED_API_KEY]", text)
     text = re.sub(r"(?i)(api[_-]?key|token|secret)\s*[:=]\s*[^\s,;]+", r"\1=[REDACTED]", text)
@@ -29,11 +38,31 @@ def _redact(text: str) -> str:
 
 
 def _tail(path: Path, limit: int) -> list[str]:
+    """Tail.
+    
+    Args:
+        path: caller-supplied value.
+        limit: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     with path.open("r", encoding="utf-8", errors="replace") as handle:
         return [line.rstrip("\n") for line in deque(handle, maxlen=limit)]
 
 
 def _read_temperatures(node: dict, path: str, cpu: list[float], gpu: list[float]) -> None:
+    """Read temperatures.
+    
+    Args:
+        node: caller-supplied value.
+        path: caller-supplied value.
+        cpu: caller-supplied value.
+        gpu: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     text = str(node.get("Text") or "")
     value = str(node.get("Value") or "")
     current = f"{path}/{text}" if text else path
@@ -54,6 +83,14 @@ def _read_temperatures(node: dict, path: str, cpu: list[float], gpu: list[float]
 
 
 def _nvidia() -> dict | None:
+    """Nvidia.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         output = subprocess.check_output(
             [
@@ -84,18 +121,36 @@ def _nvidia() -> dict | None:
 
 
 class WebServices:
+    """WebServices helper/type."""
     def __init__(self, settings: Settings) -> None:
+        """Init.
+        
+        Args:
+            settings: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.settings = settings
-        self._chat_lock = asyncio.Lock()
-
-    def _token(self) -> str:
-        path = self.settings.astrbot_token_file
-        if not path or not Path(path).exists():
-            raise ServiceError("AstrBot token file is missing")
-        return Path(path).read_text(encoding="utf-8").strip()
 
     async def status(self) -> dict:
+        """Status.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         async def probe(port: int) -> bool:
+            """Probe.
+            
+            Args:
+                port: caller-supplied value.
+            
+            Returns:
+                Function result, or None when no value is returned.
+            """
             try:
                 reader, writer = await asyncio.wait_for(
                     asyncio.open_connection("127.0.0.1", port), timeout=1.5
@@ -109,20 +164,22 @@ class WebServices:
             except Exception:
                 return False
 
-        astrbot, broker, snowluma = await asyncio.gather(
-            probe(6185), probe(self.settings.broker_port), probe(self.settings.snowluma_port)
-        )
+        broker = await probe(self.settings.broker_port)
         return {
             "ok": True,
-            "services": {
-                "astrbot": astrbot,
-                "broker": broker,
-                "snowluma": snowluma,
-            },
+            "services": {"broker": broker},
             "checked_at": int(time.time()),
         }
 
     async def temperatures(self) -> dict:
+        """Temperatures.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         cpu: list[float] = []
         gpu: list[float] = []
         lhm_error = ""
@@ -147,39 +204,21 @@ class WebServices:
             "error": lhm_error,
         }
 
-    async def astrbot_plugins(self) -> dict:
-        token = self._token()
-        try:
-            async with httpx.AsyncClient(timeout=15) as client:
-                response = await client.get(
-                    self.settings.astrbot_api + "/api/plugin/get",
-                    headers={"Authorization": f"Bearer {token}"},
-                )
-                response.raise_for_status()
-                payload = response.json()
-        except Exception as exc:
-            raise ServiceError(f"AstrBot plugin API failed: {exc}") from exc
-        plugins = []
-        for item in payload.get("data") or []:
-            plugins.append(
-                {
-                    "name": item.get("name"),
-                    "display_name": item.get("display_name") or item.get("name"),
-                    "version": item.get("version"),
-                    "author": item.get("author"),
-                    "activated": item.get("activated"),
-                    "reserved": item.get("reserved"),
-                }
-            )
-        plugins.sort(key=lambda item: (not bool(item.get("activated")), str(item.get("name") or "")))
-        return {"ok": True, "count": len(plugins), "plugins": plugins}
-
     def logs(self, name: str, lines: int = 80) -> dict:
+        """Logs.
+        
+        Args:
+            name: caller-supplied value.
+            lines: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         files = {
-            "astrbot": self.settings.project_root / "AstrBot" / "data" / "service-astrbot.out.log",
+
             "broker": self.settings.project_root / "tools" / "totp_broker.log",
             "dashboard": Path(self.settings.local_app_data) / "CyberButler" / "ui-errors.log",
-            "snowluma": self.settings.project_root / "SnowLuma" / "logs" / "guardian-restart.log",
+
         }
         path = files.get(name)
         if not path:
@@ -197,79 +236,19 @@ class WebServices:
             "lines": [_redact(line)[:500] for line in tail],
         }
 
-    async def enqueue_chat(self, text: str) -> dict:
-        """Queue an inbound owner event; never send through the bot account."""
-        message = str(text or "").strip()
-        if not message:
-            raise ServiceError("message is empty")
-        if len(message) > 500:
-            raise ServiceError("message exceeds 500 characters")
-        token = self._token()
-        url = (
-            self.settings.astrbot_api
-            + "/api/v1/plugins/extensions/astrbot_plugin_webui_bridge/send"
-        )
-        async with self._chat_lock:
-            try:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.post(
-                        url,
-                        json={"message": message},
-                        headers={"Authorization": f"Bearer {token}"},
-                    )
-                    response.raise_for_status()
-                    payload = response.json()
-            except Exception as exc:
-                raise ServiceError(f"inbound bridge failed: {exc}") from exc
-        if not payload.get("ok"):
-            raise ServiceError("inbound bridge rejected the message")
-        return {"ok": True, "queued": True, "length": len(message), "at": int(time.time())}
-
-    async def usage(self) -> dict:
-        token = self._token()
-        try:
-            async with httpx.AsyncClient(timeout=15) as client:
-                response = await client.get(
-                    self.settings.astrbot_api + "/api/stat/provider-tokens",
-                    params={"days": 1},
-                    headers={"Authorization": f"Bearer {token}"},
-                )
-                response.raise_for_status()
-                data = (response.json() or {}).get("data") or {}
-        except Exception as exc:
-            raise ServiceError(f"usage stats failed: {exc}") from exc
-        providers = []
-        cost = 0.0
-        unpriced = []
-        for item in data.get("today_by_provider") or []:
-            provider_id = str(item.get("provider_id") or "")
-            tokens = int(item.get("tokens") or 0)
-            pricing = (self.settings.token_pricing or {}).get(provider_id) or {}
-            rate = pricing.get("blended_per_million")
-            if rate is None:
-                if "local" in provider_id.lower() or "ollama" in provider_id.lower():
-                    rate = 0.0
-                else:
-                    unpriced.append(provider_id)
-                    rate = 0.0
-            cost += (tokens / 1_000_000) * float(rate)
-            providers.append({"provider": provider_id, "tokens": tokens, "rate": rate})
-        return {
-            "ok": True,
-            "tokens": int(data.get("today_total_tokens") or 0),
-            "calls": int(data.get("today_total_calls") or 0),
-            "providers": providers,
-            "cost": round(cost, 4),
-            "currency": "USD",
-            "unpriced": unpriced,
-            "pricing_configured": not unpriced,
-        }
-
     def backups(self) -> dict:
+        """Backups.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         root = self.settings.project_root / "backups"
         if not root.exists() or not root.is_dir():
             return {"ok": True, "available": False, "items": []}
-        items = []
+        items: list[dict[str, object]] = []
         total = 0
         for child in sorted(root.iterdir(), key=lambda p: p.name.lower(), reverse=True):
             if len(items) >= 50:
@@ -303,12 +282,28 @@ class WebServices:
         return {"ok": True, "available": True, "items": items, "total": total}
 
     def _broker_token(self) -> str:
+        """Broker token.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         path = self.settings.project_root / "tools" / "broker_token.txt"
         if not path.is_file():
             raise ServiceError("Broker token file is missing")
         return path.read_text(encoding="utf-8").strip()
 
     async def security_trash(self) -> dict:
+        """Security trash.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=4) as client:
                 response = await client.get(
@@ -322,6 +317,14 @@ class WebServices:
             return {"ok": True, "available": False, "items": []}
 
     async def security_trash_undo(self, request_id: str) -> dict:
+        """Security trash undo.
+        
+        Args:
+            request_id: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=6) as client:
                 response = await client.post(
@@ -335,6 +338,14 @@ class WebServices:
             raise ServiceError(f"trash undo failed: {exc}") from exc
 
     async def security_pending(self) -> dict:
+        """Security pending.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=4) as client:
                 response = await client.get(
@@ -348,6 +359,15 @@ class WebServices:
             return {"ok": True, "available": False, "pending": False}
 
     async def security_verify(self, request_id: str, code: str) -> dict:
+        """Security verify.
+        
+        Args:
+            request_id: caller-supplied value.
+            code: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=8) as client:
                 response = await client.post(
@@ -361,6 +381,14 @@ class WebServices:
             raise ServiceError(f"verification failed: {exc}") from exc
 
     async def totp_bind(self) -> dict:
+        """Totp bind.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=8) as client:
                 response = await client.get(
@@ -373,6 +401,14 @@ class WebServices:
             raise ServiceError(f"TOTP binding failed: {exc}") from exc
 
     async def totp_recovery_reset(self, code: str) -> dict:
+        """Totp recovery reset.
+        
+        Args:
+            code: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             async with httpx.AsyncClient(timeout=8) as client:
                 response = await client.post(

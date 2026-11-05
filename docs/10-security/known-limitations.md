@@ -29,7 +29,7 @@ v1.6.2 has not completed a clean-VM install/upgrade/uninstall run. Host-side SCM
 
 ## 6199 is not a service
 
-`6199` is opened dynamically by the AstrBot OneBot adapter after the adapter is configured and enabled. It is not a CBS or AstrBot system service.
+`6199` is opened dynamically by the AgentRuntime AgentProtocol adapter after the adapter is configured and enabled. It is not a CBS or AgentRuntime system service.
 
 ## Other partial controls
 
@@ -40,11 +40,11 @@ v1.6.2 has not completed a clean-VM install/upgrade/uninstall run. Host-side SCM
 
 ## What is verified
 
-AstrBot SCM service, 6185, SQLite write probe, Job Object assignment, Broker 18090, WebUI 8765, OTP Mailer 8766, SnowLuma 5099, and WFP audit status on the current host.
+AgentRuntime SCM service, 6185, SQLite write probe, Job Object assignment, Broker 18090, WebUI 8765, OTP Mailer 8766, AuxRuntime 5099, and WFP audit status on the current host.
 
 ## Third-party components
 
-AstrBot v4.29.3 and SnowLuma v2.2.1 are external upstream applications. CBS verifies the integration boundary it owns, not the internal behaviour of those applications, their plugins, QQ clients, or upstream APIs. Hidden third-party defects and future upstream changes are outside CBS's guarantee and require revalidation after upgrades.
+AgentRuntime v4.29.3 and AuxRuntime v2.2.1 are external upstream applications. CBS verifies the integration boundary it owns, not the internal behaviour of those applications, their plugins, QQ clients, or upstream APIs. Hidden third-party defects and future upstream changes are outside CBS's guarantee and require revalidation after upgrades.
 
 ## WFP enforce status in v1.6.3
 

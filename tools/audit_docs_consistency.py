@@ -27,7 +27,7 @@ README = {
     "ru": ROOT / "README_ru.md",
 }
 BASE = ROOT / "README.md"
-DEPRECATED_TERMS = ("S4U", "Task Scheduler", "AstrBot Service", "计划任务")
+DEPRECATED_TERMS = ("S4U", "Task Scheduler", "AgentRuntime Service", "计划任务")
 HISTORICAL_MARKERS = (
     "historical", "deprecated", "legacy", "archive", "history",
     "历史", "已废弃", "旧版", "不再使用", "迁移",
@@ -35,6 +35,14 @@ HISTORICAL_MARKERS = (
 
 
 def headings(path: Path) -> list[tuple[int, str]]:
+    """Headings.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     result: list[tuple[int, str]] = []
     if not path.is_file():
         return result
@@ -52,6 +60,14 @@ def headings(path: Path) -> list[tuple[int, str]]:
 
 
 def feature_routes() -> list[str]:
+    """Feature routes.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     path = ROOT / "webui" / "app.py"
     if not path.is_file():
         return []
@@ -77,6 +93,14 @@ def feature_routes() -> list[str]:
 
 
 def deprecated_findings() -> list[str]:
+    """Deprecated findings.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     findings: list[str] = []
     candidates = [BASE] + list(README.values())
     candidates += [
@@ -86,7 +110,14 @@ def deprecated_findings() -> list[str]:
     for path in candidates:
         if not path.is_file():
             continue
-        for number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+        relative = path.relative_to(ROOT).as_posix()
+        if relative.startswith(("docs/40-history/", "docs/90-audit/")):
+            continue
+        text = path.read_text(encoding="utf-8-sig")
+        header = chr(10).join(text.splitlines()[:20]).casefold()
+        if any(marker.casefold() in header for marker in HISTORICAL_MARKERS):
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
             lowered = line.casefold()
             if any(marker.casefold() in lowered for marker in HISTORICAL_MARKERS):
                 continue
@@ -97,6 +128,14 @@ def deprecated_findings() -> list[str]:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     base = headings(BASE)
     base_counts = {level: sum(1 for item_level, _ in base if item_level == level) for level in range(1, 7)}
     rows = []

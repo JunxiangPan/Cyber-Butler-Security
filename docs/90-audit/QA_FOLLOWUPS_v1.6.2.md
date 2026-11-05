@@ -44,33 +44,33 @@
 ### 3a. Upgrade can fail on locked `node.exe`
 
 - Observed on host upgrade 2026-11-03:
-  `Copy-Item` overwrote/backed up `SnowLuma
+  `Copy-Item` overwrote/backed up `AuxRuntime
 ode.exe` while the running
-  SnowLuma node process held it:
+  AuxRuntime node process held it:
   `The process cannot access the file because it is being used by another process`.
 - Rollback then also failed (`rollback_failed`) because the same file was still
   locked.
 - Root cause: Core deployment runs before the installer stops existing
-  AstrBot/SnowLuma/WebUI/Broker processes.
+  AgentRuntime/AuxRuntime/WebUI/Broker processes.
 - Source fix added: before Core on an existing install, stop named tasks and
   processes owning ports `6185/18090/8765/8766/6199/5099/3000/3001`, wait 3s.
 - This fix is in the worktree but NOT in the signed v1.6.2 package; current host
   retry must stop processes manually or use a rebuilt package.
 
-### 3c. AstrBot import fails with Deprecated 3.0.0 on Python 3.10
+### 3c. AgentRuntime import fails with Deprecated 3.0.0 on Python 3.10
 
 - Observed after Core pip install:
   `SyntaxError: invalid syntax` at
   `deprecated/classic.py: type WarningAction = Literal[...]`.
 - `type` statement syntax requires Python 3.12/3.13; the host uses bundled
   `.python` 3.10.8 and `.venv` Python 3.10.
-- AstrBot requirements only say `deprecated>=1.2.18`; pip installed
+- AgentRuntime requirements only say `deprecated>=1.2.18`; pip installed
   `Deprecated 3.0.0`, which is incompatible with 3.10.
-- Impact: Core `import astrbot.core` fails, rollback runs, and the installer
+- Impact: Core `import agentruntime.core` fails, rollback runs, and the installer
   reports a truncated `Traceback (most recent call last):`.
-- Required: pin `deprecated<3` in installer/AstrBot requirements or force
+- Required: pin `deprecated<3` in installer/AgentRuntime requirements or force
   Python 3.13; add an import-smoke regression test.
-- Source fix added: installer appends `deprecated<3` to the extracted AstrBot
+- Source fix added: installer appends `deprecated<3` to the extracted AgentRuntime
   requirements before pip; this is NOT in the signed v1.6.2 package.
 
 ### 3c-2. greenlet native extension missing on Python 3.10
@@ -79,7 +79,7 @@ ode.exe` while the running
   `ModuleNotFoundError: No module named 'greenlet._greenlet'`.
 - The venv contains `greenlet 3.5.6` source files but no compiled `_greenlet`
   extension; the host has Python 3.10 and no usable build toolchain.
-- AstrBot requirements only say `sqlalchemy[asyncio]>=2.0.41`; pip selected a
+- AgentRuntime requirements only say `sqlalchemy[asyncio]>=2.0.41`; pip selected a
   greenlet build that did not provide the binary wheel.
 - Required: install a wheel-backed greenlet compatible with 3.10 (e.g. `greenlet<3.2`
   with `--only-binary=:all:`) or use Python 3.13; pin this in the installer and
@@ -88,7 +88,7 @@ ode.exe` while the running
 ### 3e. Installer log path text is still mojibake in GUI
 
 - Observed during the High install while waiting for approval:
-  `d:\qq锟斤拷锟斤拷源...Astrbot\.venv...`.
+  `d:\qq锟斤拷锟斤拷源...AgentRuntime\.venv...`.
 - The log is written as UTF-8 (pip/Python output), but several GUI reads use
   `Get-Content` without `-Encoding UTF8`, so paths are decoded as ANSI/GBK.
 - Affected: status `last 12 log lines`, progress tail, and possibly log viewer.
@@ -134,7 +134,7 @@ ode.exe` while the running
   - detect existing install and show the detected version/path;
   - default to **Upgrade / Repair (preserve data)**;
   - require an explicit destructive confirmation for a fresh install;
-  - show what will be preserved (`AstrBot\data`, `SnowLuma\config/data/logs`,
+  - show what will be preserved (`AgentRuntime\data`, `AuxRuntime\config/data/logs`,
     `webui\data`, TOTP vault, broker config);
   - offer Cancel;
   - pass the selected mode to the child (`Upgrade`/`Repair`/`Fresh`) rather than
@@ -145,7 +145,7 @@ ode.exe` while the running
 ### 4. Defender exclusion is hardcoded to C:\CyberButler
 
 - Encountered on the host install:
-  `D:\qq苏瑾言大肥鱼`.
+  `D:\qqlocal agentshared`.
 - Files: `installer/lib/Add-DefenderExclusion.ps1`,
   `installer/CyberButler.Installer.GUI.ps1`.
 - Current behavior: any non-default path + checked exclusion fails with:
@@ -162,7 +162,7 @@ ode.exe` while the running
   `tools/credential_proxy.example.json`.
 - Current: loopback reverse proxy; fake bearer token -> real key from
   `CBS_CREDENTIAL_PROXY_REAL_KEY`; only `/v1/` on one upstream.
-- Missing: installer task/service and ACL, AstrBot provider base-URL setup,
+- Missing: installer task/service and ACL, AgentRuntime provider base-URL setup,
   streaming/SSE pass-through, key ingestion from the existing DPAPI secret.
 - Required: decide whether the proxy is a supported service; if yes, install and
   ACL it separately from the agent; if not, keep it clearly experimental.
@@ -202,7 +202,7 @@ ode.exe` while the running
 
 ## P2 — coverage/documentation
 
-### 10. SBOM does not cover downloaded AstrBot/SnowLuma requirements
+### 10. SBOM does not cover downloaded AgentRuntime/AuxRuntime requirements
 
 - Current: `dependencies.sbom.json` covers repo `requirements-dev.txt` and
   `webui/requirements.txt`.

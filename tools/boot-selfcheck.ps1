@@ -1,10 +1,10 @@
 ﻿# Boot self-check: wait for the stack, warm the local model and restore local routing.
-# Runs as SYSTEM at startup/logon; user-scoped SnowLuma/QQ tasks are started by name.
+# Runs as SYSTEM at startup/logon; user-scoped AuxRuntime/QQ tasks are started by name.
 $ErrorActionPreference = 'Continue'
 $root = 'YOUR_PROJECT_PATH'
-$runtime = 'YOUR_USER_PATH\Desktop\大肥鱼专用文件夹'
+$runtime = 'YOUR_USER_PATH\Desktop\shared专用文件夹'
 $log = Join-Path $runtime 'boot-selfcheck.log'
-$tokenFile = Join-Path $root '.astrbot_token'
+$tokenFile = Join-Path $root '.agentruntime_token'
 $umo = 'qq_sujinyan:FriendMessage:YOUR_QQ_ID'
 $model = 'sujinyan-chat-24k:latest'
 
@@ -13,7 +13,7 @@ function Write-CheckLog([string]$message) {
     try {
         New-Item -ItemType Directory -Path $runtime -Force | Out-Null
         Add-Content -LiteralPath $log -Value $line -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-Http([string]$url) {
@@ -49,12 +49,12 @@ if (-not (Test-Http 'http://127.0.0.1:11434/api/tags')) {
 }
 
 if (-not (Test-Http 'http://127.0.0.1:6185')) {
-    Ensure-Task 'AstrBot Service'
+    Ensure-Task 'AgentRuntime Service'
     Start-Sleep -Seconds 25
 }
 
 if (-not (Test-Http 'http://127.0.0.1:5099')) {
-    Ensure-Task 'SnowLuma Startup'
+    Ensure-Task 'AuxRuntime Startup'
     Start-Sleep -Seconds 20
 }
 
@@ -94,8 +94,8 @@ try {
 
 $status = [ordered]@{
     ollama = (Test-Http 'http://127.0.0.1:11434/api/tags')
-    astrbot = (Test-Http 'http://127.0.0.1:6185')
-    snowluma = (Test-Http 'http://127.0.0.1:5099')
+    agentruntime = (Test-Http 'http://127.0.0.1:6185')
+    auxruntime = (Test-Http 'http://127.0.0.1:5099')
 }
 Write-CheckLog ('boot self-check finished: ' + ($status | ConvertTo-Json -Compress))
 $failed = @($status.GetEnumerator() | Where-Object { -not $_.Value })

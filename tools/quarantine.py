@@ -36,14 +36,38 @@ class QuarantineCapacityError(OSError):
 
 
 def _safe_id(request_id: str) -> str:
+    """Safe id.
+    
+    Args:
+        request_id: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return "".join(ch for ch in request_id if ch.isalnum() or ch in "-_")[:80] or "request"
 
 
 def _manifest_path(entry: Path) -> Path:
+    """Manifest path.
+    
+    Args:
+        entry: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return entry / "manifest.json"
 
 
 def _entry_bytes() -> int:
+    """Entry bytes.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     total = 0
     if not TRASH_STAGING.is_dir():
         return 0
@@ -63,7 +87,7 @@ def _lock_quarantine_acl(entry: Path) -> None:
     desktop account must use the undo API; Explorer and the agent cannot read
     the staged bytes.
     """
-    if os.name != "nt" or os.environ.get("CBS_DISABLE_ACL") == "1":
+    if os.name != "nt" or os.environ.get("CBS_DISABLE_ACL") == "1" or os.environ.get("CBS_TEST_MODE") == "1":
         return
     owner = getpass.getuser()
     # SYSTEM can resolve through getpass as "HYPERPC$"; that computer account
@@ -154,10 +178,26 @@ def quarantine_file(
 
 
 def _read_manifest(entry: Path) -> dict[str, Any]:
+    """Read manifest.
+    
+    Args:
+        entry: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return json.loads(_manifest_path(entry).read_text(encoding="utf-8"))
 
 
 def list_pending() -> list[dict[str, Any]]:
+    """List pending.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     result: list[dict[str, Any]] = []
     if not TRASH_STAGING.is_dir():
         return result
@@ -250,7 +290,23 @@ def purge_expired(now: float | None = None, *, secure: bool = True) -> int:
 
 
 def start_sweeper(interval_seconds: int = 15) -> threading.Thread:
+    """Start sweeper.
+    
+    Args:
+        interval_seconds: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     def loop() -> None:
+        """Loop.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         while True:
             try:
                 purge_expired()

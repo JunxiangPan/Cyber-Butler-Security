@@ -45,7 +45,7 @@ try {
     })
     if ($running.Count -gt 0 -and -not $DryRun) {
         if (-not $Force) { throw ('CBS processes are running under ' + $root + '; stop them or pass -Force') }
-        foreach ($proc in $running) { try { Stop-Process -Id ([int]$proc.ProcessId) -Force -ErrorAction Stop } catch { } }
+        foreach ($proc in $running) { try { Stop-Process -Id ([int]$proc.ProcessId) -Force -ErrorAction Stop } catch { Write-Verbose 'optional operation failed' } }
     }
     if ($DryRun) {
         Write-Output ('RESTORE_DRY_RUN files=' + @($manifest.files).Count + ' target=' + $root)

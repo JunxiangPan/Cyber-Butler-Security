@@ -1,6 +1,12 @@
 ﻿# Real core deployment: download, verify, extract, venv, overlay.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
+<#
+.SYNOPSIS
+    Get-CyberButlerCorePython performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerCorePython {
     param(
         [string]$PreferredPath = '',
@@ -32,6 +38,12 @@ function Get-CyberButlerCorePython {
     return [string]$command.Source
 }
 
+<#
+.SYNOPSIS
+    Get-CyberButlerCoreFileList performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-CyberButlerCoreFileList {
     param(
         [Parameter(Mandatory = $true)]
@@ -63,6 +75,12 @@ function Get-CyberButlerCoreFileList {
     return $files.ToArray()
 }
 
+<#
+.SYNOPSIS
+    Copy-CyberButlerCoreTree performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Copy-CyberButlerCoreTree {
     param(
         [Parameter(Mandatory = $true)]
@@ -124,6 +142,12 @@ function Copy-CyberButlerCoreTree {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerPipInstall performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerPipInstall {
     param(
         [Parameter(Mandatory = $true)]
@@ -268,6 +292,12 @@ function Invoke-CyberButlerPipInstall {
     }
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerCoreDeploy performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerCoreDeploy {
     param(
         [Parameter(Mandatory = $true)]
@@ -301,6 +331,12 @@ function Test-CyberButlerCbsPythonDependencies {
     return [pscustomobject]@{ ok = ($LASTEXITCODE -eq 0); reason = $probe.Trim() }
 }
 
+<#
+.SYNOPSIS
+    Set-CyberButlerCorePlaceholders performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerCorePlaceholders {
     param(
         [Parameter(Mandatory = $true)][string]$Root,
@@ -316,7 +352,7 @@ function Set-CyberButlerCorePlaceholders {
         'YOUR_PROJECT_PATH' = $Root
         'YOUR_USER_PATH' = $userPath
         'YOUR_SERVICE_USER' = $ServiceAccount
-        'YOUR_USER_NAME' = $desktopName
+        'test-user' = $desktopName
         'YOUR_HOST' = $env:COMPUTERNAME
         'YOUR_QQ_ID' = $owner
         'YOUR_PLATFORM_ID' = 'QQ'
@@ -343,11 +379,17 @@ function Set-CyberButlerCorePlaceholders {
                     $encoding = if ($file.Extension -ieq '.ps1') { New-Object Text.UTF8Encoding($true) } else { New-Object Text.UTF8Encoding($false) }
                     [IO.File]::WriteAllText($file.FullName, $text, $encoding)
                 }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerCoreDeploy performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -355,10 +397,10 @@ function Invoke-CyberButlerCoreDeploy {
         [string]$InstallPath,
         [string]$ExistingState = 'None',
         [string]$Tier = 'Medium',
-        [string]$ExternalAgentPackage = '',
-        [string]$ExternalApplicationPackage = '',
-        [string]$ExternalAgentSha256 = '',
-        [string]$ExternalApplicationSha256 = '',
+        [string]$AgentRuntimePackage = '',
+        [string]$AuxRuntimeApplicationPackage = '',
+        [string]$AgentRuntimeSha256 = '',
+        [string]$AuxRuntimeApplicationSha256 = '',
         [string]$CoreSourcesPath = '',
         [switch]$SkipDependencyInstall,
         [int]$DownloadTimeoutSeconds = 300,
@@ -440,17 +482,25 @@ function Invoke-CyberButlerCoreDeploy {
                 $webConfig = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $webConfig.admin_email = $WebUIAdminEmail
                 $webConfig.project_root = $root
-                $webConfig.file_root = Join-Path ([Environment]::GetFolderPath('Desktop')) '大肥鱼专用文件夹'
+                $webConfig.file_root = Join-Path ([Environment]::GetFolderPath('Desktop')) 'shared专用文件夹'
                 Write-InstallerJson -Path $webConfigPath -Value $webConfig
             }
         }
         $brokerConfigPath = Join-Path $paths.tools 'broker_config.json'
         $brokerConfig = [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' }
         if (Test-Path -LiteralPath $brokerConfigPath) {
-            try { $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { }
+            try { $brokerConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { Write-Verbose 'optional operation failed' }
         }
         $brokerConfig | Add-Member -NotePropertyName admin_email -NotePropertyValue $WebUIAdminEmail -Force
+        $workspaceRoot = Join-Path $root 'workspace'
+        $brokerConfig | Add-Member -NotePropertyName workspace_root -NotePropertyValue $workspaceRoot -Force
+        $brokerConfig | Add-Member -NotePropertyName workspace_path -NotePropertyValue $workspaceRoot -Force
+        $brokerConfig | Add-Member -NotePropertyName shared_roots -NotePropertyValue @($workspaceRoot) -Force
         Write-InstallerJson -Path $brokerConfigPath -Value $brokerConfig
+        $writtenConfig = Get-Content -LiteralPath $brokerConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (-not $writtenConfig.workspace_root -or @($writtenConfig.shared_roots) -notcontains $workspaceRoot) {
+            throw ('broker_config.json does not contain workspace root: ' + $workspaceRoot)
+        }
 
         $webVenv = Join-Path $paths.webui '.venv'
         if (-not $SkipDependencyInstall) {

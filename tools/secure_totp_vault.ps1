@@ -1,10 +1,10 @@
 ﻿#Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 $desktop = 'YOUR_USER_PATH\Desktop'
-$vault = 'YOUR_USER_PATH\Documents\苏瑾言TOTP保险箱'
+$vault = 'YOUR_USER_PATH\Documents\local agentTOTP保险箱'
 $files = @(
-    (Join-Path $desktop '苏瑾言TOTP.png'),
-    (Join-Path $desktop '苏瑾言TOTP恢复码.txt')
+    (Join-Path $desktop 'local agentTOTP.png'),
+    (Join-Path $desktop 'local agentTOTP恢复码.txt')
 )
 $log = 'YOUR_PROJECT_PATH\tools\secure_totp_vault.log'
 Set-Content -LiteralPath $log -Value ('secure vault ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8

@@ -64,7 +64,7 @@ Cyber-Butler Web UI 与 OTP mailer 在登录后自动启动，不再依赖临时
 
 ```text
 private companion DST / duplicate / sleep tests   33 passed
-AstrBot core tests                                66 passed
+AgentRuntime core tests                                66 passed
 public-release tests                              12 passed
 manual launcher cold start                        OK
 launcher second run                               IDEMPOTENT (same PIDs)

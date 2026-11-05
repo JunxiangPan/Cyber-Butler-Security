@@ -10,10 +10,26 @@ LANGS = ["zh", "en", "ja", "ko", "es", "fr", "de", "ru"]
 
 
 def load(lang: str) -> dict:
+    """Load.
+    
+    Args:
+        lang: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return json.loads((I18N / f"{lang}.json").read_text(encoding="utf-8"))
 
 
 def test_eight_locales_have_identical_keys_and_no_missing_values() -> None:
+    """Test eight locales have identical keys and no missing values.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     data = {lang: load(lang)["strings"] for lang in LANGS}
     keys = set(data["zh"])
     assert keys
@@ -25,6 +41,14 @@ def test_eight_locales_have_identical_keys_and_no_missing_values() -> None:
 
 
 def test_placeholders_match_chinese_fallback() -> None:
+    """Test placeholders match chinese fallback.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     data = {lang: load(lang)["strings"] for lang in LANGS}
     for key, zh_value in data["zh"].items():
         expected = set(re.findall(r"\{[A-Za-z0-9_]+\}", zh_value))
@@ -34,6 +58,14 @@ def test_placeholders_match_chinese_fallback() -> None:
 
 
 def test_email_templates_and_language_codes() -> None:
+    """Test email templates and language codes.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for lang in LANGS:
         payload = load(lang)
         assert payload["code"] == lang
@@ -43,13 +75,21 @@ def test_email_templates_and_language_codes() -> None:
 
 
 def test_templates_do_not_use_inline_translations_or_csp_unsafe_inline() -> None:
+    """Test templates do not use inline translations or csp unsafe inline.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     templates = "\n".join(
         (BASE / "templates" / name).read_text(encoding="utf-8")
         for name in ("login.html", "dashboard.html", "error.html")
     )
     # Native language names are the only allowed Chinese literals in markup.
     assert "登录控制台" not in templates
-    assert "我的大肥鱼文件" not in templates
+    assert "我的shared文件" not in templates
     assert "有高风险操作等待审批" not in templates
     app = (BASE / "app.py").read_text(encoding="utf-8")
     assert "style-src 'self' 'unsafe-inline'" not in app
@@ -57,6 +97,14 @@ def test_templates_do_not_use_inline_translations_or_csp_unsafe_inline() -> None
 
 
 def test_all_template_i18n_keys_exist() -> None:
+    """Test all template i18n keys exist.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     keys = set(load("zh")["strings"])
     for name in ("login.html", "dashboard.html", "error.html"):
         text = (BASE / "templates" / name).read_text(encoding="utf-8")
@@ -66,6 +114,14 @@ def test_all_template_i18n_keys_exist() -> None:
 
 
 def test_email_templates_cover_all_languages() -> None:
+    """Test email templates cover all languages.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     from otp_mailer import load_email_strings
     for lang in LANGS:
         strings = load_email_strings(lang)

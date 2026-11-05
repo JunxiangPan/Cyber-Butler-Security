@@ -12,7 +12,7 @@
 3. Clone with a dedicated account; never commit:
 
    ```text
-   .astrbot_token
+   .agentruntime_token
    broker_token.txt
    *.dpapi
    totp_secret*

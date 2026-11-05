@@ -2,7 +2,7 @@
 
 > This roadmap describes intended direction, not a delivery promise. Security
 > work is gated on reproducible tests and a signed release; dates are not
-> commitments. The v1.6.1 scope is frozen.
+> commitments.
 
 Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
 Minimum v2.0 interface contract and trust boundaries:
@@ -10,10 +10,10 @@ Minimum v2.0 interface contract and trust boundaries:
 
 ## Current release candidate — v1.6.3 RC
 
-**Status:** v1.6.3 is a **Release Candidate**, not a final release.
+**Status:** v1.6.3 is a **Release Candidate**, not a final release. The current candidate is **unsigned**: FINAL_QA_REPORT is BLOCKED and ACCEPTANCE_PROOF.md and update-manifest.sig do not exist yet.
 
 - Candidate package: `public-release-v1.6.3.zip`
-- The package is signed and verifies as `VALID`.
+- The package is **not signed** yet; no signature is claimed.
 - **Mandatory acceptance before publication:**
   1. clean-VM, offline install with a real phone-authenticator TOTP approval;
   2. WebUI two-stage delete undo + capacity-breaker test;
@@ -38,11 +38,11 @@ v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
 - The migration entry point is `installer/Migrate-v1.6.2-to-v1.6.3.ps1`.
 - It must create a timestamped, integrity-checked backup of the user data
   before stopping or deleting anything.
-- It must guide the operator to remove the old AstrBot SCM service and reinstall
-  AstrBot as an independently managed application. CBS never performs that
+- It must guide the operator to remove the old AgentRuntime SCM service and reinstall
+  AgentRuntime as an independently managed application. CBS never performs that
   third-party installation.
-- Data backup includes, when present: `AstrBot\data`, `SnowLuma\config`,
-  `SnowLuma\data`, `SnowLuma\logs`, `tools/totp-vault`, `webui\data`,
+- Data backup includes, when present: `AgentRuntime\data`, `AuxRuntime\config`,
+  `AuxRuntime\data`, `AuxRuntime\logs`, `tools/totp-vault`, `webui\data`,
   `data`, Broker configuration, and audit logs.
 - The backup is not encrypted by default; it is ACL-restricted and must be
   moved to offline media by the operator. Never place the signing private key
@@ -93,8 +93,8 @@ not only by application policy.
 - **TOCTOU**: bind approval to the opened handle and re-hash that same handle
   immediately before execution; quarantine high-risk deletes.
 - **Tamper-evident audit**: hash-chain JSONL plus an anchor; strict redaction.
-- **Installer auto-provisioning**: AstrBot Open API key (`im` scope),
-  `.astrbot_token`, SnowLuma reverse-WS bootstrap, `broker_config` bootstrap,
+- **Installer auto-provisioning**: AgentRuntime Open API key (`im` scope),
+  `.agentruntime_token`, AuxRuntime reverse-WS bootstrap, `broker_config` bootstrap,
   and a self-test before success is reported.
 - **Physical separation**: installer/WebUI warn when the TOTP authenticator is
   on the same host.
@@ -164,13 +164,13 @@ Scoped Token is a transition mechanism, not the final policy.
 - **XSS hardening**: escape file names and log lines at every render boundary.
 - **One-time recovery codes**: generate, display once, hash at rest, consume on
   use, and require a fresh TOTP to regenerate.
-- **Overlay self-heal**: detect when an AstrBot upgrade overwrites an overlay
+- **Overlay self-heal**: detect when an AgentRuntime upgrade overwrites an overlay
   patch and report/repair it without silently claiming success.
 - **Upgrade rollback**: one-click rollback plus a documented config migration
   path.
 - **Uninstall cleanup**: RunOnce removal for a locked service profile, WFP
   rules, extraction directory, and scheduled tasks.
-- **AstrBot/DSH cache alignment**: the same scoped-token cache semantics in the
+- **AgentRuntime/DSH cache alignment**: the same scoped-token cache semantics in the
   native plugin and the DSH adapter.
 
 **Exit criteria**
@@ -237,7 +237,7 @@ turning the audit log into a second execution path.
 - **Deterministic pipeline replay**: replay a recorded sequence in a sandbox
   with network and filesystem writes disabled by default.
 - **Quarantine browser**: restore only with a fresh approval; never automatic.
-- **Cross-agent correlation**: correlate AstrBot, DSH, and Broker events by a
+- **Cross-agent correlation**: correlate AgentRuntime, DSH, and Broker events by a
   shared request id; keep token/TOTP material out of the timeline.
 
 **Exit criteria**

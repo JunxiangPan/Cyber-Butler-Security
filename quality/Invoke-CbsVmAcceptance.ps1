@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 One-command VM acceptance after the installer has been started/completed.
 The physical phone scan is the only non-automatable step; the script prompts
@@ -27,7 +27,7 @@ $report = [ordered]@{
     details = @()
 }
 function Add-Detail([string]$text) { $report.details += $text; Write-Host $text }
-function Fail([string]$text) { Add-Detail ('FAIL: ' + $text); $report | ConvertTo-Json -Depth 5 | Set-Content 'C:\Users\Public\cbs-vm-acceptance.json' -Encoding UTF8; exit 1 }
+function Fail([string]$text) { Add-Detail ('FAIL: ' + $text); $report | ConvertTo-Json -Depth 5 | Set-Content 'C:\CyberButler\Public\cbs-vm-acceptance.json' -Encoding UTF8; exit 1 }
 function TotpCode([string]$id) {
     $code = Read-Host "Enter current phone TOTP for $id"
     if ($code -notmatch '^[0-9]{6}$') { Fail 'TOTP must be 6 digits' }
@@ -47,7 +47,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 if (-not (Test-Path (Join-Path $InstallRoot 'tools\broker_token.txt'))) { Fail 'Installation not found' }
 if ([string]::IsNullOrWhiteSpace($SharedRoot)) {
-    $SharedRoot = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹'
+    $SharedRoot = Join-Path $env:USERPROFILE 'Desktop\shared专用文件夹'
 }
 New-Item -ItemType Directory -Path $SharedRoot -Force | Out-Null
 
@@ -104,6 +104,6 @@ if ($Uninstall) {
 }
 
 $report.finished = (Get-Date).ToString('o')
-$report | ConvertTo-Json -Depth 5 | Set-Content 'C:\Users\Public\cbs-vm-acceptance.json' -Encoding UTF8
+$report | ConvertTo-Json -Depth 5 | Set-Content 'C:\CyberButler\Public\cbs-vm-acceptance.json' -Encoding UTF8
 Write-Host 'VM_ACCEPTANCE_PASS'
 exit 0

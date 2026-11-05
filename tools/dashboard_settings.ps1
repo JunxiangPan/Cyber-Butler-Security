@@ -9,7 +9,7 @@ function Write-SettingsLog([string]$Message) {
         $dir = Join-Path $env:LOCALAPPDATA 'CyberButler'
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         Add-Content -LiteralPath (Join-Path $dir 'settings.log') -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Read-DashboardSettings {
@@ -23,7 +23,7 @@ function Read-DashboardSettings {
         if ($saved.PSObject.Properties.Name -contains 'enable_animated_bg') {
             $defaults.enable_animated_bg = [bool]$saved.enable_animated_bg
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $defaults
 }
 
@@ -32,7 +32,7 @@ function Save-DashboardSettings($settings) {
         $dir = Split-Path -Parent $script:SettingsFile
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         $settings | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $script:SettingsFile -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Get-Descendants($node) {
@@ -45,10 +45,16 @@ function Get-Descendants($node) {
                 $out += Get-Descendants $child
             }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $out
 }
 
+<#
+.SYNOPSIS
+    Apply-Language performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Apply-Language([string]$language, $root = $null) {
     if (-not $root) { $root = $window }
     if (-not (Test-Path -LiteralPath $script:I18nFile)) { return }
@@ -92,19 +98,19 @@ function Apply-Language([string]$language, $root = $null) {
         $script:CurrentLanguage = $language
         if (Get-Command Update-Dashboard -ErrorAction SilentlyContinue) { Update-Dashboard }
         if (Get-Command Update-UiErrorBox -ErrorAction SilentlyContinue) { Update-UiErrorBox }
-        try { if (Get-Command Show-AstrBotPluginList -ErrorAction SilentlyContinue) { Show-AstrBotPluginList } } catch { }
-        try { if (Get-Command Show-DashboardModuleList -ErrorAction SilentlyContinue) { Show-DashboardModuleList } } catch { }
-        try { if (Get-Command Show-PersonaList -ErrorAction SilentlyContinue) { Show-PersonaList } } catch { }
+        try { if (Get-Command Show-AgentRuntimePluginList -ErrorAction SilentlyContinue) { Show-AgentRuntimePluginList } } catch { Write-Verbose 'optional operation failed' }
+        try { if (Get-Command Show-DashboardModuleList -ErrorAction SilentlyContinue) { Show-DashboardModuleList } } catch { Write-Verbose 'optional operation failed' }
+        try { if (Get-Command Show-PersonaList -ErrorAction SilentlyContinue) { Show-PersonaList } } catch { Write-Verbose 'optional operation failed' }
         if (Get-Command Refresh-DashboardData -ErrorAction SilentlyContinue) { Refresh-DashboardData }
         if (Get-Command Get-VersionLabel -ErrorAction SilentlyContinue) { $versionLabel.Text = Get-VersionLabel }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Get-SystemTheme {
     try {
         $v = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -ErrorAction Stop).AppsUseLightTheme
         if ($v -eq 0) { return 'dark' }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return 'light'
 }
 
@@ -121,7 +127,7 @@ function Set-UiTheme([string]$mode) {
         $merged.Clear()
         $merged.Add($newTheme)
         $merged.Add($newStyles)
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     $script:CurrentTheme = $mode
     if (Get-Command Restart-UiBackground -ErrorAction SilentlyContinue) { Restart-UiBackground }
 }
@@ -136,15 +142,21 @@ function Remove-OldDashboardBackups([string]$BackupDir, [int]$Keep = 5) {
                 try {
                     Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
                     $removed += $file.Name
-                } catch { }
+                } catch { Write-Verbose 'optional operation failed' }
             }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return @($removed)
 }
 
+<#
+.SYNOPSIS
+    Invoke-DashboardBackup performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-DashboardBackup {
-    $dataDir = Join-Path $script:ProjectRoot 'AstrBot\data'
+    $dataDir = Join-Path $script:ProjectRoot 'AgentRuntime\data'
     if (-not (Test-Path -LiteralPath $dataDir)) { throw ('数据目录不存在：' + $dataDir) }
     $backupDir = Join-Path $script:ProjectRoot 'backups'
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
@@ -182,7 +194,7 @@ function Invoke-DashboardBackup {
         Add-Content -LiteralPath $logPath -Value ('[{0:yyyy-MM-dd HH:mm:ss}] OK {1} files={2} sizeMB={3} rotated={4}' -f (Get-Date), $zip.FullName, $files.Count, $sizeMb, $removed.Count) -Encoding UTF8
         return [pscustomobject]@{ Path = $zip.FullName; SizeMB = $sizeMb; Files = $files.Count; Removed = $removed; Kept = 5 }
     } catch {
-        try { Add-Content -LiteralPath $logPath -Value ('[{0:yyyy-MM-dd HH:mm:ss}] FAIL {1}' -f (Get-Date), $_.Exception.Message) -Encoding UTF8 } catch { }
+        try { Add-Content -LiteralPath $logPath -Value ('[{0:yyyy-MM-dd HH:mm:ss}] FAIL {1}' -f (Get-Date), $_.Exception.Message) -Encoding UTF8 } catch { Write-Verbose 'optional operation failed' }
         throw
     } finally {
         Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
@@ -203,6 +215,12 @@ function Get-RestoreBackups {
         })
 }
 
+<#
+.SYNOPSIS
+    Get-VersionChoices performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-VersionChoices {
     $choices = @()
     $current = ''
@@ -224,20 +242,26 @@ function Get-VersionChoices {
                 Published = [string]$release.published_at
             }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     if (-not ($choices | Where-Object { $_.Tag -eq ('v' + $current) })) {
         $choices = @([pscustomobject]@{ Display = ('当前版本 v' + $current); Tag = ('v' + $current); Name = 'Current'; Url = ''; Published = '' }) + @($choices)
     }
     return @($choices)
 }
 
+<#
+.SYNOPSIS
+    Start-SettingsOperation performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Start-SettingsOperation([string]$Mode, [string]$BackupPath, $VersionChoice) {
     $restoreScript = Join-Path $script:ToolsRoot 'dashboard_restore.ps1'
     if (-not (Test-Path -LiteralPath $restoreScript)) { throw ('恢复脚本不存在：' + $restoreScript) }
     $script:settingsStatusFile = Join-Path $env:TEMP ('cbs-time-' + [guid]::NewGuid().ToString('N') + '.json')
     Remove-Item -LiteralPath $script:settingsStatusFile -Force -ErrorAction SilentlyContinue
     $log = Join-Path $script:ProjectRoot 'backups\restore_history.log'
-    $args = @(
+    $launcherArgs = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
         '-File', ('"' + $restoreScript + '"'),
         '-Mode', $Mode,
@@ -246,12 +270,12 @@ function Start-SettingsOperation([string]$Mode, [string]$BackupPath, $VersionCho
         '-LogFile', ('"' + $log + '"')
     )
     if ($Mode -eq 'Restore') {
-        $args += @('-BackupPath', ('"' + $BackupPath + '"'))
+        $launcherArgs += @('-BackupPath', ('"' + $BackupPath + '"'))
     } else {
         if (-not $VersionChoice -or -not $VersionChoice.Url) { throw '该版本没有可下载的发布资产' }
-        $args += @('-AssetUrl', ('"' + $VersionChoice.Url + '"'), '-Version', ('"' + $VersionChoice.Tag + '"'))
+        $launcherArgs += @('-AssetUrl', ('"' + $VersionChoice.Url + '"'), '-Version', ('"' + $VersionChoice.Tag + '"'))
     }
-    $argString = $args -join ' '
+    $argString = $launcherArgs -join ' '
     $choiceTag = if ($VersionChoice) { [string]$VersionChoice.Tag } else { '' }
     $choiceUrl = if ($VersionChoice) { [string]$VersionChoice.Url } else { '' }
     Write-SettingsLog ('operation start mode=' + $Mode + ' target=' + $script:ProjectRoot + ' backup=' + [string]$BackupPath + ' version=' + $choiceTag + ' asset=' + $choiceUrl)
@@ -262,6 +286,12 @@ function Start-SettingsOperation([string]$Mode, [string]$BackupPath, $VersionCho
     return $script:settingsOperationProcess
 }
 
+<#
+.SYNOPSIS
+    Format-BgResult performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Format-BgResult($Result) {
     if (-not $Result) { return '' }
     if (-not $Result.Ok) { return ((T '应用失败' 'Apply failed') + '：' + $Result.Reason) }
@@ -285,6 +315,12 @@ function Format-BgResult($Result) {
     }
 }
 
+<#
+.SYNOPSIS
+    Apply-BgPreview performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Apply-BgPreview {
     $preview = $script:BgPreview
     if (-not $preview) { return }
@@ -331,7 +367,7 @@ function Get-BrokerApprovalChannel {
         $cfg = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
         $channel = [string]$cfg.approval_channel
         if ($channel -in @('qq', 'email')) { return $channel }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return 'qq'
 }
 
@@ -348,6 +384,12 @@ function Get-WebuiFileRoot {
     } catch { return '' }
 }
 
+<#
+.SYNOPSIS
+    Show-SettingsDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
     $settings = Read-DashboardSettings
     $xaml = @'
@@ -493,7 +535,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
             if (-not $code) { return }
             if ($script:BgPreview) { $script:BgPreview.language = $code }
             Apply-Language $code $dlg
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }.GetNewClosure())
     $pathText = $dlg.FindName('BackgroundPath')
     $backgroundStatus = $dlg.FindName('BackgroundStatus')
@@ -535,12 +577,12 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
                 $state = Get-Content -LiteralPath $script:settingsStatusFile -Raw -Encoding UTF8 | ConvertFrom-Json
                 if ($state.message) { $operationStatus.Text = [string]$state.message }
                 if ($state.progress) { $settingsProgress.Value = [int]$state.progress }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
         if (-not $script:settingsOperationProcess) { return }
         $elapsed = ((Get-Date) - $script:settingsOperationStarted).TotalSeconds
         if (-not $script:settingsOperationProcess.HasExited -and $elapsed -gt 60) {
-            try { Stop-Process -Id $script:settingsOperationProcess.Id -Force -ErrorAction SilentlyContinue } catch { }
+            try { Stop-Process -Id $script:settingsOperationProcess.Id -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
             $settingsTimer.Stop()
             $settingsProgress.Visibility = 'Collapsed'
             $restoreButton.IsEnabled = $true
@@ -555,7 +597,7 @@ function Show-SettingsDialog([switch]$SmokeOnly, [string]$ShotPath = '') {
         if (-not $script:settingsOperationProcess.HasExited) { return }
         $proc = $script:settingsOperationProcess
         $rawCode = $null
-        try { if ($proc) { $rawCode = $proc.ExitCode } } catch { }
+        try { if ($proc) { $rawCode = $proc.ExitCode } } catch { Write-Verbose 'optional operation failed' }
         $code = if ($null -eq $rawCode) { -1 } else { [int]$rawCode }
         $settingsTimer.Stop()
         $settingsProgress.Visibility = 'Collapsed'

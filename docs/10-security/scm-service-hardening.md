@@ -9,7 +9,7 @@
 ## Required binary ACL
 
 ```text
-CyberButlerAstrBotService.exe
+CyberButlerAgentRuntimeService.exe
   CyberButlerSvc:RX
   SYSTEM:F
   Administrators:F
@@ -32,9 +32,9 @@ SeDenyInteractiveLogonRight
 The wrapper sets:
 
 ```text
-ASTRBOT_SERVICE_MODE=1
-ASTRBOT_ROOT=<install root>
-ASTRBOT_DISABLE_GUI=1
+AgentRuntime_SERVICE_MODE=1
+AgentRuntime_ROOT=<install root>
+AgentRuntime_DISABLE_GUI=1
 NO_GUI=1
 PYTHONUTF8=1
 PYTHONIOENCODING=utf-8

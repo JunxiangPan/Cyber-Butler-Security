@@ -52,6 +52,12 @@ function Unprotect-CyberButlerFile {
     return [Text.Encoding]::UTF8.GetString($plain)
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerSecretAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerSecretAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -73,7 +79,7 @@ function Test-CyberButlerSecretAcl {
         foreach ($rule in @($acl.Access)) {
             if ([string]$rule.AccessControlType -ne 'Allow') { continue }
             $sid = $null
-            try { $sid = ([System.Security.Principal.NTAccount]([string]$rule.IdentityReference.Value)).Translate([System.Security.Principal.SecurityIdentifier]).Value } catch { }
+            try { $sid = ([System.Security.Principal.NTAccount]([string]$rule.IdentityReference.Value)).Translate([System.Security.Principal.SecurityIdentifier]).Value } catch { Write-Verbose 'optional operation failed' }
             if ($sid -eq $readerSid) { $readerOk = $true; continue }
             if ($sid -in @('S-1-5-18', 'S-1-5-32-544')) { continue }
             if ((([int]$rule.FileSystemRights) -band [int][System.Security.AccessControl.FileSystemRights]::Read) -ne 0) {
@@ -88,6 +94,12 @@ function Test-CyberButlerSecretAcl {
     return [pscustomobject]$result
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerSecrets performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerSecrets {
     param(
         [Parameter(Mandatory = $true)]
@@ -140,6 +152,12 @@ function Test-CyberButlerSecrets {
     }
 }
 
+<#
+.SYNOPSIS
+    Set-CyberButlerSecretFile performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerSecretFile {
     param(
         [Parameter(Mandatory = $true)]
@@ -167,6 +185,12 @@ function Set-CyberButlerSecretFile {
     }
 }
 
+<#
+.SYNOPSIS
+    Set-CyberButlerSecretAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-CyberButlerSecretAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -212,6 +236,12 @@ function Assert-CyberButlerSecrets {
     return [bool]$test.satisfied
 }
 
+<#
+.SYNOPSIS
+    Undo-CyberButlerSecrets performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Undo-CyberButlerSecrets {
     param(
         [Parameter(Mandatory = $true)]
@@ -237,6 +267,12 @@ function Undo-CyberButlerSecrets {
     return [pscustomobject]@{ action = if ($NewFiles.Count -gt 0) { 'removed' } else { 'restored' } }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerSecrets performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerSecrets {
     [CmdletBinding()]
     param(

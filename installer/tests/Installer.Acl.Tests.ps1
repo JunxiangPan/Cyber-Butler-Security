@@ -132,8 +132,8 @@ Describe 'Installer ACL safety' {
     It 'lists only core outputs and excludes the later TOTP vault' {
         $targets = @(Get-CyberButlerAclTargets -InstallPath 'C:\CyberButler')
         $targets.Count | Should Be 4
-        ($targets -join ';') | Should Not Match 'ExternalAgent'
-        ($targets -join ';') | Should Not Match 'ExternalApplication'
+        ($targets -join ';') | Should Not Match 'AgentRuntime'
+        ($targets -join ';') | Should Not Match 'AuxRuntimeApplication'
         ($targets -join ';') | Should Match 'tools'
         ($targets -join ';') | Should Match 'webui'
         ($targets -join ';') | Should Match 'data'
@@ -156,5 +156,14 @@ Describe 'Installer ACL safety' {
         $result = Undo-CyberButlerAcl -Path 'C:\fake' -BackupPath 'C:\fake.clixml' -Handlers $handlers
         $result.action | Should Be 'restored'
         $global:cbAclCalls.undo | Should Be 1
+    }
+
+    It 'grants the service account write only on workspace and non-sensitive runtime dirs' {
+        $aclSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\lib\Installer.Acl.ps1') -Raw
+        $mainSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\Install-CyberButler.ps1') -Raw
+        $aclSource | Should Match '\$writeDirs = @\(''cache'', ''tmp'', ''temp'', ''logs'', ''plugin_data''\)'
+        $aclSource | Should Match '\$readDirs = @\(''memory'', ''config'', ''knowledge_base'', ''site-packages'', ''plugins''\)'
+        $aclSource | Should Match 'ServiceAccount.*\(OI\)\(CI\)RX'
+        $mainSource | Should Match "workspace.*'RW'"
     }
 }

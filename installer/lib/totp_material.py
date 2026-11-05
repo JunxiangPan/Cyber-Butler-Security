@@ -21,19 +21,47 @@ import qrcode
 
 
 def recovery_code() -> str:
+    """Recovery code.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return "".join(secrets.choice(alphabet) for _ in range(8))
 
 
 def write_qr(secret: str, qr_path: Path, issuer: str, account: str) -> None:
+    """Write qr.
+    
+    Args:
+        secret: caller-supplied value.
+        qr_path: caller-supplied value.
+        issuer: caller-supplied value.
+        account: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     uri = pyotp.TOTP(secret).provisioning_uri(name=account, issuer_name=issuer)
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(uri)
     qr.make(fit=True)
-    qr.make_image(fill_color="black", back_color="white").save(qr_path)
+    with qr_path.open("wb") as qr_file:
+        qr.make_image(fill_color="black", back_color="white").save(qr_file)
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--vault", required=True)
     parser.add_argument("--secret", required=True)

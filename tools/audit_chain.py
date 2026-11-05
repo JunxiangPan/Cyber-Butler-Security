@@ -16,6 +16,14 @@ _LOCK = threading.Lock()
 
 @contextmanager
 def _process_lock(path: Path):
+    """Process lock.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     lock_path = path.with_name(path.name + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     if os.name == "nt":
@@ -32,13 +40,15 @@ def _process_lock(path: Path):
                 handle.close()
     else:
         import fcntl
+        from typing import Any, cast
+        fcntl_any = cast(Any, fcntl)
 
         handle = lock_path.open("a+b")
         try:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            fcntl_any.flock(handle.fileno(), fcntl_any.LOCK_EX)
             yield
         finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            fcntl_any.flock(handle.fileno(), fcntl_any.LOCK_UN)
             handle.close()
 ZERO_HASH = "0" * 64
 
@@ -48,6 +58,16 @@ class AuditChainError(ValueError):
 
 
 def _canonical(seq: int, previous: str, event: dict) -> str:
+    """Canonical.
+    
+    Args:
+        seq: caller-supplied value.
+        previous: caller-supplied value.
+        event: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     payload = json.dumps(
         {"seq": seq, "prev": previous, "event": event},
         ensure_ascii=False,
@@ -58,10 +78,28 @@ def _canonical(seq: int, previous: str, event: dict) -> str:
 
 
 def _hash(seq: int, previous: str, event: dict) -> str:
+    """Hash.
+    
+    Args:
+        seq: caller-supplied value.
+        previous: caller-supplied value.
+        event: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return hashlib.sha256(_canonical(seq, previous, event).encode("utf-8")).hexdigest()
 
 
 def _tail(path: Path) -> tuple[int, str]:
+    """Tail.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not path.exists():
         return 0, ZERO_HASH
     last = None

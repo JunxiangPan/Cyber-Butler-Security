@@ -26,12 +26,23 @@ SKIP = "SKIP"
 
 @dataclass(frozen=True)
 class DefenseResult:
+    """DefenseResult helper/type."""
     name: str
     status: str
     detail: str
 
 
 def _run_pytest_result(name: str, status: str, detail: str) -> DefenseResult:
+    """Run pytest result.
+    
+    Args:
+        name: caller-supplied value.
+        status: caller-supplied value.
+        detail: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return DefenseResult(name=name, status=status, detail=detail)
 
 
@@ -232,6 +243,14 @@ def check_wfp_unknown_egress() -> DefenseResult:
 
 
 def run_all() -> list[DefenseResult]:
+    """Run all.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return [
         check_acl_file_read(),
         check_broker_totp(),
@@ -241,6 +260,14 @@ def run_all() -> list[DefenseResult]:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     results = run_all()
     print("=== Cyber-Butler Automated Defense Matrix ===")
     for result in results:

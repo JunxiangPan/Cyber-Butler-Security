@@ -4,7 +4,7 @@ Write the DeepSeek API key into machine-scoped DPAPI.
 
 The plaintext is read from a short-lived file created by the dashboard, never
 from the command line and never written to logs. The output file is the existing
-tools\deepseek.key.dpapi consumed by run-astrbot-service.ps1.
+tools\deepseek.key.dpapi consumed by run-agentruntime-service.ps1.
 #>
 param(
     [Parameter(Mandatory = $true)][string]$InputFile,
@@ -27,7 +27,7 @@ try {
     $temp = $OutputFile + '.tmp'
     [IO.File]::WriteAllBytes($temp, $encrypted)
     $temp | Move-Item -Destination $OutputFile -Force
-    & icacls $OutputFile /inheritance:r /grant:r 'SYSTEM:(F)' '*S-1-5-32-544:(F)' 'AstrBot_User:(R)' | Out-Null
+    & icacls $OutputFile /inheritance:r /grant:r 'SYSTEM:(F)' '*S-1-5-32-544:(F)' 'AgentRuntime_User:(R)' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'icacls failed on API key file' }
     Write-Output 'API_KEY_SAVED'
 } finally {

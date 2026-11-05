@@ -1,14 +1,14 @@
-# 苏瑾言 RAG 知识库填充与调用指南
+# local agent RAG 知识库填充与调用指南
 
 ## Contents
 
 - [一、上传前准备](#一上传前准备)
-- [二、在 AstrBot WebUI 上传](#二在-astrbot-webui-上传)
+- [二、在 AgentRuntime WebUI 上传](#二在-agentruntime-webui-上传)
 - [三、调用方式](#三调用方式)
 - [四、验收标准](#四验收标准)
 - [五、注意](#五注意)
 
-> v1.6.1 status, incomplete work, and non-guarantees: [40-history/archive/legacy-readmes/STATUS_v1.6.1.md](40-history/archive/legacy-readmes/STATUS_v1.6.1.md).
+> v1.6.1 status, incomplete work, and non-guarantees: archived v1.6.1 status (removed).
 
 
 ## 一、上传前准备
@@ -40,12 +40,12 @@ YOUR_PROJECT_PATH\使用说明.md
 - 主板/硬盘
 - Windows 版本
 - Ollama 模型名、上下文长度
-- AstrBot 运行账户（可写“YOUR_SERVICE_USER”，不要写密码）
+- AgentRuntime 运行账户（可写“YOUR_SERVICE_USER”，不要写密码）
 - 端口：6185 / 5099 / 11434 / 18085
 
-不要把 `cmd_config.json`、`.astrbot_token`、SSH 私钥上传到知识库。
+不要把 `cmd_config.json`、`.agentruntime_token`、SSH 私钥上传到知识库。
 
-## 二、在 AstrBot WebUI 上传
+## 二、在 AgentRuntime WebUI 上传
 
 1. 浏览器打开：
 
@@ -53,12 +53,12 @@ YOUR_PROJECT_PATH\使用说明.md
 http://127.0.0.1:6185
 ```
 
-2. 登录 AstrBot 管理后台。
+2. 登录 AgentRuntime 管理后台。
 3. 找到「知识库 / 知识库管理」页面。
 4. 新建知识库，例如：
 
 ```text
-苏瑾言部署与主机手册
+local agent部署与主机手册
 ```
 
 5. 上传：
@@ -92,7 +92,7 @@ http://127.0.0.1:6185
 ```
 
 ```text
-瑾言，知识库里写的 AstrBot 运行账户和端口是什么？
+瑾言，知识库里写的 AgentRuntime 运行账户和端口是什么？
 ```
 
 ```text
@@ -104,11 +104,11 @@ http://127.0.0.1:6185
 | 问题 | 期望回答 |
 |---|---|
 | 主模型是什么 | `sujinyan-chat-24k`，24k 上下文，20GB / GPU |
-| AstrBot 运行账户 | `YOUR_SERVICE_USER` |
-| SnowLuma 运行账户 | `YOUR_USER_NAME` |
+| AgentRuntime 运行账户 | `YOUR_SERVICE_USER` |
+| AuxRuntime 运行账户 | `test-user` |
 | 每周自愈时间 | 周日 04:00 |
-| AstrBot 端口 | 6185 |
-| SnowLuma 端口 | 5099 |
+| AgentRuntime 端口 | 6185 |
+| AuxRuntime 端口 | 5099 |
 | Ollama 端口 | 11434 |
 | 游戏模式检测 | 进程树 + GPU 兜底 + 45 秒宽限 |
 
@@ -128,4 +128,4 @@ ollama list | findstr bge-m3
 - 知识库是“检索增强”，不是重新训练模型；答案依赖上传文档的完整度。
 - 配置单里的端口/账户是静态事实，更新后要重新上传。
 - 不要把 API Key 放进知识库；Key 已迁移到 DPAPI 加密文件。
-- 如果 AstrBot 升级覆盖了 `web_search_tools.py` 的 `$ENV` 支持，需要重新应用补丁；升级前先备份。
+- 如果 AgentRuntime 升级覆盖了 `web_search_tools.py` 的 `$ENV` 支持，需要重新应用补丁；升级前先备份。

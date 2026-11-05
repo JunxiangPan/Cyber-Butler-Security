@@ -18,8 +18,8 @@
 
 ## Highlights
 
-- **AstrBot now runs as a native Windows SCM service.** High tier uses `CyberButlerAstrBot` under `CyberButlerSvc`, not an S4U scheduled task.
-- **SQLite write failure resolved.** The service wrapper uses absolute paths, a fixed working directory, a data-directory write probe, and the corrected data ACL. The AstrBot database opens read/write and 6185 listens.
+- **AgentRuntime now runs as a native Windows SCM service.** High tier uses `CyberButlerAgentRuntime` under `CyberButlerSvc`, not an S4U scheduled task.
+- **SQLite write failure resolved.** The service wrapper uses absolute paths, a fixed working directory, a data-directory write probe, and the corrected data ACL. The AgentRuntime database opens read/write and 6185 listens.
 - **Job Object owns the child tree.** `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` is set before launch; descendants are terminated when the service stops.
 - **Service account isolation restored.** `SeDenyInteractiveLogonRight` is restored; service logon uses `SeServiceLogonRight`.
 - **Service binary ACL locked.** `CyberButlerSvc:RX`, `SYSTEM:F`, `Administrators:F`.
@@ -28,12 +28,12 @@
 ## Verified on the current host
 
 ```text
-6185  LISTEN  AstrBot SCM service
+6185  LISTEN  AgentRuntime SCM service
 18090 LISTEN  TOTP Broker
 8765  LISTEN  WebUI
 8766  LISTEN  OTP Mailer
-5099  LISTEN  SnowLuma
-6199  DOWN    Dynamic OneBot adapter port; not a system service
+5099  LISTEN  AuxRuntime
+6199  DOWN    Dynamic AgentProtocol adapter port; not a system service
 ```
 
 Additional evidence:
@@ -61,7 +61,7 @@ The failure was not a simple file permission:
 - A stale broad delete-deny on the install root was inherited by data.
 - The first service wrapper did not prove data-directory write access before launching Python.
 
-The final wrapper logs `SERVICE_DATA_WRITE_OK` before starting AstrBot. The host service now opens SQLite read/write and listens on 6185.
+The final wrapper logs `SERVICE_DATA_WRITE_OK` before starting AgentRuntime. The host service now opens SQLite read/write and listens on 6185.
 
 ## WFP status — read this before claiming network isolation
 
@@ -81,7 +81,7 @@ The native WFP filter API (`FwpmEngineOpen0` / `FwpmFilterAdd0`) is not implemen
 - v1.6.2 has no clean-VM full install/uninstall acceptance.
 - Credential Proxy is not fully integrated into the installer/service lifecycle.
 - Full replacement of legacy audit writes with `audit_chain` is incomplete.
-- 6199 is not a CBS/AstrBot service; it is opened dynamically by the AstrBot OneBot adapter after that adapter is configured and enabled.
+- 6199 is not a CBS/AgentRuntime service; it is opened dynamically by the AgentRuntime AgentProtocol adapter after that adapter is configured and enabled.
 
 ## Compatibility
 
@@ -92,11 +92,11 @@ The native WFP filter API (`FwpmEngineOpen0` / `FwpmFilterAdd0`) is not implemen
 
 ## Upgrade / install
 
-1. Back up `AstrBot\data`, `tools	otp-vault`, `SnowLuma` configuration, and `webui\data`.
+1. Back up `AgentRuntime\data`, `tools	otp-vault`, `AuxRuntime` configuration, and `webui\data`.
 2. Run `START-INSTALLER.exe` as administrator.
 3. Choose High + Loopback, or the tier you have validated.
 4. At TOTP, scan the QR and save recovery codes offline.
-5. Verify `CyberButlerAstrBot`, port 6185, and `service-astrbot.log`.
+5. Verify `CyberButlerAgentRuntime`, port 6185, and `service-agentruntime.log`.
 
 ## Documentation
 

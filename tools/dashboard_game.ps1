@@ -36,7 +36,7 @@ function Write-ScanLog([string]$message) {
     try {
         New-Item -ItemType Directory -Path (Split-Path -Parent $scanLog) -Force -ErrorAction SilentlyContinue | Out-Null
         Add-Content -LiteralPath $scanLog -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Write-ScanStatus([string]$stage, [int]$progress, [string]$message) {
@@ -46,7 +46,7 @@ function Write-ScanStatus([string]$stage, [int]$progress, [string]$message) {
         if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
         $state = [ordered]@{ stage = $stage; progress = $progress; message = $message; updated_at = (Get-Date).ToString('o') }
         [IO.File]::WriteAllText($StatusFile, ($state | ConvertTo-Json -Compress), (New-Object Text.UTF8Encoding($false)))
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Read-VdfValue([string]$line, [string]$key) {
@@ -55,6 +55,12 @@ function Read-VdfValue([string]$line, [string]$key) {
     return ''
 }
 
+<#
+.SYNOPSIS
+    Get-SteamLibraries performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-SteamLibraries {
     $paths = New-Object System.Collections.Generic.List[string]
     $steam = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue).SteamPath
@@ -95,7 +101,7 @@ function Get-ExeNames([string]$installPath, [string]$source) {
             if ($file.FullName -match '(?i)\\(_CommonRedist|EasyAntiCheat|BattlEye|AntiCheat|CrashReport|ThirdParty)\\') { continue }
             $result += [pscustomobject]@{ Name = $name; Exe = $file.FullName; Source = $source }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return @($result)
 }
 
@@ -113,12 +119,18 @@ function Get-SteamGames {
                 $install = if ($folder) { Join-Path $library ('steamapps\common\' + $folder) } else { '' }
                 $exes = @(Get-ExeNames $install 'Steam')
                 $games += [pscustomobject]@{ Name = $name; AppId = $appid; InstallPath = $install; ExeCandidates = @($exes) }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
     }
     return @($games)
 }
 
+<#
+.SYNOPSIS
+    Get-EpicGames performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-EpicGames {
     $manifests = @(Get-ChildItem -LiteralPath 'C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests' -Filter '*.item' -File -ErrorAction SilentlyContinue)
     $games = @()
@@ -136,11 +148,17 @@ function Get-EpicGames {
             }
             if ($exes.Count -eq 0) { $exes = @(Get-ExeNames $install 'Epic') }
             $games += [pscustomobject]@{ Name = $name; AppId = [string]$data.AppName; InstallPath = $install; ExeCandidates = @($exes) }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     return @($games)
 }
 
+<#
+.SYNOPSIS
+    Get-WeGameGames performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-WeGameGames {
     $roots = New-Object System.Collections.Generic.List[string]
     foreach ($p in @(
@@ -225,7 +243,7 @@ try {
     $failed = [ordered]@{ status = 'failed'; error = $_.Exception.Message; message = $message }
     if ($StatusFile) {
         try { $failed | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $StatusFile -Encoding UTF8 }
-        catch { }
+        catch { Write-Verbose 'optional operation failed' }
     }
     $failed | ConvertTo-Json -Depth 4
     exit 1

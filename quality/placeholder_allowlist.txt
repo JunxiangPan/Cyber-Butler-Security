@@ -42,12 +42,12 @@ tools/install_startup_tasks.ps1
 tools/install_weekly_task.ps1
 tools/privacy_scan.py
 tools/protect_shared_acl.ps1
-tools/run-astrbot-service.ps1
+tools/run-agentruntime-service.ps1
 tools/sanitize_for_release.py
 tools/secure_totp_vault.ps1
 tools/setup_totp.py
-tools/snowluma_guard.py
-tools/start-snowluma.ps1
+tools/auxruntime_guard.py
+tools/start-auxruntime.ps1
 tools/update_merge.ps1
 tools/update_merge_core.py
 tools/verify_broker_acl.ps1

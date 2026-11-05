@@ -16,7 +16,7 @@ Describe 'Installer TOTP safety' {
                 'totp.generate' = { param($c) $global:cbTotpCalls.generate++; [pscustomobject]@{ created = $true } }
                 'totp.undo' = { param($c) $global:cbTotpCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
             $result.status | Should Be 'skipped'
             $global:cbTotpCalls.generate | Should Be 0
         } finally {
@@ -48,7 +48,7 @@ Describe 'Installer TOTP safety' {
                 'totp.assert' = { param($c) $true }
                 'totp.undo' = { param($c) $global:cbTotpCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath $vault -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath $vault -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
             $result.status | Should Be 'completed'
             $result.changed | Should Be $true
             $global:cbTotpCalls.generate | Should Be 1
@@ -93,7 +93,7 @@ Describe 'Installer TOTP safety' {
         try {
             $current = [Security.Principal.WindowsIdentity]::GetCurrent().Name
             $journal = New-CyberButlerJournal -Root (Join-Path $base 'state') -InstallPath $base -Tier Medium
-            Set-CyberButlerTotpVaultAcl -VaultPath (Join-Path $base 'vault') -ReaderAccount 'BUILTIN\Administrators' -ExternalAgentAccount $current -RequireExternalAgentDeny $false -Journal $journal | Out-Null
+            Set-CyberButlerTotpVaultAcl -VaultPath (Join-Path $base 'vault') -ReaderAccount 'BUILTIN\Administrators' -AgentRuntimeAccount $current -RequireAgentRuntimeDeny $false -Journal $journal | Out-Null
             $acl = Get-Acl -LiteralPath (Join-Path $base 'vault')
             $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
             $denyCurrent = @($acl.Access | Where-Object {
@@ -106,11 +106,11 @@ Describe 'Installer TOTP safety' {
         }
     }
 
-    It 'does not require an ExternalAgent deny for a single-account vault' {
+    It 'does not require an AgentRuntime deny for a single-account vault' {
         $base = Join-Path $env:TEMP ('cb-totp-acl-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
-            $acl = Test-CyberButlerTotpVaultAcl -VaultPath $base -ReaderAccount 'BUILTIN\Administrators' -ExternalAgentAccount 'NT AUTHORITY\SYSTEM' -RequireExternalAgentDeny $false
+            $acl = Test-CyberButlerTotpVaultAcl -VaultPath $base -ReaderAccount 'BUILTIN\Administrators' -AgentRuntimeAccount 'NT AUTHORITY\SYSTEM' -RequireAgentRuntimeDeny $false
             $acl.satisfied | Should Be $true
         } finally {
             Remove-Item -LiteralPath $base -Recurse -Force
@@ -132,7 +132,7 @@ Describe 'Installer TOTP safety' {
                 'totp.test' = { param($c) [pscustomobject]@{ satisfied = $false; can_manage = $true } }
                 'totp.generate' = { param($c) $global:cbTotpCalls.generate++; [pscustomobject]@{ created = $true } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -Approval 'APPROVE TOTP' -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -Approval 'APPROVE TOTP' -Handlers $handlers
             $result.status | Should Be 'needs_confirmation'
             $result.exit_code | Should Be 10
             $global:cbTotpCalls.generate | Should Be 0
@@ -150,7 +150,7 @@ Describe 'Installer TOTP safety' {
                 'totp.test' = { param($c) [pscustomobject]@{ satisfied = $false; can_manage = $true } }
                 'totp.generate' = { param($c) $global:cbTotpCalls.generate++; [pscustomobject]@{ created = $true } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -NonInteractive -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -NonInteractive -Handlers $handlers
             $result.status | Should Be 'needs_approval'
             $result.exit_code | Should Be 10
             $global:cbTotpCalls.generate | Should Be 0
@@ -168,7 +168,7 @@ Describe 'Installer TOTP safety' {
                 'totp.test' = { param($c) [pscustomobject]@{ satisfied = $false; can_manage = $true } }
                 'totp.generate' = { param($c) $global:cbTotpCalls.generate++; [pscustomobject]@{ created = $true } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -PlanOnly -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -PlanOnly -Handlers $handlers
             $result.status | Should Be 'plan'
             $global:cbTotpCalls.generate | Should Be 0
         } finally {
@@ -199,7 +199,7 @@ Describe 'Installer TOTP safety' {
                 'totp.assert' = { param($c) $false }
                 'totp.undo' = { param($c) $global:cbTotpCalls.undo++; [pscustomobject]@{ action = 'removed' } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath $vault -ReaderAccount 'Reader' -ExternalAgentAccount 'ExternalAgent' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath $vault -ReaderAccount 'Reader' -AgentRuntimeAccount 'AgentRuntime' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Journal $journal -Handlers $handlers
             $result.status | Should Be 'failed'
             $result.undo.action | Should Be 'removed'
             $global:cbTotpCalls.undo | Should Be 1
@@ -209,7 +209,7 @@ Describe 'Installer TOTP safety' {
         }
     }
 
-    It 'fails closed when the vault reader and ExternalAgent account are the same' {
+    It 'fails closed when the vault reader and AgentRuntime account are the same' {
         $base = Join-Path $env:TEMP ('cb-totp-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
@@ -218,7 +218,7 @@ Describe 'Installer TOTP safety' {
                 'totp.test' = { param($c) [pscustomobject]@{ satisfied = $false; can_manage = $true } }
                 'totp.generate' = { param($c) $global:cbTotpCalls.generate++; [pscustomobject]@{ created = $true } }
             }
-            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'SameAccount' -ExternalAgentAccount 'SameAccount' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Handlers $handlers
+            $result = Invoke-CyberButlerTotp -Root $base -VaultPath (Join-Path $base 'vault') -ReaderAccount 'SameAccount' -AgentRuntimeAccount 'SameAccount' -Approval 'APPROVE TOTP' -Scanned -RecoverySaved -Handlers $handlers
             $result.status | Should Be 'conflict'
             $result.exit_code | Should Be 20
             $global:cbTotpCalls.generate | Should Be 0

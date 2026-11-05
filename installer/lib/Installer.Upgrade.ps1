@@ -14,6 +14,12 @@ function Get-CyberButlerInstalledVersion {
     return (Get-Content -LiteralPath $path -Raw -Encoding UTF8).Trim()
 }
 
+<#
+.SYNOPSIS
+    Test-CyberButlerUpgradePath performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-CyberButlerUpgradePath {
     param(
         [Parameter(Mandatory = $true)][string]$PackageVersion,

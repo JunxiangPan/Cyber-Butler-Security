@@ -1,10 +1,10 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 Run-Final-Acceptance.ps1
 
 Real-system acceptance only. No Mock/Stub/Fake is used:
   - real icacls
-  - real curl.exe HTTP calls to 127.0.0.1:18090
+  - real Python urllib HTTP calls to 127.0.0.1:18090
   - real Test-Path / Get-Content / Get-CimInstance
   - real negative test with an invalid TOTP (must return 403)
   - real audit.jsonl and process evidence
@@ -19,6 +19,8 @@ param(
     [string]$ProofPath = '',
     [string]$TotpCode = '',
     [string]$Nonce = '',
+    [string]$Challenge = '',
+    [string]$PackageZip = '',
     [switch]$SkipCapacity
 )
 
@@ -27,7 +29,7 @@ if ([string]::IsNullOrWhiteSpace($ProofPath)) {
     $ProofPath = Join-Path (Get-Location) 'ACCEPTANCE_PROOF.md'
 }
 if ([string]::IsNullOrWhiteSpace($SharedRoot)) {
-    $SharedRoot = Join-Path $env:USERPROFILE 'Desktop\大肥鱼专用文件夹'
+    $SharedRoot = Join-Path $InstallRoot 'workspace'
 }
 New-Item -ItemType Directory -Path $SharedRoot -Force | Out-Null
 
@@ -36,7 +38,22 @@ $scriptPath = $PSCommandPath
 $scriptHashStart = (Get-FileHash -LiteralPath $scriptPath -Algorithm SHA256).Hash
 Set-ItemProperty -LiteralPath $scriptPath -Name IsReadOnly -Value $true
 if ([string]::IsNullOrWhiteSpace($Nonce)) { $Nonce = Read-Host 'Enter a random nonce for this run' }
-if ([string]::IsNullOrWhiteSpace($Nonce)) { throw 'A random nonce is required' }
+if ($Challenge -and $Nonce -cne $Challenge) { throw 'Nonce must equal the challenge passed to Run-ReleasePipeline' }
+if ($Nonce.Length -lt 16) { throw 'Nonce must be at least 16 characters' }
+$hasDigit = $Nonce -match '[0-9]'
+$hasLetter = $Nonce -match '[A-Za-z]'
+$hasSymbol = $Nonce -match '[^A-Za-z0-9]'
+if (([int]$hasDigit + [int]$hasLetter + [int]$hasSymbol) -lt 2) { throw 'Nonce must contain at least two character classes' }
+$historyDir = Join-Path $env:ProgramData 'CyberButler'
+if (-not (Test-Path -LiteralPath $historyDir)) { $historyDir = Join-Path $env:LOCALAPPDATA 'CyberButler' }
+New-Item -ItemType Directory -Path $historyDir -Force | Out-Null
+$historyPath = Join-Path $historyDir 'nonce_history.txt'
+if (Test-Path -LiteralPath $historyPath) {
+    $recent = @(Get-Content -LiteralPath $historyPath -Encoding UTF8 | Select-Object -Last 30)
+    foreach ($entry in $recent) {
+        if ($entry.Split([char]124)[0] -ceq $Nonce) { throw 'Nonce was already used in the last 30 runs' }
+    }
+}
 $checks = [ordered]@{}
 function Add-Proof([string]$text) {
     $proof.Add($text)
@@ -48,23 +65,43 @@ function Record([string]$name, [bool]$ok) {
 function Read-Token() {
     return (Get-Content -LiteralPath (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Trim()
 }
-function Invoke-CurlJson([string]$uri, [string]$method = 'GET', [string]$json = '') {
-    $bodyPath = Join-Path $env:TEMP ('cbs-evidence-' + [guid]::NewGuid().ToString('N') + '.json')
-    if ($json) {
-        [IO.File]::WriteAllText($bodyPath, $json, (New-Object Text.UTF8Encoding($false)))
+<#
+.SYNOPSIS
+    Sends a JSON request to the local Broker with UTF-8 bytes and no temp file.
+#>
+function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json = '', [string]$token = '') {
+    if ([string]::IsNullOrWhiteSpace($token)) { $token = Read-Token }
+    $python = Join-Path $InstallRoot 'webui\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $python)) { $python = (Get-Command python.exe -ErrorAction Stop).Source }
+    $helper = Join-Path $PSScriptRoot 'acceptance_http.py'
+    if (-not (Test-Path -LiteralPath $helper)) { throw 'acceptance_http.py is missing' }
+    $oldUrl = $env:CBS_ACCEPTANCE_URL
+    $oldMethod = $env:CBS_ACCEPTANCE_METHOD
+    $oldBody = $env:CBS_ACCEPTANCE_BODY
+    $oldToken = $env:CBS_ACCEPTANCE_TOKEN
+    try {
+        $env:CBS_ACCEPTANCE_URL = $uri
+        $env:CBS_ACCEPTANCE_METHOD = $method
+        $env:CBS_ACCEPTANCE_BODY = $json
+        $env:CBS_ACCEPTANCE_TOKEN = $token
+        $output = (& $python $helper 2>&1 | Out-String).Trim()
+    } finally {
+        $env:CBS_ACCEPTANCE_URL = $oldUrl
+        $env:CBS_ACCEPTANCE_METHOD = $oldMethod
+        $env:CBS_ACCEPTANCE_BODY = $oldBody
+        $env:CBS_ACCEPTANCE_TOKEN = $oldToken
     }
-    $curlArgs = @('-sS', '-X', $method, $uri, '-H', ('X-Broker-Token: ' + (Read-Token)), '-w', "`nHTTP_STATUS:%{http_code}")
-    if ($json) {
-        $curlArgs += @('-H', 'Content-Type: application/json; charset=utf-8', '--data-binary', '@' + $bodyPath)
+    try {
+        $parsed = $output | ConvertFrom-Json
+    } catch {
+        return [pscustomobject]@{ raw = $output; body = $output; status = '0'; exit = 1 }
     }
-    $raw = & curl.exe @curlArgs 2>&1 | Out-String
-    $exit = $LASTEXITCODE
-    Remove-Item -LiteralPath $bodyPath -Force -ErrorAction SilentlyContinue
-    $status = ''
-    if ($raw -match 'HTTP_STATUS:(\d{3})') { $status = $Matches[1] }
-    $body = ($raw -replace '(?s)HTTP_STATUS:\d{3}\s*$', '').Trim()
-    $raw = $raw.Trim() + [Environment]::NewLine + "EXIT:$exit"
-    return [pscustomobject]@{ raw = $raw; body = $body; status = $status; exit = $exit }
+    return [pscustomobject]@{
+        raw = [string]$parsed.raw
+        body = [string]$parsed.body
+        status = [string]$parsed.status
+        exit = [int]$parsed.exit
+    }
 }
 function Restart-BrokerTask() {
     $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
@@ -142,20 +179,26 @@ Add-Proof ''
 Add-Proof '## Negative test: wrong TOTP must be rejected'
 $negTarget = Join-Path $SharedRoot 'negative-totp.txt'
 Set-Content -LiteralPath $negTarget -Value 'negative' -Encoding UTF8
-$negTargetJson = ($negTarget -replace '\\', '\\\\')
-$negReq = Invoke-CurlJson 'http://127.0.0.1:18090/request' 'POST' ('{"action":"delete","target":"' + $negTargetJson + '","reason":"negative test"}')
+$negRequest = [ordered]@{ action = 'delete'; target = $negTarget; reason = 'negative test' } | ConvertTo-Json -Compress
+$negReq = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $negRequest
 Add-Proof ('REQUEST RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $negReq.raw + [Environment]::NewLine + '```')
 $negId = ''
-try { $negId = ($negReq.body | ConvertFrom-Json).id } catch { }
+try { $negId = ($negReq.body | ConvertFrom-Json).id } catch { Write-Verbose 'response had no id' }
 if (-not $negId) { Record 'negative_setup' $false } else {
-    $negVerify = Invoke-CurlJson 'http://127.0.0.1:18090/verify' 'POST' ('{"id":"' + $negId + '","code":"000000"}')
+    $negVerifyJson = [ordered]@{ id = $negId; code = '000000' } | ConvertTo-Json -Compress
+    $negVerify = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $negVerifyJson
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $negVerify.raw + [Environment]::NewLine + '```')
     Record 'negative_403' ($negVerify.status -eq '403' -and $negVerify.body -match 'invalid verification code')
+    $forgedJson = [ordered]@{ action = 'delete'; target = 'C:\Windows\System32\drivers\etc\hosts' } | ConvertTo-Json -Compress
+    $forgedReq = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $forgedJson 'deadbeef'
+    $forgedRaw = $forgedReq.raw
+    Add-Proof ('FORGED TOKEN RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $forgedRaw.Trim() + [Environment]::NewLine + '```')
+    Record 'negative_token' ($forgedRaw -match 'HTTP_STATUS:403')
     Record 'safe_after_negative' ((Restart-BrokerTask) -eq $true)
 
 # Wrong-path negative test: must be denied, never 200.
-$badJson = '{"action":"delete","target":"C:\Windows\System32\drivers\etc\hosts","reason":"negative path"}'
-$bad = Invoke-CurlJson 'http://127.0.0.1:18090/request' 'POST' $badJson
+$badJson = [ordered]@{ action = 'delete'; target = 'C:\Windows\System32\drivers\etc\hosts'; reason = 'negative path' } | ConvertTo-Json -Compress
+$bad = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $badJson
 Add-Proof ('WRONG_PATH RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $bad.raw + [Environment]::NewLine + '```')
 Record 'negative_path' ($bad.status -ne '200' -and $bad.body -notmatch '"ok"\s*:\s*true')
 }
@@ -165,20 +208,22 @@ Add-Proof ''
 Add-Proof '## Positive TOTP and two-stage undo'
 $target = Join-Path $SharedRoot 'positive-totp.txt'
 Set-Content -LiteralPath $target -Value 'positive' -Encoding UTF8
-$targetJson = ($target -replace '\\', '\\\\')
-$req = Invoke-CurlJson 'http://127.0.0.1:18090/request' 'POST' ('{"action":"delete","target":"' + $targetJson + '","reason":"positive test"}')
+$targetRequest = [ordered]@{ action = 'delete'; target = $target; reason = 'positive test' } | ConvertTo-Json -Compress
+$req = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $targetRequest
 Add-Proof ('REQUEST RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $req.raw + [Environment]::NewLine + '```')
 $id = ''
-try { $id = ($req.body | ConvertFrom-Json).id } catch { }
+try { $id = ($req.body | ConvertFrom-Json).id } catch { Write-Verbose 'response had no id' }
 if ($id) {
     $code = Get-NewTotp $id
-    $verify = Invoke-CurlJson 'http://127.0.0.1:18090/verify' 'POST' ('{"id":"' + $id + '","code":"' + $code + '"}')
+    $verifyJson = [ordered]@{ id = $id; code = $code } | ConvertTo-Json -Compress
+    $verify = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $verifyJson
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $verify.raw + [Environment]::NewLine + '```')
     Record 'positive_totp' ($verify.status -eq '200' -and -not (Test-Path $target))
     $TotpCode = ''
-    $trash = Invoke-CurlJson 'http://127.0.0.1:18090/trash'
+    $trash = Invoke-BrokerJson 'http://127.0.0.1:18090/trash'
     Add-Proof ('TRASH RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $trash.raw + [Environment]::NewLine + '```')
-    $undo = Invoke-CurlJson 'http://127.0.0.1:18090/trash/undo' 'POST' ('{"id":"' + $id + '"}')
+    $undoJson = [ordered]@{ id = $id } | ConvertTo-Json -Compress
+    $undo = Invoke-BrokerJson 'http://127.0.0.1:18090/trash/undo' 'POST' $undoJson
     Add-Proof ('UNDO RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $undo.raw + [Environment]::NewLine + '```')
     Record 'undo' ($undo.status -eq '200' -and (Test-Path $target))
 }
@@ -201,17 +246,25 @@ if (-not $SkipCapacity) {
     Add-Proof '## Capacity breaker'
     $big = Join-Path $SharedRoot 'capacity-600mb.bin'
     fsutil file createnew $big 629145600 | Out-Null
-    $bigJson = ($big -replace '\\', '\\\\')
-    $cap = Invoke-CurlJson 'http://127.0.0.1:18090/request' 'POST' ('{"action":"delete","target":"' + $bigJson + '","reason":"capacity"}')
+$capJson = [ordered]@{ action = 'delete'; target = $big; reason = 'capacity' } | ConvertTo-Json -Compress
+$cap = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $capJson
     $capId = ''
-    try { $capId = ($cap.body | ConvertFrom-Json).id } catch { }
+    try { $capId = ($cap.body | ConvertFrom-Json).id } catch { Write-Verbose 'response had no id' }
     if ($capId) {
         $capCode = Get-NewTotp $capId
-        $capVerify = Invoke-CurlJson 'http://127.0.0.1:18090/verify' 'POST' ('{"id":"' + $capId + '","code":"' + $capCode + '"}')
+        $capVerifyJson = [ordered]@{ id = $capId; code = $capCode } | ConvertTo-Json -Compress
+        $capVerify = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $capVerifyJson
         Add-Proof ('CAPACITY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $capVerify.raw + [Environment]::NewLine + '```')
         Record 'capacity_block' ($capVerify.body -match 'quota' -and (Test-Path $big))
     } else {
         Record 'capacity_block' $false
+    }
+}
+
+# Cleanup test artifacts so no 600 MB file is left on disk.
+foreach ($cleanupPath in @($big, $negTarget, $target)) {
+    if ($cleanupPath -and (Test-Path -LiteralPath $cleanupPath)) {
+        Remove-Item -LiteralPath $cleanupPath -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -230,6 +283,22 @@ Add-Proof ('```text' + [Environment]::NewLine + $checksText + [Environment]::New
 Add-Proof ''
 Add-Proof ('**Overall: ' + $(if ($overall) { 'PASS' } else { 'FAIL' }) + '**')
 $proof | Set-Content -LiteralPath $ProofPath -Encoding UTF8
+$proofHash = (Get-FileHash -LiteralPath $ProofPath -Algorithm SHA256).Hash
 Write-Host ('PROOF=' + $ProofPath)
+Write-Host ('PROOF_SHA256=' + $proofHash)
+$packageHash = 'N/A'
+if ([string]::IsNullOrWhiteSpace($PackageZip)) {
+    $candidate = Join-Path (Get-Location) 'public-release-v1.6.3.zip'
+    if (Test-Path -LiteralPath $candidate) { $PackageZip = $candidate }
+}
+if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
+    $packageHash = (Get-FileHash -LiteralPath $PackageZip -Algorithm SHA256).Hash
+}
+Add-Content -LiteralPath $historyPath -Value ($Nonce + '|' + (Get-Date).ToUniversalTime().ToString('o') + '|' + $packageHash) -Encoding UTF8
+$buildReport = Join-Path (Get-Location) 'BUILD_REPORT.md'
+if (Test-Path -LiteralPath $buildReport) {
+    $seal = [Environment]::NewLine + '## PROOF SEAL' + [Environment]::NewLine + '- PROOF_SHA256: `' + $proofHash + '`' + [Environment]::NewLine
+    Add-Content -LiteralPath $buildReport -Value $seal -Encoding UTF8
+}
 if ($overall) { Write-Host 'ACCEPTANCE_PASS'; exit 0 }
 Write-Host 'ACCEPTANCE_FAIL'; exit 1

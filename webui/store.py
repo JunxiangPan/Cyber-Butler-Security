@@ -8,28 +8,73 @@ from pathlib import Path
 
 
 def sha256_hex(value: str) -> str:
+    """Sha256 hex.
+    
+    Args:
+        value: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def otp_digest(secret: bytes, email: str, code: str, salt: str) -> str:
+    """Otp digest.
+    
+    Args:
+        secret: caller-supplied value.
+        email: caller-supplied value.
+        code: caller-supplied value.
+        salt: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     message = f"{email.lower()}|{code}|{salt}".encode("utf-8")
     return hmac.new(secret, message, hashlib.sha256).hexdigest()
 
 
 class Store:
+    """Store helper/type."""
     def __init__(self, path: Path, secret: bytes):
+        """Init.
+        
+        Args:
+            path: caller-supplied value.
+            secret: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.path = Path(path)
         self.secret = secret
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.init()
 
     def _connect(self) -> sqlite3.Connection:
+        """Connect.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         conn = sqlite3.connect(self.path, timeout=10)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         return conn
 
     def init(self) -> None:
+        """Init.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         with self._connect() as conn:
             conn.executescript(
                 """
@@ -56,6 +101,17 @@ class Store:
             )
 
     def create_otp(self, email: str, code: str, salt: str, ttl: int) -> None:
+        """Create otp.
+        
+        Args:
+            email: caller-supplied value.
+            code: caller-supplied value.
+            salt: caller-supplied value.
+            ttl: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = int(time.time())
         digest = otp_digest(self.secret, email, code, salt)
         with self._connect() as conn:
@@ -65,6 +121,14 @@ class Store:
             )
 
     def latest_otp(self, email: str) -> dict | None:
+        """Latest otp.
+        
+        Args:
+            email: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM otps WHERE email=? AND used=0 ORDER BY id DESC LIMIT 1",
@@ -73,16 +137,43 @@ class Store:
         return dict(row) if row else None
 
     def bump_otp_attempts(self, otp_id: int) -> int:
+        """Bump otp attempts.
+        
+        Args:
+            otp_id: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         with self._connect() as conn:
             conn.execute("UPDATE otps SET attempts=attempts+1 WHERE id=?", (otp_id,))
             row = conn.execute("SELECT attempts FROM otps WHERE id=?", (otp_id,)).fetchone()
         return int(row["attempts"]) if row else 0
 
     def use_otp(self, otp_id: int) -> None:
+        """Use otp.
+        
+        Args:
+            otp_id: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         with self._connect() as conn:
             conn.execute("UPDATE otps SET used=1 WHERE id=?", (otp_id,))
 
     def create_session(self, email: str, token: str, csrf: str, days: int) -> None:
+        """Create session.
+        
+        Args:
+            email: caller-supplied value.
+            token: caller-supplied value.
+            csrf: caller-supplied value.
+            days: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = int(time.time())
         with self._connect() as conn:
             conn.execute(
@@ -91,6 +182,15 @@ class Store:
             )
 
     def get_session(self, token: str, idle_hours: int) -> dict | None:
+        """Get session.
+        
+        Args:
+            token: caller-supplied value.
+            idle_hours: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = int(time.time())
         with self._connect() as conn:
             row = conn.execute(
@@ -110,10 +210,26 @@ class Store:
             return data
 
     def delete_session(self, token: str) -> None:
+        """Delete session.
+        
+        Args:
+            token: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         with self._connect() as conn:
             conn.execute("DELETE FROM sessions WHERE token_hash=?", (sha256_hex(token),))
 
     def purge_expired(self) -> None:
+        """Purge expired.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = int(time.time())
         with self._connect() as conn:
             conn.execute("DELETE FROM otps WHERE expires_at<? OR used=1", (now - 3600,))

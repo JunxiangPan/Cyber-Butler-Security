@@ -1,4 +1,4 @@
-# Documentation index
+﻿# Documentation index
 
 ## Contents
 
@@ -29,11 +29,6 @@
 
 ## History and audit
 
-- [S4U retirement](40-history/incidents/s4u-retirement.md)
-- [SQLite readonly incident](40-history/incidents/sqlite-readonly.md)
-- [WFP empty-rule incident](40-history/incidents/wfp-empty-rules.md)
-- [ACL self-lock incident](40-history/incidents/acl-self-lock.md)
-- [Task rollback incident](40-history/incidents/task-rollback.md)
 - [S4U audit](90-audit/S4U_AUDIT_v1.6.2.md)
 - [Documentation audit](90-audit/DOCUMENTATION_AUDIT_v1.6.2.md)
 

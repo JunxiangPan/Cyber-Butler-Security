@@ -22,6 +22,14 @@ SKIP_PARTS = {".venv", "__pycache__", ".git", "wheelhouse", "node_modules"}
 
 
 def python_findings() -> tuple[list[str], list[dict], int]:
+    """Python findings.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     problems: list[str] = []
     missing: list[dict] = []
     total = 0
@@ -52,13 +60,21 @@ def python_findings() -> tuple[list[str], list[dict], int]:
 
 
 def powershell_findings() -> tuple[list[str], list[dict], int]:
+    """Powershell findings.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     script = ROOT / "tools" / "audit_ps_comments.ps1"
     if not script.is_file():
         return ["tools/audit_ps_comments.ps1 is missing"], [], 0
     result = subprocess.run(
         ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
          "-File", str(script), "-Root", str(ROOT)],
-        capture_output=True, text=True, timeout=300,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
     )
     payload = (result.stdout or "").strip()
     try:
@@ -82,6 +98,14 @@ def powershell_findings() -> tuple[list[str], list[dict], int]:
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     py_syntax, py_missing, py_total = python_findings()
     ps_problems, ps_missing, ps_total = powershell_findings()
     missing = py_missing + ps_missing
@@ -96,6 +120,10 @@ def main() -> int:
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     problems = py_syntax + ps_problems
+    if py_missing:
+        problems.extend(f"{item['file']}:{item['line']}: missing Python docstring: {item['name']}" for item in py_missing)
+    if ps_missing:
+        problems.extend(f"{item['file']}:{item['line']}: missing PowerShell block comment: {item['name']}" for item in ps_missing)
     if problems:
         print("CODE_COMMENT_GATE_FAILED", file=sys.stderr)
         for item in problems[:300]:

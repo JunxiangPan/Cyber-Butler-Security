@@ -6,7 +6,7 @@ Safety modes:
   -TargetRoot PATH : update a disposable copy instead of the live root
   -DryRun          : download, verify, extract and report only; no writes to target
 
-The live target also stops/restarts AstrBot and the Broker and performs health
+The live target also stops/restarts AgentRuntime and the Broker and performs health
 checks. A non-live target never touches the live services.
 #>
 [CmdletBinding()]
@@ -30,7 +30,7 @@ if ($TargetRoot) {
 $root = $root.TrimEnd('\')
 $sourceRoot = $sourceRoot.TrimEnd('\')
 $isLive = [string]::Equals($root, $sourceRoot, [StringComparison]::OrdinalIgnoreCase)
-$python = Join-Path $sourceRoot 'AstrBot\.venv\Scripts\python.exe'
+$python = Join-Path $sourceRoot 'AgentRuntime\.venv\Scripts\python.exe'
 $core = Join-Path $root 'tools\update_core.py'
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $work = Join-Path $env:TEMP ('cyber-butler-update-' + $stamp)
@@ -50,7 +50,7 @@ function Write-UpdateLog([string]$message) {
         $line = '[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message
         Add-Content -LiteralPath $log -Value $line -Encoding UTF8
         Write-Host $line
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Test-Health([string]$url) {
@@ -106,7 +106,7 @@ function Stop-LiveProcesses {
     Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
         Where-Object {
             $_.CommandLine -and (
-                $_.CommandLine -match 'AstrBot.*main\.py' -or
+                $_.CommandLine -match 'AgentRuntime.*main\.py' -or
                 $_.CommandLine -match 'tools[\\/]broker\.py'
             )
         } |
@@ -133,11 +133,11 @@ function Restore-Backup {
 try {
     if (-not (Test-Path -LiteralPath $python)) { throw "Python not found: $python" }
     if (-not (Test-Path -LiteralPath $core)) { throw "update_core.py not found: $core" }
-    if (-not (Test-Path -LiteralPath (Join-Path $root 'AstrBot'))) {
-        throw "TargetRoot does not contain AstrBot: $root"
+    if (-not (Test-Path -LiteralPath (Join-Path $root 'AgentRuntime'))) {
+        throw "TargetRoot does not contain AgentRuntime: $root"
     }
-    if (-not $isLive -and -not (Test-Path -LiteralPath (Join-Path $root 'AstrBot\data'))) {
-        throw "sandbox TargetRoot must contain AstrBot/data: $root"
+    if (-not $isLive -and -not (Test-Path -LiteralPath (Join-Path $root 'AgentRuntime\data'))) {
+        throw "sandbox TargetRoot must contain AgentRuntime/data: $root"
     }
 
     $localZipSource = ''
@@ -213,8 +213,8 @@ try {
             }
             $simulated++
         }
-        $dataBefore = Get-TreeFingerprint (Join-Path $root 'AstrBot\data')
-        $dataAfter = Get-TreeFingerprint (Join-Path $root 'AstrBot\data')
+        $dataBefore = Get-TreeFingerprint (Join-Path $root 'AgentRuntime\data')
+        $dataAfter = Get-TreeFingerprint (Join-Path $root 'AgentRuntime\data')
         if ($dataBefore -ne $dataAfter) { throw 'data changed during dry run' }
         Write-UpdateLog ('DRY_RUN_OK version=' + $newVersion + ' would_replace=' + $simulated + ' target=' + $root)
         exit 0
@@ -234,10 +234,10 @@ try {
     }
     Write-UpdateLog ('code backup: ' + $backupCode)
 
-    $dataBefore = Get-TreeFingerprint (Join-Path $root 'AstrBot\data')
+    $dataBefore = Get-TreeFingerprint (Join-Path $root 'AgentRuntime\data')
     if ($isLive) {
-        Stop-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-        Stop-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
+        Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+        Stop-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 3
         Stop-LiveProcesses
         Start-Sleep -Seconds 3
@@ -247,17 +247,17 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'update_core apply failed' }
     Write-UpdateLog 'code files applied'
 
-    $dataAfter = Get-TreeFingerprint (Join-Path $root 'AstrBot\data')
+    $dataAfter = Get-TreeFingerprint (Join-Path $root 'AgentRuntime\data')
     if ($dataBefore -ne $dataAfter) { throw 'data fingerprint changed during update' }
     Write-UpdateLog 'data untouched verified'
 
     if ($isLive) {
-        Start-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
+        Start-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 4
         $brokerOk = Wait-Health 'broker' 'http://127.0.0.1:18090/health'
-        Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
-        $astrbotOk = Wait-Health 'astrbot' 'http://127.0.0.1:6185' 60
-        if (-not ($brokerOk -and $astrbotOk)) { throw 'post-update health check failed' }
+        Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
+        $agentruntimeOk = Wait-Health 'agentruntime' 'http://127.0.0.1:6185' 60
+        if (-not ($brokerOk -and $agentruntimeOk)) { throw 'post-update health check failed' }
         Write-UpdateLog ('UPDATE_OK version=' + $newVersion)
     } else {
         Write-UpdateLog ('SANDBOX_UPDATE_OK version=' + $newVersion + ' target=' + $root)
@@ -269,8 +269,8 @@ try {
         if (-not $DryRun) {
             Restore-Backup
             if ($isLive) {
-                Start-ScheduledTask -TaskName 'AstrBot TOTP Broker' -ErrorAction SilentlyContinue
-                Start-ScheduledTask -TaskName 'AstrBot Service' -ErrorAction SilentlyContinue
+                Start-ScheduledTask -TaskName 'AgentRuntime TOTP Broker' -ErrorAction SilentlyContinue
+                Start-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue
                 Start-Sleep -Seconds 10
             }
         }

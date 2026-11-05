@@ -29,6 +29,14 @@ MAGIC_TYPES = ((b"#!", "Shebang"), (b"MZ", "PE"), (b"ELF", "ELF"))
 
 
 def _magic_type(data: bytes) -> str | None:
+    """Magic type.
+    
+    Args:
+        data: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for prefix, label in MAGIC_TYPES:
         if data.startswith(prefix):
             return label
@@ -36,6 +44,14 @@ def _magic_type(data: bytes) -> str | None:
 
 
 def _magic_head(path: Path) -> bytes:
+    """Magic head.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         with path.open("rb") as handle:
             return handle.read(8)
@@ -44,6 +60,15 @@ def _magic_head(path: Path) -> bytes:
 
 
 def _intent_mismatch(reason: str, target: Path) -> bool:
+    """Intent mismatch.
+    
+    Args:
+        reason: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not INTENT_READ_RE.search(reason or ""):
         return False
     name = target.name.casefold()
@@ -60,10 +85,26 @@ def _intent_mismatch(reason: str, target: Path) -> bool:
 
 
 def _redact(text: str) -> str:
+    """Redact.
+    
+    Args:
+        text: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return _SECRET_RE.sub(lambda m: m.group(1) + m.group(2) + "[REDACTED]", text)
 
 
 def _stat(path: Path) -> dict[str, Any]:
+    """Stat.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         stat = path.stat()
     except OSError:
@@ -77,6 +118,14 @@ def _stat(path: Path) -> dict[str, Any]:
 
 
 def _hash_file(path: Path) -> str:
+    """Hash file.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     digest = hashlib.sha256()
     try:
         with path.open("rb") as handle:
@@ -88,6 +137,14 @@ def _hash_file(path: Path) -> str:
 
 
 def _text(path: Path) -> str | None:
+    """Text.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         data = path.read_bytes()
     except OSError:
@@ -101,6 +158,15 @@ def _text(path: Path) -> str | None:
 
 
 def _diff(old: str | None, new: str | None) -> tuple[str, bool]:
+    """Diff.
+    
+    Args:
+        old: caller-supplied value.
+        new: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if old is None or new is None:
         return "", False
     lines = list(

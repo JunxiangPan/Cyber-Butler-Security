@@ -14,28 +14,59 @@ SESSION_COOKIE = "cb_web_session"
 
 
 class RateLimited(Exception):
+    """RateLimited helper/type."""
     def __init__(self, retry_after: int = 60):
+        """Init.
+        
+        Args:
+            retry_after: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.retry_after = retry_after
         super().__init__("rate limited")
 
 
 class InvalidCode(Exception):
+    """InvalidCode helper/type."""
     pass
 
 
 class MailerFailed(Exception):
+    """MailerFailed helper/type."""
     pass
 
 
 class UnknownEmail(Exception):
+    """UnknownEmail helper/type."""
     pass
 
 
 class RateLimiter:
+    """RateLimiter helper/type."""
     def __init__(self) -> None:
+        """Init.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self._hits: dict[str, deque[float]] = defaultdict(deque)
 
     def allow(self, key: str, limit: int, window: int) -> bool:
+        """Allow.
+        
+        Args:
+            key: caller-supplied value.
+            limit: caller-supplied value.
+            window: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = time.monotonic()
         bucket = self._hits[key]
         while bucket and now - bucket[0] > window:
@@ -46,10 +77,27 @@ class RateLimiter:
         return True
 
     def forget(self, key: str) -> None:
+        """Forget.
+        
+        Args:
+            key: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self._hits.pop(key, None)
         self._hits.pop("cooldown:" + key, None)
 
     def cooldown(self, key: str, seconds: int) -> bool:
+        """Cooldown.
+        
+        Args:
+            key: caller-supplied value.
+            seconds: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         now = time.monotonic()
         bucket = self._hits["cooldown:" + key]
         while bucket and now - bucket[0] > seconds:
@@ -61,13 +109,34 @@ class RateLimiter:
 
 
 class AuthService:
+    """AuthService helper/type."""
     def __init__(self, settings: Settings, store: Store, mailer) -> None:
+        """Init.
+        
+        Args:
+            settings: caller-supplied value.
+            store: caller-supplied value.
+            mailer: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.settings = settings
         self.store = store
         self.mailer = mailer
         self.limiter = RateLimiter()
 
     async def request_otp(self, email: str, ip: str, lang: str = "zh") -> None:
+        """Request otp.
+        
+        Args:
+            email: caller-supplied value.
+            ip: caller-supplied value.
+            lang: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         email = email.strip().lower()
         # Keep the public response generic for an unknown address, but do not
         # consume the IP budget: otherwise a typo silently becomes a lockout.
@@ -95,6 +164,16 @@ class AuthService:
             raise MailerFailed("verification mail could not be sent") from exc
 
     def verify(self, email: str, code: str, ip: str) -> tuple[str, str]:
+        """Verify.
+        
+        Args:
+            email: caller-supplied value.
+            code: caller-supplied value.
+            ip: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         email = email.strip().lower()
         if not self.limiter.allow("verify-ip:" + ip, 20, 300):
             raise RateLimited(300)
@@ -117,10 +196,26 @@ class AuthService:
         return token, csrf
 
     def session(self, token: str | None) -> dict | None:
+        """Session.
+        
+        Args:
+            token: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if not token:
             return None
         return self.store.get_session(token, self.settings.idle_hours)
 
     def logout(self, token: str | None) -> None:
+        """Logout.
+        
+        Args:
+            token: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         if token:
             self.store.delete_session(token)

@@ -26,9 +26,9 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "ACCEPTANCE_PROOF.md"}
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md"}
 PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/", "quality/")
-FORBIDDEN_PAYLOAD_PREFIXES = ("astrbot/", "snowluma/")
+FORBIDDEN_PAYLOAD_PREFIXES = ("agentruntime/", "auxruntime/")
 
 
 def is_forbidden_payload(rel_path: str) -> bool:
@@ -48,11 +48,20 @@ def load_baseline_core(path: Path):
 
 
 def tracked_files() -> list[str]:
+    """Return files tracked by git, excluding the package's own manifest."""
     raw = subprocess.check_output(["git", "-C", str(ROOT), "ls-files", "-z"])
-    return [item.decode("utf-8") for item in raw.split(b"\0") if item]
+    return [item.decode("utf-8") for item in raw.split(b"\x00") if item]
 
 
 def main() -> int:
+    """Main.
+    
+    Args:
+        None.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     import os
     token_file = ROOT / "quality" / ".release-pipeline-token"
     expected = os.environ.get("CBS_RELEASE_PIPELINE_TOKEN", "")
@@ -120,6 +129,21 @@ def main() -> int:
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
+    proof_extra = ROOT / "ACCEPTANCE_PROOF.md"
+    if proof_extra.is_file() and not any(rel == "ACCEPTANCE_PROOF.md" for rel, _ in entries):
+        proof_data = proof_extra.read_bytes()
+        entries.append(("ACCEPTANCE_PROOF.md", proof_data))
+        if update_core.is_allowed_path("ACCEPTANCE_PROOF.md"):
+            manifest_files.append({"path": "ACCEPTANCE_PROOF.md", "size": len(proof_data), "sha256": hashlib.sha256(proof_data).hexdigest()})
+    for required in ("tools/merge_vm_acceptance.py",):
+        if not any(rel == required for rel, _ in entries):
+            required_path = ROOT / required
+            if not required_path.is_file():
+                raise SystemExit("required release file missing: " + required)
+            required_data = required_path.read_bytes()
+            entries.append((required, required_data))
+            if update_core.is_allowed_path(required):
+                manifest_files.append({"path": required, "size": len(required_data), "sha256": hashlib.sha256(required_data).hexdigest()})
     rejected_self = [
         rel
         for rel, _ in entries
@@ -152,7 +176,7 @@ def main() -> int:
 
     manifest_files.sort(key=lambda item: item["path"])
     manifest = update_core.validate_manifest(
-        {"schema": 1, "version": version, "files": manifest_files}
+        {"schema": 1, "version": version, "signature_version": "2", "files": manifest_files}
     )
     manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode(
         "utf-8"

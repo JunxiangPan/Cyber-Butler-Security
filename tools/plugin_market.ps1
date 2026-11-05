@@ -3,16 +3,16 @@
 Cyber-Butler plugin market backend.
 
 Two sources:
-  official  - AstrBot official registry JSON (cached for one hour)
-  github    - GitHub code search for repositories with astrbot_plugin in the name
+  official  - AgentRuntime official registry JSON (cached for one hour)
+  github    - GitHub code search for repositories with agentruntime_plugin in the name
 
 Downloads are extracted into a temporary directory and must pass the static
-security scanner and the AstrBot version check before the installer copies them
-into AstrBot/data/plugins or tools/dashboard_plugins.
+security scanner and the AgentRuntime version check before the installer copies them
+into AgentRuntime/data/plugins or tools/dashboard_plugins.
 #>
 
-$script:MarketRegistryUrl = 'https://api.soulter.top/astrbot/plugins'
-$script:MarketFallbackUrl = 'https://github.com/AstrBotDevs/AstrBot_Plugins_Collection/raw/refs/heads/main/plugin_cache_original.json'
+$script:MarketRegistryUrl = 'https://api.soulter.top/agentruntime/plugins'
+$script:MarketFallbackUrl = 'https://github.com/AgentRuntimeDevs/AgentRuntime_Plugins_Collection/raw/refs/heads/main/plugin_cache_original.json'
 $script:MarketMaxArchiveBytes = 64MB
 $script:MarketMaxExpandedBytes = 256MB
 $script:MarketMaxEntries = 5000
@@ -23,6 +23,12 @@ function Get-PluginMarketCachePath {
     return (Join-Path $dir 'market-cache.json')
 }
 
+<#
+.SYNOPSIS
+    Get-PluginMarketEntries performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-PluginMarketEntries {
     param(
         [ValidateSet('official', 'github')][string]$Source = 'official',
@@ -44,7 +50,7 @@ function Get-PluginMarketEntries {
                 $age = (Get-Date) - [datetime]$cached.fetched_at
                 if ($age.TotalSeconds -lt 3600) { $payload = $cached.payload }
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 
     if (-not $payload) {
@@ -54,14 +60,14 @@ function Get-PluginMarketEntries {
                 $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -Headers @{ 'User-Agent' = 'Cyber-Butler-Dashboard' }
                 $raw = $response.Content
                 if ($raw) { break }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
-        if (-not $raw) { throw '无法读取 AstrBot 官方插件市场，请检查网络。' }
+        if (-not $raw) { throw '无法读取 AgentRuntime 官方插件市场，请检查网络。' }
         $payload = $raw | ConvertFrom-Json
         try {
             [pscustomobject]@{ fetched_at = (Get-Date).ToString('o'); payload = $payload } |
                 ConvertTo-Json -Depth 6 -Compress | Set-Content -LiteralPath $cachePath -Encoding UTF8
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
 
     $entries = New-Object System.Collections.ArrayList
@@ -86,7 +92,7 @@ function Get-PluginMarketEntries {
             Desc           = $desc
             Repo           = [string]$item.repo
             DownloadUrl    = [string]$item.download_url
-            AstrBotVersion = [string]$item.astrbot_version
+            AgentRuntimeVersion = [string]$item.agentruntime_version
             Stars          = [int]$item.stars
             Downloads      = [int]$item.download_count
             Category       = [string]$item.category
@@ -98,10 +104,16 @@ function Get-PluginMarketEntries {
     return @($entries | Sort-Object @{ Expression = 'Stars'; Descending = $true }, Name | Select-Object -First $Limit)
 }
 
+<#
+.SYNOPSIS
+    Get-PluginMarketGithub performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-PluginMarketGithub {
     param([string]$Query = '', [int]$Limit = 30)
 
-    $terms = 'astrbot_plugin in:name,description'
+    $terms = 'agentruntime_plugin in:name,description'
     if ($Query.Trim()) { $terms = $Query.Trim() + ' ' + $terms }
     $encoded = [uri]::EscapeDataString($terms)
     $uri = 'https://api.github.com/search/repositories?q=' + $encoded + '&sort=stars&order=desc&per_page=' + $Limit
@@ -124,7 +136,7 @@ function Get-PluginMarketGithub {
             Desc           = [string]$repo.description
             Repo           = [string]$repo.html_url
             DownloadUrl    = ('https://codeload.github.com/' + $repo.full_name + '/zip/refs/heads/' + $branch)
-            AstrBotVersion = ''
+            AgentRuntimeVersion = ''
             Stars          = [int]$repo.stargazers_count
             Downloads      = 0
             Category       = 'github'
@@ -135,6 +147,12 @@ function Get-PluginMarketGithub {
     return @($entries)
 }
 
+<#
+.SYNOPSIS
+    Save-PluginArchive performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Save-PluginArchive {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
@@ -157,6 +175,12 @@ function Save-PluginArchive {
     return $file
 }
 
+<#
+.SYNOPSIS
+    Expand-PluginArchive performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Expand-PluginArchive {
     param(
         [Parameter(Mandatory = $true)][string]$ArchivePath,
@@ -192,6 +216,12 @@ function Expand-PluginArchive {
     return $destinationFull
 }
 
+<#
+.SYNOPSIS
+    Find-PluginPackageRoot performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Find-PluginPackageRoot {
     param([Parameter(Mandatory = $true)][string]$Directory)
 
@@ -212,9 +242,15 @@ function Find-PluginPackageRoot {
             if (Test-Path -LiteralPath (Join-Path $inner.FullName 'metadata.yaml')) { return $inner.FullName }
         }
     }
-    throw '压缩包里没有找到 metadata.yaml，无法确认这是一个 AstrBot 插件。'
+    throw '压缩包里没有找到 metadata.yaml，无法确认这是一个 AgentRuntime 插件。'
 }
 
+<#
+.SYNOPSIS
+    Install-PluginPackage performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Install-PluginPackage {
     param(
         [string]$ProjectRoot,
@@ -248,8 +284,8 @@ function Install-PluginPackage {
     if ($id -notmatch '^[A-Za-z0-9_\-]{2,128}$') { throw '插件名称非法。' }
     if ($ExpectedId -and $id -ne $ExpectedId) { throw ('插件名称不匹配：{0} != {1}' -f $id, $ExpectedId) }
 
-    $pluginsRoot = Join-Path $ProjectRoot 'AstrBot\data\plugins'
-    if (-not (Test-Path -LiteralPath $pluginsRoot)) { throw 'AstrBot 插件目录不存在。' }
+    $pluginsRoot = Join-Path $ProjectRoot 'AgentRuntime\data\plugins'
+    if (-not (Test-Path -LiteralPath $pluginsRoot)) { throw 'AgentRuntime 插件目录不存在。' }
     $target = Join-Path $pluginsRoot $id
     if (Test-Path -LiteralPath $target) { throw ('插件 {0} 已安装。' -f $id) }
 
@@ -264,7 +300,7 @@ function Get-PluginReviewSummary {
     )
 
     $metadata = Read-PluginMetadataYaml (Join-Path $PackageRoot 'metadata.yaml')
-    $compat = Test-AstrBotVersionSpec -Spec ([string]$metadata.astrbot_version) -Version $LocalVersion
+    $compat = Test-AgentRuntimeVersionSpec -Spec ([string]$metadata.agentruntime_version) -Version $LocalVersion
     $scan = Invoke-PluginSecurityScan -Path $PackageRoot
     return [pscustomobject]@{
         Metadata   = $metadata

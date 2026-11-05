@@ -29,7 +29,7 @@ function Write-DashboardModuleLog {
             Move-Item -LiteralPath $script:DashboardModuleLogFile -Destination ($script:DashboardModuleLogFile + '.1') -Force -ErrorAction SilentlyContinue
         }
         Add-Content -LiteralPath $script:DashboardModuleLogFile -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $Message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 function Read-DashboardModuleState {
@@ -40,7 +40,7 @@ function Read-DashboardModuleState {
         if ($saved -and $saved.PSObject.Properties.Name -contains 'disabled') {
             $state.disabled = @($saved.disabled | ForEach-Object { [string]$_ })
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return $state
 }
 
@@ -49,9 +49,15 @@ function Save-DashboardModuleState($State) {
         $dir = Split-Path -Parent $script:DashboardModuleStateFile
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         $State | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $script:DashboardModuleStateFile -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
+<#
+.SYNOPSIS
+    Get-DashboardModules performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-DashboardModules {
     param([string]$ToolsRoot)
     if (-not $ToolsRoot) { $ToolsRoot = $script:ToolsRoot }
@@ -117,6 +123,12 @@ function Get-DashboardModules {
     return [pscustomobject]@{ Root = $modulesRoot; Modules = @($modules) }
 }
 
+<#
+.SYNOPSIS
+    Import-DashboardModule performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Import-DashboardModule {
     param(
         [Parameter(Mandatory = $true)]$Module,
@@ -172,7 +184,7 @@ function Import-DashboardModule {
         param($message)
         try {
             Add-Content -LiteralPath $logRef.File -Value ('[{0:yyyy-MM-dd HH:mm:ss}] [{1}] {2}' -f (Get-Date), $logRef.Id, $message) -Encoding UTF8
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }).GetNewClosure()
     $context.T = ({
         param($zh, $en)
@@ -193,7 +205,7 @@ function Import-DashboardModule {
                 } $context
             }
         } catch {
-            try { [void]$Tabs.Items.Remove($tab) } catch { }
+            try { [void]$Tabs.Items.Remove($tab) } catch { Write-Verbose 'optional operation failed' }
             $result.Error = '逻辑脚本失败：' + $_.Exception.Message
             Write-DashboardModuleLog ('[' + $Module.Id + '] ' + $result.Error + [Environment]::NewLine + $_.ScriptStackTrace)
             return $result
@@ -212,12 +224,18 @@ function Unload-DashboardModule {
     param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)]$Tabs)
     if (-not $script:LoadedDashboardModules.ContainsKey($Id)) { return $false }
     $loaded = $script:LoadedDashboardModules[$Id]
-    try { [void]$Tabs.Items.Remove($loaded.Tab) } catch { }
+    try { [void]$Tabs.Items.Remove($loaded.Tab) } catch { Write-Verbose 'optional operation failed' }
     [void]$script:LoadedDashboardModules.Remove($Id)
     Write-DashboardModuleLog ('[' + $Id + '] unloaded')
     return $true
 }
 
+<#
+.SYNOPSIS
+    Set-DashboardModuleEnabled performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Set-DashboardModuleEnabled {
     param(
         [Parameter(Mandatory = $true)][string]$Id,
@@ -254,6 +272,12 @@ $script:OfficialModuleHashes = @{
 }
 $script:ModuleSecurityBlocks = New-Object System.Collections.ArrayList
 
+<#
+.SYNOPSIS
+    Test-DashboardModuleSafety performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Test-DashboardModuleSafety {
     param([Parameter(Mandatory = $true)]$Module)
     if ($Module.Problem) { return [pscustomobject]@{ Ok = $false; Reason = $Module.Problem } }
@@ -262,7 +286,7 @@ function Test-DashboardModuleSafety {
         if ($Module.LogicPath -and (Test-Path -LiteralPath $Module.LogicPath)) {
             $hash = (Get-FileHash -LiteralPath $Module.LogicPath -Algorithm SHA256).Hash.ToLowerInvariant()
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 
     if ($script:OfficialModuleHashes.ContainsKey([string]$Module.Id)) {
         if ($hash -eq $script:OfficialModuleHashes[[string]$Module.Id]) {
@@ -288,6 +312,12 @@ function Test-DashboardModuleSafety {
     return [pscustomobject]@{ Ok = $false; Reason = $reason }
 }
 
+<#
+.SYNOPSIS
+    Initialize-DashboardModules performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Initialize-DashboardModules {
     param(
         [Parameter(Mandatory = $true)]$Tabs,
@@ -321,6 +351,12 @@ function Initialize-DashboardModules {
     }
 }
 
+<#
+.SYNOPSIS
+    Register-DashboardModuleExceptionHook performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Register-DashboardModuleExceptionHook {
     param([Parameter(Mandatory = $true)]$Window)
     if ($script:DashboardModuleExceptionHook) { return }
@@ -328,8 +364,8 @@ function Register-DashboardModuleExceptionHook {
     try {
         $Window.Dispatcher.Add_UnhandledException({
             $exception = $null
-            try { $exception = $args[1].Exception } catch { }
-            try { $args[1].Handled = $true } catch { }
+            try { $exception = $args[1].Exception } catch { Write-Verbose 'optional operation failed' }
+            try { $args[1].Handled = $true } catch { Write-Verbose 'optional operation failed' }
             $message = if ($exception) { $exception.Message } else { '未知错误' }
             Write-DashboardModuleLog ('unhandled dispatcher exception: ' + $message + [Environment]::NewLine + [string]$exception)
             if (Get-Command Write-UiError -ErrorAction SilentlyContinue) { Write-UiError 'module runtime' $exception }
@@ -337,7 +373,7 @@ function Register-DashboardModuleExceptionHook {
                 [Windows.MessageBox]::Show(
                     ('控制台模块运行出错，已被拦截，主控台继续运行。' + [Environment]::NewLine + [Environment]::NewLine + $message),
                     '模块运行错误', 'OK', 'Error') | Out-Null
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }) | Out-Null
     } catch {
         $script:DashboardModuleExceptionHook = $false

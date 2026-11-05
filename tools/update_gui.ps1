@@ -9,10 +9,16 @@ $mergeScript = Join-Path $PSScriptRoot 'update_merge.ps1'
 $skipFile = Join-Path $PSScriptRoot 'skip_version.json'
 $statusFile = Join-Path $env:TEMP 'cyber-butler-gui-status.json'
 
-function Show-Message([string]$text, [string]$title = '苏瑾言更新') {
+function Show-Message([string]$text, [string]$title = 'local agent更新') {
     [Windows.MessageBox]::Show($text, $title) | Out-Null
 }
 
+<#
+.SYNOPSIS
+    Read-ProductionPhrase performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Read-ProductionPhrase {
     $w = New-Object Windows.Window
     $w.Title = '生产更新确认'
@@ -54,7 +60,7 @@ function Get-UpdateInfo {
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="检查苏瑾言更新" Width="620" Height="480"
+        Title="检查local agent更新" Width="620" Height="480"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
   <Grid Margin="24">
     <Grid.RowDefinitions>
@@ -65,7 +71,7 @@ $xaml = @'
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <TextBlock Grid.Row="0" Text="苏瑾言更新检查" FontSize="22" FontWeight="SemiBold"/>
+    <TextBlock Grid.Row="0" Text="local agent更新检查" FontSize="22" FontWeight="SemiBold"/>
     <TextBlock Grid.Row="1" x:Name="VersionText" Margin="0,12,0,8" FontSize="14"/>
     <TextBox Grid.Row="2" x:Name="Notes" IsReadOnly="True" TextWrapping="Wrap"
              VerticalScrollBarVisibility="Auto" Margin="0,8,0,12"/>
@@ -133,7 +139,7 @@ $timer.Add_Tick({
             }
             $script:lastStatusAt = Get-Date
             $statusText.Text = [string]$state.message
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     if ($script:currentProgress -lt $script:cap -and ((Get-Date) - $script:lastStatusAt).TotalSeconds -ge 2) {
         $script:currentProgress += 1
@@ -144,7 +150,7 @@ $timer.Add_Tick({
         $timer.Stop()
         if ($script:child.ExitCode -eq 0) {
             $progress.Value = 100
-            Show-Message '更新完成，苏瑾言已重启。'
+            Show-Message '更新完成，local agent已重启。'
         } else {
             Show-Message '更新失败，已尝试回滚。请查看 backups 下的 update.log。'
         }

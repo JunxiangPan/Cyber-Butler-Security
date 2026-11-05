@@ -14,16 +14,44 @@ from settings import Settings  # noqa: E402
 
 
 class FakeMailer:
+    """FakeMailer helper/type."""
     def __init__(self) -> None:
+        """Init.
+        
+        Args:
+            None.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.sent: list[tuple[str, str]] = []
         self.langs: list[str] = []
 
     async def send(self, email: str, code: str, ttl: int, lang: str = "zh") -> None:
+        """Send.
+        
+        Args:
+            email: caller-supplied value.
+            code: caller-supplied value.
+            ttl: caller-supplied value.
+            lang: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         self.sent.append((email, code))
         self.langs.append(lang)
 
 
 def make_client(tmp_path: Path) -> tuple[TestClient, FakeMailer]:
+    """Make client.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     settings = Settings(admin_email="owner@example.com", data_dir=tmp_path / "data")
     settings.ensure_data()
     mailer = FakeMailer()
@@ -32,6 +60,14 @@ def make_client(tmp_path: Path) -> tuple[TestClient, FakeMailer]:
 
 
 def test_otp_login_session_and_csrf_logout(tmp_path: Path) -> None:
+    """Test otp login session and csrf logout.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     response = client.post("/api/auth/request-otp", json={"email": "owner@example.com"})
     assert response.status_code == 200
@@ -58,6 +94,14 @@ def test_otp_login_session_and_csrf_logout(tmp_path: Path) -> None:
 
 
 def test_unregistered_email_is_generic_and_sends_nothing(tmp_path: Path) -> None:
+    """Test unregistered email is generic and sends nothing.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     response = client.post("/api/auth/request-otp", json={"email": "other@example.com"})
     assert response.status_code == 200
@@ -68,6 +112,14 @@ def test_unregistered_email_is_generic_and_sends_nothing(tmp_path: Path) -> None
 
 
 def test_wrong_code_is_rejected_and_replay_is_rejected(tmp_path: Path) -> None:
+    """Test wrong code is rejected and replay is rejected.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path)
     client.post("/api/auth/request-otp", json={"email": "owner@example.com"})
     _, code = mailer.sent[0]
@@ -90,6 +142,14 @@ def test_wrong_code_is_rejected_and_replay_is_rejected(tmp_path: Path) -> None:
 
 
 def test_otp_rate_limit(tmp_path: Path) -> None:
+    """Test otp rate limit.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, _ = make_client(tmp_path)
     assert client.post(
         "/api/auth/request-otp", json={"email": "owner@example.com"}
@@ -100,6 +160,14 @@ def test_otp_rate_limit(tmp_path: Path) -> None:
 
 
 def test_docs_and_openapi_are_disabled(tmp_path: Path) -> None:
+    """Test docs and openapi are disabled.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, _ = make_client(tmp_path)
     assert client.get("/docs").status_code == 404
     assert client.get("/openapi.json").status_code == 404
@@ -108,6 +176,14 @@ def test_docs_and_openapi_are_disabled(tmp_path: Path) -> None:
 def test_auto_cookie_secure_accepts_trusted_tailscale_forwarded_proto(
     tmp_path: Path,
 ) -> None:
+    """Test auto cookie secure accepts trusted tailscale forwarded proto.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     settings = Settings(
         admin_email="owner@example.com",
         data_dir=tmp_path / "proxy-auto",
@@ -137,7 +213,23 @@ def test_auto_cookie_secure_accepts_trusted_tailscale_forwarded_proto(
 
 
 def test_auto_cookie_secure_adapts_to_scheme(tmp_path: Path) -> None:
+    """Test auto cookie secure adapts to scheme.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     def client_for(base_url: str):
+        """Client for.
+        
+        Args:
+            base_url: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         settings = Settings(admin_email="owner@example.com", data_dir=tmp_path / ("auto-" + base_url.split(":")[0]), cookie_secure="auto")
         settings.ensure_data()
         mailer = FakeMailer()
@@ -159,6 +251,14 @@ def test_auto_cookie_secure_adapts_to_scheme(tmp_path: Path) -> None:
 
 
 def test_otp_language_follows_request_and_falls_back(tmp_path: Path) -> None:
+    """Test otp language follows request and falls back.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, mailer = make_client(tmp_path / "lang")
     assert client.post(
         "/api/auth/request-otp", json={"email": "owner@example.com", "lang": "de"}
@@ -172,6 +272,14 @@ def test_otp_language_follows_request_and_falls_back(tmp_path: Path) -> None:
 
 
 def test_localized_error_page_and_csp(tmp_path: Path) -> None:
+    """Test localized error page and csp.
+    
+    Args:
+        tmp_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     client, _ = make_client(tmp_path / "errors")
     page = client.get("/missing-page")
     assert page.status_code == 404

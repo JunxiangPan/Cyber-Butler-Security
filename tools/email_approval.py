@@ -8,6 +8,8 @@ primitives; the broker integration lives in broker.py.
 
 from __future__ import annotations
 
+from typing import cast
+
 import html
 import imaplib
 import json
@@ -25,6 +27,7 @@ APPROVE_RE = re.compile(r"^APPROVE\s+#([0-9A-Fa-f]{4,8})\s+TOTP\s*[:=]?\s*\+?(\d
 
 
 class EmailConfigError(RuntimeError):
+    """EmailConfigError helper/type."""
     pass
 
 
@@ -71,11 +74,30 @@ def parse_approval_line(text: str) -> tuple[str, str] | None:
 
 
 def sender_allowed(from_header: str, allowed_sender: str) -> bool:
+    """Sender allowed.
+    
+    Args:
+        from_header: caller-supplied value.
+        allowed_sender: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     _name, address = parseaddr(str(from_header or ""))
     return bool(address) and address.strip().lower() == str(allowed_sender).strip().lower()
 
 
 def send_email(config: dict, subject: str, body: str) -> None:
+    """Send email.
+    
+    Args:
+        config: caller-supplied value.
+        subject: caller-supplied value.
+        body: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     message = EmailMessage()
     message["From"] = config["smtp_from"]
     message["To"] = config["approval_to"]
@@ -92,6 +114,14 @@ def send_email(config: dict, subject: str, body: str) -> None:
 
 
 def _folders(mailbox):
+    """Folders.
+    
+    Args:
+        mailbox: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     folders = ["INBOX"]
     for name in ("Sent", "&XfJT0ZAB-", "Sent Messages", "Sent Items", "&V4NXPpCuTvY-", "已发送", "已发送邮件"):
         try:
@@ -104,6 +134,14 @@ def _folders(mailbox):
 
 
 def _message_text(message) -> str:
+    """Message text.
+    
+    Args:
+        message: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     body = message.get_body(preferencelist=("plain", "html"))
     if body is None:
         return ""
@@ -143,7 +181,8 @@ def poll_once(config: dict, expected_challenge: str = "") -> tuple[str, str, str
                 typ, fetched = mailbox.fetch(num, "(RFC822)")
                 if typ != "OK" or not fetched:
                     continue
-                message = message_from_bytes(fetched[0][1], policy=policy.default)
+                payload = cast(tuple[bytes, bytes], fetched[0])[1]
+                message = message_from_bytes(payload, policy=policy.default)
                 text = _message_text(message)
                 parsed = parse_approval_line(text)
                 if not parsed:

@@ -1,4 +1,4 @@
-# Launch the local Cyber-Butler dashboard with a diagnostic log.
+﻿# Launch the local Cyber-Butler dashboard with a diagnostic log.
 # The WPF dashboard runs hidden from the shortcut; if it fails, show a visible
 # error instead of leaving the user with a shortcut that does nothing.
 param(
@@ -15,7 +15,7 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 function Write-LaunchLog([string]$message) {
     try {
         Add-Content -LiteralPath $log -Value ('[{0:yyyy-MM-dd HH:mm:ss}] {1}' -f (Get-Date), $message) -Encoding UTF8
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }
 
 Write-LaunchLog ('launch begin root=' + $ProjectRoot)
@@ -33,5 +33,5 @@ try {
             'Cyber-Butler',
             'OK',
             'Error') | Out-Null
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
 }

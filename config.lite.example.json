@@ -1,5 +1,5 @@
 {
-  "_comment": "Lite API-only deployment profile: no Ollama, no local model, no GPU required. This is a project profile, not a full AstrBot cmd_config.json.",
+  "_comment": "Lite API-only deployment profile: no Ollama, no local model, no GPU required. This is a project profile, not a full AgentRuntime cmd_config.json.",
   "profile": "lite",
   "local_model_enabled": false,
   "fallback_to_cloud": true,

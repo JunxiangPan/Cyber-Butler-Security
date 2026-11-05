@@ -2,7 +2,7 @@
 # Run from tools/broker.py startup, and also manually before deploying.
 param(
     [string]$ServiceUser = 'YOUR_SERVICE_USER',
-    [string]$DesktopUser = 'YOUR_USER_NAME'
+    [string]$DesktopUser = 'test-user'
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot

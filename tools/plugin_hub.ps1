@@ -1,26 +1,32 @@
 ﻿#Requires -Version 5.1
 <#
-Cyber-Butler AstrBot plugin hub backend.
+Cyber-Butler AgentRuntime plugin hub backend.
 
-Reads the live plugin list from the AstrBot dashboard API (authoritative for
+Reads the live plugin list from the AgentRuntime dashboard API (authoritative for
 enabled/disabled state) and falls back to parsing metadata.yaml files when the
-service is offline. All write operations go through the local AstrBot API so a
+service is offline. All write operations go through the local AgentRuntime API so a
 running instance reloads the plugin without restarting the whole stack.
 
-Deletion is deliberately softer than AstrBot's own uninstall: the plugin
+Deletion is deliberately softer than AgentRuntime's own uninstall: the plugin
 directory is moved into backups/deleted_plugins/ and never removed.
 #>
 
-$script:AstrBotApiBase = 'http://127.0.0.1:6185'
+$script:AgentRuntimeApiBase = 'http://127.0.0.1:6185'
 
 function Get-CyberButlerToken {
     param([string]$ProjectRoot)
-    $file = Join-Path $ProjectRoot '.astrbot_token'
+    $file = Join-Path $ProjectRoot '.agentruntime_token'
     if (-not (Test-Path -LiteralPath $file)) { return '' }
     try { return (Get-Content -LiteralPath $file -Raw -Encoding UTF8).Trim() } catch { return '' }
 }
 
-function Invoke-AstrBotApi {
+<#
+.SYNOPSIS
+    Invoke-AgentRuntimeApi performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Invoke-AgentRuntimeApi {
     param(
         [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'DELETE')][string]$Method = 'GET',
         [Parameter(Mandatory = $true)][string]$ApiPath,
@@ -29,10 +35,10 @@ function Invoke-AstrBotApi {
     )
 
     $token = Get-CyberButlerToken $script:ProjectRoot
-    if (-not $token) { throw 'AstrBot token not found; open the dashboard once to create it.' }
+    if (-not $token) { throw 'AgentRuntime token not found; open the dashboard once to create it.' }
 
     $parameters = @{
-        Uri         = ($script:AstrBotApiBase + $ApiPath)
+        Uri         = ($script:AgentRuntimeApiBase + $ApiPath)
         Method      = $Method
         Headers     = @{ Authorization = 'Bearer ' + $token; 'User-Agent' = 'Cyber-Butler-Dashboard' }
         TimeoutSec  = $TimeoutSec
@@ -48,16 +54,22 @@ function Invoke-AstrBotApi {
         # raw bytes and decode explicitly instead.
         $response = Invoke-WebRequest @parameters
         $stream = $response.RawContentStream
-        try { $stream.Position = 0 } catch { }
+        try { $stream.Position = 0 } catch { Write-Verbose 'optional operation failed' }
         $text = [Text.Encoding]::UTF8.GetString($stream.ToArray())
         if (-not $text.Trim()) { return $null }
         return ($text | ConvertFrom-Json)
     } catch {
         $message = $_.Exception.Message
-        throw ('AstrBot API ' + $ApiPath + ' failed: ' + $message)
+        throw ('AgentRuntime API ' + $ApiPath + ' failed: ' + $message)
     }
 }
 
+<#
+.SYNOPSIS
+    Read-PluginMetadataYaml performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Read-PluginMetadataYaml {
     param([Parameter(Mandatory = $true)][string]$Path)
 
@@ -69,7 +81,7 @@ function Read-PluginMetadataYaml {
         version = ''
         author = ''
         repo = ''
-        astrbot_version = ''
+        agentruntime_version = ''
         support_platforms = @()
     }
     if (-not (Test-Path -LiteralPath $Path)) { return $data }
@@ -116,26 +128,32 @@ function Read-PluginMetadataYaml {
     return $data
 }
 
-function Get-AstrBotPluginFolders {
+function Get-AgentRuntimePluginFolders {
     param([string]$ProjectRoot)
-    $pluginsRoot = Join-Path $ProjectRoot 'AstrBot\data\plugins'
+    $pluginsRoot = Join-Path $ProjectRoot 'AgentRuntime\data\plugins'
     if (-not (Test-Path -LiteralPath $pluginsRoot)) { return @() }
     return @(Get-ChildItem -LiteralPath $pluginsRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name)
 }
 
-function Get-AstrBotPluginList {
+<#
+.SYNOPSIS
+    Get-AgentRuntimePluginList performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Get-AgentRuntimePluginList {
     param(
         [string]$ProjectRoot,
         [switch]$FilesOnly
     )
 
-    $version = Get-LocalAstrBotVersion $ProjectRoot
+    $version = Get-LocalAgentRuntimeVersion $ProjectRoot
     $byDir = @{}
     $apiError = ''
 
     if (-not $FilesOnly) {
         try {
-            $response = Invoke-AstrBotApi -Method GET -ApiPath '/api/plugin/get'
+            $response = Invoke-AgentRuntimeApi -Method GET -ApiPath '/api/plugin/get'
             if ($response -and $response.status -ne 'error') {
                 foreach ($item in @($response.data)) {
                     if (-not $item) { continue }
@@ -148,7 +166,7 @@ function Get-AstrBotPluginList {
                         Author         = [string]$item.author
                         Desc           = [string]$item.desc
                         Repo           = [string]$item.repo
-                        AstrBotVersion = [string]$item.astrbot_version
+                        AgentRuntimeVersion = [string]$item.agentruntime_version
                         Platforms      = @($item.support_platforms)
                         Activated      = [bool]$item.activated
                         Reserved       = [bool]$item.reserved
@@ -163,7 +181,7 @@ function Get-AstrBotPluginList {
         }
     }
 
-    foreach ($folder in (Get-AstrBotPluginFolders $ProjectRoot)) {
+    foreach ($folder in (Get-AgentRuntimePluginFolders $ProjectRoot)) {
         if ($byDir.ContainsKey($folder.Name)) { continue }
         $metadata = Read-PluginMetadataYaml (Join-Path $folder.FullName 'metadata.yaml')
         $byDir[$folder.Name] = [pscustomobject]@{
@@ -173,7 +191,7 @@ function Get-AstrBotPluginList {
             Author         = [string]$metadata.author
             Desc           = [string]$metadata.desc
             Repo           = [string]$metadata.repo
-            AstrBotVersion = [string]$metadata.astrbot_version
+            AgentRuntimeVersion = [string]$metadata.agentruntime_version
             Platforms      = @($metadata.support_platforms)
             Activated      = $null
             Reserved       = $false
@@ -185,10 +203,10 @@ function Get-AstrBotPluginList {
 
     $list = New-Object System.Collections.ArrayList
     foreach ($entry in $byDir.Values) {
-        $compat = Test-AstrBotVersionSpec -Spec $entry.AstrBotVersion -Version $version
+        $compat = Test-AgentRuntimeVersionSpec -Spec $entry.AgentRuntimeVersion -Version $version
         $entry | Add-Member -NotePropertyName Compat -NotePropertyValue ([bool]$compat.Ok) -Force
         $entry | Add-Member -NotePropertyName CompatReason -NotePropertyValue ([string]$compat.Reason) -Force
-        $entry | Add-Member -NotePropertyName ConfigPath -NotePropertyValue (Get-AstrBotPluginConfigPath $ProjectRoot $entry.RootDirName) -Force
+        $entry | Add-Member -NotePropertyName ConfigPath -NotePropertyValue (Get-AgentRuntimePluginConfigPath $ProjectRoot $entry.RootDirName) -Force
         [void]$list.Add($entry)
     }
 
@@ -199,54 +217,60 @@ function Get-AstrBotPluginList {
     }
 }
 
-function Set-AstrBotPluginEnabled {
+function Set-AgentRuntimePluginEnabled {
     param(
         [string]$ProjectRoot,
         [Parameter(Mandatory = $true)][string]$PluginId,
         [Parameter(Mandatory = $true)][bool]$Enabled
     )
     $endpoint = if ($Enabled) { '/api/plugin/on' } else { '/api/plugin/off' }
-    $response = Invoke-AstrBotApi -Method POST -ApiPath $endpoint -Body @{ name = $PluginId }
+    $response = Invoke-AgentRuntimeApi -Method POST -ApiPath $endpoint -Body @{ name = $PluginId }
     if (-not $response -or $response.status -eq 'error') {
-        throw ('AstrBot rejected the change: ' + [string]$response.message)
+        throw ('AgentRuntime rejected the change: ' + [string]$response.message)
     }
     return [string]$response.message
 }
 
-function Reload-AstrBotPlugins {
+function Reload-AgentRuntimePlugins {
     param([string]$ProjectRoot)
-    $response = Invoke-AstrBotApi -Method POST -ApiPath '/api/plugin/reload' -Body @{}
+    $response = Invoke-AgentRuntimeApi -Method POST -ApiPath '/api/plugin/reload' -Body @{}
     if (-not $response -or $response.status -eq 'error') {
-        throw ('AstrBot reload failed: ' + [string]$response.message)
+        throw ('AgentRuntime reload failed: ' + [string]$response.message)
     }
     return [string]$response.message
 }
 
-function Reload-AstrBotPlugin {
+function Reload-AgentRuntimePlugin {
     param([string]$ProjectRoot, [Parameter(Mandatory = $true)][string]$PluginId)
-    $response = Invoke-AstrBotApi -Method POST -ApiPath '/api/plugin/reload' -Body @{ name = $PluginId }
+    $response = Invoke-AgentRuntimeApi -Method POST -ApiPath '/api/plugin/reload' -Body @{ name = $PluginId }
     if (-not $response -or $response.status -eq 'error') {
-        throw ('AstrBot reload failed: ' + [string]$response.message)
+        throw ('AgentRuntime reload failed: ' + [string]$response.message)
     }
     return [string]$response.message
 }
 
-function Get-AstrBotPluginConfigPath {
+function Get-AgentRuntimePluginConfigPath {
     param([string]$ProjectRoot, [string]$RootDirName)
     if (-not $RootDirName) { return '' }
-    return (Join-Path $ProjectRoot ('AstrBot\data\config\' + $RootDirName + '_config.json'))
+    return (Join-Path $ProjectRoot ('AgentRuntime\data\config\' + $RootDirName + '_config.json'))
 }
 
-function Move-AstrBotPluginToRecycleBin {
+<#
+.SYNOPSIS
+    Move-AgentRuntimePluginToRecycleBin performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Move-AgentRuntimePluginToRecycleBin {
     param(
         [string]$ProjectRoot,
         [Parameter(Mandatory = $true)][string]$RootDirName
     )
 
-    $pluginsRoot = (Resolve-Path -LiteralPath (Join-Path $ProjectRoot 'AstrBot\data\plugins')).Path
+    $pluginsRoot = (Resolve-Path -LiteralPath (Join-Path $ProjectRoot 'AgentRuntime\data\plugins')).Path
     $source = (Resolve-Path -LiteralPath (Join-Path $pluginsRoot $RootDirName) -ErrorAction Stop).Path
     if (-not $source.StartsWith($pluginsRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'refusing to move a path outside AstrBot/data/plugins'
+        throw 'refusing to move a path outside AgentRuntime/data/plugins'
     }
     if ($RootDirName -match '[\\/]' -or $RootDirName -eq '.' -or $RootDirName -eq '..') {
         throw 'invalid plugin directory name'
@@ -263,20 +287,26 @@ function Move-AstrBotPluginToRecycleBin {
         moved_at     = (Get-Date).ToString('o')
         source       = $source
         destination  = $destination
-        restored_by  = 'move the directory back into AstrBot/data/plugins and reload'
+        restored_by  = 'move the directory back into AgentRuntime/data/plugins and reload'
     }
     Add-Content -LiteralPath (Join-Path $backupDir 'deleted.log') -Value ($record | ConvertTo-Json -Compress) -Encoding UTF8
     return $record
 }
 
-function Restore-AstrBotPluginDefaults {
+<#
+.SYNOPSIS
+    Restore-AgentRuntimePluginDefaults performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Restore-AgentRuntimePluginDefaults {
     param(
         [string]$ProjectRoot,
         [Parameter(Mandatory = $true)][string]$PluginId,
         [Parameter(Mandatory = $true)][string]$RootDirName
     )
 
-    $configPath = Get-AstrBotPluginConfigPath $ProjectRoot $RootDirName
+    $configPath = Get-AgentRuntimePluginConfigPath $ProjectRoot $RootDirName
     $backupPath = ''
     if (Test-Path -LiteralPath $configPath) {
         $backupDir = Join-Path $ProjectRoot 'backups\plugin-config-defaults'
@@ -287,7 +317,7 @@ function Restore-AstrBotPluginDefaults {
         Remove-Item -LiteralPath $configPath -Force
     }
 
-    $message = Set-AstrBotPluginEnabled -ProjectRoot $ProjectRoot -PluginId $PluginId -Enabled $true
+    $message = Set-AgentRuntimePluginEnabled -ProjectRoot $ProjectRoot -PluginId $PluginId -Enabled $true
     return [pscustomobject]@{
         HadConfig  = [bool]$backupPath
         BackupPath = $backupPath
@@ -295,10 +325,10 @@ function Restore-AstrBotPluginDefaults {
     }
 }
 
-function Get-AstrBotRuntimeInfo {
+function Get-AgentRuntimeRuntimeInfo {
     param([string]$ProjectRoot)
     $token = Get-CyberButlerToken $ProjectRoot
-    $version = Get-LocalAstrBotVersion $ProjectRoot
+    $version = Get-LocalAgentRuntimeVersion $ProjectRoot
     $online = $false
     try {
         $client = New-Object Net.Sockets.TcpClient

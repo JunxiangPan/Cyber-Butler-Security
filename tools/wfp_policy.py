@@ -14,10 +14,20 @@ MODES = {"audit", "enforce"}
 
 
 class PolicyError(ValueError):
+    """PolicyError helper/type."""
     pass
 
 
 def _port(value, field: str) -> int:
+    """Port.
+    
+    Args:
+        value: caller-supplied value.
+        field: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         port = int(value)
     except (TypeError, ValueError) as exc:
@@ -28,6 +38,14 @@ def _port(value, field: str) -> int:
 
 
 def validate(policy: dict) -> dict:
+    """Validate.
+    
+    Args:
+        policy: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not isinstance(policy, dict):
         raise PolicyError("policy must be an object")
     if policy.get("schema") != 1:
@@ -65,10 +83,26 @@ def validate(policy: dict) -> dict:
 
 
 def load(path: Path) -> dict:
+    """Load.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return validate(json.loads(Path(path).read_text(encoding="utf-8")))
 
 
 def resolve_domains(policy: dict) -> list[dict]:
+    """Resolve domains.
+    
+    Args:
+        policy: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     resolved = []
     for entry in validate(policy)["allow"]:
         if entry["kind"] != "domain":

@@ -14,6 +14,7 @@ def _prepare(monkeypatch, tmp_path: Path) -> Path:
 
 def test_conftest_write_is_hard_denied_and_audited(monkeypatch, tmp_path: Path):
     audit = _prepare(monkeypatch, tmp_path)
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
     status, body = broker.run_request({
         "action": "write_file",
         "target": str(tmp_path / "conftest.py"),
@@ -27,6 +28,7 @@ def test_conftest_write_is_hard_denied_and_audited(monkeypatch, tmp_path: Path):
 
 def test_github_workflow_is_hard_denied(monkeypatch, tmp_path: Path):
     audit = _prepare(monkeypatch, tmp_path)
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
     target = tmp_path / ".github" / "workflows" / "ci.yml"
     status, _ = broker.run_request({"action": "delete", "target": str(target)})
     assert status == 403

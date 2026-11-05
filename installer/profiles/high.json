@@ -16,7 +16,7 @@
   "audit": "full",
   "dailyAudit": true,
   "brokerAccount": "SYSTEM",
-  "astrbotAccount": "service",
+  "agentruntimeAccount": "service",
   "webUIAccount": "service",
-  "snowLumaAccount": "desktop"
+  "AuxRuntimeAccount": "desktop"
 }

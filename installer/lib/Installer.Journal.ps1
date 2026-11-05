@@ -1,4 +1,4 @@
-# State journal, backups, and reverse actions for the Cyber-Butler installer.
+﻿# State journal, backups, and reverse actions for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 before this file.
 
 function Save-CyberButlerJournal {
@@ -11,6 +11,12 @@ function Save-CyberButlerJournal {
     Write-InstallerJson -Path $Journal.StatePath -Value $Journal.State
 }
 
+<#
+.SYNOPSIS
+    New-CyberButlerJournal performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CyberButlerJournal {
     param(
         [Parameter(Mandatory = $true)]
@@ -53,6 +59,12 @@ function New-CyberButlerJournal {
     return $journal
 }
 
+<#
+.SYNOPSIS
+    Read-CyberButlerJournal performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Read-CyberButlerJournal {
     param(
         [Parameter(Mandatory = $true)]
@@ -89,6 +101,12 @@ function Get-CyberButlerJournalStep {
     return $null
 }
 
+<#
+.SYNOPSIS
+    Add-CyberButlerJournalStep performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Add-CyberButlerJournalStep {
     param(
         [Parameter(Mandatory = $true)]
@@ -168,6 +186,12 @@ function Get-CyberButlerResumeStep {
     return $null
 }
 
+<#
+.SYNOPSIS
+    New-CyberButlerTrackedDirectory performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CyberButlerTrackedDirectory {
     param(
         [Parameter(Mandatory = $true)]
@@ -196,6 +220,12 @@ function New-CyberButlerTrackedDirectory {
     return $full
 }
 
+<#
+.SYNOPSIS
+    Backup-CyberButlerFile performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Backup-CyberButlerFile {
     param(
         [Parameter(Mandatory = $true)]
@@ -231,6 +261,12 @@ function Backup-CyberButlerFile {
     return $backup
 }
 
+<#
+.SYNOPSIS
+    Backup-CyberButlerAcl performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Backup-CyberButlerAcl {
     param(
         [Parameter(Mandatory = $true)]
@@ -261,6 +297,12 @@ function Backup-CyberButlerAcl {
     return $backup
 }
 
+<#
+.SYNOPSIS
+    Backup-CyberButlerScheduledTask performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Backup-CyberButlerScheduledTask {
     param(
         [Parameter(Mandatory = $true)]
@@ -288,6 +330,12 @@ function Backup-CyberButlerScheduledTask {
     return $backup
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerReverseAction performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerReverseAction {
     param(
         [Parameter(Mandatory = $true)]
@@ -396,6 +444,12 @@ function Invoke-CyberButlerReverseAction {
     }
 }
 
+<#
+.SYNOPSIS
+    Invoke-CyberButlerRollback performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-CyberButlerRollback {
     param(
         [Parameter(Mandatory = $true)]

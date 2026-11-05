@@ -2,7 +2,7 @@
 <#
 Cyber-Butler Dashboard - Phase 1 read-only shell.
 
-This is a local WPF desktop application. It is not an AstrBot plugin and is not
+This is a local WPF desktop application. It is not an AgentRuntime plugin and is not
 registered as an LLM tool. Phase 1 only reads ports, GPU, provider configuration,
 audit log, persona prompt, and game-list files; write buttons are disabled.
 #>
@@ -55,7 +55,7 @@ function Get-I18nEntry([string]$zh) {
                     if ($entry.zh) { $script:I18nZhIndex[[string]$entry.zh] = $entry }
                 }
             }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     return $script:I18nZhIndex[$zh]
 }
@@ -102,9 +102,9 @@ $xaml = @'
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="Cyber-Butler 主控台" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/>
         <TextBlock Text="   本地主控台" Foreground="{DynamicResource MutedBrush}" FontSize="13" VerticalAlignment="Center"/>
-        <TextBlock x:Name="AstrBotLight" Text="● AstrBot" Margin="28,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 AstrBot WebUI"/>
+        <TextBlock x:Name="AgentRuntimeLight" Text="● AgentRuntime" Margin="28,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 AgentRuntime WebUI"/>
         <TextBlock x:Name="BrokerLight" Text="● Broker" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="TOTP Broker 为后台无头服务，无 Web 管理界面"/>
-        <TextBlock x:Name="SnowLumaLight" Text="● SnowLuma" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 SnowLuma WebUI"/>
+        <TextBlock x:Name="AuxRuntimeLight" Text="● AuxRuntime" Margin="18,0,0,0" FontSize="15" VerticalAlignment="Center" Cursor="Hand" ToolTip="打开 AuxRuntime WebUI"/>
         <TextBlock x:Name="VersionLabel" Text="版本读取中..." Margin="30,0,0,0" FontSize="13" Foreground="{DynamicResource AccentBrush}" Cursor="Hand" ToolTip="点击检查更新"/>
         <Button x:Name="SettingsButton" Content="设置" Width="70" Height="28" Margin="18,0,0,0"/>
       </StackPanel>
@@ -122,8 +122,8 @@ $xaml = @'
           <UniformGrid Grid.Row="0" Columns="3">
             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,10,0">
               <StackPanel>
-                <TextBlock Text="AstrBot" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock x:Name="AstrBotCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
+                <TextBlock Text="AgentRuntime" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock x:Name="AgentRuntimeCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
                 <TextBlock Text="端口 6185" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </Border>
@@ -136,8 +136,8 @@ $xaml = @'
             </Border>
             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16">
               <StackPanel>
-                <TextBlock Text="SnowLuma" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock x:Name="SnowLumaCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
+                <TextBlock Text="AuxRuntime" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock x:Name="AuxRuntimeCardStatus" Text="检测中..." Margin="0,8,0,0" FontSize="24"/>
                 <TextBlock Text="端口 5099" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </Border>
@@ -162,7 +162,7 @@ $xaml = @'
           </Border>
 
           <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,16,0,0">
-            <Button x:Name="RestartButton" Content="重启 AstrBot 服务" Width="150" Height="36" Margin="0,0,8,0"/>
+            <Button x:Name="RestartButton" Content="重启 AgentRuntime 服务" Width="150" Height="36" Margin="0,0,8,0"/>
             <Button x:Name="VramButton" Content="一键释放显存" Width="130" Height="36" Margin="0,0,8,0"/>
             <Button x:Name="LogsButton" Content="打开运行日志目录" Width="150" Height="36"/>
           </StackPanel>
@@ -241,9 +241,9 @@ $xaml = @'
               <TextBox x:Name="PromptBox" Grid.Row="1" Margin="0,6,0,0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
             </Grid>
           </Grid>
-          <TextBlock Grid.Row="2" Text="切换人格会更新 AstrBot 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+          <TextBlock Grid.Row="2" Text="切换人格会更新 AgentRuntime 的默认人格并重载配置；删除非默认人格前会自动备份到 backups/personas。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
           <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
-            <Button x:Name="SavePromptButton" Content="保存并重载 AstrBot" Width="170" Height="36" Margin="0,0,8,0"/>
+            <Button x:Name="SavePromptButton" Content="保存并重载 AgentRuntime" Width="170" Height="36" Margin="0,0,8,0"/>
             <Button x:Name="ClearConversationButton" Content="清空当前对话历史" Width="170" Height="36"/>
           </StackPanel>
         </Grid>
@@ -344,7 +344,7 @@ $xaml = @'
           <StackPanel Orientation="Horizontal">
             <TextBox x:Name="MarketQueryBox" Width="240" Height="30" ToolTip="输入关键词，留空显示热门插件"/>
             <ComboBox x:Name="MarketSourceCombo" Width="150" Height="30" Margin="8,0,0,0" SelectedIndex="0">
-              <ComboBoxItem Content="AstrBot 官方市场"/>
+              <ComboBoxItem Content="AgentRuntime 官方市场"/>
               <ComboBoxItem Content="GitHub"/>
             </ComboBox>
             <Button x:Name="MarketSearchButton" Content="搜索" Width="80" Height="32" Margin="8,0,0,0"/>
@@ -363,7 +363,7 @@ $xaml = @'
             </DataGrid.Columns>
           </DataGrid>
           <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12">
-            <TextBlock x:Name="MarketDetailText" Text="搜索插件后，安装前会自动做静态安全扫描与 AstrBot 版本兼容检查。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+            <TextBlock x:Name="MarketDetailText" Text="搜索插件后，安装前会自动做静态安全扫描与 AgentRuntime 版本兼容检查。" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
           </Border>
         </Grid>
       </TabItem>
@@ -404,12 +404,12 @@ $styleDictionary = Load-XamlDictionary (Join-Path $toolsRoot 'dashboard_styles.x
 $window.Resources.MergedDictionaries.Add($themeDictionary)
 $window.Resources.MergedDictionaries.Add($styleDictionary)
 if ($SmokeTest) { Write-Output 'DASHBOARD_XAML_OK'; exit 0 }
-$astrBotLight = $window.FindName('AstrBotLight')
+$AgentRuntimeLight = $window.FindName('AgentRuntimeLight')
 $brokerLight = $window.FindName('BrokerLight')
-$snowLumaLight = $window.FindName('SnowLumaLight')
-$astrBotCard = $window.FindName('AstrBotCardStatus')
+$AuxRuntimeLight = $window.FindName('AuxRuntimeLight')
+$AgentRuntimeCard = $window.FindName('AgentRuntimeCardStatus')
 $brokerCard = $window.FindName('BrokerCardStatus')
-$snowLumaCard = $window.FindName('SnowLumaCardStatus')
+$AuxRuntimeCard = $window.FindName('AuxRuntimeCardStatus')
 $gpuText = $window.FindName('GpuText')
 $gpuBar = $window.FindName('GpuBar')
 $providerText = $window.FindName('ProviderText')
@@ -511,9 +511,9 @@ function Update-Dashboard {
     $a = Test-Port 6185
     $b = Test-Port 18090
     $s = Test-Port 5099
-    Set-Light $astrBotLight $astrBotCard 'AstrBot' $a
+    Set-Light $AgentRuntimeLight $AgentRuntimeCard 'AgentRuntime' $a
     Set-Light $brokerLight $brokerCard 'Broker' $b
-    Set-Light $snowLumaLight $snowLumaCard 'SnowLuma' $s
+    Set-Light $AuxRuntimeLight $AuxRuntimeCard 'AuxRuntime' $s
     $gpu = Get-GpuInfo
     if ($gpu) {
         $gpuText.Text = ('{0:N1} / {1:N1} GB' -f ($gpu.UsedMB / 1024), ($gpu.TotalMB / 1024))
@@ -553,6 +553,12 @@ function Show-Message([string]$text, [string]$title = '') {
     [Windows.MessageBox]::Show($text, $title) | Out-Null
 }
 
+<#
+.SYNOPSIS
+    Read-InputDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Read-InputDialog([string]$title, [string]$prompt, $Owner = $null) {
     $w = New-Object Windows.Window
     $w.Title = $title
@@ -580,7 +586,7 @@ function Read-InputDialog([string]$title, [string]$prompt, $Owner = $null) {
     $ok.Add_Click({ $w.DialogResult = $true })
     $panel.Children.Add($ok) | Out-Null
     $w.Content = $panel
-    $w.Add_Loaded({ try { $box.Focus() | Out-Null } catch { } })
+    $w.Add_Loaded({ try { $box.Focus() | Out-Null } catch { Write-Verbose 'optional operation failed' } })
     $w.ShowDialog() | Out-Null
     return $box.Text
 }
@@ -593,6 +599,12 @@ function Get-VersionLabel {
     return (T '当前版本：未知' 'Current version: unknown')
 }
 
+<#
+.SYNOPSIS
+    Show-UpdateDialog performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-UpdateDialog($info) {
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -655,6 +667,12 @@ function Start-UpdateCheck([bool]$Manual = $false) {
     $checkTimer.Start()
 }
 
+<#
+.SYNOPSIS
+    Invoke-ManualUpdateCheck performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-ManualUpdateCheck {
     $status = Join-Path $env:TEMP ('cyberbutler-manual-' + [guid]::NewGuid().ToString('N') + '.json')
     try {
@@ -683,7 +701,7 @@ function Start-ElevatedUpdate {
     try {
         $script:updateStatusFile = Join-Path $env:TEMP ('cyberbutler-update-' + [guid]::NewGuid().ToString('N') + '.json')
         Remove-Item -LiteralPath $script:updateStatusFile -Force -ErrorAction SilentlyContinue
-        $argString = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $script:MergeScript + '" -TargetRoot "' + $script:ProjectRoot + '" -PythonPath "' + (Join-Path $script:ProjectRoot 'AstrBot\.venv\Scripts\python.exe') + '" -ConfirmationText "UPDATE PRODUCTION" -StatusFile "' + $script:updateStatusFile + '"'
+        $argString = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $script:MergeScript + '" -TargetRoot "' + $script:ProjectRoot + '" -PythonPath "' + (Join-Path $script:ProjectRoot 'AgentRuntime\.venv\Scripts\python.exe') + '" -ConfirmationText "UPDATE PRODUCTION" -StatusFile "' + $script:updateStatusFile + '"'
         $script:updateProcess = Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $argString -PassThru
         $updateProgressBar.Visibility = 'Visible'
         $updateStatusText.Visibility = 'Visible'
@@ -720,9 +738,15 @@ function Refresh-DashboardData {
     $ignoreText.Text = (@(Get-GameIgnoreList $script:ProjectRoot) -join ', ')
 }
 
-function Show-AstrBotPluginList {
+<#
+.SYNOPSIS
+    Show-AgentRuntimePluginList performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Show-AgentRuntimePluginList {
     try {
-        $data = Get-AstrBotPluginList -ProjectRoot $script:ProjectRoot
+        $data = Get-AgentRuntimePluginList -ProjectRoot $script:ProjectRoot
         $view = New-Object System.Collections.ArrayList
         foreach ($plugin in $data.Plugins) {
             $state = T '未知' 'Unknown'
@@ -744,18 +768,18 @@ function Show-AstrBotPluginList {
                 Activated      = $plugin.Activated
                 Desc           = $plugin.Desc
                 Repo           = $plugin.Repo
-                AstrBotVersion = $plugin.AstrBotVersion
+                AgentRuntimeVersion = $plugin.AgentRuntimeVersion
                 ConfigPath     = $plugin.ConfigPath
                 Platforms      = (@($plugin.Platforms) -join ', ')
             })
         }
         $pluginGrid.ItemsSource = @($view)
         $suffix = ''
-        if ($data.ApiError) { $suffix = T '（AstrBot 离线，仅显示磁盘信息）' ' (AstrBot offline; disk data only)' }
+        if ($data.ApiError) { $suffix = T '（AgentRuntime 离线，仅显示磁盘信息）' ' (AgentRuntime offline; disk data only)' }
         if ($script:CurrentLanguage -ne 'zh') {
-            $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' plugins' + $suffix)
+            $pluginStatusText.Text = ('AgentRuntime v' + $data.Version + ' · ' + @($view).Count + ' plugins' + $suffix)
         } else {
-            $pluginStatusText.Text = ('AstrBot v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
+            $pluginStatusText.Text = ('AgentRuntime v' + $data.Version + ' · ' + @($view).Count + ' 个插件' + $suffix)
         }
     } catch {
         Write-UiError 'plugin list' $_
@@ -763,7 +787,7 @@ function Show-AstrBotPluginList {
     }
 }
 
-function Get-SelectedAstrBotPlugin {
+function Get-SelectedAgentRuntimePlugin {
     $item = $pluginGrid.SelectedItem
     if (-not $item) { Show-Message (T '请先在列表中选择一个插件。' 'Select a plugin in the list first.'); return $null }
     return $item
@@ -778,7 +802,7 @@ $pluginGrid.Add_SelectionChanged({
     $compatLine = '兼容性：' + $item.CompatText
     if ($item.CompatReason) { $compatLine += ' · ' + $item.CompatReason }
     [void]$lines.Add($compatLine)
-    [void]$lines.Add('目录：AstrBot\data\plugins\' + $item.RootDirName)
+    [void]$lines.Add('目录：AgentRuntime\data\plugins\' + $item.RootDirName)
     if ($item.ConfigPath) { [void]$lines.Add('配置：' + $item.ConfigPath) }
     if ($item.Platforms) { [void]$lines.Add('平台：' + $item.Platforms) }
     if ($item.Desc) { [void]$lines.Add(''); [void]$lines.Add([string]$item.Desc) }
@@ -786,14 +810,14 @@ $pluginGrid.Add_SelectionChanged({
     $pluginDetailText.Text = ($lines -join [Environment]::NewLine)
 })
 
-$pluginRefreshButton.Add_Click({ Show-AstrBotPluginList })
+$pluginRefreshButton.Add_Click({ Show-AgentRuntimePluginList })
 
 $pluginEnableButton.Add_Click({
-    $item = Get-SelectedAstrBotPlugin
+    $item = Get-SelectedAgentRuntimePlugin
     if (-not $item) { return }
     try {
-        $message = Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $true
-        Show-AstrBotPluginList
+        $message = Set-AgentRuntimePluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $true
+        Show-AgentRuntimePluginList
         $pluginStatusText.Text = $message
     } catch {
         Show-Message ((T '启用失败：' 'Enable failed: ') + $_.Exception.Message)
@@ -801,11 +825,11 @@ $pluginEnableButton.Add_Click({
 })
 
 $pluginDisableButton.Add_Click({
-    $item = Get-SelectedAstrBotPlugin
+    $item = Get-SelectedAgentRuntimePlugin
     if (-not $item) { return }
     try {
-        $message = Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false
-        Show-AstrBotPluginList
+        $message = Set-AgentRuntimePluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false
+        Show-AgentRuntimePluginList
         $pluginStatusText.Text = $message
     } catch {
         Show-Message ((T '禁用失败：' 'Disable failed: ') + $_.Exception.Message)
@@ -813,18 +837,18 @@ $pluginDisableButton.Add_Click({
 })
 
 $pluginDeleteButton.Add_Click({
-    $item = Get-SelectedAstrBotPlugin
+    $item = Get-SelectedAgentRuntimePlugin
     if (-not $item) { return }
-    if ($item.Reserved) { Show-Message '这是 AstrBot 保留插件，不能删除。'; return }
+    if ($item.Reserved) { Show-Message '这是 AgentRuntime 保留插件，不能删除。'; return }
     $answer = Read-InputDialog '删除插件' ('将把 ' + $item.Name + ' 移动到 backups\deleted_plugins\，不会直接删除。' + [Environment]::NewLine + [Environment]::NewLine + '输入 DELETE PLUGIN 继续：')
     if ($answer -cne 'DELETE PLUGIN') { Show-Message '确认文本不正确，已取消。'; return }
     try {
         if ($item.Activated -eq $true) {
-            Set-AstrBotPluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false | Out-Null
+            Set-AgentRuntimePluginEnabled -ProjectRoot $script:ProjectRoot -PluginId $item.Name -Enabled $false | Out-Null
         }
-        $record = Move-AstrBotPluginToRecycleBin -ProjectRoot $script:ProjectRoot -RootDirName $item.RootDirName
-        try { Reload-AstrBotPlugins $script:ProjectRoot | Out-Null } catch { }
-        Show-AstrBotPluginList
+        $record = Move-AgentRuntimePluginToRecycleBin -ProjectRoot $script:ProjectRoot -RootDirName $item.RootDirName
+        try { Reload-AgentRuntimePlugins $script:ProjectRoot | Out-Null } catch { Write-Verbose 'optional operation failed' }
+        Show-AgentRuntimePluginList
         Show-Message ('已移入回收站：' + [Environment]::NewLine + $record.destination)
     } catch {
         Show-Message ((T '删除失败：' 'Delete failed: ') + $_.Exception.Message)
@@ -832,13 +856,13 @@ $pluginDeleteButton.Add_Click({
 })
 
 $pluginResetButton.Add_Click({
-    $item = Get-SelectedAstrBotPlugin
+    $item = Get-SelectedAgentRuntimePlugin
     if (-not $item) { return }
     $answer = Read-InputDialog '恢复默认配置' ('将备份并删除 ' + $item.RootDirName + '_config.json，然后重新加载插件以生成默认配置。' + [Environment]::NewLine + [Environment]::NewLine + '输入 RESTORE DEFAULTS 继续：')
     if ($answer -cne 'RESTORE DEFAULTS') { Show-Message '确认文本不正确，已取消。'; return }
     try {
-        $result = Restore-AstrBotPluginDefaults -ProjectRoot $script:ProjectRoot -PluginId $item.Name -RootDirName $item.RootDirName
-        Show-AstrBotPluginList
+        $result = Restore-AgentRuntimePluginDefaults -ProjectRoot $script:ProjectRoot -PluginId $item.Name -RootDirName $item.RootDirName
+        Show-AgentRuntimePluginList
         $message = '已恢复默认配置。'
         if ($result.BackupPath) { $message += [Environment]::NewLine + '原配置备份：' + $result.BackupPath }
         Show-Message $message
@@ -847,6 +871,12 @@ $pluginResetButton.Add_Click({
     }
 })
 
+<#
+.SYNOPSIS
+    Show-DashboardModuleList performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-DashboardModuleList {
     $scan = Get-DashboardModules -ToolsRoot $script:ToolsRoot
     $view = New-Object System.Collections.ArrayList
@@ -946,6 +976,12 @@ $moduleFolderButton.Add_Click({
     try { Start-Process explorer.exe (Join-Path $script:ToolsRoot 'dashboard_plugins') } catch { Show-Message '无法打开模块目录。' }
 })
 
+<#
+.SYNOPSIS
+    Show-PluginMarketResults performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-PluginMarketResults {
     $source = 'official'
     if ($marketSourceCombo.SelectedIndex -eq 1) { $source = 'github' }
@@ -991,7 +1027,7 @@ $marketGrid.Add_SelectionChanged({
     if ($entry.Stars) { [void]$lines.Add('GitHub 星标：' + $entry.Stars) }
     if ($entry.Downloads) { [void]$lines.Add('下载量：' + $entry.Downloads) }
     [void]$lines.Add('仓库：' + $entry.Repo)
-    if ($entry.AstrBotVersion) { [void]$lines.Add('要求 AstrBot：' + $entry.AstrBotVersion) }
+    if ($entry.AgentRuntimeVersion) { [void]$lines.Add('要求 AgentRuntime：' + $entry.AgentRuntimeVersion) }
     if ($entry.Desc) { [void]$lines.Add(''); [void]$lines.Add([string]$entry.Desc) }
     $marketDetailText.Text = ($lines -join [Environment]::NewLine)
 })
@@ -1020,7 +1056,7 @@ $marketInstallButton.Add_Click({
         $packageRoot = Find-PluginPackageRoot $extract
 
         $marketStatusText.Text = '正在做静态安全审查...'
-        $localVersion = Get-LocalAstrBotVersion $script:ProjectRoot
+        $localVersion = Get-LocalAgentRuntimeVersion $script:ProjectRoot
         $review = Get-PluginReviewSummary -PackageRoot $packageRoot -LocalVersion $localVersion
 
         [Windows.Input.Mouse]::OverrideCursor = $null
@@ -1031,11 +1067,11 @@ $marketInstallButton.Add_Click({
         $marketStatusText.Text = '正在安装...'
         $installed = Install-PluginPackage -ProjectRoot $script:ProjectRoot -PackageRoot $packageRoot -TargetKind 'agent'
         $reloadError = ''
-        try { Reload-AstrBotPlugins $script:ProjectRoot | Out-Null } catch { $reloadError = $_.Exception.Message }
-        Show-AstrBotPluginList
+        try { Reload-AgentRuntimePlugins $script:ProjectRoot | Out-Null } catch { $reloadError = $_.Exception.Message }
+        Show-AgentRuntimePluginList
         $message = '安装完成：' + $installed.Id + [Environment]::NewLine + $installed.Path
         if ($reloadError) { $message += [Environment]::NewLine + [Environment]::NewLine + '插件已落盘，但重载失败：' + $reloadError }
-        else { $message += [Environment]::NewLine + [Environment]::NewLine + 'AstrBot 已请求重载插件。' }
+        else { $message += [Environment]::NewLine + [Environment]::NewLine + 'AgentRuntime 已请求重载插件。' }
         Show-Message $message
         $marketStatusText.Text = '安装完成：' + $installed.Id
     } catch {
@@ -1043,7 +1079,7 @@ $marketInstallButton.Add_Click({
         $marketStatusText.Text = '安装失败'
     } finally {
         [Windows.Input.Mouse]::OverrideCursor = $null
-        try { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue } catch { }
+        try { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
     }
 })
 
@@ -1069,8 +1105,14 @@ function Set-ManualGame([string]$name, [switch]$Remove) {
     Save-ManualGameList (@($comments + $filtered))
 }
 
+<#
+.SYNOPSIS
+    Try-ClearConversationViaApi performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Try-ClearConversationViaApi {
-    $tokenFile = Join-Path $script:ProjectRoot '.astrbot_token'
+    $tokenFile = Join-Path $script:ProjectRoot '.agentruntime_token'
     if (-not (Test-Path -LiteralPath $tokenFile)) { return $false }
     $token = (Get-Content -LiteralPath $tokenFile -Raw).Trim()
     if (-not $token) { return $false }
@@ -1113,8 +1155,8 @@ if (Test-Path -LiteralPath $overlayFile) {
 
 $restartButton.Add_Click({
     try {
-        $code = Invoke-ElevatedAction 'RestartAstrBot'
-        if ($code -eq 0) { Show-Message 'AstrBot 已重启。' } else { Show-Message '重启失败，请查看 AstrBot/data/dashboard-actions.log。' }
+        $code = Invoke-ElevatedAction 'RestartAgentRuntime'
+        if ($code -eq 0) { Show-Message 'AgentRuntime 已重启。' } else { Show-Message '重启失败，请查看 AgentRuntime/data/dashboard-actions.log。' }
         Update-Dashboard
     } catch { Show-Message ('无法启动管理员操作：' + $_.Exception.Message) }
 })
@@ -1128,15 +1170,15 @@ $vramButton.Add_Click({
 })
 
 $logsButton.Add_Click({
-    try { Start-Process explorer.exe (Join-Path $script:ProjectRoot 'AstrBot\data') } catch { Show-Message '无法打开日志目录。' }
+    try { Start-Process explorer.exe (Join-Path $script:ProjectRoot 'AgentRuntime\data') } catch { Show-Message '无法打开日志目录。' }
 })
 
 $fuseButton.Add_Click({
-    $answer = Read-InputDialog '紧急熔断' '这会立即停止 AstrBot 和 Broker，且不会自动重启。请输入 FUSE 确认：'
+    $answer = Read-InputDialog '紧急熔断' '这会立即停止 AgentRuntime 和 Broker，且不会自动重启。请输入 FUSE 确认：'
     if ($answer -cne 'FUSE') { Show-Message '确认文本不正确，已取消。'; return }
     try {
         $code = Invoke-ElevatedAction 'Fuse' @{ ConfirmationText = 'FUSE' }
-        if ($code -eq 0) { Show-Message '紧急熔断完成：AstrBot 与 Broker 已停止。' } else { Show-Message '熔断失败，请查看日志。' }
+        if ($code -eq 0) { Show-Message '紧急熔断完成：AgentRuntime 与 Broker 已停止。' } else { Show-Message '熔断失败，请查看日志。' }
         Update-Dashboard
     } catch { Show-Message ('无法启动管理员操作：' + $_.Exception.Message) }
 })
@@ -1148,13 +1190,13 @@ $savePromptButton.Add_Click({
         return
     }
     try {
-        $response = Invoke-AstrBotApi -Method POST -ApiPath '/api/persona/update' -Body @{
+        $response = Invoke-AgentRuntimeApi -Method POST -ApiPath '/api/persona/update' -Body @{
             persona_id    = $item.Id
             system_prompt = $promptBox.Text
         }
         if (-not $response -or $response.status -eq 'error') { throw [string]$response.message }
-        $active = Get-AstrBotActivePersona
-        if ($active -eq $item.Id) { $null = Set-AstrBotActivePersona $item.Id }
+        $active = Get-AgentRuntimeActivePersona
+        if ($active -eq $item.Id) { $null = Set-AgentRuntimeActivePersona $item.Id }
         Show-PersonaList
         Refresh-DashboardData
         Show-Message (T '人格提示词已保存，配置已重载。' 'Persona prompt saved and config reloaded.')
@@ -1166,21 +1208,21 @@ $savePromptButton.Add_Click({
 
 $clearConversationButton.Add_Click({
     if (Try-ClearConversationViaApi) {
-        Show-Message '当前对话历史已通过 AstrBot API 清空。'
+        Show-Message '当前对话历史已通过 AgentRuntime API 清空。'
         return
     }
-    $choice = [Windows.MessageBox]::Show('API 清空失败。是否使用停服兜底？这会短暂停止 AstrBot，并先备份数据库。', '清空对话', 'YesNo', 'Warning')
+    $choice = [Windows.MessageBox]::Show('API 清空失败。是否使用停服兜底？这会短暂停止 AgentRuntime，并先备份数据库。', '清空对话', 'YesNo', 'Warning')
     if ($choice -ne 'Yes') { return }
     try {
         $overlay = Get-Content -LiteralPath (Join-Path $script:ProjectRoot 'local-overlay.json') -Raw -Encoding UTF8 | ConvertFrom-Json
         $umo = [string]$overlay.values.YOUR_PLATFORM_ID + ':FriendMessage:' + [string]$overlay.values.YOUR_QQ_ID
         $code = Invoke-ElevatedAction 'ClearConversation' @{ Umo = $umo }
-        if ($code -eq 0) { Show-Message '当前对话历史已清空，AstrBot 已重启。' } else { Show-Message '清空失败，请查看日志。' }
+        if ($code -eq 0) { Show-Message '当前对话历史已清空，AgentRuntime 已重启。' } else { Show-Message '清空失败，请查看日志。' }
     } catch { Show-Message ('清空失败：' + $_.Exception.Message) }
 })
 
 function Reset-ScanUi {
-    try { $scanTimer.Stop() } catch { }
+    try { $scanTimer.Stop() } catch { Write-Verbose 'optional operation failed' }
     $scanGamesButton.IsEnabled = $true
     $scanProgressBar.Visibility = 'Collapsed'
     $scanProgressBar.IsIndeterminate = $true
@@ -1232,7 +1274,7 @@ $saveConfigButton.Add_Click({
         $overlay.values.YOUR_QQ_ID = $qq
         Copy-Item -LiteralPath $overlayPath -Destination ($overlayPath + '.bak-dashboard') -Force
         [IO.File]::WriteAllText($overlayPath, ($overlay | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
-        $gate = Join-Path $script:ProjectRoot 'AstrBot\data\config\astrbot_plugin_at_gate_config.json'
+        $gate = Join-Path $script:ProjectRoot 'AgentRuntime\data\config\agentruntime_plugin_at_gate_config.json'
         if (Test-Path -LiteralPath $gate) {
             Copy-Item -LiteralPath $gate -Destination ($gate + '.bak-dashboard') -Force
             $cfg = Get-Content -LiteralPath $gate -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1248,29 +1290,35 @@ $saveConfigButton.Add_Click({
             if ($code -ne 0) { throw 'API Key 加密保存失败。' }
             $apiKeyBox.Password = ''
         }
-        $choice = [Windows.MessageBox]::Show('配置已保存。AstrBot 需要重启后才会使用新 QQ/API Key。现在重启吗？', '保存成功', 'YesNo', 'Question')
+        $choice = [Windows.MessageBox]::Show('配置已保存。AgentRuntime 需要重启后才会使用新 QQ/API Key。现在重启吗？', '保存成功', 'YesNo', 'Question')
         if ($choice -eq 'Yes') {
-            $code = Invoke-ElevatedAction 'RestartAstrBot'
-            if ($code -ne 0) { Show-Message '配置已保存，但 AstrBot 重启失败。' }
+            $code = Invoke-ElevatedAction 'RestartAgentRuntime'
+            if ($code -ne 0) { Show-Message '配置已保存，但 AgentRuntime 重启失败。' }
         }
         Update-Dashboard
     } catch { Show-Message ('保存失败：' + $_.Exception.Message) }
 })
 
-$astrBotLight.Add_MouseLeftButtonDown({
-    try { Start-Process 'http://127.0.0.1:6185' } catch { Write-UiError 'open AstrBot WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
+$AgentRuntimeLight.Add_MouseLeftButtonDown({
+    try { Start-Process 'http://127.0.0.1:6185' } catch { Write-UiError 'open AgentRuntime WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
 })
-$snowLumaLight.Add_MouseLeftButtonDown({
-    try { Start-Process 'http://127.0.0.1:5099' } catch { Write-UiError 'open SnowLuma WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
+$AuxRuntimeLight.Add_MouseLeftButtonDown({
+    try { Start-Process 'http://127.0.0.1:5099' } catch { Write-UiError 'open AuxRuntime WebUI' $_; Show-Message ((T '无法打开浏览器：' 'Cannot open browser: ') + $_.Exception.Message) }
 })
 $brokerLight.Add_MouseLeftButtonDown({
     Show-Message (T 'TOTP Broker 为后台无头服务，无 Web 管理界面。' 'The TOTP Broker is a headless background service and has no web UI.')
 })
 
+<#
+.SYNOPSIS
+    Show-PersonaList performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Show-PersonaList {
     try {
-        $personas = @(Get-AstrBotPersonaList)
-        $active = [string](Get-AstrBotActivePersona)
+        $personas = @(Get-AgentRuntimePersonaList)
+        $active = [string](Get-AgentRuntimeActivePersona)
         $view = New-Object System.Collections.ArrayList
         foreach ($persona in $personas) {
             $id = [string]$persona.persona_id
@@ -1311,7 +1359,7 @@ $personaSwitchButton.Add_Click({
     $item = $personaListBox.SelectedItem
     if (-not $item) { Show-Message (T '请先选择一个人格。' 'Select a persona first.'); return }
     try {
-        $null = Set-AstrBotActivePersona $item.Id
+        $null = Set-AgentRuntimeActivePersona $item.Id
         Show-PersonaList
         Refresh-DashboardData
         Show-Message ((T '已切换人格并重载配置：' 'Persona switched and config reloaded: ') + $item.Id)
@@ -1332,7 +1380,7 @@ $personaNewButton.Add_Click({
         '你是一个新的人格。请在这里写人格设定、语气和边界。'
     }
     try {
-        $null = New-AstrBotPersona -PersonaId $id -SystemPrompt $blank
+        $null = New-AgentRuntimePersona -PersonaId $id -SystemPrompt $blank
         Show-PersonaList
         Show-Message ((T '已新建空白人格：' 'Blank persona created: ') + $id)
     } catch {
@@ -1349,7 +1397,7 @@ $personaCopyButton.Add_Click({
     $id = $id.Trim()
     if (-not $id) { return }
     try {
-        $null = Copy-AstrBotPersona -SourceId $item.Id -PersonaId $id
+        $null = Copy-AgentRuntimePersona -SourceId $item.Id -PersonaId $id
         Show-PersonaList
         Show-Message ((T '已复制人格：' 'Persona copied: ') + $id)
     } catch {
@@ -1365,7 +1413,7 @@ $personaDeleteButton.Add_Click({
     $answer = Read-InputDialog (T '删除人格' 'Delete persona') ((T '将把 ' 'The persona ') + $item.Id + (T ' 备份到 backups\personas 后删除。' ' will be backed up to backups\personas and then deleted.') + [Environment]::NewLine + [Environment]::NewLine + (T '输入 DELETE PERSONA 继续：' 'Type DELETE PERSONA to continue:')) $window
     if ($answer -cne 'DELETE PERSONA') { Show-Message (T '确认文本不正确，已取消。' 'Confirmation text did not match; cancelled.'); return }
     try {
-        $removed = Remove-AstrBotPersona -PersonaId $item.Id -ProjectRoot $script:ProjectRoot
+        $removed = Remove-AgentRuntimePersona -PersonaId $item.Id -ProjectRoot $script:ProjectRoot
         Show-PersonaList
         Show-Message ((T '已删除人格。备份：' 'Persona deleted. Backup: ') + $removed.Backup)
     } catch {
@@ -1433,7 +1481,7 @@ $updateTimer.Add_Tick({
             $state = Get-Content -LiteralPath $script:updateStatusFile -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($state.progress) { $updateProgressBar.Value = [int]$state.progress }
             if ($state.message) { $updateStatusText.Text = [string]$state.message }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     if (-not $script:updateProcess -or -not $script:updateProcess.HasExited) { return }
     $updateTimer.Stop()
@@ -1441,8 +1489,8 @@ $updateTimer.Add_Tick({
     Remove-Item -LiteralPath $script:updateStatusFile -Force -ErrorAction SilentlyContinue
     if ($code -eq 0) {
         $updateProgressBar.Value = 100
-        $updateStatusText.Text = '更新完成，苏瑾言已重启。'
-        Show-Message '更新完成，苏瑾言已重启。'
+        $updateStatusText.Text = '更新完成，local agent已重启。'
+        Show-Message '更新完成，local agent已重启。'
     } else {
         $updateStatusText.Text = '更新失败，已尝试回滚。'
         Show-Message '更新失败，已尝试回滚。请查看 backups 下的 update.log。'
@@ -1461,12 +1509,12 @@ $scanTimer.Add_Tick({
         try {
             $state = Get-Content -LiteralPath $script:scanStatusFile -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($state -and $state.message) { $scanStatusText.Text = [string]$state.message }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     if (-not $script:scanProcess) { Reset-ScanUi; return }
     $elapsed = ((Get-Date) - $script:scanStartedAt).TotalSeconds
     if (-not $script:scanProcess.HasExited -and $elapsed -gt 60) {
-        try { Stop-Process -Id $script:scanProcess.Id -Force -ErrorAction SilentlyContinue } catch { }
+        try { Stop-Process -Id $script:scanProcess.Id -Force -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
         $tail = @()
         if ($script:scanErrFile -and (Test-Path -LiteralPath $script:scanErrFile)) { $tail = @(Get-Content -LiteralPath $script:scanErrFile -Tail 10 -ErrorAction SilentlyContinue) }
         Reset-ScanUi
@@ -1485,7 +1533,7 @@ $scanTimer.Add_Tick({
     $tail = @()
     if ($script:scanErrFile -and (Test-Path -LiteralPath $script:scanErrFile)) { $tail = @(Get-Content -LiteralPath $script:scanErrFile -Tail 10 -ErrorAction SilentlyContinue) }
     Reset-ScanUi
-    try { Refresh-DashboardData } catch { }
+    try { Refresh-DashboardData } catch { Write-Verbose 'optional operation failed' }
     if ($null -eq $result) {
         Show-Message '扫描结果为空，可能是脚本崩溃或输出了非 JSON 格式。'
         Remove-Item -LiteralPath $script:scanStatusFile,$script:scanOutFile,$script:scanErrFile -Force -ErrorAction SilentlyContinue
@@ -1526,7 +1574,7 @@ if ($SmokeThemes) {
 if ($SmokeUi) {
     Register-DashboardModuleExceptionHook $window
     $null = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
-    Show-AstrBotPluginList
+    Show-AgentRuntimePluginList
     Show-DashboardModuleList
     Show-PersonaList
     $window.WindowStyle = 'None'
@@ -1558,7 +1606,7 @@ if ($SmokeUi) {
 Register-DashboardModuleExceptionHook $window
 $moduleInit = Initialize-DashboardModules -Tabs $mainTabs -ToolsRoot $script:ToolsRoot
 $window.Add_ContentRendered({
-    Show-AstrBotPluginList
+    Show-AgentRuntimePluginList
     Show-DashboardModuleList
     Show-PersonaList
     if (@($moduleInit.Failed).Count -gt 0) {

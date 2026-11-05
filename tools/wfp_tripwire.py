@@ -16,6 +16,7 @@ from pathlib import Path
 
 @dataclass
 class Cursor:
+    """Cursor helper/type."""
     inode: int = 0
     size: int = 0
     offset: int = 0
@@ -23,6 +24,14 @@ class Cursor:
 
     @classmethod
     def load(cls, path: Path) -> "Cursor":
+        """Load.
+        
+        Args:
+            path: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
             return cls(
@@ -35,16 +44,40 @@ class Cursor:
             return cls()
 
     def save(self, path: Path) -> None:
+        """Save.
+        
+        Args:
+            path: caller-supplied value.
+        
+        Returns:
+            Function result, or None when no value is returned.
+        """
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(self.__dict__, sort_keys=True), encoding="utf-8")
 
 
 def _stat_identity(path: Path) -> tuple[int, int, int]:
+    """Stat identity.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     stat = path.stat()
     return int(getattr(stat, "st_ino", 0)), int(stat.st_size), int(getattr(stat, "st_mtime_ns", 0))
 
 
 def parse_firewall_line(line: str) -> dict | None:
+    """Parse firewall line.
+    
+    Args:
+        line: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     fields = line.split()
     if len(fields) < 8:
         return None
@@ -64,6 +97,15 @@ def parse_firewall_line(line: str) -> dict | None:
 
 
 def read_new(log_path: Path, cursor_path: Path) -> list[dict]:
+    """Read new.
+    
+    Args:
+        log_path: caller-supplied value.
+        cursor_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     log_path = Path(log_path)
     cursor = Cursor.load(cursor_path)
     if not log_path.exists():
@@ -91,6 +133,15 @@ def read_new(log_path: Path, cursor_path: Path) -> list[dict]:
 
 
 def append_events(audit_path: Path, events: list[dict]) -> None:
+    """Append events.
+    
+    Args:
+        audit_path: caller-supplied value.
+        events: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     if not events:
         return
     from audit_chain import append_event

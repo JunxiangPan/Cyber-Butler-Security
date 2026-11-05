@@ -2,7 +2,7 @@
 <#
 Cyber-Butler plugin security scanner.
 
-Static, offline review of an AstrBot plugin package before it is installed.
+Static, offline review of an AgentRuntime plugin package before it is installed.
 It never executes the reviewed code. Findings carry a severity and a line
 number; the installer blocks high findings unless the user explicitly
 overrides after reading the report.
@@ -43,6 +43,12 @@ $script:ScannerRules = @(
 
 $script:SeverityRank = @{ low = 15; medium = 20; high = 30 }
 
+<#
+.SYNOPSIS
+    Invoke-PluginSecurityScan performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Invoke-PluginSecurityScan {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
@@ -166,7 +172,13 @@ function ConvertTo-ComparableVersion {
     try { return [version]($parts -join '.') } catch { return $null }
 }
 
-function Test-AstrBotVersionSpec {
+<#
+.SYNOPSIS
+    Test-AgentRuntimeVersionSpec performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+function Test-AgentRuntimeVersionSpec {
     param(
         [string]$Spec,
         [string]$Version
@@ -174,12 +186,12 @@ function Test-AstrBotVersionSpec {
 
     $result = [pscustomobject]@{ Ok = $true; Reason = '' }
     if (-not $Spec) {
-        $result.Reason = 'plugin did not declare astrbot_version'
+        $result.Reason = 'plugin did not declare agentruntime_version'
         return $result
     }
     if (-not $Version) {
         $result.Ok = $false
-        $result.Reason = 'local AstrBot version is unknown'
+        $result.Reason = 'local AgentRuntime version is unknown'
         return $result
     }
     if ($Spec.Trim() -eq '*' -or $Spec.Trim() -eq '') { return $result }
@@ -220,22 +232,22 @@ function Test-AstrBotVersionSpec {
         }
         if (-not $pass) {
             $result.Ok = $false
-            $result.Reason = ("requires AstrBot {0}{1}, current {2}" -f $operator, $requiredText, $Version)
+            $result.Reason = ("requires AgentRuntime {0}{1}, current {2}" -f $operator, $requiredText, $Version)
             return $result
         }
     }
     return $result
 }
 
-function Get-LocalAstrBotVersion {
+function Get-LocalAgentRuntimeVersion {
     param([string]$ProjectRoot)
     if (-not $ProjectRoot) { return '' }
-    $init = Join-Path $ProjectRoot 'AstrBot\astrbot\__init__.py'
+    $init = Join-Path $ProjectRoot 'AgentRuntime\agentruntime\__init__.py'
     if (Test-Path -LiteralPath $init) {
         try {
             $text = Get-Content -LiteralPath $init -Raw -Encoding UTF8
             if ($text -match '__version__\s*=\s*["'']([^"'']+)["'']') { return $Matches[1] }
-        } catch { }
+        } catch { Write-Verbose 'optional operation failed' }
     }
     return ''
 }

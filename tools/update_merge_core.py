@@ -1,4 +1,4 @@
-﻿"""Production overlay and rendering helpers for update_merge.ps1.
+"""Production overlay and rendering helpers for update_merge.ps1.
 
 The public release contains placeholders such as YOUR_PROJECT_PATH. This module
 keeps deployment values in a local overlay, renders only runtime files, and
@@ -33,21 +33,21 @@ RUNTIME_EXCLUDED = {
 }
 RUNTIME_EXACT = {
     "tools/broker.py",
-    "tools/snowluma_guard.py",
-    "plugins/astrbot_plugin_security_gate/main.py",
-    "plugins/astrbot_plugin_totp_broker/main.py",
-    "plugins/astrbot_plugin_cloud_fallback/main.py",
+    "tools/auxruntime_guard.py",
+    "plugins/agentruntime_plugin_security_gate/main.py",
+    "plugins/agentruntime_plugin_totp_broker/main.py",
+    "plugins/agentruntime_plugin_cloud_fallback/main.py",
 }
 RUNTIME_PREFIXES = ("overlay/", "tools/")
 PROTECTED_PARTS = {
-    "astrbot/data",
-    "snowluma/config",
+    "agentruntime/data",
+    "auxruntime/config",
     "backups",
     ".venv",
     "logs",
 }
 PROTECTED_EXACT = {
-    "astrbot/data/cmd_config.json",
+    "agentruntime/data/cmd_config.json",
     "tools/broker_token.txt",
     "tools/totp_secret.dpapi",
     "tools/totp_recovery.json",
@@ -56,16 +56,16 @@ PROTECTED_EXACT = {
     "tools/totp-vault/recovery_hashes.json",
     "webui/data/mailer_token",
     "webui/data/server_secret",
-    ".astrbot_token",
-    ".astrbot_ws_token",
-    ".snowluma_token",
+    ".agentruntime_token",
+    ".agentruntime_ws_token",
+    ".auxruntime_token",
     "local-overlay.json",
 }
 TEXT_SUFFIXES = {".py", ".ps1", ".psm1", ".bat", ".cmd"}
 OVERLAY_TARGETS = (
-    ("overlay/astrbot/core/", "AstrBot/astrbot/core/"),
-    ("overlay/astrbot/dashboard/", "AstrBot/astrbot/dashboard/"),
-    ("overlay/astrbot/data/plugins/", "AstrBot/data/plugins/"),
+    ("overlay/agentruntime/core/", "AgentRuntime/agentruntime/core/"),
+    ("overlay/agentruntime/dashboard/", "AgentRuntime/agentruntime/dashboard/"),
+    ("overlay/agentruntime/data/plugins/", "AgentRuntime/data/plugins/"),
 )
 OVERLAY_TARGET_PREFIXES = tuple(target for _, target in OVERLAY_TARGETS)
 logger = logging.getLogger(__name__)
@@ -76,17 +76,33 @@ class MergeError(ValueError):
 
 
 def _norm(path: object) -> str:
+    """Norm.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return update_core._normalise_path(path)
 
 
 def is_protected(path: object) -> bool:
+    """Is protected.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         value = _norm(path).casefold()
     except update_core.UpdateSafetyError:
         return True
     if value in PROTECTED_EXACT:
         return True
-    if value.startswith(("astrbot/data/", "snowluma/config/", "webui/data/")):
+    if value.startswith(("agentruntime/data/", "auxruntime/config/", "webui/data/")):
         return True
     parts = value.split("/")
     if any(part in PROTECTED_PARTS for part in parts):
@@ -95,6 +111,14 @@ def is_protected(path: object) -> bool:
 
 
 def is_runtime(path: object) -> bool:
+    """Is runtime.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         value = _norm(path)
     except update_core.UpdateSafetyError:
@@ -111,12 +135,28 @@ def is_runtime(path: object) -> bool:
 
 
 def validate_manifest_protected(manifest: dict) -> None:
+    """Validate manifest protected.
+    
+    Args:
+        manifest: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     for entry in manifest.get("files", []):
         if is_protected(entry["path"]):
             raise MergeError(f"manifest contains protected path: {entry['path']}")
 
 
 def load_overlay(path: Path) -> dict:
+    """Load overlay.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     try:
         value = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
@@ -142,10 +182,27 @@ def load_overlay(path: Path) -> dict:
 
 
 def _sha(data: bytes) -> str:
+    """Sha.
+    
+    Args:
+        data: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return hashlib.sha256(data).hexdigest()
 
 
 def baseline_changes(target: Path, overlay: dict) -> list[str]:
+    """Baseline changes.
+    
+    Args:
+        target: caller-supplied value.
+        overlay: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     changed: list[str] = []
     for rel, expected in sorted(overlay.get("baseline", {}).items()):
         if not is_runtime(rel):
@@ -157,6 +214,16 @@ def baseline_changes(target: Path, overlay: dict) -> list[str]:
 
 
 def _render_text(data: bytes, values: dict[str, str], rel: str) -> bytes:
+    """Render text.
+    
+    Args:
+        data: caller-supplied value.
+        values: caller-supplied value.
+        rel: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     bom = data.startswith(b"\xef\xbb\xbf")
     try:
         text = data.decode("utf-8-sig" if bom else "utf-8")
@@ -199,6 +266,15 @@ def render_staging(staging: Path, manifest: dict, overlay: dict) -> dict:
 
 
 def write_manifest(path: Path, manifest: dict) -> None:
+    """Write manifest.
+    
+    Args:
+        path: caller-supplied value.
+        manifest: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     Path(path).write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -206,6 +282,14 @@ def write_manifest(path: Path, manifest: dict) -> None:
 
 
 def build_baseline(target: Path) -> dict[str, str]:
+    """Build baseline.
+    
+    Args:
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     target = Path(target).resolve()
     baseline: dict[str, str] = {}
     for path in target.rglob("*"):
@@ -218,6 +302,16 @@ def build_baseline(target: Path) -> dict[str, str]:
 
 
 def write_overlay(path: Path, values: dict[str, str], target: Path) -> None:
+    """Write overlay.
+    
+    Args:
+        path: caller-supplied value.
+        values: caller-supplied value.
+        target: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     clean_values = {}
     for key, value in values.items():
         if not PLACEHOLDER_RE.fullmatch(str(key)) or not str(value):
@@ -235,6 +329,15 @@ def write_overlay(path: Path, values: dict[str, str], target: Path) -> None:
 
 
 def refresh_baseline(target: Path, overlay_path: Path) -> None:
+    """Refresh baseline.
+    
+    Args:
+        target: caller-supplied value.
+        overlay_path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     overlay = load_overlay(overlay_path)
     overlay["baseline"] = build_baseline(target)
     Path(overlay_path).write_text(
@@ -261,6 +364,15 @@ def map_overlay_target(path: object) -> str:
 
 
 def _safe_under(root: Path, path: Path) -> Path:
+    """Safe under.
+    
+    Args:
+        root: caller-supplied value.
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     resolved = Path(path).resolve()
     if not resolved.is_relative_to(Path(root).resolve()):
         raise MergeError(f"path escaped root: {path}")
@@ -268,6 +380,14 @@ def _safe_under(root: Path, path: Path) -> Path:
 
 
 def _hash_file(path: Path) -> str:
+    """Hash file.
+    
+    Args:
+        path: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     return _sha(Path(path).read_bytes())
 
 
@@ -290,7 +410,7 @@ def apply_overlay(
     for entry in entries:
         source_rel = _norm(entry.get("path"))
         if source_rel == "overlay/overlay-manifest.json":
-            # Release metadata, not an AstrBot runtime overlay target.
+            # Release metadata, not an AgentRuntime runtime overlay target.
             skipped.append(source_rel)
             continue
         source = _safe_under(staging, staging / Path(source_rel))
@@ -299,9 +419,9 @@ def apply_overlay(
             skipped.append(source_rel)
             continue
         target_rel = map_overlay_target(source_rel)
-        if target_rel.startswith("AstrBot/data/plugins/"):
-            plugin_name = target_rel[len("AstrBot/data/plugins/") :].split("/", 1)[0]
-            plugin_root = target / "AstrBot" / "data" / "plugins" / plugin_name
+        if target_rel.startswith("AgentRuntime/data/plugins/"):
+            plugin_name = target_rel[len("AgentRuntime/data/plugins/") :].split("/", 1)[0]
+            plugin_root = target / "AgentRuntime" / "data" / "plugins" / plugin_name
             if not plugin_root.is_dir():
                 logger.warning(
                     "overlay target plugin missing; skipped: %s", target_rel
@@ -410,6 +530,14 @@ def restore_overlay(backup: Path, target: Path) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Main.
+    
+    Args:
+        argv: caller-supplied value.
+    
+    Returns:
+        Function result, or None when no value is returned.
+    """
     parser = argparse.ArgumentParser(description="Production overlay renderer")
     sub = parser.add_subparsers(dest="command", required=True)
 

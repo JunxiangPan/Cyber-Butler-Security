@@ -1,6 +1,12 @@
 ﻿# Install report writer for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 first.
 
+<#
+.SYNOPSIS
+    New-CyberButlerReportModel performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function New-CyberButlerReportModel {
     param(
         [Parameter(Mandatory = $true)]
@@ -48,6 +54,12 @@ function New-CyberButlerReportModel {
     }
 }
 
+<#
+.SYNOPSIS
+    Format-CyberButlerReportMarkdown performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Format-CyberButlerReportMarkdown {
     param(
         [Parameter(Mandatory = $true)]
@@ -112,6 +124,12 @@ function Format-CyberButlerReportMarkdown {
     return ($lines -join [Environment]::NewLine)
 }
 
+<#
+.SYNOPSIS
+    Write-CyberButlerReport performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Write-CyberButlerReport {
     param(
         [Parameter(Mandatory = $true)]

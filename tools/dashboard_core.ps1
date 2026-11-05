@@ -3,7 +3,7 @@
 Read-only core helpers for the Cyber-Butler dashboard.
 
 These functions are intentionally read-only. They never stop services, write
-configuration, call AstrBot tools, or register anything in the LLM tool list.
+configuration, call AgentRuntime tools, or register anything in the LLM tool list.
 #>
 
 function Get-DashboardRoot {
@@ -42,9 +42,15 @@ function Get-GpuInfo {
     } catch { return $null }
 }
 
+<#
+.SYNOPSIS
+    Get-ProviderInfo performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-ProviderInfo {
     param([string]$ProjectRoot)
-    $config = Join-Path $ProjectRoot 'AstrBot\data\cmd_config.json'
+    $config = Join-Path $ProjectRoot 'AgentRuntime\data\cmd_config.json'
     if (-not (Test-Path -LiteralPath $config)) {
         return [pscustomobject]@{ Name = '未知'; Model = ''; Mode = '未知'; Source = 'missing config' }
     }
@@ -69,10 +75,16 @@ function Get-ProviderInfo {
                 Source = 'cmd_config.json'
             }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return [pscustomobject]@{ Name = '未知'; Model = ''; Mode = '未知'; Source = 'config read failed' }
 }
 
+<#
+.SYNOPSIS
+    Get-AuditTail performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-AuditTail {
     param([string]$ProjectRoot, [int]$Count = 10)
     $path = Join-Path $ProjectRoot 'tools\totp_broker_audit.jsonl'
@@ -93,20 +105,26 @@ function Get-AuditTail {
                     Ok = $ok
                     Status = if ($ok) { '已批准' } else { '已拦截' }
                 }
-            } catch { }
+            } catch { Write-Verbose 'optional operation failed' }
         }
-    } catch { }
+    } catch { Write-Verbose 'optional operation failed' }
     return @($rows | Select-Object -Last $Count)
 }
 
+<#
+.SYNOPSIS
+    Get-GameWhitelist performs its documented CBS operation.
+.DESCRIPTION
+    Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
 function Get-GameWhitelist {
     param([string]$ProjectRoot)
     $result = @()
     $seen = @{}
     $bigFishDir = Join-Path $env:LOCALAPPDATA 'CyberButler\game-mode'
     $specs = @(
-        @{ File = 'AstrBot\data\game-list.auto.txt'; Source = 'AUTO' },
-        @{ File = 'AstrBot\data\game-list.txt'; Source = 'MANUAL' },
+        @{ File = 'AgentRuntime\data\game-list.auto.txt'; Source = 'AUTO' },
+        @{ File = 'AgentRuntime\data\game-list.txt'; Source = 'MANUAL' },
         @{ File = 'tools\game-list.auto.txt'; Source = 'AUTO' },
         @{ File = 'tools\game-list.txt'; Source = 'MANUAL' },
         @{ Path = (Join-Path $bigFishDir 'game-list.auto.txt'); Source = 'AUTO' },
