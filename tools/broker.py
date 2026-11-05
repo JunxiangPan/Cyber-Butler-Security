@@ -1290,6 +1290,8 @@ def execute(request: dict) -> ExecutionResult:
         return _fail("不支持的操作类型。", 400, "request.unsupported_action")
     except TargetGuardError as exc:
         return _fail(f"目标在审批后发生变化（TOCTOU）：{exc}", 409, "target.toctou")
+    except OSError as exc:
+        return _fail(f"文件操作失败：{exc}", 500, "io.operation_failed")
     finally:
         _close_request_snapshots(request)
 
@@ -2448,6 +2450,10 @@ def undo_trash_request(payload: dict) -> tuple[int, dict]:
     return 200, {"ok": True, "restored": str(restored), "id": request_id}
 
 
+class RequestBodyTooLarge(ValueError):
+    """Request body exceeds the broker's accepted size."""
+
+
 class Handler(BaseHTTPRequestHandler):
     """Handler helper/type."""
     server_version = "AgentRuntimeTOTPBroker/1.6.3"
@@ -2540,8 +2546,10 @@ class Handler(BaseHTTPRequestHandler):
             length = int(raw_length)
         except (TypeError, ValueError) as exc:
             raise ValueError("invalid Content-Length") from exc
-        if length < 0 or length > 65536:
+        if length < 0:
             raise ValueError("Content-Length out of range")
+        if length > 65536:
+            raise RequestBodyTooLarge("request body too large")
         if not length:
             raw = b"{}"
         else:
@@ -2554,11 +2562,14 @@ class Handler(BaseHTTPRequestHandler):
                 chunks.append(chunk)
                 remaining -= len(chunk)
             raw = b"".join(chunks)
-        if len(raw) != length:
+        if length and len(raw) != length:
             raise ValueError("request body length mismatch")
         # Tolerate an optional UTF-8 BOM; reject other invalid UTF-8 instead of
         # silently replacing bytes and turning a valid JSON error into a 400.
-        text = raw.decode("utf-8-sig")
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ValueError("invalid UTF-8 body") from exc
         try:
             return json.loads(text)
         except json.JSONDecodeError as exc:
@@ -2667,8 +2678,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             payload = self._body()
+        except RequestBodyTooLarge as exc:
+            self._json(413, {"ok": False, "error": "request body too large", "detail": str(exc)})
+            return
         except (ValueError, TypeError) as exc:
             self._json(400, {"ok": False, "error": "invalid JSON", "detail": str(exc)})
+            return
+        except Exception as exc:
+            self._json(500, {"ok": False, "error": "request body read failed", "detail": str(exc)})
             return
         try:
             parsed = urlparse(self.path)

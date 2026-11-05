@@ -54,5 +54,5 @@ def test_body_accepts_utf8_bom() -> None:
 
 def test_body_rejects_invalid_utf8() -> None:
     payload = b'{"action":"delete","target":"C:/' + bytes([0xFF]) + b'.txt"}'
-    with pytest.raises(UnicodeDecodeError):
+    with pytest.raises(ValueError):
         broker.Handler._body(_handler(payload))
