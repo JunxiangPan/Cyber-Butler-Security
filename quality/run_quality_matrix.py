@@ -115,7 +115,7 @@ def summarize(items: list[dict], statuses: dict[str, str], profile: str) -> dict
     }
 
 
-def render_report(manifest: dict) -> str:
+def render_report(manifest: dict, quality_manifest_sha256: str = "") -> str:
     counts = manifest["counts"]
     lines = [
         "# FINAL QA REPORT",
@@ -131,6 +131,11 @@ def render_report(manifest: dict) -> str:
         f"- Skipped by design: {counts['skipped_by_design']}",
         f"- Overall: **{manifest['overall']}**",
         "",
+    ]
+    if quality_manifest_sha256:
+        lines.append(f"QUALITY_MANIFEST_SHA256: {quality_manifest_sha256}")
+        lines.append("")
+    lines += [
         "> A blocked item is not a pass. The release signing gate requires 26/26",
         "> passed items and a valid quality-manifest.json.",
         "",
@@ -164,10 +169,11 @@ def main() -> int:
         "overall": result["overall"],
     }
     canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    MANIFEST.write_text(canonical + "\n", encoding="utf-8")
-    MANIFEST_HASH.write_text(hashlib.sha256((canonical + "\n").encode("utf-8")).hexdigest().upper() + "\n", encoding="ascii")
-    REPORT.write_text(render_report(manifest), encoding="utf-8")
-    print(f"wrote {REPORT}")
+    manifest_bytes = (canonical + chr(10)).encode("utf-8")
+    digest = hashlib.sha256(manifest_bytes).hexdigest().upper()
+    MANIFEST.write_bytes(manifest_bytes)
+    MANIFEST_HASH.write_text(digest + chr(10), encoding="ascii")
+    REPORT.write_text(render_report(manifest, digest), encoding="utf-8")
     print(f"wrote {MANIFEST}")
     print(f"overall={manifest['overall']} passed={manifest['counts']['passed']} failed={manifest['counts']['failed']} blocked={manifest['counts']['blocked']} skipped_by_design={manifest['counts']['skipped_by_design']}")
     print("STATUSES " + ",".join(f"{row['id']}={row['status']}" for row in manifest["items"]))
