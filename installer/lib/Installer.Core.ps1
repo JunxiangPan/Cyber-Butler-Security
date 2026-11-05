@@ -529,3 +529,32 @@ function Invoke-CyberButlerCoreDeploy {
         return [pscustomobject]@{ status = 'failed'; changed = $false; exit_code = 20; message = [string]$_.Exception.Message; reason = [string]$_.Exception.Message; paths = $paths }
     }
 }
+
+<#
+.SYNOPSIS
+    Test-CyberButlerTokenReadAcl checks a file ACL by SID, not by display-name regex.
+.DESCRIPTION
+    Accepts both DOMAIN\User and User forms. Returns true only when an explicit
+    Allow ACE grants Read to that SID. Any lookup or ACL read failure returns false.
+#>
+function Test-CyberButlerTokenReadAcl {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Account
+    )
+    $sid = $null
+    try {
+        $sid = (New-Object System.Security.Principal.NTAccount($Account)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+    } catch { return $false }
+    if ([string]::IsNullOrWhiteSpace($sid)) { return $false }
+    try { $acl = Get-Acl -LiteralPath $Path } catch { return $false }
+    foreach ($ace in @($acl.Access)) {
+        if ($ace.AccessControlType -ne 'Allow') { continue }
+        try {
+            $aceSid = $ace.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value
+        } catch { continue }
+        if ($aceSid -ne $sid) { continue }
+        if (($ace.FileSystemRights -band [System.Security.AccessControl.FileSystemRights]::Read) -ne 0) { return $true }
+    }
+    return $false
+}

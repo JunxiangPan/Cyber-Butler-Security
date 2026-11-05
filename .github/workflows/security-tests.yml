@@ -47,3 +47,9 @@ jobs:
         run: python quality/preflight.py
       - name: 25-item quality matrix (no fake PASS)
         run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Pester installer red lines
+        shell: powershell
+        run: |
+          Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
+          $result = Invoke-Pester -Script ./installer/tests -PassThru
+          if ($result.FailedCount -ne 0) { exit 1 }

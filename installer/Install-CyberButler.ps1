@@ -872,11 +872,14 @@ if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPat
     if (Test-Path -LiteralPath $brokerToken) {
         $tokenReaders = @($DesktopAccount, $currentDesktopUser) | Where-Object { $_ } | Select-Object -Unique
         if ($tokenReaders.Count -eq 0) { throw 'DesktopAccount is empty; refusing broker token ACL grant.' }
+        $tokenSids = @{}
         foreach ($tokenReader in $tokenReaders) {
-            & icacls.exe $brokerToken /grant "${tokenReader}:(R)" | Out-Null
+            $tokenSid = (New-Object System.Security.Principal.NTAccount($tokenReader)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+            if ([string]::IsNullOrWhiteSpace($tokenSid)) { throw ('could not resolve token reader SID: ' + $tokenReader) }
+            $tokenSids[$tokenReader] = $tokenSid
+            & icacls.exe $brokerToken /grant ('*' + $tokenSid + ':(R)') | Out-Null
         }
-        $aclText = (& icacls.exe $brokerToken) -join "`n"
-        $missingReaders = @($tokenReaders | Where-Object { $aclText -notmatch [regex]::Escape($_) })
+        $missingReaders = @($tokenReaders | Where-Object { -not (Test-CyberButlerTokenReadAcl -Path $brokerToken -Account $_) })
         if ($LASTEXITCODE -ne 0 -or $missingReaders.Count -gt 0) {
             $failure = [pscustomobject]@{
                 step = 'acl'
