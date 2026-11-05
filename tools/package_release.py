@@ -26,7 +26,7 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md", "CHANGELOG.md", "PSScriptAnalyzerSettings.psd1", "vulture_whitelist.py", "requirements-runtime.txt", "ruff.toml"}
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md", "CHANGELOG.md", "PSScriptAnalyzerSettings.psd1", "vulture_whitelist.py", "requirements-runtime.txt", "ruff.toml", "tools/update_pubkey.pem"}
 PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/", "quality/", "checks/")
 FORBIDDEN_PAYLOAD_PREFIXES = ("agentruntime/", "auxruntime/")
 

@@ -370,14 +370,6 @@ def _retain_snapshots(request_id: str, request: dict) -> None:
     """Keep file handles open across the approval-only execution window."""
     with _retained_lock:
         _retained_snapshots[request_id] = request
-    def release() -> None:
-        """Release retained handles after the execution window."""
-        time.sleep(300)
-        with _retained_lock:
-            old = _retained_snapshots.pop(request_id, None)
-        if old:
-            _close_request_snapshots(old)
-    threading.Thread(target=release, daemon=True).start()
 
 
 def _release_retained(request_id: str) -> bool:

@@ -844,11 +844,12 @@ if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPat
     } else {
         [pscustomobject]@{ approval_channel = 'webui'; admin_email = '' }
     }
-    $auditKey = Join-Path $InstallPath 'tools\audit_hmac.key'
+    $auditKey = Join-Path $InstallPath 'tools/audit_hmac.dpapi'
     if (-not (Test-Path -LiteralPath $auditKey)) {
         $keyBytes = New-Object byte[] 32
+        $protected = [Security.Cryptography.ProtectedData]::Protect($keyBytes, $null, [Security.Cryptography.DataProtectionScope]::LocalMachine)
         [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
-        [IO.File]::WriteAllBytes($auditKey, $keyBytes)
+        [IO.File]::WriteAllBytes($auditKey, $protected)
         & icacls.exe $auditKey /inheritance:r /grant:r '*S-1-5-18:(R)' '*S-1-5-32-544:(F)' | Out-Null
     }
     $workspaceRoot = Join-Path $InstallPath 'workspace'

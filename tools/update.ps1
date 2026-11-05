@@ -128,7 +128,7 @@ function Restore-Backup {
     if (-not (Test-Path -LiteralPath $manifestPath)) { return }
     $verify = Join-Path $sourceRoot ('tools' + [IO.Path]::DirectorySeparatorChar + 'verify_release.py')
     if (-not (Test-Path -LiteralPath $verify)) { throw 'update verifier missing' }
-    & $python $verify --manifest $manifestPath --signature $signaturePath --pubkey $PublicKeyPath --legacy
+    & $python $verify --manifest $manifestPath --signature $signaturePath --legacy
     if ($LASTEXITCODE -ne 0) { throw 'update manifest signature verification failed' }
     Write-UpdateLog 'update manifest RSA signature verified'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
@@ -202,7 +202,6 @@ try {
     if ($localZipSource -and -not $SignatureUrl) { throw 'local update requires -SignatureUrl and a pinned public key' }
     Invoke-WebRequest -Uri $SignatureUrl -OutFile $signaturePath -UseBasicParsing -TimeoutSec 60
     if (-not (Test-Path -LiteralPath $signaturePath)) { throw 'update signature is missing' }
-    if (-not (Test-Path -LiteralPath $PublicKeyPath)) { throw 'pinned update public key is missing' }
     $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLower()
     if ($actual -ne $ExpectedSha256.ToLower()) {
         throw 'downloaded asset SHA-256 does not match the trusted digest'

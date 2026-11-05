@@ -76,9 +76,12 @@ def _key() -> bytes:
         return _KEY_CACHE
     key_path = Path(os.environ.get("CBS_AUDIT_KEY_FILE", "")) if os.environ.get("CBS_AUDIT_KEY_FILE") else None
     if key_path is None:
-        key_path = Path(__file__).resolve().parents[1] / "tools" / "audit_hmac.key"
+        key_path = Path(__file__).resolve().parents[1] / "tools" / "audit_hmac.dpapi"
     try:
         raw = key_path.read_bytes()
+        if key_path.suffix.casefold() == ".dpapi":
+            import win32crypt
+            _description, raw = win32crypt.CryptUnprotectData(raw, None, None, None, 0)
     except OSError as exc:
         raise AuditChainError(f"cannot read audit HMAC key: {exc}") from exc
     key = raw.strip()
