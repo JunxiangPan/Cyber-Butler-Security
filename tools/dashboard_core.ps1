@@ -10,6 +10,10 @@ function Get-DashboardRoot {
     return (Split-Path -Parent $PSScriptRoot)
 }
 
+<#
+.SYNOPSIS
+    Probe a loopback TCP port without throwing.
+#>
 function Test-Port {
     param([int]$Port, [int]$TimeoutMs = 800)
     $client = New-Object Net.Sockets.TcpClient
@@ -24,6 +28,10 @@ function Test-Port {
     }
 }
 
+<#
+.SYNOPSIS
+    Read the latest broker audit rows for the dashboard.
+#>
 function Get-AuditTail {
     param([string]$ProjectRoot, [int]$Count = 10)
     $path = Join-Path $ProjectRoot 'tools\totp_broker_audit.jsonl'
