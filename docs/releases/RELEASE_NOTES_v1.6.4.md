@@ -4,10 +4,11 @@ Status: DRAFT — not a signed release note yet.
 
 ## Quality status
 
-QUALITY_COUNTS: 14/26
+QUALITY_COUNTS: 12/26
 
-The remaining 12 items are VM-only chaos/soak checks. Their evidence is tracked
-in `ACCEPTANCE_PROOF.md`; they are not represented as passed by the CI profile.
+The CI profile passes 12 items. The remaining 14 items are VM-only chaos/soak
+checks and package-artifact checks; they are not represented as passed by the
+CI profile.
 
 ## Scope
 
@@ -19,3 +20,5 @@ incident-history protection, and binary provenance checks.
 See `README.md` and the release checklist for the four-file verification
 command. The v1.6.4 signature format remains four files for compatibility with
 the 1.6.x update chain.
+
+Community acknowledgement: see CONTRIBUTORS.md.
