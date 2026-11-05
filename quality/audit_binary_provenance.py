@@ -29,7 +29,7 @@ def _discover(package: Path, root: Path) -> list[tuple[str, int, bytes]]:
     found = []
     for path in root.rglob("*"):
         if path.is_file() and path.suffix.lower() in {".exe", ".dll", ".bin"} and path.stat().st_size > LIMIT:
-            if ".git" not in path.parts and ".venv" not in path.parts:
+            if not any(part in {".git", ".venv", "__pycache__"} for part in path.parts) and "build/bin" not in path.as_posix() and "build/obj" not in path.as_posix() and "build/publish" not in path.as_posix():
                 found.append((path.relative_to(root).as_posix(), path.stat().st_size, path.read_bytes()))
     return found
 
