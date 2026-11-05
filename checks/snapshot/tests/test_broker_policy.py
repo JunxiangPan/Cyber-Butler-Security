@@ -219,7 +219,7 @@ def test_verify_issues_scoped_bypass_token(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(broker, "SHARED", shared)
     monkeypatch.setattr(broker, "AUDIT", audit)
     monkeypatch.setattr(broker, "send_qq", lambda text: True)
-    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
     monkeypatch.setattr(broker, "execute", lambda request: (True, "ok"))
     target = shared / "a.txt"
     target.write_text("x", encoding="utf-8")
@@ -304,7 +304,7 @@ def test_approval_only_verify_approves_without_execute(monkeypatch, tmp_path) ->
         executed["called"] = True
         return True, "must not run"
 
-    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
     monkeypatch.setattr(broker, "execute", fake_execute)
     broker._pending = {
         "id": "approval-1",
@@ -423,7 +423,7 @@ def test_verify_ignores_caller_supplied_scope(monkeypatch, tmp_path) -> None:
     root.mkdir()
     target = root / "a.txt"
     target.write_text("x", encoding="utf-8")
-    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
     monkeypatch.setattr(broker, "send_qq", lambda text: True)
     broker._pending = {
         "id": "scoped-1",

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Block acceptance scripts that cannot recover from TOTP replay defenses."""
+"""Block acceptance scripts that reintroduce the 35-second replay workaround.
+
+Replay protection is bound to (request_id, code). A fresh approval request
+must not wait for a timer to reuse the same code.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,14 +18,10 @@ def main() -> int:
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        if "/verify" not in text:
-            continue
-        if "429" not in text or "replay rejected" not in text:
-            findings.append(f"{path.relative_to(ROOT)}: TOTP verify lacks 429/replay handling")
-        if "Start-Sleep" not in text or "35" not in text:
-            findings.append(f"{path.relative_to(ROOT)}: TOTP replay path lacks 35-second wait")
-        if "Read-Host" not in text:
-            findings.append(f"{path.relative_to(ROOT)}: replay path cannot request a fresh TOTP")
+        if "Start-Sleep -Seconds 35" in text or "waiting 35 seconds" in text:
+            findings.append(f"{path.relative_to(ROOT)}: 35-second TOTP wait is forbidden")
+        if "replay rejected" in text and "Read-Host" in text:
+            findings.append(f"{path.relative_to(ROOT)}: replay retry prompt is forbidden")
     if findings:
         print("FRAGILITY_GATE_FAILED")
         for item in findings:

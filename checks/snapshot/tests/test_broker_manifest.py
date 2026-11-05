@@ -94,7 +94,7 @@ def test_manifest_tamper_is_rejected_at_approval(monkeypatch, tmp_path) -> None:
     audit = tmp_path / "audit.jsonl"
     monkeypatch.setattr(broker, "SHARED", shared)
     monkeypatch.setattr(broker, "AUDIT", audit)
-    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
 
     broker._pending = {
         "id": "manifest-tamper",

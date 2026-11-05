@@ -12,6 +12,7 @@ import ctypes
 import io
 import ctypes.wintypes as wintypes
 import hashlib
+from dataclasses import dataclass
 import ipaddress
 import json
 import os
@@ -45,22 +46,31 @@ try:
 except ImportError:  # pragma: no cover - exercised on Linux CI
     win32crypt = None
 
-TEST_MODE = os.environ.get("CBS_TEST_MODE") == "1"
-_SOURCE_ROOT = Path(__file__).resolve().parents[1]
-ROOT = Path(os.environ.get("CBS_TEST_ROOT", str(_SOURCE_ROOT))) if TEST_MODE else Path(os.environ.get("CBS_ROOT", str(_SOURCE_ROOT)))
-os.environ.setdefault("CBS_ROOT", str(ROOT))
-BROKER = ROOT / "tools" / "broker"
-QUARANTINE = BROKER / "trash_staging"
-STAGING = BROKER / "staging"
-TOTP_VAULT = ROOT / "tools" / "totp-vault"
-SECRET_FILE = TOTP_VAULT / "totp_secret.dpapi"
-RECOVERY_FILE = TOTP_VAULT / "recovery_hashes.json"
-LEGACY_SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
-LEGACY_RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
-TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
-LOG = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker.log") if TEST_MODE else (ROOT / "tools" / "totp_broker.log")
-AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
-BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
+from broker_config import (
+    ALLOWED_HOSTS,
+    AUDIT,
+    BROKER,
+    BROKER_CONFIG,
+    DENY_JITTER_MAX,
+    DENY_JITTER_MIN,
+    HOST,
+    LEGACY_RECOVERY_FILE,
+    LEGACY_SECRET_FILE,
+    LOG,
+    PORT,
+    QUARANTINE,
+    RECOVERY_FILE,
+    REQUEST_BURST,
+    REQUEST_RATE_LIMIT_SECONDS,
+    REQUEST_REFILL_SECONDS,
+    ROOT,
+    SECRET_FILE,
+    STAGING,
+    TEST_MODE,
+    TIMEOUT_SECONDS,
+    TOKEN_FILE,
+    TOTP_VAULT,
+)
 
 
 def _resolve_shared() -> Path:
@@ -115,15 +125,6 @@ def _resolve_umo() -> str:
 
 UMO = _resolve_umo()
 PLATFORM_IDS = ("QQ", "qq", "qq_sujinyan", "default")
-HOST = "127.0.0.1"
-PORT = int(os.environ.get("CBS_TEST_PORT", "18090")) if TEST_MODE else 18090
-ALLOWED_HOSTS = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"}
-TIMEOUT_SECONDS = 300
-REQUEST_RATE_LIMIT_SECONDS = 1.0
-REQUEST_BURST = 3
-REQUEST_REFILL_SECONDS = 30.0
-DENY_JITTER_MIN = 0.05
-DENY_JITTER_MAX = 0.25
 
 # ---------------------------------------------------------------------------
 # Windows Job Object: KILL_ON_JOB_CLOSE
@@ -145,6 +146,31 @@ JOB_OBJECT_LIMIT_PROCESS_MEMORY = 0x00000100
 JOB_OBJECT_LIMIT_JOB_MEMORY = 0x00000200
 JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
 _job_handle = None
+
+
+@dataclass(frozen=True)
+class ExecutionResult:
+    """Typed result for one broker file operation."""
+
+    status: int
+    message: str
+    code: str = ""
+
+    @property
+    def ok(self) -> bool:
+        return self.status == 200
+
+    def __iter__(self):
+        yield self.ok
+        yield self.message
+
+
+def _ok(message: str) -> ExecutionResult:
+    return ExecutionResult(200, message, "ok")
+
+
+def _fail(message: str, status: int = 500, code: str = "broker.execute_failed") -> ExecutionResult:
+    return ExecutionResult(status, message, code)
 
 
 class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
@@ -1289,7 +1315,7 @@ def _manifest_prompt(manifest: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def verify_code(code: str) -> str:
+def verify_code(code: str, request_id: str = "") -> str:
     """Verify code.
     
     Args:
@@ -1301,7 +1327,7 @@ def verify_code(code: str) -> str:
     code = code.strip().upper()
     if len(code) == 6 and code.isdigit():
         if pyotp.TOTP(secret()).verify(code, valid_window=1):
-            digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+            digest = hashlib.sha256((str(request_id) + "|" + code).encode("utf-8")).hexdigest()
             now = time.time()
             with _replay_lock:
                 for old_digest, used_at in list(_used_totp.items()):
@@ -1330,7 +1356,7 @@ def verify_code(code: str) -> str:
     return ""
 
 
-def execute(request: dict) -> tuple[bool, str]:
+def execute(request: dict) -> ExecutionResult:
     """Execute.
     
     Args:
@@ -1350,7 +1376,7 @@ def execute(request: dict) -> tuple[bool, str]:
             source_snapshot.assert_unchanged()
 
         if not target or not _allowed_target(target):
-            return False, "目标不在允许的 Broker 路径内，拒绝执行。"
+            return _fail("目标不在允许的 Broker 路径内，拒绝执行。", 403, "policy.target_denied")
 
         if action == "delete":
             if snapshot is not None and not snapshot.is_directory:
@@ -1364,7 +1390,7 @@ def execute(request: dict) -> tuple[bool, str]:
                         reason=str(request.get("reason", "")),
                     )
                 except quarantine.QuarantineCapacityError as exc:
-                    return False, ("暂存区容量熔断，删除已拦截；没有移动任何文件。" + str(exc))
+                    return _fail("暂存区容量熔断，删除已拦截；没有移动任何文件。" + str(exc), 507, "trash.capacity_exceeded")
                 request["_trash_entry"] = str(entry)
                 try:
                     manifest = quarantine._read_manifest(entry)
@@ -1372,13 +1398,13 @@ def execute(request: dict) -> tuple[bool, str]:
                     request["_trash_expires_epoch"] = manifest.get("expires_epoch", 0)
                 except Exception as exc:
                     log("trash manifest warning: " + str(exc))
-                return True, f"文件已移入两阶段暂存回收站，10 分钟内可撤回：{entry.name}"
+                return _ok(f"文件已移入两阶段暂存回收站，10 分钟内可撤回：{entry.name}")
             if not target.exists():
-                return False, "目标文件不存在。"
+                return _fail("目标文件不存在。", 404, "target.not_found")
             QUARANTINE.mkdir(parents=True, exist_ok=True)
             trash = QUARANTINE / f"{request['id']}_{target.name}"
             shutil.move(str(target), str(trash))
-            return True, f"已把 {target.name} 移到隔离区：{trash.name}"
+            return _ok(f"已把 {target.name} 移到隔离区：{trash.name}")
 
         if action == "overwrite":
             source = Path(request.get("source", ""))
@@ -1389,53 +1415,53 @@ def execute(request: dict) -> tuple[bool, str]:
             except ValueError as exc:
                 log("source staging prefix warning: " + str(exc))
             if not source_ok:
-                return False, "覆盖源文件必须在shared专用文件夹、tmp 或 broker staging 内。"
+                return _fail("覆盖源文件必须在shared专用文件夹、tmp 或 broker staging 内。", 403, "policy.source_denied")
             if source_snapshot is not None:
                 if snapshot is None:
-                    return False, "覆盖目标快照缺失。"
+                    return _fail("覆盖目标快照缺失。", 409, "target.snapshot_missing")
                 data = source_snapshot.read_bytes(limit=50 * 1024 * 1024)
                 snapshot.rewrite(data)
-                return True, f"已覆盖 {target.name}（句柄绑定，旧版本未直接删除）。"
+                return _ok(f"已覆盖 {target.name}（句柄绑定，旧版本未直接删除）。")
             if not source.exists():
-                return False, "覆盖源文件不存在。"
+                return _fail("覆盖源文件不存在。", 409, "source.not_found")
             if target.exists():
                 QUARANTINE.mkdir(parents=True, exist_ok=True)
                 backup = QUARANTINE / f"{request['id']}_{target.name}.bak"
                 shutil.copy2(target, backup)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-            return True, f"已覆盖 {target.name}，旧版本备份在隔离区。"
+            return _ok(f"已覆盖 {target.name}，旧版本备份在隔离区。")
 
         if action == "write_file":
             content = request.get("content")
             if not isinstance(content, str):
-                return False, "write_file 需要字符串 content。"
+                return _fail("write_file 需要字符串 content。", 400, "request.invalid_content")
             data = content.encode("utf-8")
             if len(data) > 256 * 1024:
-                return False, "write_file 内容超过 256KB。"
+                return _fail("write_file 内容超过 256KB。", 413, "request.content_too_large")
             target.parent.mkdir(parents=True, exist_ok=True)
             if request.get("mode") == "create" and snapshot is None:
                 create_exclusive(str(target), data)
-                return True, f"已创建 {target.name}（{len(data)} bytes）。"
+                return _ok(f"已创建 {target.name}（{len(data)} bytes）。")
             if snapshot is not None:
                 if request.get("mode") == "create":
-                    return False, "创建模式发现目标已存在；拒绝覆盖。"
+                    return _fail("创建模式发现目标已存在；拒绝覆盖。", 409, "target.exists")
                 snapshot.rewrite(data)
-                return True, f"已写入 {target.name}（{len(data)} bytes，句柄绑定）。"
+                return _ok(f"已写入 {target.name}（{len(data)} bytes，句柄绑定）。")
             if request.get("mode") == "create":
                 try:
                     with target.open("x", encoding="utf-8") as handle:
                         handle.write(content)
                 except FileExistsError:
-                    return False, "创建模式发现目标已存在；拒绝覆盖。"
-                return True, f"已创建 {target.name}（{len(data)} bytes）。"
+                    return _fail("创建模式发现目标已存在；拒绝覆盖。", 409, "target.exists")
+                return _ok(f"已创建 {target.name}（{len(data)} bytes）。")
             temp = target.with_name(target.name + ".broker.tmp")
             temp.write_text(content, encoding="utf-8")
             os.replace(temp, target)
-            return True, f"已写入 {target.name}（{len(data)} bytes）。"
-        return False, "不支持的操作类型。"
+            return _ok(f"已写入 {target.name}（{len(data)} bytes）。")
+        return _fail("不支持的操作类型。", 400, "request.unsupported_action")
     except TargetGuardError as exc:
-        return False, f"目标在审批后发生变化（TOCTOU）：{exc}"
+        return _fail(f"目标在审批后发生变化（TOCTOU）：{exc}", 409, "target.toctou")
     finally:
         _close_request_snapshots(request)
 
@@ -1531,7 +1557,7 @@ def email_watch(request_id: str) -> None:
         if challenge != actual_challenge:
             log("email approval ignored: challenge mismatch")
             continue
-        if verify_code(totp) is None:
+        if not verify_code(totp, request_id):
             with _lock:
                 if _pending and _pending.get("id") == request_id:
                     _pending["attempts"] = int(_pending.get("attempts", 0)) + 1
@@ -2265,7 +2291,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             _close_request_snapshots(_pending)
             _pending = None
             return 410, {"ok": False, "error": "verification code expired"}
-        code_type = verify_code(code)
+        code_type = verify_code(code, request_id)
         if code_type == "replay":
             _record_global_failure()
             audit_failure(
@@ -2395,7 +2421,8 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             log(f"send approved: {request_id} {request.get('target')}")
             return 200, {"ok": True, "approved": True, "id": request_id, "result": "已授权发送"}
 
-    ok, result = execute(request)
+    execution = execute(request)
+    ok, result = execution
     send_qq(result)
     bypass = None
     scoped = None
@@ -2439,7 +2466,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
         response["scoped_token"] = scoped["token"]
         response["scoped_expires_in"] = scoped["expires_in"]
         response["scoped_root"] = scoped["root"]
-    return (200 if ok else 500), response
+    return (200 if ok else execution.status), response
 
 
 def run_approval_request(payload: dict) -> tuple[int, dict]:
@@ -2533,7 +2560,7 @@ def totp_binding_payload() -> dict:
 def reset_totp_with_recovery(code: str) -> tuple[int, dict]:
     """Consume a recovery code, rotate the secret, and return new enrollment."""
     code = str(code or "").strip().upper()
-    if verify_code(code) != "recovery":
+    if verify_code(code, "recovery-reset") != "recovery":
         return 403, {"ok": False, "error": "valid recovery code required"}
     if win32crypt is None:
         return 503, {"ok": False, "error": "win32crypt is unavailable"}

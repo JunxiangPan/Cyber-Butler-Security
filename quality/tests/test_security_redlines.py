@@ -20,7 +20,7 @@ def test_directory_delete_is_rejected_400(tmp_path: Path) -> None:
 def test_verify_rejects_caller_supplied_scope(tmp_path: Path, monkeypatch) -> None:
     target = tmp_path / "file.txt"
     target.write_text("x", encoding="utf-8")
-    monkeypatch.setattr(broker, "verify_code", lambda _code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda _code, request_id="": "totp")
     monkeypatch.setattr(broker, "_assert_snapshots_current", lambda _request: None)
     monkeypatch.setattr(broker, "AUDIT", tmp_path / "audit.jsonl")
     broker._pending = {

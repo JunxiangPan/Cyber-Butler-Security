@@ -127,7 +127,7 @@ def check_broker_totp(broker_module=None) -> DefenseResult:
             previous["send_qq"] = broker.send_qq
             previous["verify_code"] = broker.verify_code
             broker.send_qq = lambda text: True
-            broker.verify_code = lambda code: "totp"
+            broker.verify_code = lambda code, request_id="": "totp"
             status, body = broker.run_request(
                 {"action": "write_file", "target": str(target), "content": "approved"}
             )
@@ -177,7 +177,7 @@ def check_toctou(broker_module=None) -> DefenseResult:
             previous["send_qq"] = broker.send_qq
             previous["verify_code"] = broker.verify_code
             broker.send_qq = lambda text: True
-            broker.verify_code = lambda code: "totp"
+            broker.verify_code = lambda code, request_id="": "totp"
             status, body = broker.run_request(
                 {"action": "write_file", "target": str(target), "content": "approved"}
             )

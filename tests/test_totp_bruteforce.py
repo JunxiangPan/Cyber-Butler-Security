@@ -17,7 +17,7 @@ def setup_function() -> None:
 
 def test_five_bad_attempts_lock_verification(monkeypatch, tmp_path) -> None:
     audit = tmp_path / "broker-audit.jsonl"
-    monkeypatch.setattr(broker, "verify_code", lambda code: "")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "")
     monkeypatch.setattr(broker, "AUDIT", audit)
     broker._pending = {
         "id": "req-lock",

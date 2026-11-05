@@ -16,7 +16,7 @@ def setup_function() -> None:
 
 
 def test_wrong_totp_returns_403(monkeypatch, tmp_path) -> None:
-    monkeypatch.setattr(broker, "verify_code", lambda code: "")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "")
     monkeypatch.setattr(broker, "AUDIT", tmp_path / "broker-audit.jsonl")
 
     broker._pending = {

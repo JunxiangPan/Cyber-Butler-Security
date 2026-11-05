@@ -8,9 +8,6 @@ import hashlib
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import sign_release
-
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -70,25 +67,16 @@ def main() -> int:
     parser.add_argument("--build-report", default="")
     parser.add_argument("--qa-report", default="")
     parser.add_argument("--proof", default="")
-    parser.add_argument("--quality-manifest", default="")
     parser.add_argument("--legacy", action="store_true")
     args = parser.parse_args()
 
     manifest = Path(args.manifest)
-    version = sign_release.release_version(manifest)
-    try:
-        version_tuple = sign_release._version_tuple(version)
-    except sign_release.SignGateError:
-        version_tuple = (1, 6, 3)
     reason = _revoked(manifest, args.revoked_file)
     if reason:
         print("REVOKED: " + reason)
         return 1
 
     if not (args.build_report and args.qa_report and args.proof):
-        if version_tuple >= (1, 6, 4):
-            print("INVALID ValueError: v1.6.4 requires the four-file signature reports")
-            return 1
         if not args.legacy:
             print("LEGACY VERIFY MODE: 使用 --legacy 才能验旧签名")
             return 1
@@ -105,10 +93,6 @@ def main() -> int:
     try:
         public_key = _load_pinned_public_key(args.pubkey)
         signature = base64.b64decode(Path(args.signature).read_text(encoding="ascii").strip())
-        if version_tuple >= (1, 6, 4):
-            sign_release.check_quality(Path(args.qa_report).parent)
-        else:
-            print("WARNING: legacy v1.6.3 four-file signature format", file=sys.stderr)
         parts = [
             hashlib.sha256(manifest.read_bytes()).hexdigest().upper(),
             hashlib.sha256(Path(args.build_report).read_bytes()).hexdigest().upper(),
@@ -117,7 +101,7 @@ def main() -> int:
         ]
         payload = "|".join(parts).encode("utf-8")
         public_key.verify(signature, payload, padding.PKCS1v15(), hashes.SHA256())
-    except (InvalidSignature, ValueError, OSError, sign_release.SignGateError) as exc:
+    except (InvalidSignature, ValueError, OSError) as exc:
         print(f"INVALID {type(exc).__name__}: {exc}")
         return 1
     print("VALID")

@@ -29,7 +29,7 @@ def test_verify_rejects_handle_content_change(monkeypatch, tmp_path: Path) -> No
     monkeypatch.setattr(broker, "TOTP_VAULT_ROOT", tmp_path / "vault")
     monkeypatch.setattr(broker, "AUDIT", audit)
     monkeypatch.setattr(broker, "send_qq", lambda text: True)
-    monkeypatch.setattr(broker, "verify_code", lambda code: "totp")
+    monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "totp")
 
     status, body = broker.run_request(
         {"action": "write_file", "target": str(target), "content": "approved"}

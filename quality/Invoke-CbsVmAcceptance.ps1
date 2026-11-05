@@ -34,16 +34,8 @@ function TotpCode([string]$id) {
     return $code
 }
 function PostTotpVerify([string]$id) {
-    for ($attempt = 1; $attempt -le 3; $attempt++) {
-        $code = TotpCode $id
-        $body = PostJson 'http://127.0.0.1:18090/verify' ('{"id":"' + $id + '","code":"' + $code + '"}')
-        if ($body -match 'replay rejected' -or $body -match '429') {
-            Write-Host 'TOTP 已被防重放机制拦截，等待 35 秒获取新码...'
-            Start-Sleep -Seconds 35
-            continue
-        }
-        return $body
-    }
+    $code = TotpCode $id
+    $body = PostJson 'http://127.0.0.1:18090/verify' ('{"id":"' + $id + '","code":"' + $code + '"}')
     return $body
 }
 

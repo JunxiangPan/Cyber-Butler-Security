@@ -19,12 +19,19 @@ security boundary.
 |---|---|---|
 | Owner (human) | trusted for approval decisions | phone/email is outside the host boundary |
 | Agent / model / plugin | **untrusted** | may be prompt-injected, buggy, or compromised |
-| Broker | trusted, SYSTEM | no OTP secret in agent address space |
+| Broker | trusted, SYSTEM | token is an agent capability; OTP and path policy are the secrets |
 | WebUI / installer | local administrative UI | same-user compromise is outside guarantee |
 | Windows kernel / ACL / WFP | trusted OS | a local administrator can change it |
 
-**Invariant:** the OTP code, scoped token, and broker token never enter the
-agent's address space. The agent receives only a request id and status.
+**Capability model:** `broker_token` is the credential the external agent uses
+to call the broker. The agent can read it by design. It is a capability, not a
+secret invisible to the agent. The real protected material is the TOTP secret,
+the recovery codes, the path policy, pending approval state, and audit evidence.
+
+The ACL protects the token from other local users and lower-privilege
+processes; it does not make the token invisible to the service account that
+runs the external agent. Any claim that the token never enters the agent's
+address space is withdrawn.
 
 ## 3. Minimum interface contract
 
@@ -57,7 +64,7 @@ In scope:
 
 ```text
 filesystem ACL / separate service identity
-WFP or firewall egress control for the agent SID
+WFP audit evidence for the agent SID (audit-only in v1.6.x; no enforcement filter)
 Job Object process-tree containment and resource limits
 TOTP/approval outside the agent
 TOCTOU handle binding
@@ -72,8 +79,9 @@ a local administrator can bypass or modify any local control
 a compromised desktop session or phone is a credential compromise
 AppContainer/restricted-token sandbox is NOT implemented in v1.6.x
 no syscall sandbox, no kernel driver, no third-party audit
-no guarantee against every plugin, shell, GUI, or egress path
-QQ protocol account risk and model/provider behavior are external
+no enforcement of outbound traffic; the UI is an Egress Audit view, not a whitelist
+no guarantee against every external application, shell, GUI, or egress path
+external application account risk and model/provider behavior are external
 ```
 
 ## 5. AppContainer and MXC
@@ -100,7 +108,9 @@ The mapping is maintained in [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md).
 
 ## Boundary Statement
 
-CBS is a generic local Agent approval and evidence layer.
+CBS is a local, self-hosted capability broker with a path-policy brake and an
+audit trail. It is not an enterprise security gateway, not a kernel sandbox,
+and not a certification.
 It does not own, support, certify, or endorse any specific third-party QQ client or unofficial ecosystem.
 
 CBS provides only a generic external Agent boundary.
@@ -108,3 +118,26 @@ Whether a third-party application uses CBS, how it integrates, and whether it is
 
 CBS tests use synthetic external agents, not real third-party applications as fixtures.
 
+
+
+## 7. Egress Audit Boundary
+
+The UI formerly labelled "Network Allowlist" is renamed **Egress Audit**.
+
+```text
+WFP mode: audit-only
+applied: 0
+enforcement: not installed
+```
+
+The guard records status and policy and does not block outbound traffic. Do not
+present this control as a network allowlist or as enforcement.
+
+## 8. Evidence Limits
+
+The token can be read by the service account that runs the external agent.
+This is intentional: it is the agent's capability. ACL evidence must be read as
+"other local users cannot read it", never as "the agent cannot see it".
+
+VM acceptance evidence is tamper-evident, not remote attestation. A malicious
+machine owner who fabricates logs cannot be disproved by local hashes alone.

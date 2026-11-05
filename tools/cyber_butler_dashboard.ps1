@@ -48,7 +48,7 @@ $xaml = @'
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10"><TextBlock Text="最近的 TOTP 审批与拦截" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/><Button x:Name="RefreshAudit" Content="刷新" Width="72" Height="30" Margin="14,0,0,0"/></StackPanel>
     <DataGrid x:Name="AuditGrid" IsReadOnly="True" AutoGenerateColumns="True" CanUserAddRows="False" HeadersVisibility="Column" ColumnWidth="*" RowHeight="34" FontSize="12" Background="#0E141E" Foreground="#DCE7F5" BorderBrush="#243044" RowBackground="#0E141E"/>
    </DockPanel></Border></TabItem>
-   <TabItem Header="网络白名单"><Border Background="#121824" BorderBrush="#243044" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,8,0,0"><StackPanel>
+   <TabItem Header="出站审计"><Border Background="#121824" BorderBrush="#243044" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,8,0,0"><StackPanel>
     <TextBlock Text="受保护目录" FontSize="15" FontWeight="SemiBold"/><TextBlock x:Name="ProtectedRoot" Margin="0,8,0,16" Foreground="#9FB0C6"/>
     <TextBlock Text="出站白名单" FontSize="15" FontWeight="SemiBold"/><TextBlock x:Name="WhitelistText" Margin="0,8,0,0" Foreground="#9FB0C6" TextWrapping="Wrap"/>
    </StackPanel></Border></TabItem>
