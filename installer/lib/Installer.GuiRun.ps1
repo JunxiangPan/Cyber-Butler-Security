@@ -467,10 +467,18 @@ function Start-CyberButlerGuiInstall {
 '@
     Set-Content -LiteralPath $configPath -Value $configBody -Encoding UTF8
 
+    $desktopAccountValue = if (-not [string]::IsNullOrWhiteSpace($DesktopAccount)) {
+        $DesktopAccount
+    } else {
+        try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+    }
+    if ([string]::IsNullOrWhiteSpace($desktopAccountValue)) { $desktopAccountValue = [string]$env:USERNAME }
+    if ([string]::IsNullOrWhiteSpace($desktopAccountValue)) { throw 'DesktopAccount could not be resolved; refusing to launch installer.' }
+
     $launchArgs = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $InstallerPath,
         '-Tier', $Tier, '-InstallPath', $InstallPath, '-WebUIBind', $WebUIBind,
-        '-DesktopAccount', $(if ($DesktopAccount) { $DesktopAccount } else { try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name } }),
+        '-DesktopAccount', $desktopAccountValue,
         '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir,
         '-TestConfigPath', $configPath,
         '-JournalRoot', 'C:\ProgramData\CyberButler\installer\state',

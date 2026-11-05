@@ -21,6 +21,37 @@ internal static class InstallerProgram
         }
     }
 
+    private static void Log(string message)
+    {
+        try
+        {
+            File.AppendAllText(Path.Combine(Path.GetTempPath(), "CyberButler-installer-shell.log"),
+                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message + Environment.NewLine);
+        }
+        catch { }
+    }
+
+    private static int RunGui(string gui, bool allowBypass)
+    {
+        ProcessStartInfo psi = new ProcessStartInfo();
+        psi.FileName = "powershell.exe";
+        psi.Arguments = (allowBypass
+            ? "-NoProfile -STA -ExecutionPolicy Bypass -File \""
+            : "-NoProfile -STA -File \"") + gui + "\"";
+        psi.WorkingDirectory = Path.GetDirectoryName(gui);
+        psi.UseShellExecute = true;
+        psi.CreateNoWindow = false;
+        psi.WindowStyle = ProcessWindowStyle.Normal;
+        Log("starting PowerShell allowBypass=" + allowBypass + " gui=" + gui);
+        using (Process child = Process.Start(psi))
+        {
+            if (child == null) { Log("Process.Start returned null"); return 4; }
+            child.WaitForExit();
+            Log("PowerShell exited code=" + child.ExitCode);
+            return child.ExitCode;
+        }
+    }
+
     private static int Main(string[] args)
     {
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -35,22 +66,17 @@ internal static class InstallerProgram
             Process.Start(self);
             return 0;
         }
-        ProcessStartInfo psi = new ProcessStartInfo();
-        psi.FileName = "powershell.exe";
-        psi.Arguments = "-NoProfile -STA -File \"" + gui + "\"";
-        psi.WorkingDirectory = Path.GetDirectoryName(gui);
-        psi.UseShellExecute = true;
-        psi.CreateNoWindow = false;
-        psi.WindowStyle = ProcessWindowStyle.Normal;
         try
         {
-            using (Process child = Process.Start(psi))
-            {
-                if (child == null) return 4;
-                child.WaitForExit();
-                return child.ExitCode;
-            }
+            int code = RunGui(gui, false);
+            if (code == 0) return 0;
+            Log("non-bypass run failed; retrying visible Bypass");
+            return RunGui(gui, true);
         }
-        catch { return 6; }
+        catch (Exception ex)
+        {
+            Log("installer shell exception: " + ex.GetType().Name + ": " + ex.Message);
+            return 6;
+        }
     }
 }
