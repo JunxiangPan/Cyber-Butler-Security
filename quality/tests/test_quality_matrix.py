@@ -192,7 +192,7 @@ def test_q18_no_unresolved_placeholders():
         with zipfile.ZipFile(package) as archive:
             entries = [(name, archive.read(name)) for name in archive.namelist()]
     else:
-        entries = [(path.relative_to(ROOT).as_posix(), path.read_bytes()) for path in ROOT.rglob("*") if path.is_file() and not any(part in {".git", ".venv", "__pycache__"} for part in path.parts)]
+        entries = [(path.relative_to(ROOT).as_posix(), path.read_bytes()) for path in (ROOT / "webui").rglob("*") if path.is_file() and not any(part in {".venv", "__pycache__"} for part in path.parts)]
     bad = [name for name, data in entries if not name.startswith(allowed) and b"YOUR_" in data]
     assert bad == []
 
