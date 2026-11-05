@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "e3d5b18345867bf4afed0b6bf1099046f5eb137f752ad4e78117855df1fbc569",
+      "sha256": "066953bf1b9ee0b66627ed75694617321b3b4a9cca112c07b39f7e354c9dc91c",
       "size": 947
     },
     {
@@ -1124,8 +1124,8 @@
     },
     {
       "path": "tests/test_regression_hygiene.py",
-      "sha256": "106ef21437a9f3338621d0a4bc80118839fa9cf7912ffaf2e4d7574732a8b8ef",
-      "size": 1151
+      "sha256": "f2168984e683a883b9c57a63bd3657326bac3ea0d8163a45ce9ba0d5dbc1fa1b",
+      "size": 521
     },
     {
       "path": "tests/test_release_discipline.py",
@@ -1348,119 +1348,9 @@
       "size": 4440
     },
     {
-      "path": "tools/dashboard_actions.ps1",
-      "sha256": "a3659ef5712e11a2cecc2d63757f6c34a9765e3425f48c4fc7d2e426ae2949ba",
-      "size": 11914
-    },
-    {
-      "path": "tools/dashboard_background.ps1",
-      "sha256": "6df5b5bb8d715db047c741cb6b0e93373bd850ea549c375517ced5bb2741250f",
-      "size": 46742
-    },
-    {
       "path": "tools/dashboard_core.ps1",
-      "sha256": "9af1c68eadb5963a45e95086eac26417a2e182985120cd48c226ae7c8a47ab3f",
-      "size": 7245
-    },
-    {
-      "path": "tools/dashboard_errors.ps1",
-      "sha256": "0be3ecc6124c58562ffaada6513a79fa6f2686289d0d3d1ac4e2ea563ae31503",
-      "size": 5154
-    },
-    {
-      "path": "tools/dashboard_game.ps1",
-      "sha256": "977b513f34c236cdb8bbe3b4f7a24563fd0804d661909a5c539b392ef6230e61",
-      "size": 11877
-    },
-    {
-      "path": "tools/dashboard_i18n.json",
-      "sha256": "c63fbc7b0aca8376bcd4ea800b89ba93bb70e47a24b49a9e4277ebcc503376ae",
-      "size": 62009
-    },
-    {
-      "path": "tools/dashboard_modules.ps1",
-      "sha256": "499d30430823454ce6c94420c0defb03a9a3b335886fc68783d1772ddd46a028",
-      "size": 17330
-    },
-    {
-      "path": "tools/dashboard_persona.ps1",
-      "sha256": "c0aff94c6808651d2d109ee44b849ab5d43b8c3c04ced407a22d3194152ddb93",
-      "size": 5016
-    },
-    {
-      "path": "tools/dashboard_plugins/hello_world/logic.ps1",
-      "sha256": "d834d77c513df59b1777f888722624f5b00fed18ba33434eaaefa9a6b2d8d8dd",
-      "size": 1580
-    },
-    {
-      "path": "tools/dashboard_plugins/hello_world/manifest.json",
-      "sha256": "8592eaf1f0f60215e0877f137575ee49211065884ce3cfef27295f7fb31415ea",
-      "size": 325
-    },
-    {
-      "path": "tools/dashboard_plugins/hello_world/ui.xaml",
-      "sha256": "20e4a5447af5eda8a5cbc90fdcb5f48a90432d77fa1f37c8d4aa1f8b4d06eedc",
-      "size": 3358
-    },
-    {
-      "path": "tools/dashboard_plugins/quick_cmd/logic.ps1",
-      "sha256": "97c932ebc0837380da069ecc087ef478e862b2bf3cecaaaf022599847b54b021",
-      "size": 3329
-    },
-    {
-      "path": "tools/dashboard_plugins/quick_cmd/manifest.json",
-      "sha256": "81e4ee5b3375bc0df2fdb5411d90ae6c222a68a22cae6111a53c7302d350ed63",
-      "size": 366
-    },
-    {
-      "path": "tools/dashboard_plugins/quick_cmd/ui.xaml",
-      "sha256": "d3b82be3d1f1e1c01cf813c9550eaaba8a873d765f31741f054a4b3ead393068",
-      "size": 2076
-    },
-    {
-      "path": "tools/dashboard_plugins/sys_monitor/logic.ps1",
-      "sha256": "c0fc5b2bf26943f927eed2e35665b02ab89b075862ce86c815a805e124ef16ad",
-      "size": 4162
-    },
-    {
-      "path": "tools/dashboard_plugins/sys_monitor/manifest.json",
-      "sha256": "eedf433491e7d7a9194a1734258f9556911f9e41e7fc5beff5a2547a22ef8e2c",
-      "size": 324
-    },
-    {
-      "path": "tools/dashboard_plugins/sys_monitor/ui.xaml",
-      "sha256": "5654133ed5cabd6e8d814e809e33043ed2badb9e9e4fce45e5e71155662c721d",
-      "size": 2573
-    },
-    {
-      "path": "tools/dashboard_restore.ps1",
-      "sha256": "7c8c0530b1006841b457425b2e0dc41eb9b5e02730f5cb09cdf81f84d6e64589",
-      "size": 10536
-    },
-    {
-      "path": "tools/dashboard_secret.ps1",
-      "sha256": "53d04767cffd067e104aa954c1501241dc007939679a07166e586cdefb8f0518",
-      "size": 1567
-    },
-    {
-      "path": "tools/dashboard_settings.ps1",
-      "sha256": "3b6648452b5905ba940063813efb8605b6cb588155efe695ab82191668d56e68",
-      "size": 50540
-    },
-    {
-      "path": "tools/dashboard_styles.xaml",
-      "sha256": "c6804db41714e0938b81704c5b5c7ab1d54a28fd6ee0c963710cd15f14de3e86",
-      "size": 15614
-    },
-    {
-      "path": "tools/dashboard_theme_dark.xaml",
-      "sha256": "fe66880e9551ffe675d91725a227362c3ed18e3182cb8763be9feecf04d26335",
-      "size": 1009
-    },
-    {
-      "path": "tools/dashboard_theme_light.xaml",
-      "sha256": "67f4731bec1e544992cb23a7723cf9d6dd38115245f56ccbb4e8cc5412ad8708",
-      "size": 1009
+      "sha256": "60beaeabb52b58104ac46cf16b776925aea2e53888a2343d7c7a81dead336be5",
+      "size": 2010
     },
     {
       "path": "tools/email_approval.py",
@@ -1546,26 +1436,6 @@
       "path": "tools/physical_separation.py",
       "sha256": "e4d3b794525f58d919bd1f3ea0b1e837746f1fb5a12b8fe2b85df69a4054a131",
       "size": 1531
-    },
-    {
-      "path": "tools/plugin_hub.ps1",
-      "sha256": "7f707b5e329b5556952cd23e5ac3809a7d2ed64bfe07cb01198704b028637dcd",
-      "size": 13979
-    },
-    {
-      "path": "tools/plugin_market.ps1",
-      "sha256": "c7607b0dcd1246caaf26ac00baf29a40c0a01602a73f81fb09d4f5bb7fb814c2",
-      "size": 13757
-    },
-    {
-      "path": "tools/plugin_review_dialog.ps1",
-      "sha256": "12a578aae467ab2d1e3f1682b1f3ccb7d27b01546765abbc30d987851514a57a",
-      "size": 8871
-    },
-    {
-      "path": "tools/plugin_security_scanner.ps1",
-      "sha256": "b9f0873d54553a47d64a57b866ed07588b4a869b6109136878be4a468561a200",
-      "size": 11807
     },
     {
       "path": "tools/port_guard.py",
