@@ -206,6 +206,11 @@ function Invoke-CyberButlerPipInstall {
     } else {
         Write-Host 'CORE pip source: PyPI (offline wheelhouse unavailable or incompatible)'
     }
+    $hashLock = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'requirements-runtime.lock'
+    if (Test-Path -LiteralPath $hashLock) {
+        $Requirements = $hashLock
+        $command += ' --require-hashes'
+    }
     $command += ' -r ' + (& $quote $Requirements)
     $argumentLine = '/d /s /c "' + $command + '"'
     $process = Start-Process -FilePath $env:ComSpec -ArgumentList $argumentLine `

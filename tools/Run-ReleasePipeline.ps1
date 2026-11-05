@@ -165,6 +165,10 @@ Remove-Item -LiteralPath $sealPath -Force -ErrorAction SilentlyContinue
 
 Run-Process '25-item quality matrix' 'python' @('quality/run_quality_matrix.py', '--nonce', $Challenge)
 Run-Process 'pytest' 'python' @('-m', 'pytest', '-q')
+Run-Process 'coverage measurement' 'python' @('-m', 'coverage', 'run', '--branch', '-m', 'pytest', '-q', 'tests/')
+Run-Process 'coverage json' 'python' @('-m', 'coverage', 'json', '-o', 'coverage.json')
+Run-Process 'CBP coverage gate (allowlisted)' 'python' @('quality/coverage_gate.py')
+Run-Process 'CBP dependency hash gate' 'python' @('quality/dependency_gate.py')
 Run-Step 'Pester' {
     Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
     $result = Invoke-Pester -Script (Join-Path $root 'installer/tests') -PassThru

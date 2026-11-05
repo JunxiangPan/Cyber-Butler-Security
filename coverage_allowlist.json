@@ -1,0 +1,35 @@
+{
+  "schema": "cbp-coverage-allowlist/v1",
+  "files": {
+    "tools/broker.py": [
+      {
+        "lines": [273, 349],
+        "reason": "Win32 Job Object creation/assignment: ctypes kernel32 calls cannot be executed on Linux CI."
+      },
+      {
+        "lines": [355, 363],
+        "reason": "Win32 CloseHandle/KILL_ON_JOB_CLOSE shutdown path; requires a real Windows job handle."
+      },
+      {
+        "lines": [609, 636],
+        "reason": "Broker token ACL creation and icacls readback; requires a Windows service account."
+      },
+      {
+        "lines": [648, 652],
+        "reason": "icacls readback failure branch; Windows ACL binary and service token required."
+      },
+      {
+        "lines": [666, 668],
+        "reason": "DPAPI/token ACL failure branch; Windows DPAPI store only."
+      },
+      {
+        "lines": [2749, 2828],
+        "reason": "HTTP server main/serve_forever/shutdown; blocked in unit-test processes to avoid a real listener."
+      }
+    ]
+  },
+  "policy": {
+    "tools/broker_policy.py": 85.0,
+    "tools/broker.py": 70.0
+  }
+}
