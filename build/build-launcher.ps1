@@ -34,10 +34,10 @@ if (-not (Test-Path -LiteralPath $psAssembly)) { throw 'System.Management.Automa
     $source
 if ($LASTEXITCODE -ne 0) { throw "csc failed with exit code $LASTEXITCODE" }
 
-& $csc /nologo /target:winexe /platform:anycpu `
-    ("/win32manifest:" + $manifest) `
-    ("/out:" + $installerOutput) `
-    $installerSource
-if ($LASTEXITCODE -ne 0) { throw "installer csc failed with exit code $LASTEXITCODE" }
+$dotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+if (-not $dotnet) { throw 'dotnet SDK is required to publish the self-contained installer.' }
+& $dotnet.Source publish (Join-Path $PSScriptRoot 'StartInstaller.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o (Join-Path $PSScriptRoot 'publish')
+if ($LASTEXITCODE -ne 0) { throw "installer publish failed with exit code $LASTEXITCODE" }
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'publish\START-INSTALLER.exe') -Destination $installerOutput -Force
 Write-Output ("LAUNCHER=" + $output)
 Write-Output ("ROOT_LAUNCHER=" + $rootLauncher)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -29,7 +29,7 @@ internal static class InstallerProgram
         if (!IsAdministrator())
         {
             ProcessStartInfo self = new ProcessStartInfo();
-            self.FileName = Assembly.GetEntryAssembly().Location;
+            self.FileName = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule.FileName;
             self.UseShellExecute = true;
             self.Verb = "runas";
             Process.Start(self);
@@ -37,10 +37,11 @@ internal static class InstallerProgram
         }
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = "powershell.exe";
-        psi.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File \"" + gui + "\"";
+        psi.Arguments = "-NoProfile -STA -File \"" + gui + "\"";
         psi.WorkingDirectory = Path.GetDirectoryName(gui);
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
+        psi.UseShellExecute = true;
+        psi.CreateNoWindow = false;
+        psi.WindowStyle = ProcessWindowStyle.Normal;
         try
         {
             using (Process child = Process.Start(psi))
