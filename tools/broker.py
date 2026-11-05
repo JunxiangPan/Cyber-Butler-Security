@@ -19,6 +19,7 @@ import secrets
 import shutil
 import random
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
@@ -81,8 +82,8 @@ def _resolve_shared() -> Path:
                 text = str(item or "").strip()
                 if text:
                     return Path(text)
-    except Exception:
-        pass
+    except Exception as exc:
+        print("workspace resolver warning: " + str(exc), file=sys.stderr)
     if "YOUR_" in str(ROOT):
         return Path(r"C:\CyberButler\workspace")
     return ROOT / "workspace"
@@ -104,8 +105,8 @@ def _resolve_umo() -> str:
         qq_id = str(data.get("qq_id", "") or data.get("owner_qq", "") or "").strip()
         if qq_id:
             return "QQ:FriendMessage:" + qq_id
-    except Exception:
-        pass
+    except Exception as exc:
+        print("UMO resolver warning: " + str(exc), file=sys.stderr)
     qq_id = str(os.environ.get("CBS_QQ_ID", "") or "").strip()
     return ("QQ:FriendMessage:" + qq_id) if qq_id else ""
 
@@ -753,8 +754,8 @@ def _workspace_roots() -> tuple[Path, ...]:
     except Exception as exc:  # noqa: BLE001 - config must never crash the Broker
         try:
             log("broker_config workspace warning: " + str(exc))
-        except Exception:
-            pass
+        except Exception as log_exc:
+            print("broker_config log warning failed: " + str(log_exc), file=sys.stderr)
     return tuple(roots)
 
 TMP_ROOTS = (
@@ -1060,8 +1061,8 @@ def _close_request_snapshots(request: dict | None) -> None:
         if snap is not None:
             try:
                 snap.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                log("snapshot close warning: " + str(exc))
 
 
 def _prepare_snapshots(action: str, target: str, source: str = "") -> tuple:
@@ -1226,8 +1227,8 @@ def _snapshot_summary(snapshot, path_text: str) -> str:
                 f"{snapshot.path} | file | {int(snapshot.identity[2])} bytes "
                 f"| sha256={snapshot.sha256}"
             )
-    except Exception:
-        pass
+    except Exception as exc:
+        log("snapshot summary warning: " + str(exc))
     return _path_summary(path_text)
 
 
@@ -1364,8 +1365,8 @@ def execute(request: dict) -> tuple[bool, str]:
                     manifest = quarantine._read_manifest(entry)
                     request["_trash_expires_at"] = manifest.get("expires_at", "")
                     request["_trash_expires_epoch"] = manifest.get("expires_epoch", 0)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log("trash manifest warning: " + str(exc))
                 return True, f"文件已移入两阶段暂存回收站，10 分钟内可撤回：{entry.name}"
             if not target.exists():
                 return False, "目标文件不存在。"
@@ -1380,8 +1381,8 @@ def execute(request: dict) -> tuple[bool, str]:
             try:
                 source.resolve().relative_to(STAGING.resolve())
                 source_ok = True
-            except ValueError:
-                pass
+            except ValueError as exc:
+                log("source staging prefix warning: " + str(exc))
             if not source_ok:
                 return False, "覆盖源文件必须在shared专用文件夹、tmp 或 broker staging 内。"
             if source_snapshot is not None:
@@ -2587,8 +2588,8 @@ def undo_trash_request(payload: dict) -> tuple[int, dict]:
                 "ok": True,
                 "result": "two-stage delete restored by owner",
             }, ensure_ascii=False) + "\n")
-    except OSError:
-        pass
+    except OSError as exc:
+        log("trash undo audit warning: " + str(exc))
     return 200, {"ok": True, "restored": str(restored), "id": request_id}
 
 

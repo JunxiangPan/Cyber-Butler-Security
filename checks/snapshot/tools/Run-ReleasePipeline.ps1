@@ -50,6 +50,8 @@ $head = (& git -C $root rev-parse HEAD 2>&1 | Out-String).Trim()
 $upstream = (& git -C $root rev-parse origin/release/v1.6.3 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw 'release discipline: cannot resolve HEAD or origin/release/v1.6.3' }
 if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != origin/release/v1.6.3 ' + $upstream + '; push first') }
+$sealPath = Join-Path $env:TEMP ('cbp-self-seal-' + [guid]::NewGuid().ToString('N') + '.json')
+Run-Process 'self-seal record' 'python' @('quality/self_seal.py', '--record', $sealPath)
 
 $report = New-Object System.Collections.Generic.List[string]
 function Add-Report([string]$text) { $report.Add($text); Write-Host $text }
@@ -91,6 +93,8 @@ Add-Report ('- Launcher version: ' + $launcherVersion)
 Run-Process 'static types/dead code/PSScriptAnalyzer' 'python' @('quality/audit_static.py')
 Run-Process 'test integrity (MANIFEST + snapshot + empty-assert AST)' 'python' @('quality/test_guard.py', 'verify', '--restore')
 Run-Process 'mutation check (real assertion inversion)' 'python' @('quality/mutation_check.py')
+Run-Process 'source mutation (production logic)' 'python' @('quality/source_mutation_check.py')
+Run-Process 'silent failure scan' 'python' @('quality/silent_failure_scan.py')
 Run-Process 'real Broker fixture (subprocess, HTTP, TOTP, trash, replay)' 'python' @('quality/test_runtime_fixture.py')
 $proofPath = Join-Path $root 'ACCEPTANCE_PROOF.md'
 if (Test-Path -LiteralPath $proofPath) {
@@ -142,6 +146,8 @@ if ($Candidate) {
     $report | Set-Content -LiteralPath $candidateReport -Encoding UTF8
     $candidateReportHash = (Get-FileHash -LiteralPath $candidateReport -Algorithm SHA256).Hash
     Write-Host ('[BUILD_MANIFEST] Zip_SHA256: ' + $candidateHash + ' | Report_SHA256: ' + $candidateReportHash)
+Run-Process 'self-seal verify' 'python' @('quality/self_seal.py', '--verify', $sealPath)
+Remove-Item -LiteralPath $sealPath -Force -ErrorAction SilentlyContinue
     exit 0
 }
 
@@ -165,6 +171,8 @@ if ($proofText -notmatch 'negative_path=True') { throw 'negative path evidence m
 Run-Process 'mypy (0 errors)' 'python' @('-m', 'mypy', 'tools', 'webui', 'installer', '--ignore-missing-imports', '--exclude', '(\.venv|tests)')
 Run-Process 'ruff (E9/F)' 'python' @('-m', 'ruff', 'check', 'tools', 'webui', 'installer', '--exclude', 'webui/.venv', '--exclude', 'webui/tests')
 Run-Process 'pip-audit runtime dependencies' 'python' @('-m', 'pip_audit', '-r', 'requirements-runtime.txt')
+Run-Process 'Broker coverage > 80%' 'python' @('quality/coverage_gate.py')
+Run-Process 'pinned dependency hashes' 'python' @('quality/dependency_gate.py')
 
 # Build only from this pipeline via the token gate.
 $token = [guid]::NewGuid().ToString('N')

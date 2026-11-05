@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 import socket
 import subprocess
@@ -14,6 +15,8 @@ from pathlib import Path
 import httpx
 
 from settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceError(RuntimeError):
@@ -158,8 +161,8 @@ class WebServices:
                 writer.close()
                 try:
                     await writer.wait_closed()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("writer close failed: %s", exc)
                 return True
             except Exception:
                 return False
@@ -262,8 +265,8 @@ class WebServices:
                         if file.is_file() and not file.is_symlink():
                             try:
                                 size += file.stat().st_size
-                            except OSError:
-                                pass
+                            except OSError as exc:
+                                logger.warning("backup size failed: %s", exc)
                     kind = "directory"
                 elif child.is_file():
                     size = child.stat().st_size
