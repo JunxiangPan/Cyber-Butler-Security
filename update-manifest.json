@@ -9,8 +9,8 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "a14b2de020a7ebba7c3a8ed68c88c47d8db0821601900a440cb801d1cdd615c9",
-      "size": 1774
+      "sha256": "5c38283a718325811b4578342f6a7b26a3d7598d26ca018645d2fa2884ff4765",
+      "size": 2251
     },
     {
       "path": ".gitignore",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "139f0583d5a5ab29c6d1304557fb3efd4bf7d1f3359c9173c2da7273459ab36e",
+      "sha256": "38f37bfec2ca8c2c6120adcfdf5d1e06de4ef9ee95ca1ce187418553d8e5ba4b",
       "size": 947
     },
     {
@@ -804,8 +804,8 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "5bcc356ae641d4528610a0e19f6f52abfcd52e0d0230e8511b09468bc0b7c107",
-      "size": 12305
+      "sha256": "51951fd136d8c89616ab434d3e4155d432707cafbb0a985df1628762b741326c",
+      "size": 10746
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",
