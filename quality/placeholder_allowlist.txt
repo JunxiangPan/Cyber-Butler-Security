@@ -32,7 +32,6 @@ tools/broker.py
 tools/cyber_butler_dashboard.ps1
 tools/daily_audit.py
 tools/daily_brief.py
-tools/dashboard_plugins/quick_cmd/logic.ps1
 tools/game-mode.ps1
 tools/install_broker_task.ps1
 tools/install_daily_tasks.ps1
