@@ -14,7 +14,7 @@ class FakeTOTP:
 
 
 def setup_function() -> None:
-    broker._used_totp.clear()
+    broker.broker_state._used_totp.clear()
 
 
 def test_valid_totp_is_accepted_once(monkeypatch) -> None:

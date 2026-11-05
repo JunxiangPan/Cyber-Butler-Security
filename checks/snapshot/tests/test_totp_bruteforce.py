@@ -9,17 +9,17 @@ import broker
 
 
 def setup_function() -> None:
-    broker._pending = None
-    broker._verify_locked_until = 0.0
-    broker._global_failures = 0
-    broker._global_lock_until = 0.0
+    broker.broker_state._pending = None
+    broker.broker_state._verify_locked_until = 0.0
+    broker.broker_state._global_failures = 0
+    broker.broker_state._global_lock_until = 0.0
 
 
 def test_five_bad_attempts_lock_verification(monkeypatch, tmp_path) -> None:
     audit = tmp_path / "broker-audit.jsonl"
     monkeypatch.setattr(broker, "verify_code", lambda code, request_id="": "")
     monkeypatch.setattr(broker, "AUDIT", audit)
-    broker._pending = {
+    broker.broker_state._pending = {
         "id": "req-lock",
         "action": "delete",
         "target": "YOUR_USER_PATH/Desktop/shared/note.txt",
@@ -37,10 +37,10 @@ def test_five_bad_attempts_lock_verification(monkeypatch, tmp_path) -> None:
     status, body = broker.run_verify({"id": "req-lock", "code": "000000"})
     assert status == 429
     assert body["attempts"] == 5
-    assert broker._pending is None
-    assert broker._verify_locked_until > time.monotonic()
-    assert broker._global_failures == 5
-    assert broker._global_lock_until > time.monotonic()
+    assert broker.broker_state._pending is None
+    assert broker.broker_state._verify_locked_until > time.monotonic()
+    assert broker.broker_state._global_failures == 5
+    assert broker.broker_state._global_lock_until > time.monotonic()
 
     # A new request is rejected while the verification lock is active.
     status, _ = broker.run_request({"action": "delete", "target": "x"})

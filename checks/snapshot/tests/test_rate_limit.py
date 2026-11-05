@@ -6,8 +6,8 @@ import broker
 
 
 def setup_function() -> None:
-    with broker._request_rate_lock:
-        broker._request_buckets.clear()
+    with broker.broker_state._request_rate_lock:
+        broker.broker_state._request_buckets.clear()
 
 
 def test_request_bucket_refills_at_thirty_seconds() -> None:
