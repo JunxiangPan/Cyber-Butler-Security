@@ -14,8 +14,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "8fce2a0b8eac057d322d53cd2aac2d64cce0ea8fd9609f19176912f33e60e9f5",
-      "size": 1849
+      "sha256": "a6fe5d78cec3f4f8c2d80a97fb520b52772b282b63859ec55d9b1f85f1c67eeb",
+      "size": 1806
     },
     {
       "path": "CONTRIBUTING.md",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "066953bf1b9ee0b66627ed75694617321b3b4a9cca112c07b39f7e354c9dc91c",
+      "sha256": "bc2835b5275c1ead4873e0d10aef7500b3f702f9c03675c5a2d44c7c8ad5af6d",
       "size": 947
     },
     {
@@ -1559,8 +1559,8 @@
     },
     {
       "path": "tools/update_merge_core.py",
-      "sha256": "fa13fbcddb50004185e6d4e11128f76fdf05e584142b5a4520cedff8f27c0461",
-      "size": 22589
+      "sha256": "4517d6fb0ded575686caecd69e58390bba1732aef0a017482e1000279dfe0a75",
+      "size": 22537
     },
     {
       "path": "tools/verify_broker_acl.ps1",
