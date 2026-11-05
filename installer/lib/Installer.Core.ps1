@@ -540,7 +540,7 @@ function Invoke-CyberButlerCoreDeploy {
 function Test-CyberButlerTokenReadAcl {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][string]$Account
+        [string]$Account = ''
     )
     $sid = $null
     try {

@@ -320,7 +320,7 @@ if ($resolution.Errors.Count -gt 0) {
 if ([string]::IsNullOrWhiteSpace($AgentRuntimeAccount)) {
     $AgentRuntimeAccount = if ($resolution.Isolation) { $ServiceAccountName } else { [Security.Principal.WindowsIdentity]::GetCurrent().Name }
 }
-$currentDesktopUser = Get-CyberButlerInteractiveUser
+$currentDesktopUser = [Security.Principal.WindowsIdentity]::GetCurrent().Name
 $desktopLeaf = if ($DesktopAccount) { ($DesktopAccount -split '[\/]')[-1] } else { '' }
 $serviceLeaf = ($ServiceAccountName -split '[\/]')[-1]
 if ([string]::IsNullOrWhiteSpace($DesktopAccount) -or $desktopLeaf -ieq $serviceLeaf -or $DesktopAccount -match '^NT AUTHORITY\SYSTEM$') {
@@ -873,14 +873,39 @@ if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPat
         $tokenReaders = @($DesktopAccount, $currentDesktopUser) | Where-Object { $_ } | Select-Object -Unique
         if ($tokenReaders.Count -eq 0) { throw 'DesktopAccount is empty; refusing broker token ACL grant.' }
         $tokenSids = @{}
+        $sidResolutionError = $null
         foreach ($tokenReader in $tokenReaders) {
-            $tokenSid = (New-Object System.Security.Principal.NTAccount($tokenReader)).Translate([System.Security.Principal.SecurityIdentifier]).Value
-            if ([string]::IsNullOrWhiteSpace($tokenSid)) { throw ('could not resolve token reader SID: ' + $tokenReader) }
+            try {
+                $tokenSid = (New-Object System.Security.Principal.NTAccount($tokenReader)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+            } catch {
+                $sidResolutionError = ('Failed to resolve SID for user: ' + $tokenReader + '. Error: ' + $_.Exception.Message)
+                break
+            }
+            if ([string]::IsNullOrWhiteSpace($tokenSid)) {
+                $sidResolutionError = ('Failed to resolve SID for user: ' + $tokenReader)
+                break
+            }
             $tokenSids[$tokenReader] = $tokenSid
-            & icacls.exe $brokerToken /grant ('*' + $tokenSid + ':(R)') | Out-Null
+            try {
+                & icacls.exe $brokerToken /grant ('*' + $tokenSid + ':(R)') | Out-Null
+            } catch {
+                $sidResolutionError = ('Failed to grant token read to: ' + $tokenReader + '. Error: ' + $_.Exception.Message)
+                break
+            }
         }
-        $missingReaders = @($tokenReaders | Where-Object { -not (Test-CyberButlerTokenReadAcl -Path $brokerToken -Account $_) })
-        if ($LASTEXITCODE -ne 0 -or $missingReaders.Count -gt 0) {
+        if (-not $sidResolutionError) {
+            $missingReaders = @($tokenReaders | Where-Object { -not (Test-CyberButlerTokenReadAcl -Path $brokerToken -Account $_) })
+        } else {
+            $missingReaders = @()
+        }
+        if ($sidResolutionError) {
+            $failure = [pscustomobject]@{
+                step = 'acl'
+                message = $sidResolutionError
+                kind = 'security'
+            }
+            Write-InstallerLine $sidResolutionError -Level ERROR
+        } elseif ($LASTEXITCODE -ne 0 -or $missingReaders.Count -gt 0) {
             $failure = [pscustomobject]@{
                 step = 'acl'
                 message = ('broker token ACL missing desktop read: ' + ($missingReaders -join ','))
