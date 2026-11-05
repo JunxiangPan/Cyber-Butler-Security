@@ -187,16 +187,13 @@ def test_q17_interrupted_install_resume():
 
 def test_q18_no_unresolved_placeholders():
     package = ROOT.parent / "public-release-v1.6.3.zip"
-    if not package.is_file():
-        pytest.skip("release zip not built")
     allowed = ("installer/", "tools/", "docs/", "tests/", "README-INSTALL.md", "DEPLOYMENT.md", "config.pro.example.json")
-    with zipfile.ZipFile(package) as archive:
-        bad = []
-        for name in archive.namelist():
-            if name.startswith(allowed):
-                continue
-            if b"YOUR_" in archive.read(name):
-                bad.append(name)
+    if package.is_file():
+        with zipfile.ZipFile(package) as archive:
+            entries = [(name, archive.read(name)) for name in archive.namelist()]
+    else:
+        entries = [(path.relative_to(ROOT).as_posix(), path.read_bytes()) for path in ROOT.rglob("*") if path.is_file() and not any(part in {".git", ".venv", "__pycache__"} for part in path.parts)]
+    bad = [name for name, data in entries if not name.startswith(allowed) and b"YOUR_" in data]
     assert bad == []
 
 
@@ -246,7 +243,7 @@ def test_q22_port_conflict_preflight():
     import socket
     listeners = []
     try:
-        for port in (18090, 8765):
+        for port in (28090, 28765):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("127.0.0.1", port))
@@ -262,8 +259,8 @@ def test_q22_port_conflict_preflight():
         if isinstance(rows, dict):
             rows = [rows]
         states = {int(row["port"]): bool(row.get("in_use")) for row in rows}
-        assert states.get(18090) is True
-        assert states.get(8765) is True
+        assert states.get(28090) is True
+        assert states.get(28765) is True
     finally:
         for sock in listeners:
             sock.close()
