@@ -247,6 +247,20 @@ class WebServices:
         except Exception as exc:
             raise ServiceError(f"verification failed: {exc}") from exc
 
+    async def security_deny(self, request_id: str) -> dict:
+        """Deny a pending request and release any retained snapshots."""
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                response = await client.post(
+                    f"http://127.0.0.1:{self.settings.broker_port}/deny",
+                    headers={"X-Broker-Token": self._broker_token()},
+                    json={"id": request_id},
+                )
+                data = response.json()
+                return {"ok": response.is_success, "status_code": response.status_code, **data}
+        except Exception as exc:
+            raise ServiceError(f"denial failed: {exc}") from exc
+
     async def totp_bind(self) -> dict:
         """Totp bind.
         

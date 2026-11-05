@@ -70,6 +70,20 @@
     await loadPending();
   };
 
+  const denyPending = async () => {
+    const card = $("pendingCard");
+    const id = card.dataset.id || "";
+    if (!id) return;
+    const data = await api("/api/security/pending/deny", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (!data) return;
+    setText("pendingStatus", data.ok ? "已拒绝 / Denied" : (data.error || "拒绝失败 / Denial failed"));
+    await loadPending();
+  };
+
   const loadTotpBinding = async () => {
     const data = await api("/api/security/totp-bind");
     if (!data) return;
@@ -97,6 +111,7 @@
     setText("accountEmail", me.email || "");
     $("pendingRefresh")?.addEventListener("click", loadPending);
     $("pendingVerify")?.addEventListener("click", verifyPending);
+    $("pendingDeny")?.addEventListener("click", denyPending);
     $("totpBind")?.addEventListener("click", loadTotpBinding);
     $("logoutButton")?.addEventListener("click", logout);
     await loadStatus();

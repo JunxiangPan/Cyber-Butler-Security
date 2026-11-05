@@ -2841,6 +2841,14 @@ class Handler(BaseHTTPRequestHandler):
                 status, body = record_external_read(payload)
             elif parsed.path == "/verify":
                 status, body = run_verify(payload)
+            elif parsed.path == "/deny":
+                request_id = str(payload.get("id", "")).strip()
+                if request_id:
+                    released = _release_retained(request_id)
+                    log(f"approval denied id={request_id[:32]} released={released}")
+                    status, body = 200, {"ok": True, "denied": True, "released": released}
+                else:
+                    status, body = 400, {"ok": False, "error": "id required"}
             elif parsed.path == "/approval/complete":
                 request_id = str(payload.get("id", "")).strip()
                 if request_id:

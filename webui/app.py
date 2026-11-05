@@ -279,7 +279,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         response.headers.setdefault(
             "Content-Security-Policy",
-            "default-src 'self'; style-src 'self'; script-src 'self'; "
+            "default-src 'self'; style-src 'self' 'sha256-LFTMVujLmIqEbysSdCIYN03HQ3XY0BlyJtKc80G68OY='; script-src 'self'; "
             "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
         )
         if request.url.path.startswith("/api/auth/"):
@@ -595,6 +595,16 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             return await services.security_verify(body.id, body.code)
         except ServiceError as exc:
             return JSONResponse({"ok": False, "code": "security.verify_failed", "message": str(exc)}, status_code=502)
+
+    @app.post("/api/security/pending/deny")
+    async def security_pending_deny(body: PendingVerifyRequest, request: Request, session=Depends(require_session)):
+        """Deny a pending request after CSRF validation."""
+        if not secrets.compare_digest(request.headers.get("X-CSRF-Token", ""), session["csrf"]):
+            raise HTTPException(status_code=403, detail={"code": "auth.csrf_invalid", "message": "invalid csrf token"})
+        try:
+            return await services.security_deny(body.id)
+        except ServiceError as exc:
+            return JSONResponse({"ok": False, "code": "security.deny_failed", "message": str(exc)}, status_code=502)
 
     @app.get("/api/security/totp-bind")
     async def security_totp_bind(session=Depends(require_session)):
