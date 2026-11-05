@@ -759,8 +759,8 @@
     },
     {
       "path": "installer/tests/Installer.Redline.Tests.ps1",
-      "sha256": "ad4f8478219bf90682095ec7119aedaaf7b02a12174c1d7029c8c83f55a9cb6e",
-      "size": 1813
+      "sha256": "562d74821b93928a8db17e3d75effab28dc6f3c185b3259eed6313cdc26822c0",
+      "size": 1954
     },
     {
       "path": "installer/tests/Installer.Report.Tests.ps1",
@@ -934,8 +934,8 @@
     },
     {
       "path": "requirements-dev.txt",
-      "sha256": "8b8b692c852f6635cc01527e968e1d8bbc87956817e676e9de61f46754c11e1d",
-      "size": 109
+      "sha256": "126d4af137d0d7a76c53362cc6abe6e8bcfea913ba93c8245195a69efbb187bb",
+      "size": 140
     },
     {
       "path": "tests/conftest.py",
@@ -1169,12 +1169,12 @@
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
-      "sha256": "363d6c87518000e2f7a5b69e858ee54be04f6a1d4f18e32d352dd22ab491acab",
-      "size": 11342
+      "sha256": "bdd09ecfe8b2c73eb07e16387f7a83684ed685ce5ff6ac7d39d7d2482fcf5060",
+      "size": 11746
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
-      "sha256": "d0c1c1f90da89ecc3dc8ee96c4ff922b21c49245adeef47d74bbba346fe3be25",
+      "sha256": "67a9993970f25724f77d5103be1b9c432c4438b7b26debe797bf57d41935d972",
       "size": 66
     },
     {
@@ -1234,8 +1234,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "493dc0f98b165b11499974d2e8c0674f474ac088ae6b4be31513c61bc0b4bc6c",
-      "size": 112750
+      "sha256": "bcb3918fb0073d9acf36363e5d5fc57d87816acc6ad8465a428359610ef33a72",
+      "size": 109802
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1249,8 +1249,8 @@
     },
     {
       "path": "tools/check-overlay-compat.py",
-      "sha256": "11154a5b83ef8e9d6db8d8e38f781360baa570810dc4b2785123ce285a224520",
-      "size": 9215
+      "sha256": "2411cec5c864aa00b1453f06823f9dca635f58f408836d54a3adf469765ecf5e",
+      "size": 9117
     },
     {
       "path": "tools/check_update.ps1",
@@ -1279,8 +1279,8 @@
     },
     {
       "path": "tools/credential_proxy.py",
-      "sha256": "f0819c0309e5af52a713d5936d7ed4a704b813af5835dd993a6cb7b59bac1d2d",
-      "size": 8256
+      "sha256": "540793bfeafbe61b301c5bc78d45104c56ca15fbb0422a8a5b59e84dd0459749",
+      "size": 8249
     },
     {
       "path": "tools/cyber_butler_dashboard.ps1",
@@ -1414,8 +1414,8 @@
     },
     {
       "path": "tools/email_approval.py",
-      "sha256": "80e30ea34e9e389db5f36a1852cbdb6708f8f61faf3abd158d68d81120df6c41",
-      "size": 6814
+      "sha256": "bcd239508bb71ef90e082a817624d85408a49ab2ffd7c39d1b6d19f6d6837660",
+      "size": 6617
     },
     {
       "path": "tools/email_secret_bridge.ps1",
@@ -1489,8 +1489,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "2187f6c494e19ed6333a0781b60d0781027105415c955f6c47d8456ec9706907",
-      "size": 9605
+      "sha256": "312e724ad67074f47b15c2e54c7c5da5dd8115559bdca38e937a455b8c797c1d",
+      "size": 9646
     },
     {
       "path": "tools/physical_separation.py",
