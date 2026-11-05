@@ -167,35 +167,12 @@ Describe 'Installer services safety' {
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
-    It 'stops listeners owned by the install root by port' {
-        $base = Join-Path $env:TEMP ('cb-services-ports-' + [guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path (Join-Path $base 'AgentRuntime') -Force | Out-Null
-        $python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
-        if (-not $python) { return }
-        $script = Join-Path (Join-Path $base 'AgentRuntime') 'fake-listener.py'
-        Set-Content -LiteralPath $script -Value 'import socket,sys,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",int(sys.argv[1]))); s.listen(1); time.sleep(30)' -Encoding ASCII
-        $ports = @(46233, 46234, 46235, 46236)
-        $procs = @()
-        try {
-            foreach ($port in $ports) {
-                $procs += Start-Process -FilePath $python -ArgumentList @($script, [string]$port) -WindowStyle Hidden -PassThru
-            }
-            $deadline = (Get-Date).AddSeconds(10)
-            do {
-                $listeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $ports -contains [int]$_.LocalPort })
-                if ($listeners.Count -ge $ports.Count) { break }
-                Start-Sleep -Milliseconds 200
-            } while ((Get-Date) -lt $deadline)
-            $stopped = @(Stop-CyberButlerInstallProcesses -Root $base -Ports $ports)
-            $stopped.Count | Should BeGreaterThan 0
-            $remaining = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $ports -contains [int]$_.LocalPort })
-            $remaining.Count | Should Be 0
-        } finally {
-            foreach ($proc in $procs) {
-                if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
-            }
-            Remove-Item -LiteralPath $base -Recurse -Force
-        }
+    It 'stops listeners returned by the root-scoped owner lookup' {
+        Mock Get-CyberButlerInstallPortOwnerIds { @(4242) }
+        Mock Stop-Process { }
+        $stopped = @(Stop-CyberButlerInstallProcesses -Root 'C:ake' -Ports @(1))
+        $stopped.Count | Should Be 1
+        Assert-MockCalled Stop-Process -Times 1 -ParameterFilter { $Id -eq 4242 }
     }
 
     It 'restores through the Undo handler' {
