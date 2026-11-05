@@ -1194,12 +1194,12 @@
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
-      "sha256": "bdd09ecfe8b2c73eb07e16387f7a83684ed685ce5ff6ac7d39d7d2482fcf5060",
-      "size": 11746
+      "sha256": "3f774d601fbb153a667284333ebce48956a579385a4b6e670249b5e6bd7681d3",
+      "size": 12429
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
-      "sha256": "67a9993970f25724f77d5103be1b9c432c4438b7b26debe797bf57d41935d972",
+      "sha256": "5385ac1cba1ae08091c358079ab208c546e6bb9487b405aaa2b84209e2a41079",
       "size": 66
     },
     {
@@ -1264,8 +1264,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "90dc8d6212114f4223f558c74c03f1cc5384309600cd313c836a71d29d63ee29",
-      "size": 112295
+      "sha256": "1302c644e02c7add7b475c9c6952a505b526fe38010e22fcd83259b210cf79c5",
+      "size": 112755
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1769,8 +1769,8 @@
     },
     {
       "path": "webui/services.py",
-      "sha256": "8de0712e734ee402c5ad70af22b7c21f1aa495db95576333876d6049dd1217c6",
-      "size": 14231
+      "sha256": "a51c9b231ede8f00355deae85f66b1a0fd93a8e2226ed0d3234c636bd9d23385",
+      "size": 14384
     },
     {
       "path": "webui/settings.py",
