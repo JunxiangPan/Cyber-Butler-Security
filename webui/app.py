@@ -497,6 +497,26 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
             logger.warning("status failed: %s", exc)
             return JSONResponse({"ok": False, "code": "service.status_failed", "message": "状态读取失败。"}, status_code=502)
 
+    def audit_file_denial(request: Request, relative: str, reason: str) -> None:
+        """Audit file denial.
+
+        Args:
+            request: caller-supplied value.
+            relative: caller-supplied value.
+            reason: caller-supplied value.
+
+        Returns:
+            Function result, or None when no value is returned.
+        """
+        safe = str(relative or "")[:160]
+        logger.warning("[files] denied reason=%s path=%r", reason, safe)
+        try:
+            path = settings.data_dir / "files-audit.log"
+            with path.open("a", encoding="utf-8") as handle:
+                print(f"{int(time.time())} ip={request.client.host if request.client else 'unknown'} reason={reason} path={safe!r}", file=handle)
+        except OSError:
+            pass
+
     @app.get("/api/backups")
     async def backups(session=Depends(require_session)):
         """Backups.

@@ -24,16 +24,12 @@ class Settings:
     otp_ttl_seconds: int = 300
     otp_max_attempts: int = 5
     project_root: Path = field(default_factory=lambda: BASE_DIR.parent.parent)
-    lhm_url: str = "http://127.0.0.1:18085/data.json"
     broker_port: int = 18090
     log_max_lines: int = 80
     file_root: str = ""
     file_max_mb: int = 20
     file_deny_patterns: tuple[str, ...] = (
         "*.key", "*.pem", "*.pfx", "*.p12", "*secret*", "*password*", "*token*",
-    )
-    local_app_data: str = field(
-        default_factory=lambda: os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
     )
     allowed_hosts: tuple[str, ...] = field(
         default_factory=lambda: ("127.0.0.1", "localhost")
@@ -78,7 +74,6 @@ class Settings:
             otp_ttl_seconds=int(raw.get("otp_ttl_seconds") or 300),
             otp_max_attempts=int(raw.get("otp_max_attempts") or 5),
             project_root=project_root,
-            lhm_url=str(raw.get("lhm_url") or "http://127.0.0.1:18085/data.json"),
             broker_port=int(raw.get("broker_port") or 18090),
             log_max_lines=int(raw.get("log_max_lines") or 80),
             file_root=str(raw.get("file_root") or ""),

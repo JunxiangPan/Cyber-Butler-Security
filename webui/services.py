@@ -4,9 +4,7 @@ import asyncio
 import logging
 import re
 import socket
-import subprocess
 
-_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -52,75 +50,6 @@ def _tail(path: Path, limit: int) -> list[str]:
     """
     with path.open("r", encoding="utf-8", errors="replace") as handle:
         return [line.rstrip("\n") for line in deque(handle, maxlen=limit)]
-
-
-def _read_temperatures(node: dict, path: str, cpu: list[float], gpu: list[float]) -> None:
-    """Read temperatures.
-    
-    Args:
-        node: caller-supplied value.
-        path: caller-supplied value.
-        cpu: caller-supplied value.
-        gpu: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    text = str(node.get("Text") or "")
-    value = str(node.get("Value") or "")
-    current = f"{path}/{text}" if text else path
-    low = current.lower()
-    if "°c" in value.lower():
-        match = re.search(r"(-?\d+(?:\.\d+)?)", value)
-        if match:
-            number = float(match.group(1))
-            if "gpu core" in low and any(key in low for key in ("nvidia", "radeon", "gpu")):
-                gpu.append(number)
-            elif any(key in low for key in ("ryzen", "intel", "cpu")) and any(
-                key in low for key in ("cpu package", "core (tctl", "tdie", "cpu core")
-            ):
-                cpu.append(number)
-    for child in node.get("Children") or []:
-        if isinstance(child, dict):
-            _read_temperatures(child, current, cpu, gpu)
-
-
-def _nvidia() -> dict | None:
-    """Nvidia.
-    
-    Args:
-        None.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    try:
-        output = subprocess.check_output(
-            [
-                "nvidia-smi",
-                "--query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total",
-                "--format=csv,noheader,nounits",
-            ],
-            text=True,
-            timeout=5,
-            creationflags=_NO_WINDOW,
-        ).strip()
-    except Exception:
-        return None
-    if not output:
-        return None
-    parts = [part.strip() for part in output.splitlines()[0].split(",")]
-    if len(parts) < 4:
-        return None
-    try:
-        return {
-            "temp": float(parts[0]),
-            "load": float(parts[1]),
-            "used": float(parts[2]),
-            "total": float(parts[3]),
-        }
-    except ValueError:
-        return None
 
 
 class WebServices:
@@ -172,71 +101,6 @@ class WebServices:
             "ok": True,
             "services": {"broker": broker},
             "checked_at": int(time.time()),
-        }
-
-    async def temperatures(self) -> dict:
-        """Temperatures.
-        
-        Args:
-            None.
-        
-        Returns:
-            Function result, or None when no value is returned.
-        """
-        cpu: list[float] = []
-        gpu: list[float] = []
-        lhm_error = ""
-        try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                response = await client.get(self.settings.lhm_url)
-                response.raise_for_status()
-                _read_temperatures(response.json(), "", cpu, gpu)
-        except Exception as exc:
-            lhm_error = str(exc)[:160]
-        nvidia = await asyncio.to_thread(_nvidia)
-        gpu_temp = max(gpu) if gpu else (nvidia["temp"] if nvidia else None)
-        cpu_temp = max(cpu) if cpu else None
-        return {
-            "ok": cpu_temp is not None or gpu_temp is not None,
-            "cpu": cpu_temp,
-            "gpu": gpu_temp,
-            "gpu_load": nvidia["load"] if nvidia else None,
-            "vram_used": nvidia["used"] if nvidia else None,
-            "vram_total": nvidia["total"] if nvidia else None,
-            "source": "LibreHardwareMonitor + nvidia-smi" if nvidia else "LibreHardwareMonitor",
-            "error": lhm_error,
-        }
-
-    def logs(self, name: str, lines: int = 80) -> dict:
-        """Logs.
-        
-        Args:
-            name: caller-supplied value.
-            lines: caller-supplied value.
-        
-        Returns:
-            Function result, or None when no value is returned.
-        """
-        files = {
-
-            "broker": self.settings.project_root / "tools" / "totp_broker.log",
-            "dashboard": Path(self.settings.local_app_data) / "CyberButler" / "ui-errors.log",
-
-        }
-        path = files.get(name)
-        if not path:
-            raise ServiceError("unknown log name")
-        if not path.exists():
-            return {"ok": True, "name": name, "available": False, "lines": []}
-        try:
-            tail = _tail(path, max(1, min(int(lines), 200)))
-        except OSError as exc:
-            raise ServiceError(f"cannot read log: {exc}") from exc
-        return {
-            "ok": True,
-            "name": name,
-            "available": True,
-            "lines": [_redact(line)[:500] for line in tail],
         }
 
     def backups(self) -> dict:
