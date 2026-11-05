@@ -50,8 +50,6 @@ $head = (& git -C $root rev-parse HEAD 2>&1 | Out-String).Trim()
 $upstream = (& git -C $root rev-parse origin/release/v1.6.3 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw 'release discipline: cannot resolve HEAD or origin/release/v1.6.3' }
 if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != origin/release/v1.6.3 ' + $upstream + '; push first') }
-$sealPath = Join-Path $env:TEMP ('cbp-self-seal-' + [guid]::NewGuid().ToString('N') + '.json')
-Run-Process 'self-seal record' 'python' @('quality/self_seal.py', '--record', $sealPath)
 
 $report = New-Object System.Collections.Generic.List[string]
 function Add-Report([string]$text) { $report.Add($text); Write-Host $text }
@@ -68,6 +66,8 @@ function Run-Process([string]$name, [string]$exe, [string[]]$arguments) {
 
 Add-Report '# BUILD_REPORT'
 Add-Report ''
+$sealPath = Join-Path $env:TEMP ('cbp-self-seal-' + [guid]::NewGuid().ToString('N') + '.json')
+Run-Process 'self-seal record' 'python' @('quality/self_seal.py', '--record', $sealPath)
 Add-Report ('ChallengeCode: ' + $Challenge)
 Add-Report ('- Generated: ' + (Get-Date).ToUniversalTime().ToString('o'))
 Add-Report ('- Host: ' + $env:COMPUTERNAME)
