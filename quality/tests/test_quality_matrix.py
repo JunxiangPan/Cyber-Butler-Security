@@ -38,8 +38,32 @@ def test_q01_path_boundaries_and_unicode():
             pass
 
 
-def test_q02_webui_hostile_input():
-    _skip("WebUI hostile-input suite")
+def test_q02_webui_hostile_input(tmp_path):
+    webui = ROOT / "webui"
+    sys.path.insert(0, str(webui))
+    from fastapi.testclient import TestClient
+    from app import create_app
+    from settings import Settings
+
+    class FakeMailer:
+        async def send(self, email, code, ttl, lang="zh"):
+            return None
+
+    settings = Settings(admin_email="owner@example.com", data_dir=tmp_path / "data")
+    settings.ensure_data()
+    client = TestClient(create_app(settings, FakeMailer()))
+    for payload in [
+        {"email": "owner@example.com<script>alert(1)</script>"},
+        {"email": "x' OR '1'='1@example.com"},
+    ]:
+        response = client.post("/api/auth/request-otp", json=payload)
+        assert response.status_code == 200
+        assert "<script>" not in response.text
+        assert "OR '1'='1" not in response.text
+    response = client.post("/api/auth/request-otp", json={"email": "a" * 5000 + "@example.com"})
+    assert response.status_code in {400, 422}
+    response = client.post("/api/auth/request-otp", content=b'{"email":' + b'x' * 2000000 + b'}', headers={"Content-Type": "application/json"})
+    assert response.status_code in {400, 413, 422}
 
 
 def test_q03_totp_replay_and_concurrency():
@@ -162,9 +186,18 @@ def test_q17_interrupted_install_resume():
 
 
 def test_q18_no_unresolved_placeholders():
-    # Source templates intentionally contain YOUR_* markers. Only a rendered
-    # install tree or packaged runtime tree can satisfy this check.
-    _skip("Rendered-package placeholder scan")
+    package = ROOT.parent / "public-release-v1.6.3.zip"
+    if not package.is_file():
+        pytest.skip("release zip not built")
+    allowed = ("installer/", "tools/", "docs/", "tests/", "README-INSTALL.md", "DEPLOYMENT.md", "config.pro.example.json")
+    with zipfile.ZipFile(package) as archive:
+        bad = []
+        for name in archive.namelist():
+            if name.startswith(allowed):
+                continue
+            if b"YOUR_" in archive.read(name):
+                bad.append(name)
+    assert bad == []
 
 
 def test_q19_qr_uri_matches_broker_secret():
@@ -210,7 +243,30 @@ def test_q21_log_newline_injection(tmp_path, monkeypatch):
 
 
 def test_q22_port_conflict_preflight():
-    _skip("Live port-conflict preflight")
+    import socket
+    listeners = []
+    try:
+        for port in (18090, 8765):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(("127.0.0.1", port))
+            sock.listen(1)
+            listeners.append(sock)
+        probe = ROOT / "quality" / "port_conflict_probe.ps1"
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(probe), "-Root", str(ROOT)],
+            capture_output=True, text=True, timeout=45,
+        )
+        assert result.returncode == 0, result.stderr
+        rows = json.loads(result.stdout.strip() or "[]")
+        if isinstance(rows, dict):
+            rows = [rows]
+        states = {int(row["port"]): bool(row.get("in_use")) for row in rows}
+        assert states.get(18090) is True
+        assert states.get(8765) is True
+    finally:
+        for sock in listeners:
+            sock.close()
 
 
 def test_q23_audit_chain_detects_tamper(tmp_path, monkeypatch):

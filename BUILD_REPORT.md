@@ -162,7 +162,7 @@ EXIT_CODE=0
 ## NOT_FIXED_THIS_ROUND
 - 真实 ACL/DPAPI/WFP/卸载残留仍需干净 VM 验证。
 - PSSA 未覆盖测试脚本全规则，测试脚本只做语法解析。
-- vulture 白名单仍有动态入口人工审查风险。
+- vulture 白名单（vulture_whitelist.py，67 项）仍有动态入口人工审查风险。
 
 ## CANDIDATE mode
 Static, comment and documentation gates passed. Quality/chaos/VM evidence is NOT claimed for this candidate.
@@ -180,3 +180,4 @@ EXIT_CODE=0
 ```
 - Candidate Zip SHA256: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
 - Package Hash: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
+PROOF_SHA256: 0D41DA3D92865D139807FEBBFDEDE80021CF6768B529C1D6B42023050697E560
