@@ -363,6 +363,8 @@ def close_job_object() -> None:
         _job_handle = None
 
 
+import broker_policy
+from broker_policy import PolicyContext
 import broker_state
 from broker_state import (
     APPROVAL_STATE_TTL_SECONDS,
@@ -723,21 +725,7 @@ def _notify_async(text: str) -> None:
 
 
 def inside_shared(path: Path) -> bool:
-    """Inside shared.
-    
-    Args:
-        path: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    if _inside_any(path, _workspace_roots()):
-        return True
-    try:
-        path.resolve().relative_to(SHARED.resolve())
-        return True
-    except ValueError:
-        return False
+    return broker_policy.inside_shared(path, _policy_context())
 
 
 WORKSPACE_ROOT = ROOT / "workspace"
@@ -745,28 +733,8 @@ DEFAULT_WORKSPACE_ROOT = Path(r"C:\CyberButler\workspace")
 
 
 def _workspace_roots() -> tuple[Path, ...]:
-    """Return configured workspace roots, defaulting safely on bad config."""
-    roots = [WORKSPACE_ROOT, DEFAULT_WORKSPACE_ROOT]
-    try:
-        data = json.loads(BROKER_CONFIG.read_text(encoding="utf-8"))
-        for key in ("workspace_root", "workspace_path"):
-            value = str(data.get(key, "") or "").strip()
-            if value:
-                roots.append(Path(value))
-        shared = data.get("shared_roots", [])
-        if isinstance(shared, str):
-            shared = [shared]
-        if isinstance(shared, (list, tuple)):
-            for item in shared:
-                text = str(item or "").strip()
-                if text:
-                    roots.append(Path(text))
-    except Exception as exc:  # noqa: BLE001 - config must never crash the Broker
-        try:
-            log("broker_config workspace warning: " + str(exc))
-        except Exception as log_exc:
-            print("broker_config log warning failed: " + str(log_exc), file=sys.stderr)
-    return tuple(roots)
+    return broker_policy.workspace_roots(_policy_context())
+
 
 TMP_ROOTS = (
     ROOT / "workspace" / "tmp",
@@ -792,128 +760,40 @@ PROTECTED_RULE_NAMES = {
 }
 
 
+def _policy_context() -> PolicyContext:
+    return PolicyContext(
+        root=ROOT,
+        shared=SHARED,
+        workspace_root=WORKSPACE_ROOT,
+        default_workspace_root=DEFAULT_WORKSPACE_ROOT,
+        broker_config=BROKER_CONFIG,
+        tmp_roots=TMP_ROOTS,
+        memory_roots=MEMORY_ROOTS,
+        totp_vault_root=TOTP_VAULT_ROOT,
+        critical_names=frozenset(CRITICAL_INTEGRITY_NAMES),
+        protected_names=frozenset(PROTECTED_RULE_NAMES),
+        log=log,
+    )
+
+
 def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
-    """Inside any.
-    
-    Args:
-        path: caller-supplied value.
-        roots: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    try:
-        resolved = path.resolve(strict=False)
-    except (OSError, ValueError):
-        return False
-    for root in roots:
-        try:
-            resolved.relative_to(root.resolve(strict=False))
-            return True
-        except (OSError, ValueError):
-            continue
-    return False
+    return broker_policy.inside_any(path, roots)
 
 
 def _workspace_text(target: str) -> bool:
-    """Case/alias tolerant check for the dedicated workspace path."""
-    try:
-        def normalise(value: object) -> str:
-            """Normalize a path string for case/separator-insensitive comparison."""
-            return os.path.normcase(os.path.normpath(str(value).replace("\\", "/"))).rstrip("/")
-        candidate = normalise(target)
-        for root in _workspace_roots():
-            normalized = normalise(root)
-            if candidate == normalized or candidate.startswith(normalized + "/"):
-                return True
-    except (OSError, ValueError):
-        return False
-    return False
+    return broker_policy.workspace_text(target, _policy_context())
 
 
 def classify(action: str, target: str) -> str:
-    """Return allow | totp | deny for a broker request.
-
-    This is the server-side policy boundary. The LLM must never be allowed to
-    choose its own risk class.
-    """
-    action = str(action or "").strip().lower()
-    if action not in {"delete", "overwrite", "write_file", "send", "send_file"}:
-        return "deny"
-    if action in {"send", "send_file"}:
-        # Every egress manifest is owner-approved as one unit.
-        return "totp"
-    try:
-        path = Path(str(target or "")).resolve(strict=False)
-    except (OSError, ValueError):
-        return "deny"
-    if _inside_any(path, (TOTP_VAULT_ROOT,)):
-        return "deny"
-    if _inside_any(path, TMP_ROOTS):
-        return "allow"
-    if _inside_any(path, _workspace_roots()) or _workspace_text(target):
-        return "totp"
-    if _inside_any(path, MEMORY_ROOTS):
-        return "totp"
-    if inside_shared(path):
-        # Creating a brand-new file in the shared workspace is a routine
-        # operation. Replacing an existing file remains destructive.
-        if action == "write_file" and not path.exists():
-            return "allow"
-        return "totp"
-    return "deny"
+    return broker_policy.classify(action, target, _policy_context())
 
 
 def _critical_integrity_hit(target: str) -> bool:
-    """Critical integrity hit.
-    
-    Args:
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    try:
-        path = Path(str(target or "")).resolve(strict=False)
-        root = ROOT.resolve(strict=False)
-        path.relative_to(root)
-    except (OSError, ValueError):
-        return False
-    lowered_parts = [part.casefold() for part in path.parts]
-    name = path.name.casefold()
-    if name in CRITICAL_INTEGRITY_NAMES:
-        return True
-    if ".claude" in lowered_parts and name == "settings.json":
-        return True
-    if ".github" in lowered_parts:
-        index = lowered_parts.index(".github")
-        if index + 1 < len(lowered_parts) and lowered_parts[index + 1] == "workflows":
-            return True
-    return False
+    return broker_policy.critical_integrity_hit(target, _policy_context())
 
 
 def _rule_tampering_hit(target: str) -> bool:
-    """Rule tampering hit.
-    
-    Args:
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    try:
-        path = Path(str(target or "")).resolve(strict=False)
-        root = ROOT.resolve(strict=False)
-        path.relative_to(root)
-    except (OSError, ValueError):
-        return False
-    name = path.name.casefold()
-    parts = [part.casefold() for part in path.relative_to(ROOT).parts]
-    if name in PROTECTED_RULE_NAMES or name.endswith(".chain.jsonl"):
-        return True
-    if parts and parts[0] in {"tools", "webui", ".github", "installer", "tests"}:
-        return True
-    return "quarantine" in parts
+    return broker_policy.rule_tampering_hit(target, _policy_context())
 
 
 def _audit_protection(event: str, action: str, target: str, reason: str) -> None:
@@ -944,49 +824,15 @@ def _audit_protection(event: str, action: str, target: str, reason: str) -> None
 
 
 def _allowed_target(path: Path) -> bool:
-    """Allowed target.
-    
-    Args:
-        path: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    return inside_shared(path) or _inside_any(path, TMP_ROOTS) or _inside_any(path, MEMORY_ROOTS)
+    return broker_policy.allowed_target(path, _policy_context())
 
 
 def _target_mode(action: str, target: str) -> str:
-    """Target mode.
-    
-    Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    if action == "write_file":
-        try:
-            return "create" if not Path(target).resolve(strict=False).exists() else "replace"
-        except (OSError, ValueError):
-            return "replace"
-    if action == "overwrite":
-        return "replace"
-    return action
+    return broker_policy.target_mode(action, target)
 
 
 def _bypass_scope(action: str, target: str) -> str:
-    """Bypass scope.
-    
-    Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    path = Path(target).resolve(strict=False)
-    return f"{action}:{_target_mode(action, target)}:{str(path.parent.resolve(strict=False)).casefold()}"
+    return broker_policy.bypass_scope(action, target)
 
 
 def _purge_bypass(now: float | None = None) -> None:
