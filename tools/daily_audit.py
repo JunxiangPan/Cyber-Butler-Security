@@ -12,7 +12,7 @@ from pathlib import Path
 
 import requests
 
-ROOT = Path(r"YOUR_PROJECT_PATH")
+ROOT = Path(__file__).resolve().parents[1]
 LOG = ROOT / "AgentRuntime" / "data" / "service-agentruntime.out.log"
 TOKEN = ROOT / ".agentruntime_token"
 REPORT = ROOT / "tools" / "daily-audit.jsonl"

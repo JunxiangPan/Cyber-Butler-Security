@@ -43,4 +43,4 @@ def test_missing_approval_channel_defaults_to_webui(tmp_path, monkeypatch) -> No
 
 def test_shared_default_is_the_cbs_workspace(monkeypatch) -> None:
     monkeypatch.delenv("CBS_WORKSPACE", raising=False)
-    assert broker._resolve_shared() == broker.DEFAULT_WORKSPACE_ROOT
+    assert broker._resolve_shared() == (broker.ROOT / "workspace")

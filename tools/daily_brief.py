@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-ROOT = Path(r"YOUR_PROJECT_PATH")
+ROOT = Path(__file__).resolve().parents[1]
 TOKEN = ROOT / ".agentruntime_token"
 UMO = "qq_sujinyan:FriendMessage:YOUR_QQ_ID"
 HEADERS = {

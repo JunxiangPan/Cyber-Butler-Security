@@ -20,6 +20,7 @@ import shutil
 import random
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from datetime import datetime
@@ -45,7 +46,8 @@ except ImportError:  # pragma: no cover - exercised on Linux CI
     win32crypt = None
 
 TEST_MODE = os.environ.get("CBS_TEST_MODE") == "1"
-ROOT = Path(os.environ.get("CBS_TEST_ROOT", r"YOUR_PROJECT_PATH")) if TEST_MODE else Path(r"YOUR_PROJECT_PATH")
+_SOURCE_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("CBS_TEST_ROOT", str(_SOURCE_ROOT))) if TEST_MODE else Path(os.environ.get("CBS_ROOT", str(_SOURCE_ROOT)))
 os.environ.setdefault("CBS_ROOT", str(ROOT))
 BROKER = ROOT / "tools" / "broker"
 QUARANTINE = BROKER / "trash_staging"
@@ -56,7 +58,7 @@ RECOVERY_FILE = TOTP_VAULT / "recovery_hashes.json"
 LEGACY_SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
 LEGACY_RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
 TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
-LOG = ROOT / "tools" / "totp_broker.log"
+LOG = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker.log") if TEST_MODE else (ROOT / "tools" / "totp_broker.log")
 AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 

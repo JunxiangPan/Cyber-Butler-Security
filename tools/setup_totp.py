@@ -13,7 +13,7 @@ import pyotp
 import qrcode
 import win32crypt
 
-ROOT = Path(r"YOUR_PROJECT_PATH")
+ROOT = Path(__file__).resolve().parents[1]
 SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
 RECOVERY_STORE = ROOT / "tools" / "totp_recovery.json"
 QR_PATH = Path(r"YOUR_USER_PATH\Desktop\local agentTOTP.png")
