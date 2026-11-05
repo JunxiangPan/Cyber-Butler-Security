@@ -1,0 +1,29 @@
+{
+  "schema": "cbp-docs-history/v1",
+  "files": [
+    {
+      "path": "docs/40-history/incidents/acl-self-lock.md",
+      "sha256": "D6E149766783E68359E971DD3B08F98C8A27EF630BC94CC7F6CA27DEDF160117"
+    },
+    {
+      "path": "docs/40-history/incidents/s4u-retirement.md",
+      "sha256": "39F15FB4D0FFFE84F6F45112E60A209B677A901E3A69CC6B95CFC592195A7551"
+    },
+    {
+      "path": "docs/40-history/incidents/sqlite-readonly.md",
+      "sha256": "AC57FA5C203CA4DC4B07FE2C60D06BEC4BA13137E42B96BF5B73EBB3B886F90B"
+    },
+    {
+      "path": "docs/40-history/incidents/task-rollback.md",
+      "sha256": "7CD7AAF88E39CAFA0666B0F73F22B56DFC8FB7523AD916C7B5733294C79AFBE7"
+    },
+    {
+      "path": "docs/40-history/incidents/v1.6.3-fake-qa-report.md",
+      "sha256": "2FE376B9D681CB2B73462199356FF4BAD5DE0641762DA03227DAD0E3A35F27B2"
+    },
+    {
+      "path": "docs/40-history/incidents/wfp-empty-rules.md",
+      "sha256": "115D0A97FB324C86520F9B3E0EB0B86E2A3673556BAC8A716442FFCF1DD20D2B"
+    }
+  ]
+}

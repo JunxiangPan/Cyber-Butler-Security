@@ -1,0 +1,21 @@
+{
+  "schema": "cbp-binary-sbom/v1",
+  "binary": "START-INSTALLER.exe",
+  "components": [
+    {
+      "name": "Microsoft.NETCore.App.Runtime.win-x64",
+      "version": "8.0.21",
+      "type": "runtime-pack"
+    },
+    {
+      "name": "Microsoft.NETCore.App.Host.win-x64",
+      "version": "8.0.21",
+      "type": "runtime-pack"
+    },
+    {
+      "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+      "version": "8.0.21",
+      "type": "runtime-pack"
+    }
+  ]
+}

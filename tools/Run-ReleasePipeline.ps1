@@ -164,6 +164,13 @@ Remove-Item -LiteralPath $sealPath -Force -ErrorAction SilentlyContinue
 }
 
 Run-Process '25-item quality matrix' 'python' @('quality/run_quality_matrix.py', '--nonce', $Challenge)
+$qualityManifestPath = Join-Path $root 'quality-manifest.json'
+if (-not (Test-Path -LiteralPath $qualityManifestPath)) { throw 'quality-manifest.json missing; refusing to build' }
+$qualityManifestHash = (Get-FileHash -LiteralPath $qualityManifestPath -Algorithm SHA256).Hash
+Add-Report ('QUALITY_MANIFEST_SHA256: ' + $qualityManifestHash)
+Run-Process 'CBP docs history audit' 'python' @('quality/audit_docs_history.py')
+Run-Process 'CBP binary provenance audit' 'python' @('quality/audit_binary_provenance.py')
+Run-Process 'CBP release-claims audit' 'python' @('quality/audit_release_claims.py', '--notes', 'docs/releases/RELEASE_NOTES_v1.6.4.md')
 Run-Process 'pytest' 'python' @('-m', 'pytest', '-q')
 Run-Step 'Pester' {
     Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
