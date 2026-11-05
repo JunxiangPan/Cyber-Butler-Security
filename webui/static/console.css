@@ -1,4 +1,4 @@
-:root{--bg:#080b12;--panel:#101722;--line:#223044;--text:#e9f0fa;--muted:#8b9bb0;--accent:#5ce1c2;--danger:#ff7186;--shadow:0 24px 70px rgba(0,0,0,.35);--radius:20px}
+:root{--bg:#1e1e2e;--panel:#2a2a3c;--line:#3b3b52;--text:#e9f0fa;--muted:#8b9bb0;--accent:#5ce1c2;--danger:#ff7186;--shadow:0 24px 70px rgba(0,0,0,.35);--radius:20px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}
 body{background:radial-gradient(900px 520px at 12% -8%,rgba(92,225,194,.10),transparent 60%),radial-gradient(700px 420px at 96% 4%,rgba(122,167,255,.10),transparent 58%),var(--bg);color:var(--text);font:15px/1.55 "Segoe UI",system-ui,-apple-system,"Microsoft YaHei UI",sans-serif;-webkit-font-smoothing:antialiased}
 .shell{max-width:1180px;margin:0 auto;padding:34px 26px 28px}
@@ -10,7 +10,7 @@ h1{margin:4px 0 0;font-size:23px;letter-spacing:-.03em;font-weight:650}
 .session{display:flex;align-items:center;gap:14px}.email{color:var(--muted);font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 button{font:inherit;border:0;cursor:pointer;border-radius:11px;transition:.18s ease}.quiet{background:transparent;color:var(--muted);padding:8px 12px;border:1px solid var(--line)}.quiet:hover{color:var(--text);border-color:#33465f}.primary{background:linear-gradient(135deg,var(--accent),#43c9b4);color:#05211c;font-weight:700;padding:10px 16px}.primary:hover{filter:brightness(1.07);transform:translateY(-1px)}.wide{width:100%;margin-top:16px}
 .grid{display:grid;grid-template-columns:1.1fr 1.45fr .95fr;gap:18px;align-items:start}
-.card{background:linear-gradient(180deg,rgba(18,26,38,.94),rgba(13,19,28,.96));border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);min-width:0}
+.card{background:linear-gradient(180deg,rgba(42,42,60,.96),rgba(32,32,48,.97));border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);min-width:0}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.16em;font-weight:700}
 .dot{width:9px;height:9px;border-radius:50%;background:#5c6c80;box-shadow:0 0 0 5px rgba(92,108,128,.10)}.dot.up{background:var(--accent);box-shadow:0 0 0 5px rgba(92,225,194,.10),0 0 18px rgba(92,225,194,.45)}.dot.down{background:var(--danger);box-shadow:0 0 0 5px rgba(255,113,134,.10)}
