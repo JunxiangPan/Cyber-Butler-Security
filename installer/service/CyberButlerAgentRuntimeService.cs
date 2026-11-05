@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.ServiceProcess;
+using System.Text;
 
 namespace CyberButler
 {
@@ -51,9 +52,7 @@ namespace CyberButler
                 Arguments = "main.py",
                 WorkingDirectory = workdir,
                 UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
+                CreateNoWindow = true
             };
             psi.EnvironmentVariables["AgentRuntime_SERVICE_MODE"] = "1";
             psi.EnvironmentVariables["AgentRuntime_ROOT"] = workdir;
@@ -91,20 +90,62 @@ namespace CyberButler
                 throw new InvalidOperationException("SetInformationJobObject failed: " + Marshal.GetLastWin32Error());
             }
 
-            child = new Process { StartInfo = psi, EnableRaisingEvents = true };
-            child.OutputDataReceived += (s, e) => Append(e.Data);
-            child.ErrorDataReceived += (s, e) => Append(e.Data);
+            child = StartSuspended(psi);
+            child.EnableRaisingEvents = true;
             child.Exited += ChildExited;
-            child.Start();
             if (!AssignProcessToJobObject(job, child.Handle))
             {
                 int err = Marshal.GetLastWin32Error();
                 try { child.Kill(); } catch { }
                 throw new InvalidOperationException("AssignProcessToJobObject failed: " + err);
             }
-            child.BeginOutputReadLine();
-            child.BeginErrorReadLine();
-            Append("SERVICE_CHILD pid=" + child.Id + " job=assigned");
+            ResumeSuspendedChild();
+            Append("SERVICE_CHILD pid=" + child.Id + " job=assigned suspended-start=true");
+        }
+
+        private IntPtr suspendedThread = IntPtr.Zero;
+
+        private Process StartSuspended(ProcessStartInfo psi)
+        {
+            StringBuilder env = new StringBuilder();
+            foreach (System.Collections.DictionaryEntry item in psi.EnvironmentVariables)
+            {
+                env.Append((string)item.Key).Append('=').Append((string)item.Value).Append('\0');
+            }
+            env.Append('\0');
+            STARTUPINFO si = new STARTUPINFO();
+            si.cb = Marshal.SizeOf(typeof(STARTUPINFO));
+            PROCESS_INFORMATION pi;
+            StringBuilder command = new StringBuilder("\"" + psi.FileName + "\" " + psi.Arguments);
+            const uint CREATE_SUSPENDED = 0x00000004;
+            const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
+            const uint CREATE_NO_WINDOW = 0x08000000;
+            if (!CreateProcessW(null, command, IntPtr.Zero, IntPtr.Zero, false,
+                CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW,
+                env, psi.WorkingDirectory, ref si, out pi))
+            {
+                throw new InvalidOperationException("CreateProcess suspended failed: " + Marshal.GetLastWin32Error());
+            }
+            suspendedThread = pi.hThread;
+            CloseHandle(pi.hProcess);
+            return Process.GetProcessById(pi.dwProcessId);
+        }
+
+        private void ResumeSuspendedChild()
+        {
+            if (suspendedThread == IntPtr.Zero) { return; }
+            try
+            {
+                if (ResumeThread(suspendedThread) == uint.MaxValue)
+                {
+                    throw new InvalidOperationException("ResumeThread failed: " + Marshal.GetLastWin32Error());
+                }
+            }
+            finally
+            {
+                CloseHandle(suspendedThread);
+                suspendedThread = IntPtr.Zero;
+            }
         }
 
         private void ChildExited(object sender, EventArgs e)
@@ -222,4 +263,48 @@ namespace CyberButler
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool CloseHandle(IntPtr hObject);
     }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct STARTUPINFO
+        {
+            public int cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public int dwX;
+            public int dwY;
+            public int dwXSize;
+            public int dwYSize;
+            public int dwXCountChars;
+            public int dwYCountChars;
+            public int dwFillAttribute;
+            public int dwFlags;
+            public short wShowWindow;
+            public short cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern bool CreateProcessW(string applicationName, StringBuilder commandLine,
+            IntPtr processAttributes, IntPtr threadAttributes, bool inheritHandles, uint creationFlags,
+            StringBuilder environment, string currentDirectory, ref STARTUPINFO startupInfo,
+            out PROCESS_INFORMATION processInformation);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern uint ResumeThread(IntPtr thread);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr handle);
 }
