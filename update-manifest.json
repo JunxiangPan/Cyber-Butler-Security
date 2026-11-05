@@ -49,8 +49,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "2e8a06012d5d2a8a7a80a93da0f59d130d8d655654dccb30f976b8aa9e778dc4",
-      "size": 2983
+      "sha256": "47469d0c03a8bd1ca4063ad0d996a0027ab9c2dce1d84e1c581f0515fcfdf049",
+      "size": 3189
     },
     {
       "path": "README_de.md",
@@ -99,8 +99,8 @@
     },
     {
       "path": "SECURITY.md",
-      "sha256": "456f70191d7e52f341bf1af49837891780c4ddf7d00ebaed4fe3cf00464be284",
-      "size": 1850
+      "sha256": "7a05898bf79c002384b33e5f558ef25b2c31c3b3e9cb8fd80a654e7120a71cff",
+      "size": 2166
     },
     {
       "path": "START-INSTALLER.exe",
@@ -539,8 +539,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "b95070d3d6fa100c588e7bea6b1deaaf85860924a007abaabac07a44fd89c813",
-      "size": 57339
+      "sha256": "a538834800f8493cf1c7958e462bc9524120f8fb8fec59849dab26ddfbb137f9",
+      "size": 57747
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -939,8 +939,8 @@
     },
     {
       "path": "tests/conftest.py",
-      "sha256": "0f0eb747bb4fa99783859611967c5ae488bb7aa8923cea240f72367ecd43b1d3",
-      "size": 560
+      "sha256": "96142d8c6a05b73b033211f13b5165e2b3c32243b4a1b558f9c8751e16984e2e",
+      "size": 616
     },
     {
       "path": "tests/fixtures/plugins/clean/main.py",
@@ -963,9 +963,9 @@
       "size": 78
     },
     {
-      "path": "tests/test_acl_model.py",
-      "sha256": "160d549550f714512f9248e8e7d2910e6d324db94caf04aa93172d5f690a8f1f",
-      "size": 2545
+      "path": "tests/test_acl_effective.py",
+      "sha256": "263931a4dfbea6ebc17eb1139d0440f9fdf2550c077fec15c736bc661fa325a0",
+      "size": 899
     },
     {
       "path": "tests/test_approval_preview.py",
@@ -989,8 +989,8 @@
     },
     {
       "path": "tests/test_broker_manifest.py",
-      "sha256": "e5c32b1d6122a19c2dba91a8d3bd4d8b04d9f64751ebea15e21fd16c378eadc4",
-      "size": 4140
+      "sha256": "7709b128e5166044dcbe76404ddf6c12b6611ba1aa8411374a29c0db2a6c97ca",
+      "size": 4145
     },
     {
       "path": "tests/test_broker_policy.py",
@@ -1099,8 +1099,8 @@
     },
     {
       "path": "tests/test_test_matrix.py",
-      "sha256": "6961f3302fca1cfe94a826abbcdee4095af8bf246bfe26de267705ef6c3d4dd1",
-      "size": 637
+      "sha256": "8d391a45d37adb3cee5ac8464d5ddb17f6dbdb788b94bc1ceb5012063dc0e883",
+      "size": 714
     },
     {
       "path": "tests/test_toctou.py",
@@ -1199,13 +1199,13 @@
     },
     {
       "path": "tools/approval_preview.py",
-      "sha256": "f645618eea064861c9edb60dd0f4a5ec6a7cea06b165215bb469b235b76711f5",
-      "size": 10001
+      "sha256": "8a4de88a82cf09b23cc2d694075d5b05b18129d7726798c864e747000cd0f6c4",
+      "size": 10101
     },
     {
       "path": "tools/audit_chain.py",
-      "sha256": "3b12bb319b086db0ec9d5193f29f489c57637d709ff4f830f75e9e8859bcf3ce",
-      "size": 5971
+      "sha256": "7cba662b008f0e8d0ab9275ec387fafdc99b5df0e62ca7865638469918146ee4",
+      "size": 7594
     },
     {
       "path": "tools/audit_code_comments.py",
@@ -1234,8 +1234,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "a9480e5390c26ef32273a657b470f95ce9b58110f14a4c4aef13fad06d79e144",
-      "size": 110454
+      "sha256": "493dc0f98b165b11499974d2e8c0674f474ac088ae6b4be31513c61bc0b4bc6c",
+      "size": 112750
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1699,8 +1699,8 @@
     },
     {
       "path": "webui/auth.py",
-      "sha256": "57353d21e4938ead4390c9fc9da44550deecc7df2e448ab0958b0730de20af43",
-      "size": 7095
+      "sha256": "f9f630de53c4ab34d45272d0e8e01aa6c8a86a8833b5a959fdcf8e71bb2148ea",
+      "size": 7314
     },
     {
       "path": "webui/example-config.json",
