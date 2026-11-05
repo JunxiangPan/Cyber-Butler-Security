@@ -45,6 +45,7 @@
     "module-17": "Zero-trace uninstall and eight-language UI coverage"
   },
   "not_completed": [
+    "v1.6.4: broker.py split, >80% coverage, hash-pinned dependencies, Python 3.10 CVE debt",
     "PR-01 packaging split: AgentRuntime/AuxRuntime payload removal",
     "PR-02 installer decoupling and external runtime detection",
     "PR-03 read-only credential UI hardening",

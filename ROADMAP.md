@@ -322,3 +322,9 @@ making the SDK a second security boundary
 Every major release (for example v1.6.x to v1.7.x) must complete a seven-round documentation audit before packaging. The audit covers structure, deduplication, eight-language consistency, Markdown/link checks, known limitations, GitHub-facing cleanup, and UX readability.
 
 Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED - 已废弃]` at the top. They are never deleted. The canonical status source is `docs/_data/status-v1.6.2.json`; CI runs `tests/test_docs_consistency.py` on every pull request.
+
+## v1.6.4 — Engineering debt (deferred from v1.6.3)
+
+- Split `tools/broker.py` into `broker_core.py`, `broker_policy.py`, `broker_audit.py`, and `broker_totp.py` without changing `TargetSnapshot`.
+- Raise Broker test coverage above 80% and add hash-pinned runtime dependency lock.
+- Resolve Pillow/filelock CVEs when the Python 3.10 floor is raised.
