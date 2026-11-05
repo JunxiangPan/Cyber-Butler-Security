@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CBP quality manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "nonce",
+    "profile",
+    "items",
+    "counts",
+    "overall"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cbp-quality-manifest/v1"
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8
+    },
+    "profile": {
+      "enum": [
+        "ci",
+        "release"
+      ]
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "class",
+          "status",
+          "required_for_release"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "class": {
+            "enum": [
+              "ci",
+              "vm",
+              "package"
+            ]
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "skipped",
+              "blocked",
+              "error",
+              "skipped-by-design"
+            ]
+          },
+          "required_for_release": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "total",
+        "passed",
+        "failed",
+        "blocked",
+        "skipped_by_design"
+      ]
+    },
+    "overall": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED"
+      ]
+    }
+  }
+}

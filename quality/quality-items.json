@@ -1,0 +1,188 @@
+{
+  "schema": "cbp-quality-items/v1",
+  "version": "1.6.3",
+  "items": [
+    {
+      "id": "Q01",
+      "title": "MAX_PATH / Unicode / emoji path handling",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q02",
+      "title": "WebUI XSS / oversized JSON / SQL injection",
+      "kind": "integration",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q03",
+      "title": "TOTP replay and concurrent replay",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q04",
+      "title": "Broker config tamper graceful fallback",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q05",
+      "title": "Broker killed while Agent waits",
+      "kind": "chaos",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q06",
+      "title": "WFP Guard heartbeat red light within 45s",
+      "kind": "chaos",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q07",
+      "title": "Disk full / 1GB trash capacity breaker",
+      "kind": "chaos",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q08",
+      "title": "CyberButlerSvc workspace ACL loss",
+      "kind": "chaos",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q09",
+      "title": "1000 approval requests handle leak",
+      "kind": "soak",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q10",
+      "title": "1 hour memory stability",
+      "kind": "soak",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q11",
+      "title": "Orphan process scan after Job Object close",
+      "kind": "soak",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q12",
+      "title": "TOCTOU target replacement returns 409",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q13",
+      "title": "Two-stage trash ACL read bypass attempt",
+      "kind": "system",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q14",
+      "title": "CyberButlerSvc privilege escalation attempt",
+      "kind": "system",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q15",
+      "title": "Clean uninstall leaves no service/file/registry residue",
+      "kind": "system",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q16",
+      "title": "Offline wheelhouse on Python-free clean Windows",
+      "kind": "system",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q17",
+      "title": "Interrupted service creation and resume/repair",
+      "kind": "system",
+      "class": "vm",
+      "required_for_release": true
+    },
+    {
+      "id": "Q18",
+      "title": "No unresolved YOUR_ placeholders in package",
+      "kind": "static",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q19",
+      "title": "WebUI QR otpauth URI matches Broker secret",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q20",
+      "title": "VERSION / installer UI / docs version same source",
+      "kind": "static",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q21",
+      "title": "Newline filename cannot inject audit JSONL",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q22",
+      "title": "Port conflict 18090/8765 preflight block",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q23",
+      "title": "Audit chain detects historical tamper",
+      "kind": "unit",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q24",
+      "title": "No pytest/.venv/tmp/build artefacts in package",
+      "kind": "static",
+      "class": "package",
+      "required_for_release": true
+    },
+    {
+      "id": "Q25",
+      "title": "Final QA report generated and complete",
+      "kind": "meta",
+      "class": "ci",
+      "required_for_release": true
+    },
+    {
+      "id": "Q26",
+      "title": "Dependency SBOM matches actual package manifests",
+      "kind": "static",
+      "class": "package",
+      "required_for_release": true
+    }
+  ]
+}
