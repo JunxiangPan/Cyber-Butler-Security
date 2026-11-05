@@ -9,8 +9,8 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "023610e184ad6aea125a5dabb7a20120a9a9caf4445f98656ea336c48f866525",
-      "size": 2321
+      "sha256": "77f871d641ff17b8748b4390d61a2530864351d56e2ff84848cc308eab72535b",
+      "size": 2409
     },
     {
       "path": ".gitignore",
@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "0c5765ae85913a5545d0e0f58972972024bb4f1404b7deaec627bf2050bf64fd",
+      "sha256": "d33c73f5aeaed7f60a55fe8448a95a065751eba4421bf9f4a374877dcc00a930",
       "size": 947
     },
     {
@@ -1209,17 +1209,17 @@
     },
     {
       "path": "tools/Run-Final-Acceptance.ps1",
-      "sha256": "5130e996f018eaf9094d3c0aef365fc1cbc41727f29cea585ff15aec29bb26c0",
-      "size": 15288
+      "sha256": "4bd945e11273d87e49945e7cd95e1bde2a95227c9cfeb91fba099e5174d7480c",
+      "size": 16434
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
-      "sha256": "a1059b797733cad346606a34a6e0ca267b4b1c128d03021ca292cd8be3c81f97",
-      "size": 13630
+      "sha256": "f8e58fdbfebac3012c05b4d90b12953c1449c5926b642048df7cfa92f7f26d2b",
+      "size": 13723
     },
     {
       "path": "tools/Run-ReleasePipeline.sha256",
-      "sha256": "55b11b2abe486b0335df1c3630ea18b78f4de3e8667823bfdd58f33c8eb8829e",
+      "sha256": "0227d2e311a668f04442f63d9e54a33e24793657555fafe8ccf7eae4c3564bd2",
       "size": 66
     },
     {
