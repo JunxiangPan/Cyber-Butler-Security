@@ -104,8 +104,8 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "13b6b9a0c18d49e39865a278f2793e53098e06f7507616cd7a714fee037f16a7",
-      "size": 8192
+      "sha256": "96aefe48a068218388f3794e423edd7d398b655f7d1bcc769fb21a415c55e3de",
+      "size": 6144
     },
     {
       "path": "THREAT_MODEL.md",
@@ -119,13 +119,18 @@
     },
     {
       "path": "build/CyberButlerLauncher.cs",
-      "sha256": "f9860a8701e76b7658e3f9047e033e6fc8d9b33b701efae4d409d6734471918b",
-      "size": 5091
+      "sha256": "7d1101b41a3d9db56097748a8eaf332600d7e32da46425af29ebd076ba03b853",
+      "size": 6326
     },
     {
       "path": "build/PYINSTALLER.md",
       "sha256": "013881cb035827c63ffa54b6c51e52bd7f441567820a62087b1ee3f9207b20fc",
       "size": 867
+    },
+    {
+      "path": "build/StartInstaller.cs",
+      "sha256": "32d399fb3b7b948ff60ea22dfaa87ee58b0d0ee3f1a97141c7aa0fb859e06070",
+      "size": 1919
     },
     {
       "path": "build/app.manifest",
@@ -134,8 +139,8 @@
     },
     {
       "path": "build/build-launcher.ps1",
-      "sha256": "a70c4a8bd5f4472d39640b71ff637cf3da6f2ee9b4e7b9c962d5a85bba38978c",
-      "size": 1288
+      "sha256": "f39d8d907d14352e76d5bc5db2f5573a6c37d6713d95fa73edfe6b6c338e8f33",
+      "size": 1925
     },
     {
       "path": "build/version_info.txt",
@@ -1063,6 +1068,11 @@
       "size": 1279
     },
     {
+      "path": "tests/test_outer_defenses.py",
+      "sha256": "bae885f3847e7ae25d9fb53bedb0082e0dba7f0dc238a4ef6b55c6377a89551c",
+      "size": 1233
+    },
+    {
       "path": "tests/test_package_independence.py",
       "sha256": "21d3b29cd00007658ea066e098dbc43cd1462010f43530975520417117f21cf5",
       "size": 708
@@ -1169,8 +1179,8 @@
     },
     {
       "path": "tools/CyberButlerLauncher.exe",
-      "sha256": "13b6b9a0c18d49e39865a278f2793e53098e06f7507616cd7a714fee037f16a7",
-      "size": 8192
+      "sha256": "a05863466dc3dfc3c3dd0ff34147968b4521f2b9684f7eabc94801f6b9af3e7e",
+      "size": 8704
     },
     {
       "path": "tools/Invoke-CbsVmAcceptance.ps1",
@@ -1254,8 +1264,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "df379c964d9833c33017ebe3058dc299df1a0a2d8df881a856c7a97c48f593a3",
-      "size": 112648
+      "sha256": "d877a90f4b6b455d9584f714b1a9a497408193932cdbb9e039cc653cd7a7a85b",
+      "size": 112626
     },
     {
       "path": "tools/broker_watchdog.py",
@@ -1639,8 +1649,8 @@
     },
     {
       "path": "tools/update.ps1",
-      "sha256": "973d775f30ff503dd5cdfea8ff4eb26d4b15429c414a1de662ae2d3346e1e4e5",
-      "size": 12234
+      "sha256": "d96e0dc97ce0f162578f67537d11f545a053df407951b1368a36db5c45913ab7",
+      "size": 13780
     },
     {
       "path": "tools/update_core.py",
