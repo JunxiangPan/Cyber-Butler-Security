@@ -71,6 +71,8 @@ function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
 
 Add-Report '# BUILD_REPORT'
 Add-Report ''
+Add-Report ('- Current Commit: ' + $head)
+Add-Report ('- Build Time: ' + (Get-Date).ToUniversalTime().ToString('o'))
 $sealPath = Join-Path $env:TEMP ('cbp-self-seal-' + [guid]::NewGuid().ToString('N') + '.json')
 Run-Process 'self-seal record' 'python' @('quality/self_seal.py', '--record', $sealPath)
 Add-Report ('ChallengeCode: ' + $Challenge)
@@ -147,8 +149,11 @@ if ($Candidate) {
     if (-not (Test-Path -LiteralPath $candidateZip)) { throw 'candidate build did not create the zip' }
     $candidateHash = (Get-FileHash -LiteralPath $candidateZip -Algorithm SHA256).Hash
     Add-Report ('- Candidate Zip SHA256: ' + $candidateHash)
+    Add-Report ('- Package Hash: ' + $candidateHash)
     $candidateReport = Join-Path $root 'BUILD_REPORT.md'
     $report | Set-Content -LiteralPath $candidateReport -Encoding UTF8
+    $candidateReportText = Get-Content -LiteralPath $candidateReport -Raw
+    if ($candidateReportText -notmatch ('- Current Commit: ' + [regex]::Escape($head))) { throw 'BUILD_REPORT.md is missing the current commit' }
     $candidateReportHash = (Get-FileHash -LiteralPath $candidateReport -Algorithm SHA256).Hash
     Write-Host ('[BUILD_MANIFEST] Zip_SHA256: ' + $candidateHash + ' | Report_SHA256: ' + $candidateReportHash)
 Run-Process 'self-seal verify' 'python' @('quality/self_seal.py', '--verify', $sealPath)
@@ -196,8 +201,11 @@ if (-not (Test-Path -LiteralPath $zip)) { throw 'package_release.py did not crea
 $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 Add-Report ''
 Add-Report ('- Zip SHA256: ' + $zipHash)
+Add-Report ('- Package Hash: ' + $zipHash)
 $reportPath = Join-Path $root 'BUILD_REPORT.md'
 $report | Set-Content -LiteralPath $reportPath -Encoding UTF8
+$reportText = Get-Content -LiteralPath $reportPath -Raw
+if ($reportText -notmatch ('- Current Commit: ' + [regex]::Escape($head))) { throw 'BUILD_REPORT.md is missing the current commit' }
 $reportHash = (Get-FileHash -LiteralPath $reportPath -Algorithm SHA256).Hash
 Write-Host ('[BUILD_MANIFEST] Zip_SHA256: ' + $zipHash + ' | Report_SHA256: ' + $reportHash)
 $sigPath = Join-Path $root 'update-manifest.sig'
