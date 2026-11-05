@@ -164,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "990bb622e9182f3895edcd18086973b3195c909678c6785a081a082504023f12",
+      "sha256": "0c5765ae85913a5545d0e0f58972972024bb4f1404b7deaec627bf2050bf64fd",
       "size": 947
     },
     {
@@ -1569,7 +1569,7 @@
     },
     {
       "path": "tools/verify_release.py",
-      "sha256": "82535a9a3618b199207a34898f5fca5526aa763e1fe9dff401b02d9463463716",
+      "sha256": "66de2db59949852676df354dc17f41e28d875641a5fee8e6d417755f2fdefcfd",
       "size": 4696
     },
     {
