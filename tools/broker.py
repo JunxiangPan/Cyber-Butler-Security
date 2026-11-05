@@ -2878,12 +2878,22 @@ def verify_runtime_acl() -> None:
     if os.name != "nt":
         return
     checker = ROOT / "tools" / "verify_broker_acl.ps1"
-    expected_checker_sha = "4917b5021e3dd76ab05e2cdb93aa0012b3fec826e1c315c899bfca3fa18b2902"
+    acl_manifest = ROOT / "tools" / "broker_acl_manifest.json"
     if not checker.exists():
         raise SystemExit(
             "Broker refuses to start: tools/verify_broker_acl.ps1 is missing; "
             "lock down tools/ and AgentRuntime/.venv before running as SYSTEM."
         )
+    if not acl_manifest.exists():
+        raise SystemExit("Broker refuses to start: ACL checker manifest is missing")
+    try:
+        expected = json.loads(acl_manifest.read_text(encoding="utf-8"))
+        expected_checker_sha = str(expected["sha256"])
+        expected_checker_path = str(expected.get("path", "tools/verify_broker_acl.ps1"))
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise SystemExit("Broker refuses to start: invalid ACL checker manifest") from exc
+    if checker.relative_to(ROOT).as_posix() != expected_checker_path:
+        raise SystemExit("Broker refuses to start: ACL checker path mismatch")
     actual_checker_sha = hashlib.sha256(checker.read_bytes()).hexdigest()
     if actual_checker_sha.casefold() != expected_checker_sha.casefold():
         raise SystemExit("Broker refuses to start: ACL checker hash mismatch")

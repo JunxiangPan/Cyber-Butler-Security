@@ -114,3 +114,5 @@ webui/config.json
 .pytest-tmp/
 
 quality/artifacts/
+
+tools/broker_acl_manifest.json

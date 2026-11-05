@@ -138,6 +138,26 @@ def main() -> int:
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
+    acl_script = ROOT / "tools" / "verify_broker_acl.ps1"
+    acl_manifest = ROOT / "tools" / "broker_acl_manifest.json"
+    if not acl_script.is_file():
+        raise SystemExit("required ACL checker missing: tools/verify_broker_acl.ps1")
+    acl_payload = {
+        "schema": 1,
+        "path": "tools/verify_broker_acl.ps1",
+        "sha256": hashlib.sha256(acl_script.read_bytes()).hexdigest(),
+    }
+    acl_data = (json.dumps(acl_payload, ensure_ascii=False, indent=2) + chr(10)).encode("utf-8")
+    acl_manifest.write_bytes(acl_data)
+    entries = [(rel, data) for rel, data in entries if rel != "tools/broker_acl_manifest.json"]
+    entries.append(("tools/broker_acl_manifest.json", acl_data))
+    if update_core.is_allowed_path("tools/broker_acl_manifest.json"):
+        manifest_files.append({
+            "path": "tools/broker_acl_manifest.json",
+            "size": len(acl_data),
+            "sha256": hashlib.sha256(acl_data).hexdigest(),
+        })
+
     proof_extra = ROOT / "ACCEPTANCE_PROOF.md"
     if proof_extra.is_file() and not any(rel == "ACCEPTANCE_PROOF.md" for rel, _ in entries):
         proof_data = proof_extra.read_bytes()
@@ -211,6 +231,15 @@ def main() -> int:
                 raise SystemExit(f"packaged size mismatch: {entry['path']}")
             if hashlib.sha256(data).hexdigest() != entry["sha256"]:
                 raise SystemExit(f"packaged hash mismatch: {entry['path']}")
+
+    with zipfile.ZipFile(output) as archive:
+        packaged_acl = json.loads(archive.read("tools/broker_acl_manifest.json").decode("utf-8"))
+        packaged_script = archive.read("tools/verify_broker_acl.ps1")
+        if hashlib.sha256(packaged_script).hexdigest() != packaged_acl.get("sha256"):
+            raise SystemExit("ARTIFACT_E2E_FAILED: packaged ACL checker hash mismatch")
+        if packaged_acl.get("path") != "tools/verify_broker_acl.ps1":
+            raise SystemExit("ARTIFACT_E2E_FAILED: packaged ACL checker path mismatch")
+    print("artifact E2E OK: packaged ACL checker hash matches")
 
     hygiene = ROOT / "tools" / "audit_text_hygiene.py"
     if hygiene.is_file():
