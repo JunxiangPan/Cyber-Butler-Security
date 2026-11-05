@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "version": "1.6.4",
+  "phase": "planned",
+  "base_release": "1.6.3",
+  "not_completed": [
+    "Raise Broker test coverage above 80%, especially exception paths",
+    "Add requirements-runtime.lock with dependency hashes",
+    "Upgrade CBP SHA-256 self-seal to DPAPI key + HMAC signature",
+    "Fix the C# self-contained START-INSTALLER.exe silent-exit launcher bug and add a VM smoke test",
+    "Install jinja2 in CI and restore WebUI template/API automated tests"
+  ]
+}
