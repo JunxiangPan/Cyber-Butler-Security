@@ -58,6 +58,8 @@ def test_service_child_exit_stops_service() -> None:
     )
     assert "child.Exited += ChildExited" in source
     assert "SERVICE_CHILD_EXIT" in source
+    assert "CREATE_SUSPENDED" in source
+    assert "ResumeThread" in source
     assert "Stop()" in source
 
 

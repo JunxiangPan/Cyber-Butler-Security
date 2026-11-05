@@ -178,7 +178,7 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as exc:
             payload = exc.read()
             self._send(exc.code, payload, exc.headers.get("Content-Type", "application/json"))
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        except (urllib.error.URLError, TimeoutError, OSError):
             self._send(502, json.dumps({"ok": False, "error": "upstream unavailable"}).encode())
 
     def do_GET(self) -> None:

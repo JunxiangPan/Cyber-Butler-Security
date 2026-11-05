@@ -191,7 +191,6 @@ def main() -> int:
 
     official = Path(args.official_source).resolve()
     overlay = Path(args.overlay).resolve()
-    official_agentruntime = official / "agentruntime"
     actual_version = source_version(official)
     version_ok = actual_version == args.expected_version
     files: list[dict] = []
@@ -200,7 +199,6 @@ def main() -> int:
             continue
         rel = path.relative_to(overlay).as_posix()
         official_path = official / rel
-        overlay_symbols: set[str] = set()
         findings: list[dict] = []
         try:
             tree = ast.parse(path.read_text(encoding="utf-8-sig"), filename=str(path))

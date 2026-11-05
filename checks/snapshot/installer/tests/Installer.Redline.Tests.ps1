@@ -1,4 +1,4 @@
-$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+﻿$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 Describe 'CBS release red lines' {
     It 'directory delete is rejected before snapshot' {
@@ -22,6 +22,8 @@ Describe 'CBS release red lines' {
         $source = Get-Content -LiteralPath (Join-Path $root 'installer\service\CyberButlerAgentRuntimeService.cs') -Raw
         $source | Should Match 'child\.Exited \+= ChildExited'
         $source | Should Match 'SERVICE_CHILD_EXIT'
+        $source | Should Match 'CREATE_SUSPENDED'
+        $source | Should Match 'ResumeThread'
     }
 
     It 'pending and trash require the broker token' {

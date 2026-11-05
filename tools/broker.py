@@ -2601,7 +2601,7 @@ def undo_trash_request(payload: dict) -> tuple[int, dict]:
 
 class Handler(BaseHTTPRequestHandler):
     """Handler helper/type."""
-    server_version = "AgentRuntimeTOTPBroker/1.0"
+    server_version = "AgentRuntimeTOTPBroker/1.6.3"
 
     def _json(self, status: int, payload: dict) -> None:
         """Json.

@@ -162,6 +162,9 @@ Add-Report ('```markdown' + [Environment]::NewLine + $proofText.Trim() + [Enviro
 if ($proofText -notmatch 'Overall: PASS') { throw 'ACCEPTANCE_PROOF.md is not PASS' }
 if ($proofText -notmatch 'negative_403=True') { throw 'negative TOTP evidence missing' }
 if ($proofText -notmatch 'negative_path=True') { throw 'negative path evidence missing' }
+Run-Process 'mypy (0 errors)' 'python' @('-m', 'mypy', 'tools', 'webui', 'installer', '--ignore-missing-imports', '--exclude', '(\.venv|tests)')
+Run-Process 'ruff (E9/F)' 'python' @('-m', 'ruff', 'check', 'tools', 'webui', 'installer', '--exclude', 'webui/.venv', '--exclude', 'webui/tests')
+Run-Process 'pip-audit runtime dependencies' 'python' @('-m', 'pip_audit', '-r', 'requirements-runtime.txt')
 
 # Build only from this pipeline via the token gate.
 $token = [guid]::NewGuid().ToString('N')
