@@ -103,8 +103,13 @@
       "size": 2850
     },
     {
+      "path": "START-INSTALLER.cmd",
+      "sha256": "fd14832ebc4d8f32a7045fa6ac00c0e350cb8e991748859a1c31f731d51cfb16",
+      "size": 139
+    },
+    {
       "path": "START-INSTALLER.exe",
-      "sha256": "96aefe48a068218388f3794e423edd7d398b655f7d1bcc769fb21a415c55e3de",
+      "sha256": "65ce1dd124f3411eb6029284e26fb6be3a051fda9a4b379f2d74d0bc9c77d403",
       "size": 6144
     },
     {
@@ -129,8 +134,8 @@
     },
     {
       "path": "build/StartInstaller.cs",
-      "sha256": "32d399fb3b7b948ff60ea22dfaa87ee58b0d0ee3f1a97141c7aa0fb859e06070",
-      "size": 1919
+      "sha256": "a289e91854d0e1616177e9f3e6ed6eb232124457a8e19062625502316d92a171",
+      "size": 1891
     },
     {
       "path": "build/app.manifest",
@@ -139,8 +144,8 @@
     },
     {
       "path": "build/build-launcher.ps1",
-      "sha256": "f39d8d907d14352e76d5bc5db2f5573a6c37d6713d95fa73edfe6b6c338e8f33",
-      "size": 1925
+      "sha256": "741c3bd7db5673a9a904d36a006a9db15a9e1cea778e149c1e752e73f68b09ba",
+      "size": 1888
     },
     {
       "path": "build/version_info.txt",
@@ -1179,7 +1184,7 @@
     },
     {
       "path": "tools/CyberButlerLauncher.exe",
-      "sha256": "a05863466dc3dfc3c3dd0ff34147968b4521f2b9684f7eabc94801f6b9af3e7e",
+      "sha256": "9bb8af08c6b96758b1cf4de534cc865e58774d5e7b7dd6b655683ac489f1b3fb",
       "size": 8704
     },
     {
@@ -1654,8 +1659,8 @@
     },
     {
       "path": "tools/update_core.py",
-      "sha256": "408ae30a20b0db8a3916cddb5ad8ca8d2e150f379def19b5614ca4fdad92d374",
-      "size": 12834
+      "sha256": "adfe567d3cffed55aef28b267657f5b118c6075401c1b07c5e4c02c8c55f9eeb",
+      "size": 12862
     },
     {
       "path": "tools/update_gui.ps1",
