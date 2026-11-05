@@ -72,7 +72,7 @@ if ($ScreenshotPath) {
     $window.FindName('Subtitle').Text = '网关运行正常'
     $sampleGrid = $window.FindName('AuditGrid')
     $sampleGrid.ItemsSource = @(
-        [pscustomobject]@{ At = '2026-11-06 00:20:14'; Action = 'delete'; Target = 'workspaceinance.xlsx'; Status = '已拦截' },
+        [pscustomobject]@{ At = '2026-11-06 00:20:14'; Action = 'delete'; Target = 'workspace\finance.xlsx'; Status = '已拦截' },
         [pscustomobject]@{ At = '2026-11-06 00:18:02'; Action = 'write_file'; Target = 'workspace
 otes.md'; Status = '已批准' },
         [pscustomobject]@{ At = '2026-11-06 00:15:41'; Action = 'send_file'; Target = 'workspace
