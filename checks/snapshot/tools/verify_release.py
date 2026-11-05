@@ -14,15 +14,15 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 # Pinned trust anchor: never load a public key from the writable install tree.
 PINNED_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAtuW1dWa4D+wPrgx2O6jC
-+ztZQL+k49um0ebR3PQ3KB3ii+zNoS5vD13NwRD93/iHh+Dmk2TM+6B8q3Rk5sXQ
-1bQKE7Q356YLNgdFvbgkd2MkaVTmU8eOzhoHLZWqtIVuw/3WPD2ASartZlCx6NGM
-wiYI4nnyVZajpqO7OXaYa/sx3yk7gWloO/GypdJqnfN8mfSC3CJSglEfYLxxT8PM
-EGR770TTbNp1iOlnICTng41860Qxnoh6Ptz5sc64bJFnlBSHDHTi8CEQC/2DTzCd
-Y1JegPN+BMaanUjNlHOzPawII3MG/ALnuunC3lSylPCACfQCJn1iEOAMRpO9z/6j
-N9TgyENJur5luOTHU5w14lnB2zdSqH04okryWxclwOFd7SquPYjfzndH1GwxWSFU
-+RA1b1Rg3dqwoHdya31YnTRvXIK6GwCO1JjPGgW9hVAUpPOKyq7z3xnKWMpvRF19
-naZryLhO3nI9E0dAqvWCVflqsWO+ctv04HRV+ghPGfgrAgMBAAE=
+MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAyZNflUHU0Iq6FRwCyrHI
+ZM+k85xbAn4r/mq7Od/dzOsOMnKNb8Q7bQD/Y3QZnp7kQaoSY9jcgRUP8h42FALw
+rp7hwNAZDs+r/tK3puJ3oiUvWc/bc9lb7ePkdS8m7Wc1t1Y/5XNphCicKSDLZwNs
+7s7YqVZe3BI74ZlO9mT+heEelpSlSXLx32w59qdiP8LlXFx8pYAgthHpMdQmTHv2
+o/tXnkMgcFvXA2OByx01WYRWEqt8mqdPnkbiidwduDyvca6HSjroTG0i8a/lJGD3
+AGJ5KAi0ylgfG9v01PwVLurUlSjgy4IACLYYdFb6HAVc0MttxcHGpt0f6bh4p/bM
+cyrtSgcDCRylm3k/fR8YaLwwnRmwwyDdtv8Svf0rBqWXDONB7A5BuZlcUD9T3sqz
+Q7Y6fKNt+j5JWu+Tdm3ktdk7OMUFexQyLuIW5uqurFeaSLfSRwVcIKUkPYOYqusJ
+gN4gZu7wm+PyzyFAFeQUAIDWedOiDL66cdfU7FV3/hAlAgMBAAE=
 -----END PUBLIC KEY-----"""
 
 
