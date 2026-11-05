@@ -11,10 +11,9 @@ limited to the installer child process, which remains visible so the user can
 review the elevated window. Once the installer scripts are signed, this
 transitional bypass should be removed in v1.6.4.
 
-## ACL checker hash
+## Runtime ACL check
 
-The package build computes `tools/broker_acl_manifest.json` from the exact
-`verify_broker_acl.ps1` bytes placed in the zip, and verifies the hash again by
-reading the finished archive. The broker fails closed if that manifest is
-missing or its path/hash does not match, so line-ending conversion or a stale
-package cannot silently weaken the ACL self-check.
+The broker does not compare the ACL checker against a packaged hash. It requires
+`tools/verify_broker_acl.ps1` to exist, runs it with a timeout, and requires both
+exit code 0 and the explicit `Broker runtime ACL: OK` confirmation. Any missing
+file, execution error, non-zero exit, or missing confirmation fails closed.

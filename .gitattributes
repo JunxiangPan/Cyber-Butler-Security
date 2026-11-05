@@ -3,4 +3,3 @@ update-manifest.sig -text
 *.ps1 text eol=crlf
 *.py text eol=lf
 dependencies.sbom.json -text
-tools/broker_acl_manifest.json -text

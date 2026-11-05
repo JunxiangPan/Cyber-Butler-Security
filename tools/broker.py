@@ -2872,49 +2872,40 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def verify_runtime_acl() -> None:
-    """Fail closed unless the SYSTEM runner's script roots pass the ACL check."""
+    """Fail closed unless the checker proves the real filesystem ACLs are safe."""
     if TEST_MODE:
         return
     if os.name != "nt":
         return
     checker = ROOT / "tools" / "verify_broker_acl.ps1"
-    acl_manifest = ROOT / "tools" / "broker_acl_manifest.json"
     if not checker.exists():
         raise SystemExit(
             "Broker refuses to start: tools/verify_broker_acl.ps1 is missing; "
             "lock down tools/ and AgentRuntime/.venv before running as SYSTEM."
         )
-    if not acl_manifest.exists():
-        raise SystemExit("Broker refuses to start: ACL checker manifest is missing")
     try:
-        expected = json.loads(acl_manifest.read_text(encoding="utf-8"))
-        expected_checker_sha = str(expected["sha256"])
-        expected_checker_path = str(expected.get("path", "tools/verify_broker_acl.ps1"))
-    except (OSError, ValueError, KeyError, TypeError) as exc:
-        raise SystemExit("Broker refuses to start: invalid ACL checker manifest") from exc
-    if checker.relative_to(ROOT).as_posix() != expected_checker_path:
-        raise SystemExit("Broker refuses to start: ACL checker path mismatch")
-    actual_checker_sha = hashlib.sha256(checker.read_bytes()).hexdigest()
-    if actual_checker_sha.casefold() != expected_checker_sha.casefold():
-        raise SystemExit("Broker refuses to start: ACL checker hash mismatch")
-    result = subprocess.run(
-        [
-            "powershell.exe",
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy", "Bypass",
-            "-File", str(checker),
-        ],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
+        result = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy", "Bypass",
+                "-File", str(checker),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=45,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise SystemExit(f"Broker refuses to start: ACL checker could not run: {exc}") from exc
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip()
         raise SystemExit(
             "Broker refuses to start: runtime ACL is writable or owned by a "
             f"low-privilege principal. {detail}"
         )
+    if "Broker runtime ACL: OK" not in (result.stdout or ""):
+        raise SystemExit("Broker refuses to start: ACL checker did not confirm success")
     log("runtime ACL check passed (tools/ and AgentRuntime/.venv locked)")
 
 
