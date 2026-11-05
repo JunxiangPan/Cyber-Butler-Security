@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Run the 25-item CBS quality matrix and write FINAL_QA_REPORT.md.
+"""Generate the CBP quality manifest and FINAL_QA_REPORT from real test results.
 
-This runner does not fake a green result. A skipped or failed item is BLOCKED
-or FAIL, and the signing gate refuses to sign unless every item is PASS.
+The JSON manifest is the source of truth. Counts are computed from item rows;
+the Markdown report is rendered from the same rows and must not be hand-edited.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import secrets
@@ -16,9 +17,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX = ROOT / "quality" / "quality_matrix.json"
-TEST_FILE = "quality/tests/test_quality_matrix.py"
+ITEMS = ROOT / "quality" / "quality-items.json"
+MANIFEST = ROOT / "quality-manifest.json"
+MANIFEST_HASH = ROOT / "quality-manifest.sha256"
 REPORT = ROOT / "FINAL_QA_REPORT.md"
+TEST_FILE = "quality/tests/test_quality_matrix.py"
 
 TEST_NAMES = {
     "Q01": "test_q01_path_boundaries_and_unicode",
@@ -50,7 +53,7 @@ TEST_NAMES = {
 }
 
 
-def run_pytest() -> dict[str, str]:
+def run_pytest() -> tuple[dict[str, str], str]:
     command = [
         sys.executable, "-m", "pytest", "-v", "--tb=no", "--no-header",
         TEST_FILE,
@@ -60,7 +63,7 @@ def run_pytest() -> dict[str, str]:
             command, cwd=ROOT, capture_output=True, text=True, timeout=1800
         )
     except FileNotFoundError:
-        return {item: "blocked" for item in TEST_NAMES}
+        return {item: "blocked" for item in TEST_NAMES}, "pytest not found"
     output = completed.stdout + "\n" + completed.stderr
     statuses: dict[str, str] = {}
     for item, test_name in TEST_NAMES.items():
@@ -69,60 +72,115 @@ def run_pytest() -> dict[str, str]:
             output,
         )
         statuses[item] = match.group(1).lower() if match else "blocked"
+    if "FAILED" in output:
+        print(output[-6000:])
     if completed.returncode not in (0, 1) and not any(
         status == "passed" for status in statuses.values()
     ):
         statuses = {item: "blocked" for item in TEST_NAMES}
-    return statuses
+    return statuses, f"pytest_exit={completed.returncode}"
+
+
+def summarize(items: list[dict], statuses: dict[str, str], profile: str) -> dict:
+    rows = []
+    for item in items:
+        item_id = str(item["id"])
+        raw = statuses.get(item_id, "blocked")
+        if profile == "ci" and item["class"] != "ci":
+            raw = "skipped-by-design"
+        elif raw == "skipped":
+            raw = "blocked"
+        if raw in {"failed", "error"}:
+            raw = "failed"
+        rows.append({**item, "status": raw})
+    passed = sum(1 for row in rows if row["status"] == "passed")
+    failed = sum(1 for row in rows if row["status"] == "failed")
+    blocked = sum(1 for row in rows if row["status"] == "blocked")
+    skipped_by_design = sum(1 for row in rows if row["status"] == "skipped-by-design")
+    required = [row for row in rows if profile == "release" or row["class"] == "ci"]
+    if failed:
+        overall = "FAIL"
+    elif any(row["status"] != "passed" for row in required):
+        overall = "BLOCKED"
+    else:
+        overall = "PASS"
+    return {
+        "rows": rows,
+        "counts": {
+            "total": len(rows),
+            "passed": passed,
+            "failed": failed,
+            "blocked": blocked,
+            "skipped_by_design": skipped_by_design,
+        },
+        "overall": overall,
+    }
+
+
+def render_report(manifest: dict, quality_manifest_sha256: str = "") -> str:
+    counts = manifest["counts"]
+    lines = [
+        "# FINAL QA REPORT",
+        "",
+        f"- Version: {manifest['version']}",
+        f"- Nonce: {manifest['nonce']}",
+        f"- Profile: {manifest['profile']}",
+        f"- Generated: {manifest['generated_at']}",
+        f"- Matrix: {counts['total']} items",
+        f"- Passed: {counts['passed']}",
+        f"- Failed: {counts['failed']}",
+        f"- Blocked: {counts['blocked']}",
+        f"- Skipped by design: {counts['skipped_by_design']}",
+        f"- Overall: **{manifest['overall']}**",
+        "",
+    ]
+    if quality_manifest_sha256:
+        lines.append(f"QUALITY_MANIFEST_SHA256: {quality_manifest_sha256}")
+        lines.append("")
+    lines += [
+        "> A blocked item is not a pass. The release signing gate requires 26/26",
+        "> passed items and a valid quality-manifest.json.",
+        "",
+        "| ID | Check | Type | Status |",
+        "|---|---|---|---|",
+    ]
+    for row in manifest["items"]:
+        lines.append(f"| {row['id']} | {row['title']} | {row['kind']} | {row['status']} |")
+    lines += ["", "## Signing gate", "", "`tools/sign_release.py` re-reads quality-manifest.json and refuses blocked/failed items.", ""]
+    return "\n".join(lines)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--nonce", default="")
+    parser.add_argument("--profile", choices=("ci", "release"), default="ci")
     args = parser.parse_args()
     nonce = args.nonce or secrets.token_hex(16)
-    matrix = json.loads(MATRIX.read_text(encoding="utf-8"))
-    statuses = run_pytest()
-    rows = []
-    for item in matrix["items"]:
-        status = statuses.get(item["id"], "blocked")
-        rows.append((item["id"], item["title"], item["kind"], status))
-    total = len(rows)
-    passed = sum(1 for row in rows if row[3] == "passed")
-    failed = sum(1 for row in rows if row[3] in {"failed", "error"})
-    blocked = total - passed - failed
-    overall = "PASS" if passed == total else ("FAIL" if failed else "BLOCKED")
-    lines = [
-        "# FINAL QA REPORT",
-        "",
-        f"- Version: {matrix['version']}",
-        f"- Nonce: {nonce}",
-        f"- Generated: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
-        f"- Matrix: {total} items",
-        f"- Passed: {passed}",
-        f"- Failed: {failed}",
-        f"- Blocked: {blocked}",
-        f"- Overall: **{overall}**",
-        "",
-        "> A skipped/blocked item is not a pass. The signing gate requires every",
-        "> row below to be PASS.",
-        "",
-        "| ID | Check | Type | Status |",
-        "|---|---|---|---|",
-    ]
-    for item_id, title, kind, status in rows:
-        lines.append(f"| {item_id} | {title} | {kind} | {status} |")
-    lines += [
-        "",
-        "## Signing gate",
-        "",
-        "`tools/sign_release.py` refuses to sign unless this report is PASS.",
-        "",
-    ]
-    REPORT.write_text("\n".join(lines), encoding="utf-8")
+    source = json.loads(ITEMS.read_text(encoding="utf-8"))
+    statuses, pytest_source = run_pytest()
+    result = summarize(source["items"], statuses, args.profile)
+    manifest = {
+        "schema": "cbp-quality-manifest/v1",
+        "version": source["version"],
+        "nonce": nonce,
+        "profile": args.profile,
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source": {"pytest": pytest_source},
+        "items": result["rows"],
+        "counts": result["counts"],
+        "overall": result["overall"],
+    }
+    canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    manifest_bytes = (canonical + chr(10)).encode("utf-8")
+    digest = hashlib.sha256(manifest_bytes).hexdigest().upper()
+    MANIFEST.write_bytes(manifest_bytes)
+    MANIFEST_HASH.write_text(digest + chr(10), encoding="ascii")
+    REPORT.write_text(render_report(manifest, digest), encoding="utf-8")
     print(f"wrote {REPORT}")
-    print(f"overall={overall} passed={passed} failed={failed} blocked={blocked}")
-    return 0 if failed == 0 else 1
+    print(f"wrote {MANIFEST}")
+    print(f"overall={manifest['overall']} passed={manifest['counts']['passed']} failed={manifest['counts']['failed']} blocked={manifest['counts']['blocked']} skipped_by_design={manifest['counts']['skipped_by_design']}")
+    print("STATUSES " + ",".join(f"{row['id']}={row['status']}" for row in manifest["items"]))
+    return 0 if manifest["overall"] == "PASS" else 1
 
 
 if __name__ == "__main__":

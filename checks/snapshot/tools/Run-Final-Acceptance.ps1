@@ -125,35 +125,23 @@ function Get-NewTotp([string]$id) {
 
 <#
 .SYNOPSIS
-    Verify one TOTP, retrying after the broker's replay-protection window.
+    Verify one TOTP for one pending request.
 .DESCRIPTION
-    A 429 or "replay rejected" is expected when the same 30-second code is reused.
-    Wait 35 seconds, ask for the new phone code, and retry; never count the 429 as
-    a capacity or positive-test failure.
+    Replay protection is bound to (request_id, code). A fresh approval request
+    uses a fresh request_id, so no timer-based replay wait is needed.
 #>
-function Invoke-TotpVerifyWithRetry {
+function Invoke-TotpVerify {
     param(
         [Parameter(Mandatory = $true)][string]$Id,
         [string]$Label = 'TOTP'
     )
-    $code = ''
-    $response = $null
-    for ($attempt = 1; $attempt -le 3; $attempt++) {
-        if (-not $code) { $code = Read-Host "Enter current phone TOTP for $Label request $Id" }
-        $payload = [ordered]@{ id = $Id; code = $code } | ConvertTo-Json -Compress
-        $response = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $payload
-        Add-Proof ("$Label VERIFY RAW (attempt $attempt):" + [Environment]::NewLine + '```text' + [Environment]::NewLine + $response.raw + [Environment]::NewLine + '```')
-        if ($response.status -eq '429' -or $response.body -match 'replay rejected') {
-            Add-Proof ("$Label TOTP replay guard: HTTP 429; waiting 35 seconds for a fresh code")
-            Write-Host 'TOTP 已被防重放机制拦截，等待 35 秒获取新码...'
-            Start-Sleep -Seconds 35
-            $code = ''
-            continue
-        }
-        return $response
-    }
+    $code = Read-Host "Enter current phone TOTP for $Label request $Id"
+    $payload = [ordered]@{ id = $Id; code = $code } | ConvertTo-Json -Compress
+    $response = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $payload
+    Add-Proof ("$Label VERIFY RAW:" + [Environment]::NewLine + '```text' + [Environment]::NewLine + $response.raw + [Environment]::NewLine + '```')
     return $response
 }
+
 
 Add-Proof ('# ACCEPTANCE_PROOF')
 Add-Proof ('')
@@ -246,7 +234,7 @@ Add-Proof ('REQUEST RAW:' + [Environment]::NewLine + '```text' + [Environment]::
 $id = ''
 try { $id = ($req.body | ConvertFrom-Json).id } catch { Write-Verbose 'response had no id' }
 if ($id) {
-    $verify = Invoke-TotpVerifyWithRetry -Id $id -Label 'positive'
+    $verify = Invoke-TotpVerify -Id $id -Label 'positive'
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $verify.raw + [Environment]::NewLine + '```')
     Record 'positive_totp' ($verify.status -eq '200' -and -not (Test-Path $target))
     $TotpCode = ''
@@ -281,7 +269,7 @@ $cap = Invoke-BrokerJson 'http://127.0.0.1:18090/request' 'POST' $capJson
     $capId = ''
     try { $capId = ($cap.body | ConvertFrom-Json).id } catch { Write-Verbose 'response had no id' }
     if ($capId) {
-        $capVerify = Invoke-TotpVerifyWithRetry -Id $capId -Label 'capacity'
+        $capVerify = Invoke-TotpVerify -Id $capId -Label 'capacity'
         Add-Proof ('CAPACITY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $capVerify.raw + [Environment]::NewLine + '```')
         Record 'capacity_block' ($capVerify.body -match 'quota' -and (Test-Path $big))
     } else {
