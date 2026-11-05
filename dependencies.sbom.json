@@ -6,11 +6,14 @@
         "pytest>=8.0",
         "pyotp>=2.9",
         "requests>=2.31",
-        "qrcode==8.2",
-        "Pillow==11.3.0",
-        "pywin32==310; sys_platform == \"win32\""
+        "qrcode>=8.2",
+        "Pillow>=12.3.0",
+        "pywin32==310; sys_platform == \"win32\"",
+        "mypy>=1.10",
+        "ruff>=0.9",
+        "pip-audit>=2.7"
       ],
-      "sha256": "8b8b692c852f6635cc01527e968e1d8bbc87956817e676e9de61f46754c11e1d"
+      "sha256": "126d4af137d0d7a76c53362cc6abe6e8bcfea913ba93c8245195a69efbb187bb"
     },
     {
       "path": "webui/requirements.txt",
@@ -28,6 +31,6 @@
       "sha256": "36a70d04016a1057b0bae188cb630ddf664403240e7485b7eedac63088fe34e0"
     }
   ],
-  "generated_at": "2026-11-04T06:23:56+00:00",
+  "generated_at": "2026-11-05T13:11:38+00:00",
   "schema": 2
 }

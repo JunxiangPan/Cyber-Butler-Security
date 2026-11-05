@@ -107,6 +107,15 @@ def main() -> int:
         if gate.returncode != 0:
             raise SystemExit(gate_name + " gate failed: " + gate.stdout + gate.stderr)
         print(gate_name + " gate OK")
+    # Rebuild the dependency SBOM from the exact manifests in this worktree.
+    sbom_tool = ROOT / "tools" / "sbom.py"
+    sbom_bundle = ROOT / "dependencies.sbom.json"
+    subprocess.run(
+        [sys.executable, str(sbom_tool), "build-bundle", "--root", str(ROOT), "--manifest", str(sbom_bundle)],
+        cwd=ROOT,
+        check=True,
+    )
+
     entries: list[tuple[str, bytes]] = []
     manifest_files: list[dict] = []
     for rel in tracked_files():
