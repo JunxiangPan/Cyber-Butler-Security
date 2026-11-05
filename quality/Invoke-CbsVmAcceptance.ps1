@@ -87,7 +87,7 @@ $report.undo = $true
 
 if (-not $SkipCapacity) {
     $big = Join-Path $SharedRoot 'vm-capacity.bin'
-    fsutil file createnew $big 629145600 | Out-Null
+    fsutil file createnew $big (600 * 1024 * 1024) | Out-Null
     $bigJson = ($big -replace '\\', '\\\\')
     $cap = PostJson 'http://127.0.0.1:18090/request' ('{"action":"delete","target":"' + $bigJson + '","reason":"VM capacity"}')
     $capObj = $cap | ConvertFrom-Json
