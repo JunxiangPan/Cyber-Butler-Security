@@ -170,7 +170,7 @@ Describe 'Installer services safety' {
     It 'stops listeners returned by the root-scoped owner lookup' {
         Mock Get-CyberButlerInstallPortOwnerIds { @(4242) }
         Mock Stop-Process { }
-        $stopped = @(Stop-CyberButlerInstallProcesses -Root 'C:ake' -Ports @(1))
+        $stopped = @(Stop-CyberButlerInstallProcesses -Root 'C:\fake' -Ports @(1))
         $stopped.Count | Should Be 1
         Assert-MockCalled Stop-Process -Times 1 -ParameterFilter { $Id -eq 4242 }
     }
