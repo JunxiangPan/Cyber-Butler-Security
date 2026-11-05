@@ -90,6 +90,7 @@ Run-Process 'test PowerShell syntax' 'powershell.exe' @('-NoProfile', '-Executio
 Run-Process 'code comments (AST)' 'python' @('tools/audit_code_comments.py')
 Run-Process 'docs consistency' 'python' @('tools/audit_docs_consistency.py')
 Run-Process 'UI sanity (styled console, no dead UI terms/routes)' 'python' @('quality/ui_gate.py')
+Run-Process 'acceptance fragility (TOTP 429 retry)' 'python' @('quality/fragility_gate.py')
 $declaredVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
 $launcherPath = Join-Path $root 'tools\CyberButlerLauncher.exe'
 if (-not (Test-Path -LiteralPath $launcherPath)) { throw 'version gate: launcher exe missing' }
