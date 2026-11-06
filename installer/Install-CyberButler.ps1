@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  Cyber-Butler v1.6.3 installer.
+  Cyber-Butler v1.6.4 installer.
 
 .DESCRIPTION
   End-to-end installer skeleton. Core deployment is a dry-run placeholder;
@@ -981,7 +981,7 @@ if (-not (Test-MainStepDone -Journal $journal -Name 'diagnostics')) {
 }
 
 # Report
-$markerVersion = '1.6.3'
+$markerVersion = '1.6.4'
 try {
     $releaseVersionPath = Join-Path (Split-Path -Parent $installerRoot) 'VERSION'
     if (Test-Path -LiteralPath $releaseVersionPath) {

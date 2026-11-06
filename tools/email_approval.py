@@ -167,7 +167,7 @@ def poll_once(config: dict, expected_challenge: str = "") -> tuple[str, str, str
     ) as mailbox:
         mailbox.login(config["imap_user"], config["imap_pass"])
         try:
-            mailbox.xatom("ID", '("name" "CyberButler" "version" "1.6.3" "vendor" "local")')
+            mailbox.xatom("ID", '("name" "CyberButler" "version" "1.6.4" "vendor" "local")')
         except Exception:
             pass
         for folder in _folders(mailbox):

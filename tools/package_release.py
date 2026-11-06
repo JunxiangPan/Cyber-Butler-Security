@@ -32,7 +32,7 @@ FORBIDDEN_PAYLOAD_PREFIXES = ("agentruntime/", "auxruntime/")
 
 
 def is_forbidden_payload(rel_path: str) -> bool:
-    """v1.6.3 CBS is an independent control plane; never bundle third-party runtimes."""
+    """v1.6.4 CBS is an independent control plane; never bundle third-party runtimes."""
     normalised = rel_path.replace("\\", "/").lstrip("/").casefold()
     return any(normalised == prefix.rstrip("/") or normalised.startswith(prefix) for prefix in FORBIDDEN_PAYLOAD_PREFIXES)
 

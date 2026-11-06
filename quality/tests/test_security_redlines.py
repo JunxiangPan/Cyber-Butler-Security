@@ -75,4 +75,4 @@ def test_webui_can_read_broker_token_as_desktop_task() -> None:
     source = (ROOT / "installer" / "Install-CyberButler.ps1").read_text(encoding="utf-8-sig")
     assert "$tokenReaders" in source
     assert "$DesktopAccount" in source
-    assert '"${tokenReader}:(R)"' in source or "${tokenReader}:(R)" in source
+    assert "'*' + $tokenSid + ':(R)'" in source

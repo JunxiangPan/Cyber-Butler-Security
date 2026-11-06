@@ -2463,7 +2463,7 @@ class RequestBodyTooLarge(ValueError):
 
 class Handler(BaseHTTPRequestHandler):
     """Handler helper/type."""
-    server_version = "AgentRuntimeTOTPBroker/1.6.3"
+    server_version = "AgentRuntimeTOTPBroker/1.6.4"
 
     def _json(self, status: int, payload: dict) -> None:
         """Json.
