@@ -51,7 +51,7 @@ def main() -> int:
     statements = int(broker["summary"]["num_statements"])
     covered = statements - len(missing)
     pct = (covered / statements * 100.0) if statements else 0.0
-    threshold = float(allow.get("policy", {}).get("tools/broker.py", 70.0))
+    threshold = float(allow.get("policy", {}).get("tools/broker.py", 80.0))
     print(f"BROKER_POLICY_COVERAGE={policy_pct:.2f}% (min {POLICY_MIN:.2f}%)")
     print(f"BROKER_COVERAGE_ALLOWLISTED={pct:.2f}% (min {threshold:.2f}%)")
     print(f"BROKER_ALLOWLISTED_LINES={len(broker['missing_lines']) - len(missing)}")
