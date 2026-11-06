@@ -34,14 +34,14 @@
 
 | Language | File | Headings | H1 | H2 | H3 | Missing vs README.md |
 |---|---|---:|---:|---:|---:|---|
-| en | README_en.md | 10 | 1 | 9 | 0 | none |
-| zh | README_zh.md | 11 | 1 | 10 | 0 | none |
-| de | README_de.md | 10 | 1 | 9 | 0 | none |
-| es | README_es.md | 10 | 1 | 9 | 0 | none |
-| fr | README_fr.md | 10 | 1 | 9 | 0 | none |
-| ja | README_ja.md | 10 | 1 | 9 | 0 | none |
-| ko | README_ko.md | 10 | 1 | 9 | 0 | none |
-| ru | README_ru.md | 10 | 1 | 9 | 0 | none |
+| en | README_en.md | 11 | 1 | 10 | 0 | none |
+| zh | README_zh.md | 12 | 1 | 11 | 0 | none |
+| de | README_de.md | 11 | 1 | 10 | 0 | none |
+| es | README_es.md | 11 | 1 | 10 | 0 | none |
+| fr | README_fr.md | 11 | 1 | 10 | 0 | none |
+| ja | README_ja.md | 11 | 1 | 10 | 0 | none |
+| ko | README_ko.md | 11 | 1 | 10 | 0 | none |
+| ru | README_ru.md | 11 | 1 | 10 | 0 | none |
 
 ## Deprecated term findings
 
