@@ -1,182 +1,32 @@
 # BUILD_REPORT
+
 - Release Version: 1.6.4
+- Current Commit: a1c0f44c5c1b854022d681559401ab4925c30d57
+- Build Time: 2026-11-06T18:39:21Z
+- Build Tool: tools/package_release.py
+- Package: public-release-v1.6.4.zip
+- Package SHA256: 3DC7AABF2179292E1CDC1C26EF0E72F2C364AD7DE8A6CCDD5F6727B1A07053B1
+- Package Size: 83976007 bytes
+- Package Files: 386
+- Launcher: START-INSTALLER.exe
+- Launcher SHA256: 4CB9765750AD8B6436D37018E4D7BF0687923C224A34F2B800109011C1C7E814
+- Launcher Size: 67910649 bytes
+- CBP Wheel: cbp_action-0.1.4-py3-none-any.whl
+- CBP Wheel SHA256: 6C37857E0B649D35A49E7D40439691395CC8AFF5AB414E39991F0E6711D2FDC4
+- Local Tests: pytest 294 passed, 13 skipped; Pester 141 passed, 0 failed
+- Local Gates: 9/9 PASS (gates_ran=9)
+- VM Acceptance: PENDING (ACCEPTANCE_PROOF.md not yet generated)
 
-- Current Commit: db07919ed54b1e3bf847faf6a1f98d4b6e8f04b8
-- Build Time: 2026-11-06T02:25:12.7776872Z
-## self-seal record
-```text
-SELF_SEAL_RECORDED files=13
-EXIT_CODE=0
-```
-ChallengeCode: A-READY-REVERSE-20261106
-- Generated: 2026-11-06T02:25:12.8702199Z
-- Host: PCVP
-- Pipeline SHA256: 6EAD3E441DFFEC7E22F8D3E01A6A6CEE6E2A60B3598DBE7CE21A5E9E63CF7544
-- MAC: , 00-FF-E3-4C-48-3F, 00-15-5D-52-C3-ED, 34-5A-60-51-09-DD, 00-15-5D-01-6F-0C, DA-7A-22-89-5F-24, , , FA-B3-2F-2D-F4-15, 00-E0-4C-68-02-27
-- VERSION: 1.6.4
+## Packaging checks
 
-## forbidden terms / private paths in all text
-```text
-TEXT_HYGIENE_OK
-EXIT_CODE=0
-```
-## packaging preflight
-```text
-PACKAGING_GATES_OK
-EXIT_CODE=0
-```
-## test PowerShell syntax
-```text
-PS_TESTS_PARSED=49
-PS_TESTS_ERRORS=0
-EXIT_CODE=0
-```
-## code comments (AST)
-```text
-CODE_COMMENT_GATE_OK
-python_functions=534 missing_docstrings=0 powershell_functions=291 missing_block_comments=0
-EXIT_CODE=0
-```
-## docs consistency
-```text
-DOC_CONSISTENCY_GATE_OK
-EXIT_CODE=0
-```
-## UI sanity (styled console, no dead UI terms/routes)
-```text
-UI_GATE_OK
-EXIT_CODE=0
-```
-## acceptance fragility (TOTP 429 retry)
-```text
-FRAGILITY_GATE_OK
-EXIT_CODE=0
-```
-- Launcher version: 1.6.4.0
-## static types/dead code/PSScriptAnalyzer
-```text
-===== mypy (exit 0) =====
-Success: no issues found in 55 source files
-===== pyright (exit 0) =====
-d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py
-  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py:86:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py:104:16 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\audit_chain.py
-  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\audit_chain.py:83:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\broker.py
-  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\broker.py:45:12 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\setup_totp.py
-  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\setup_totp.py:14:8 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-0 errors, 5 warnings, 0 informations
-===== vulture (exit 0) =====
-
-===== PSScriptAnalyzer (exit 0) =====
-PSSA_FILES=63
-PSSA_FINDINGS=0
-STATIC_GATE_OK
-EXIT_CODE=0
-```
-## test integrity (MANIFEST + snapshot + empty-assert AST)
-```text
-TEST_INTEGRITY_OK files=104
-EXIT_CODE=0
-```
-## mutation check (real assertion inversion)
-```text
-TARGET <repo>\tests\test_acl_effective.py:16 test_kernel_acl_denies_write
-ORIGINAL assert user
-MUTATED  assert not user
-EXIT=1 KILLED=True
-RESTORED=True SHA256=2b528e8f0166bc890004c85aae390f83e80d89f4758bf155626c5250e76e114b
-TARGET <repo>\tests\test_approval_i18n.py:11 test_all_supported_languages_have_technical_header
-ORIGINAL assert header
-MUTATED  assert not header
-EXIT=1 KILLED=True
-RESTORED=True SHA256=d2aac531f2d7d181d7595db7c89418da98ec79ef8254d54825585d8b8a0d03be
-TARGET <repo>\tests\test_approval_i18n.py:18 test_manifest_prompt_formats_count
-ORIGINAL assert "3" in approval_i18n.t("manifest", count=3)
-MUTATED  assert not "3" in approval_i18n.t("manifest", count=3)
-EXIT=1 KILLED=True
-RESTORED=True SHA256=d2aac531f2d7d181d7595db7c89418da98ec79ef8254d54825585d8b8a0d03be
-TARGET_1=tests\test_acl_effective.py:16 assert user -> assert not user
-TARGET_2=tests\test_approval_i18n.py:11 assert header -> assert not header
-TARGET_3=tests\test_approval_i18n.py:18 assert "3" in approval_i18n.t("manifest", count=3) -> assert not "3" in approval_i18n.t("manifest", count=3)
-ALL_TURNED_RED=True
-RESTORE_OK=True
-MUTATION_OK
-EXIT_CODE=0
-```
-## source mutation (production logic)
-```text
-MUTATION tools/broker.py: if action == "delete" and target.is_dir(): -> if action == "delete" and False: exit=1 restored=True
-MUTATION tools/broker.py: if not _url_host_allowed(raw_path): -> if False: exit=1 restored=True
-MUTATION tools/broker.py: scoped_minutes = 0 -> scoped_minutes = 30 exit=1 restored=True
-MUTATION_OK
-EXIT_CODE=0
-```
-## silent failure scan
-```text
-SILENT_FAILURE_GATE_OK
-EXIT_CODE=0
-```
-## real Broker fixture (subprocess, HTTP, TOTP, trash, replay)
-```text
-CASE=no_token METHOD=GET PATH=/pending HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=no_token_request METHOD=POST PATH=/request HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=no_token_verify METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=no_token_trash METHOD=GET PATH=/trash HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=no_token_trash_undo METHOD=POST PATH=/trash/undo HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=forged_token METHOD=POST PATH=/request HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=request_delete METHOD=POST PATH=/request HTTP=200 BODY={"ok": true, "status": "requires_totp", "id": "9d31b5ecceea", "channel": "webui", "challenge": "", "action": "delete", "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixtur
-CASE=bad_totp METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error": "invalid verification code", "attempts": 1}
-CASE=bad_totp_second METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error": "invalid verification code", "attempts": 2}
-CASE=good_totp METHOD=POST PATH=/verify HTTP=200 BODY={"ok": true, "id": "9d31b5ecceea", "result": "文件已移入两阶段暂存回收站，10 分钟内可撤回：9d31b5ecceea", "undo_available": true, "trash_id": "9d31b5ecceea", "undo_expires_at": "2026-11-06T02:35:53+00:
-CASE=trash_list METHOD=GET PATH=/trash HTTP=200 BODY={"ok": true, "items": [{"id": "9d31b5ecceea", "original_path": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-fflz0ywp\\shared\\fixture-delete.txt", "expires_at": "2026-11-06
-CASE=verify_repeat METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error": "pending request not found or expired"}
-CASE=trash_undo METHOD=POST PATH=/trash/undo HTTP=200 BODY={"ok": true, "restored": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-fflz0ywp\\shared\\fixture-delete.txt", "id": "9d31b5ecceea"}
-CASE=verify_after_undo METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error": "pending request not found or expired"}
-RUNTIME_FIXTURE_OK
-EVIDENCE=<repo>\quality\artifacts\runtime_fixture\http_statuses.json
-EXIT_CODE=0
-```
-PROOF_SHA256: 0D41DA3D92865D139807FEBBFDEDE80021CF6768B529C1D6B42023050697E560
-## Fixture HTTP evidence
-- quality/artifacts/runtime_fixture/http_statuses.json
-- quality/artifacts/runtime_fixture/audit_tail.jsonl
-- quality/artifacts/runtime_fixture/broker_process.txt
-
-## Static Analysis Coverage
-- mypy: 53/53 Python source files under tools/webui/installer; excludes tests, webui/.venv and caches.
-- pyright: 53/53 Python source files under tools/webui/installer; excludes the same directories.
-- PSSA: 88/89 runtime PowerShell files under installer/tools/webui; excludes tests and artifacts.
-- vulture: 53/53 production Python files with the documented 67-entry dynamic-entry whitelist.
-
-## FIXED_THIS_ROUND
-- 修复 Broker 鉴权顺序：/pending 缺少 token 现在直接返回 403。
-- 修复 TOTP replay：已消费验证码现在返回 HTTP 429。
-- 新增真实 fixture、HTTP 证据、测试冻结和 mutation 检查。
-- 修复 PSSA 空 catch 和自动变量覆盖。
-- D5 四文件签名/verify 已实现；D4 由人类在管理员权限下手动完成，根路径 1125B 旧签名器已移至 .deleted-20261105。
-- tools/sign_release.py、tools/verify_release.py、tools/Run-ReleasePipeline.ps1 已纳入 test_guard.CRITICAL，V3 门禁信任根漏洞已修补。
-
-## NOT_FIXED_THIS_ROUND
-- 真实 ACL/DPAPI/WFP/卸载残留仍需干净 VM 验证。
-- PSSA 未覆盖测试脚本全规则，测试脚本只做语法解析。
-- vulture 白名单仍有动态入口人工审查风险。
-
-## CANDIDATE mode
-Static, comment and documentation gates passed. Quality/chaos/VM evidence is NOT claimed for this candidate.
-## build candidate
 ```text
 SBOM_BUNDLE_BUILT
 packaging gates OK
 code comments gate OK
 docs consistency gate OK
 text hygiene OK
-wrote <repo>-v1.6.4.zip
-version=1.6.4 files=383 bytes=51383478
-sha256=93ce5dd83a08c31b906ae9eb5d3d3cc8f30fbe46f03d546ea54297ccb7f44dd3
-EXIT_CODE=0
+version=1.6.4 files=386 bytes=83976007
+sha256=3dc7aabf2179292e1cdc1c26ef0e72f2c364ad7de8a6ccdd5f6727b1a07053b1
 ```
-- Candidate Zip SHA256: 93CE5DD83A08C31B906AE9EB5D3D3CC8F30FBE46F03D546EA54297CCB7F44DD3
-- Package Hash: 93CE5DD83A08C31B906AE9EB5D3D3CC8F30FBE46F03D546EA54297CCB7F44DD3
+
+This is a candidate package. It is not a claim of VM acceptance.

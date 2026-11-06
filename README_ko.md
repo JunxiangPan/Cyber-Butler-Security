@@ -1,6 +1,10 @@
 # Cyber-Butler Security (CBS)
 
 
+## Release verification
+
+CBS release packages pass CBP baseline gates; this does not prove absolute security.
+
 ## 한눈에 보는 상태
 
 | 구성 요소 | 상태 | 비고 |

@@ -1,13 +1,11 @@
 # Cyber-Butler Security (CBS)
 
-[![CBP](https://img.shields.io/badge/Secured_by-CBP_v0.1.1-blue)](https://github.com/marketplace/actions/cbp-coverage-and-build-policy)
+[![CBP](https://img.shields.io/badge/Secured_by-CBP_v0.1.4-blue)](https://github.com/marketplace/actions/cbp-coverage-and-build-policy)
 
 
 ## Release verification
 
 CBS release packages pass the Cyber-Butler-Pipeline (CBP) baseline gates, but this does not prove that the code is absolutely secure. CBP is a consistency check for common low-level errors and obvious fabrication; it cannot stop a privileged operator from bypassing the process or replace independent security review.
-
-## Requirements
 
 CBS requires PowerShell 7+ (`pwsh`). Physical acceptance: [docs/WINDOWS_VM_ACCEPTANCE.md](docs/WINDOWS_VM_ACCEPTANCE.md). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
 

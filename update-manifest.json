@@ -14,8 +14,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "e0adf41aed5facc95d1bc1f1acb086974a74d816020abf5e5108ed6fb3251925",
-      "size": 2186
+      "sha256": "0d688cf94cc0eb4bbfd73d6d7a089288cd1ec4622d9996f3e897c6c0f1a285f2",
+      "size": 2198
     },
     {
       "path": "ACCEPTANCE_PROOF.md",
@@ -54,48 +54,48 @@
     },
     {
       "path": "README.md",
-      "sha256": "878fb2f80b08be5b7563765e2dc66f23cb02889febe3105f98b4f1300ade4c5b",
-      "size": 3769
+      "sha256": "a7f1c5a1d2b6105492d0282349aa93c856e9cc9082bf6ade11ec1904acb29df9",
+      "size": 3750
     },
     {
       "path": "README_de.md",
-      "sha256": "ed7999defd99d8e5b38dd78a098f2a3fe90a207b91de63167b11cfb5bab135f8",
-      "size": 3819
+      "sha256": "4af2ed2cb26795fb5d4c7f629d64c1ad028e1bd8aa11659813a04dd37c8c31cf",
+      "size": 3934
     },
     {
       "path": "README_en.md",
-      "sha256": "265224dcb2d509f3742d7bf45c569c363b49976ed788d179bddaddba5d390460",
-      "size": 3712
+      "sha256": "c017d3e830cf909ddfb32cc5c2f2ae63b0f74276f86abe7b0f51694e8f0e5f68",
+      "size": 3827
     },
     {
       "path": "README_es.md",
-      "sha256": "6800edf7e70316121765d1b76254994c6a9fe8f34c8c2392c7d33aa05b67dbdb",
-      "size": 3838
+      "sha256": "56178cc09e3edda5a6d44903d46b6b96a953472eb660cd58867a7fa4ff34a0e0",
+      "size": 3953
     },
     {
       "path": "README_fr.md",
-      "sha256": "e785ad0b483022f2a0579174ae95f57c39fd3a87bd8e69856b4f2d2fb0f72608",
-      "size": 3866
+      "sha256": "d1c86d01d1b64810a1a0e2897f7507a6382e256eace194f5eb0429f8a43539f2",
+      "size": 3981
     },
     {
       "path": "README_ja.md",
-      "sha256": "07d66528e1cd3086b83df7b8901d2bcb6d68d854d5830185b3f83b1003d91d7d",
-      "size": 4059
+      "sha256": "816620fb77fa7de15939a46454f8aa6ad92493d8d38d79961b2bf0ad5aaa409c",
+      "size": 4174
     },
     {
       "path": "README_ko.md",
-      "sha256": "62ea50ec2fb8804cce58e0e033c95c13d895dbc74a805c1a6e553412230478b2",
-      "size": 3888
+      "sha256": "570e70368086c7c823c0d5a4bf59dfbb198706d13c7032c4d19375c9d79f5b83",
+      "size": 4003
     },
     {
       "path": "README_ru.md",
-      "sha256": "718d71d40c1b303b33db6cc5506b500173572deca176adaa46285dcc19d78957",
-      "size": 4388
+      "sha256": "1a5fdca244155c540c12f269c02c163a3bd4be82ad1b1c97f58439cc8039b246",
+      "size": 4503
     },
     {
       "path": "README_zh.md",
-      "sha256": "886461009e52262c65e5463ca1afc7099684e705fd20bcd03a3d46a15dc540f5",
-      "size": 3892
+      "sha256": "36c4b365a4168667d569692f4259428a7e993eedb99e024528c4705c655666b3",
+      "size": 4007
     },
     {
       "path": "ROADMAP.md",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "02784941516d7fb8a0b0f052712840568bff51809d52867de06d2c65c52c6b5f",
+      "sha256": "6a285cbac835ce70fee682c72975c3b61b4c64d1c9c9f68def3bdf5a30ad87de",
       "size": 1077
     },
     {
@@ -386,6 +386,11 @@
       "path": "docs/TROUBLESHOOTING.md",
       "sha256": "0715cb81bdab9d67d22ce3a81a7981ed1342c703f0e2dbd3aa68dddb5e809cd6",
       "size": 222
+    },
+    {
+      "path": "docs/WINDOWS_VM_ACCEPTANCE.md",
+      "sha256": "e5e21cff785542e845ba27e0e31fdb6a47fe2578b3cee31eaa0f357fbc5d12e0",
+      "size": 1961
     },
     {
       "path": "docs/_data/clean-vm-expected.json",
@@ -888,6 +893,11 @@
       "size": 134521
     },
     {
+      "path": "installer/wheelhouse/cbp_action-0.1.4-py3-none-any.whl",
+      "sha256": "6c37857e0b649d35a49e7d40439691395cc8aff5ab414e39991f0e6711d2fdc4",
+      "size": 28929
+    },
+    {
       "path": "installer/wheelhouse/certifi-2026.10.23-py3-none-any.whl",
       "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
       "size": 135082
@@ -1066,6 +1076,11 @@
       "path": "tests/test_broker_concurrency.py",
       "sha256": "dd68efdd378678f6abae563b8fcfe70c1409e866ba2d870524152e508b913a3b",
       "size": 1276
+    },
+    {
+      "path": "tests/test_broker_coverage_sync.py",
+      "sha256": "5a4fe79a7031bec598fe29f9fcfdd6e43343d68bac83580bc679848d01dd5856",
+      "size": 1597
     },
     {
       "path": "tests/test_broker_email_fail.py",
@@ -1916,31 +1931,6 @@
       "path": "webui/tests/test_webui_auth.py",
       "sha256": "c7735285230ae6e44090d6a5d97e23a88b4677f82e03049a2394a1995a4e26e7",
       "size": 9654
-    },
-    {
-      "path": "requirements-runtime.lock",
-      "sha256": "83fef7874acd62a813525c947e09764ab2ef18067bae2a336187f83a50ceadd6",
-      "size": 26994
-    },
-    {
-      "path": "cbp-action/schemas/config.schema.json",
-      "sha256": "9bc6740d382cc9e600445d082d399e8a7e9197cc5b38ef660ab2fbaff70fbb6f",
-      "size": 2955
-    },
-    {
-      "path": "cbp.json",
-      "sha256": "2c1141db41333dad04c174a4ae391d2fdb811890f9dad08a2aeb481ef35007d7",
-      "size": 1754
-    },
-    {
-      "path": "installer/wheelhouse/cbp_action-0.1.4-py3-none-any.whl",
-      "sha256": "6c37857e0b649d35a49e7d40439691395cc8aff5ab414e39991f0e6711d2fdc4",
-      "size": 28929
-    },
-    {
-      "path": "quality/coverage_gate.py",
-      "sha256": "4e1f882396622e4631a43a8b6438412b1517d9f03dffe0cc93d5d271f8ff008b",
-      "size": 643
     }
   ],
   "signature_version": "2"

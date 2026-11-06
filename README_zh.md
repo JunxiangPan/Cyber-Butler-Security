@@ -5,6 +5,10 @@
 
 CBS 的发布包经过了 CBP 流水线的基础拦截，但这并不能证明代码绝对安全。CBP 只能检查常见的低级错误和明显伪造，不能替代独立安全评审，也不能阻止拥有特权的操作者绕过流程。
 
+## Release verification
+
+CBS release packages pass CBP baseline gates; this does not prove absolute security.
+
 ## 状态红绿灯
 
 | 组件 | 状态 | 说明 |
