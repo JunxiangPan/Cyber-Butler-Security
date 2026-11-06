@@ -12,7 +12,7 @@ from cbp.docs_gate import run  # noqa: E402
 
 
 def main() -> int:
-    passed, detail = run(load_config(ROOT, None))
+    passed, detail = run(load_config(ROOT, ROOT / "cbp.json"))
     print(("DOCS_HISTORY_OK: " if passed else "DOCS_HISTORY_FAILED: ") + detail)
     return 0 if passed else 1
 

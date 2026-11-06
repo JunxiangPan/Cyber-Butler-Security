@@ -12,7 +12,7 @@ from cbp.dependency_gate import run  # noqa: E402
 
 
 def main() -> int:
-    passed, detail = run(load_config(ROOT, None))
+    passed, detail = run(load_config(ROOT, ROOT / "cbp.json"))
     print(("DEPENDENCY_GATE_OK: " if passed else "DEPENDENCY_GATE_FAILED: ") + detail)
     return 0 if passed else 1
 

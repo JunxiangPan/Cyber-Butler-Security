@@ -13,14 +13,14 @@ class GateConfig:
     root: Path
     coverage_json: Path
     coverage_allowlist: Path
-    broker_files: tuple[str, ...] = ("tools/broker.py",)
-    policy_file: str = "tools/broker_policy.py"
+    broker_files: tuple[str, ...] = ("src/broker.py",)
+    policy_file: str = "src/broker.py"
     coverage_threshold: float = 80.0
     policy_threshold: float = 85.0
-    dependency_lock: Path = Path("requirements-runtime.lock")
+    dependency_lock: Path = Path("requirements.lock")
     installer_core: Path = Path("installer/lib/Installer.Core.ps1")
     docs_manifest: Path = Path("docs/history-manifest.json")
-    comment_files: tuple[str, ...] = ("tools/broker.py", "tools/broker_policy.py")
+    comment_files: tuple[str, ...] = ("src/broker.py",)
     binary_limit_mb: float = 5.0
     binary_artifacts: Path = Path("artifacts")
     package_zip: Path | None = None
@@ -29,7 +29,9 @@ class GateConfig:
     enable_comments: bool = True
     enable_docs: bool = True
     enable_binary: bool = True
-    enable_claims: bool = True
+    enable_claims: bool = False
+    claims_manifest: Path | None = None
+    claims_notes: Path | None = None
 
     def path(self, value: Path | str) -> Path:
         """Resolve a configured path against the repository root."""
@@ -64,7 +66,7 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
     for key, value in data.items():
         if not hasattr(cfg, key):
             continue
-        if key in {"coverage_json", "coverage_allowlist", "dependency_lock", "installer_core", "docs_manifest", "binary_artifacts", "package_zip"} and value is not None:
+        if key in {"coverage_json", "coverage_allowlist", "dependency_lock", "installer_core", "docs_manifest", "binary_artifacts", "package_zip", "claims_manifest", "claims_notes"} and value is not None:
             value = Path(value)
         setattr(cfg, key, value)
     return cfg

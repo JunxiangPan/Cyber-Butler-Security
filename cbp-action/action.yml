@@ -1,26 +1,56 @@
 name: Cyber Butler Pipeline
-description: Recompute coverage, dependency, documentation, binary, and comment gates.
+description: Recompute coverage, dependency, documentation, binary, comment, and release-claim gates.
 inputs:
   root:
     description: Repository root
     default: "."
+  coverage-json:
+    description: Path to coverage.py JSON output
+    default: "coverage.json"
+  coverage-allowlist:
+    description: Path to the coverage allowlist JSON
+    default: "coverage_allowlist.json"
   coverage-threshold:
     description: Minimum allowlisted broker coverage
     default: "80"
   policy-coverage-threshold:
-    description: Minimum broker policy coverage
+    description: Minimum policy coverage
     default: "85"
+  dependency-lock:
+    description: Hash-locked requirements file
+    default: "requirements-runtime.lock"
+  installer-core:
+    description: Installer file that must contain --require-hashes
+    default: "installer/lib/Installer.Core.ps1"
+  docs-manifest:
+    description: Incident-history manifest
+    default: "docs/history-manifest.json"
+  binary-artifacts:
+    description: Directory containing .build.json and .sbom.json
+    default: "artifacts"
+  package-zip:
+    description: Optional release ZIP to scan instead of the repository
+    default: ""
+  claims-manifest:
+    description: quality-manifest.json used by the claims gate
+    default: "quality-manifest.json"
+  claims-notes:
+    description: release notes checked by the claims gate
+    default: "docs/releases/RELEASE_NOTES_v1.6.4.md"
   enable-coverage:
     default: "true"
   enable-dependency:
     default: "true"
-  enable-doc-audit:
+  enable-comments:
     default: "true"
-  enable-binary-audit:
+  enable-docs:
     default: "true"
-  enable-comment-audit:
+  enable-binary:
+    default: "true"
+  enable-claims:
     default: "true"
   mode:
+    description: audit logs failures but exits zero; enforce exits non-zero
     default: "enforce"
 outputs:
   result:
@@ -32,8 +62,28 @@ runs:
     - id: cbp
       shell: bash
       run: |
-        python -m pip install -e "${{ github.action_path }}"
-        python -m cbp.cli --root "${{ inputs.root }}" \
+        python -m pip install -e "${{ github.action_path }}" >/dev/null
+        set +e
+        OUTPUT=$(python -m cbp.cli --root "${{ inputs.root }}" \
+          --coverage-json "${{ inputs.coverage-json }}" \
+          --coverage-allowlist "${{ inputs.coverage-allowlist }}" \
           --coverage-threshold "${{ inputs.coverage-threshold }}" \
           --policy-coverage-threshold "${{ inputs.policy-coverage-threshold }}" \
-          --mode "${{ inputs.mode }}"
+          --dependency-lock "${{ inputs.dependency-lock }}" \
+          --installer-core "${{ inputs.installer-core }}" \
+          --docs-manifest "${{ inputs.docs-manifest }}" \
+          --binary-artifacts "${{ inputs.binary-artifacts }}" \
+          --package-zip "${{ inputs.package-zip }}" \
+          --claims-manifest "${{ inputs.claims-manifest }}" \
+          --claims-notes "${{ inputs.claims-notes }}" \
+          --enable-coverage "${{ inputs.enable-coverage }}" \
+          --enable-dependency "${{ inputs.enable-dependency }}" \
+          --enable-comments "${{ inputs.enable-comments }}" \
+          --enable-docs "${{ inputs.enable-docs }}" \
+          --enable-binary "${{ inputs.enable-binary }}" \
+          --enable-claims "${{ inputs.enable-claims }}" \
+          --mode "${{ inputs.mode }}" 2>&1)
+        CODE=$?
+        echo "$OUTPUT"
+        echo "$OUTPUT" | grep -E '^CBP_RESULT=' | tail -1 >> "$GITHUB_OUTPUT"
+        exit $CODE

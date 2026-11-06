@@ -12,7 +12,7 @@ from cbp import binary_gate, claims_gate, comment_gate, config, coverage_gate, d
 
 
 def _cfg(tmp_path: Path, **kw):
-    base = dict(root=tmp_path, coverage_json=tmp_path / "coverage.json", coverage_allowlist=tmp_path / "allow.json")
+    base = dict(root=tmp_path, coverage_json=tmp_path / "coverage.json", coverage_allowlist=tmp_path / "allow.json", policy_file="tools/broker_policy.py", broker_files=("tools/broker.py",))
     base.update(kw)
     return config.GateConfig(**base)
 
@@ -71,7 +71,7 @@ def test_claims_gate_mismatch(tmp_path: Path) -> None:
     manifest = tmp_path / "quality-manifest.json"; notes = tmp_path / "docs" / "releases" / "RELEASE_NOTES_v1.6.4.md"
     notes.parent.mkdir(parents=True); notes.write_text("QUALITY_COUNTS: 12/26\n", encoding="utf-8")
     manifest.write_text(json.dumps({"counts": {"passed": 13, "total": 26}, "profile": "ci"}), encoding="utf-8")
-    cfg = _cfg(tmp_path)
+    cfg = _cfg(tmp_path, claims_manifest=manifest, claims_notes=notes)
     assert claims_gate.run(cfg)[0] is False
 
 
@@ -94,7 +94,7 @@ def test_claims_gate_success(tmp_path: Path) -> None:
     manifest = tmp_path / "quality-manifest.json"; notes = tmp_path / "docs" / "releases" / "RELEASE_NOTES_v1.6.4.md"
     notes.parent.mkdir(parents=True); notes.write_text("QUALITY_COUNTS: 12/26\n", encoding="utf-8")
     manifest.write_text(json.dumps({"counts": {"passed": 12, "total": 26}, "profile": "ci"}), encoding="utf-8")
-    assert claims_gate.run(_cfg(tmp_path))[0] is True
+    assert claims_gate.run(_cfg(tmp_path, claims_manifest=manifest, claims_notes=notes))[0] is True
 
 
 def test_comment_gate_missing_docstring(tmp_path: Path) -> None:

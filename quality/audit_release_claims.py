@@ -12,7 +12,7 @@ from cbp.config import load_config  # noqa: E402
 
 
 def main() -> int:
-    passed, detail = run(load_config(ROOT, None))
+    passed, detail = run(load_config(ROOT, ROOT / "cbp.json"))
     print(("RELEASE_CLAIMS_OK: " if passed else "RELEASE_CLAIMS_FAILED: ") + detail)
     return 0 if passed else 1
 

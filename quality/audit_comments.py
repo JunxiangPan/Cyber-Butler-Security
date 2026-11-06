@@ -12,7 +12,7 @@ from cbp.config import load_config  # noqa: E402
 
 
 def main() -> int:
-    passed, detail = run(load_config(ROOT, None))
+    passed, detail = run(load_config(ROOT, ROOT / "cbp.json"))
     print(("COMMENT_AUDIT_OK: " if passed else "COMMENT_AUDIT_FAILED: ") + detail)
     return 0 if passed else 1
 

@@ -1,0 +1,22 @@
+name: cbp-ci
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: cbp-action
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: python -m pip install --upgrade pip coverage pytest
+      - run: python -m pip install -e .
+      - run: python -m coverage run --branch -m pytest -q tests
+      - run: python -m coverage json -o coverage.json
+      - run: python -m cbp.cli --root . --mode enforce
