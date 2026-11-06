@@ -315,5 +315,6 @@ urllib3==2.8.0 \
     # via requests
 
 cbp-action==0.1.0 \
+    --hash=sha256:5f3d1586e19e5cb9de768caae210e9ac6d68d5678178d3eb3008c84fa583a035
     --hash=sha256:ba9d507cfc89968acdc32094df06fa791d8e22144a0c79b1a0327a2de191e3a1
     --hash=sha256:5dc3472ffa858cb8db87984448aa97ebdcd255184deb866ca1537ce99f9bb83a

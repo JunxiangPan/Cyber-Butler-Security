@@ -18,6 +18,7 @@ jobs:
         with:
           root: .
           config: .cbp/config.json
+          # .cbp/config.json can define coverage_groups with enforce/warn modes.
           coverage-json: coverage.json
           coverage-allowlist: .cbp/coverage_allowlist.json
           coverage-threshold: "80"

@@ -1,0 +1,5 @@
+# Hashed test-only dependencies for CBP self-check.
+pytest==9.2.0 \
+    --hash=sha256:07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588
+coverage==7.16.2 \
+    --hash=sha256:c3305c38a2fa21a4254f2ace7dd9ef5fc569c9a558b66e7017650b3d637fb95e

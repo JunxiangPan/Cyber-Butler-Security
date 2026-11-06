@@ -101,6 +101,35 @@ See [`schemas/config.schema.json`](schemas/config.schema.json).
 All paths are relative to `root`. Every gate can be disabled with its
 `enable_*` field or the matching Action input.
 
+### Coverage groups
+
+Coverage is configured as named groups. Each group can be `enforce` (a failure
+fails the Action) or `warn` (reported but non-blocking). This supports gradual
+adoption without a temporary lower global threshold.
+
+```json
+{
+  "coverage_json": "coverage.json",
+  "coverage_allowlist": "coverage_allowlist.json",
+  "coverage_groups": [
+    {"name": "core", "files": ["src/core.py"], "threshold": 80, "mode": "enforce"},
+    {"name": "auditors", "files": ["src/audit_*.py"], "threshold": 0, "mode": "warn"},
+    {"name": "webui", "files": ["webui/**/*.py"], "threshold": 0, "mode": "warn"}
+  ]
+}
+```
+
+Suggested migration:
+
+```text
+1. Start every new group with mode "warn" and threshold 0.
+2. Add tests and raise the group threshold.
+3. When the group is stable, change mode to "enforce".
+```
+
+`broker_files`, `measured_files`, `policy_file`, `coverage_threshold`, and
+`policy_threshold` remain supported for single-group configurations.
+
 ## Self-test
 
 ```bash
