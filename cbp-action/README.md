@@ -168,6 +168,10 @@ python -m cbp.cli --root . --mode enforce
 The package has no runtime dependencies outside the Python standard library.
 `pytest` and `coverage` are optional test dependencies.
 
+## Releasing
+
+See [`RELEASING.md`](RELEASING.md) for the commit -> CI -> tag -> release order.
+
 ## Status
 
 v0.1.0 is a standalone release candidate. It does not import anything from
