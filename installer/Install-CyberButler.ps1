@@ -691,7 +691,7 @@ if (-not $failure) {
             Write-InstallerLine ('Broker ACL 加固警告，继续安装：' + [string]$brokerAcl.message) -Level WARN
         }
     } catch {
-        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status 'warning' -Reason $_.Exception.Message
+        Add-MainJournalStep -Journal $journal -Name 'broker_acl' -Status 'in_progress' -Reason $_.Exception.Message
         Write-InstallerLine ('Broker ACL 加固失败，继续安装：' + $_.Exception.Message) -Level WARN
     }
 }

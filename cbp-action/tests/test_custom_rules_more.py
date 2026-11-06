@@ -16,7 +16,7 @@ def _cfg(tmp_path: Path, rules: list[dict]) -> GateConfig:
 def test_no_rules_passes(tmp_path: Path) -> None:
     passed, detail = custom_rules.run(_cfg(tmp_path, []))
     assert passed is True
-    assert detail == "custom=0 rules"
+    assert detail.startswith("custom=0 rules")
 
 
 def test_literal_matching_and_exclude(tmp_path: Path) -> None:

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5 — 2026-11-07
+
+- Added a built-in PowerShell AST syntax gate inside the custom gate.
+- Added required-pattern support for CBP custom rules.
+- Rejects malformed .ps1 files before deployment.
+- Fixed CBS journal status binding by rejecting the invalid warning status.
+
 ## 0.1.4 — 2026-11-07
 
 - Added source-hash binding for coverage evidence; `touch` no longer bypasses freshness.

@@ -93,6 +93,17 @@
       "message": "Installer must assert tools/broker.py exists.",
       "mode": "enforce",
       "severity": "error"
+    },
+    {
+      "id": "CBP-CUSTOM-NO-WARNING-STATUS",
+      "name": "no_warning_journal_status",
+      "pattern": "(?m)-Status\\s+['\"]warning['\"]",
+      "files": [
+        "installer/**/*.ps1"
+      ],
+      "message": "Journal status warning is not in the ValidateSet; use in_progress/completed/failed.",
+      "mode": "enforce",
+      "severity": "error"
     }
   ]
 }

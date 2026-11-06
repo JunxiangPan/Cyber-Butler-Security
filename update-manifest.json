@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "09c4d1d03bcee8eae9b1a54118880ef0d1cf5c150fab0919b6e61537edc6fd0f",
+      "sha256": "1477885aee8d4c845d7164d5921c41288f621e30593d5e2f1456741bc9a02c5f",
       "size": 1077
     },
     {
@@ -624,8 +624,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "ee6474fb8ab1c17645ad73515385afb46b4acdb7ed11dc3e52b20f5225a5092f",
-      "size": 59143
+      "sha256": "7ac7cc1b65eead13113c4f7e63ca4a83a6c40432335b90e0535d393711b277c8",
+      "size": 59147
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",

@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
-from . import readers
+from . import readers, powershell_syntax
 
 RULE_ID = "CBP-CST-001"
 SKIP_PARTS = {".git", ".venv", "venv", "__pycache__", "node_modules", "wheelhouse"}
@@ -36,6 +36,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     rules = getattr(cfg, "custom_rules", ()) or ()
     findings: list[str] = []
     enforced = False
+    ps_ok, ps_detail = powershell_syntax.check(cfg.root)
+    if not ps_ok:
+        findings.append(ps_detail)
+        enforced = True
     for index, rule in enumerate(rules):
         if not isinstance(rule, dict):
             return False, f"custom rule {index} must be an object"
@@ -111,8 +115,8 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
                 break
         if count and mode == "enforce":
             enforced = True
-    if not rules:
-        return True, "custom=0 rules"
+    if not rules and not findings:
+        return True, "custom=0 rules; " + ps_detail
     if findings:
         prefix = "custom=FAIL" if enforced else "custom=WARN"
         return (not enforced), prefix + " " + "\n".join(findings)
