@@ -126,6 +126,31 @@ Release cadence:
 
 ### Iron law 4: problem reflection
 
+### 1.6.4 release gate: governance before publication
+
+CBS 1.6.4 and CBP 0.1.0 are not published in their current form. They wait for:
+
+- iron law 3 and iron law 4 to be implemented;
+- full-repository coverage to be measured and handled;
+- cbc-event compatibility to be in place;
+- the rule reflection registry and audit to be active.
+
+This is not perfectionism. It is governance cost paid once, before the ecosystem
+exists:
+
+1. Freezing the rules before CBR/CBM/CBC exist leaves no room for a later
+   "the founders skipped it" exception.
+2. CBP supervises the ecosystem; CBS is the security gateway. If CBP is not
+   supervised by itself, and CBS reports 48% whole-repository coverage, the
+   trust base is false.
+3. CBR/CBM/CBC have no code yet. Starting them after 1.6.4 freezes the rules
+   means every new component adopts the same configuration and CI from its first
+   commit. Retrofitting later would require changes to every component's config,
+   CI, and documentation.
+
+The delay buys long-term consistency across the ecosystem.
+
+
 Every CB component (CBS, CBR, CBM, CBC, and CBP itself) that discovers a new
 failure class must fix the product issue and add the corresponding CBP detection
 rule in the same change set.

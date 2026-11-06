@@ -8,7 +8,8 @@
       "source": {
         "project": "CBP",
         "pr": "stage-b-seed",
-        "issue": "stage-b-seed"
+        "issue": "stage-b-seed",
+        "seed": true
       },
       "negative_test": "tests/test_rule_seeds.py::test_rule_cov_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_cov_001_positive",
@@ -21,7 +22,8 @@
       "source": {
         "project": "CBP",
         "pr": "stage-b-seed",
-        "issue": "stage-b-seed"
+        "issue": "stage-b-seed",
+        "seed": true
       },
       "negative_test": "tests/test_rule_seeds.py::test_rule_dep_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_dep_001_positive",
@@ -34,7 +36,8 @@
       "source": {
         "project": "CBP",
         "pr": "stage-b-seed",
-        "issue": "stage-b-seed"
+        "issue": "stage-b-seed",
+        "seed": true
       },
       "negative_test": "tests/test_rule_seeds.py::test_rule_cmt_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_cmt_001_positive",
@@ -47,7 +50,8 @@
       "source": {
         "project": "CBP",
         "pr": "stage-b-seed",
-        "issue": "stage-b-seed"
+        "issue": "stage-b-seed",
+        "seed": true
       },
       "negative_test": "tests/test_rule_seeds.py::test_rule_doc_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_doc_001_positive",
@@ -60,7 +64,8 @@
       "source": {
         "project": "CBP",
         "pr": "stage-b-seed",
-        "issue": "stage-b-seed"
+        "issue": "stage-b-seed",
+        "seed": true
       },
       "negative_test": "tests/test_rule_seeds.py::test_rule_clm_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_clm_001_positive",

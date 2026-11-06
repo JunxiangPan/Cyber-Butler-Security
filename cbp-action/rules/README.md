@@ -11,6 +11,10 @@
 Both test fields are full pytest node IDs. CI must collect and execute both
 nodes. A missing, uncollected, or failing node blocks the merge.
 
+A gate may own multiple rules; `gate` is not a unique key. Rule `id` is unique.
+Seed rules carry `"source": {"seed": true, ...}` so an auditor can distinguish
+the initial rule set from later incident-driven rules.
+
 Rule IDs are append-only. Mark a retired rule `"status": "deprecated"`; do not
 delete it. Source fields are immutable except for a documented typo correction in
 `RULES-CHANGELOG.md`.
