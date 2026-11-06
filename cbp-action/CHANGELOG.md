@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 2026-11-07
+
+- Added source-hash binding for coverage evidence; `touch` no longer bypasses freshness.
+- Added baseline generation and inline suppression for existing findings.
+- Fixed dead `enable_custom` / `enable_upgrade` switches and unknown-key fail-open.
+- Added `gates_ran` and zero-gate FAIL semantics.
+- Reduced comment false positives and made PowerShell 7 the supported runtime.
+
 ## 0.1.3 — 2026-11-07
 
 - Removed `shell=True` from the upgrade gate; scripts are parsed with `shlex.split` and shell metacharacters are rejected.

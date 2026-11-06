@@ -9,7 +9,7 @@ CBS release packages pass the Cyber-Butler-Pipeline (CBP) baseline gates, but th
 
 ## Requirements
 
-CBS requires PowerShell 7+ (`pwsh`). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
+CBS requires PowerShell 7+ (`pwsh`). Physical acceptance: [docs/WINDOWS_VM_ACCEPTANCE.md](docs/WINDOWS_VM_ACCEPTANCE.md). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
 
 ## Status at a glance
 

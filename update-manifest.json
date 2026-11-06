@@ -54,8 +54,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "926bd61ad851b2f29164faaf60b1cf8ad0b3a267110f1fd3d41ac2550433b016",
-      "size": 3684
+      "sha256": "878fb2f80b08be5b7563765e2dc66f23cb02889febe3105f98b4f1300ade4c5b",
+      "size": 3769
     },
     {
       "path": "README_de.md",
@@ -1344,7 +1344,7 @@
     },
     {
       "path": "tools/Run-Final-Acceptance.ps1",
-      "sha256": "49fb85c555d280f08a52ce2486c2358ef9d334a868e87a7707c22268e937131e",
+      "sha256": "483cad817cbcafd6662a4f919f77f6f2915f9e08d4fbb7485b25b7a0ad935d52",
       "size": 17054
     },
     {

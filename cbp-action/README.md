@@ -45,7 +45,7 @@ need stronger provenance, enable `require-coverage-signature` with a
 ## GitHub Action
 
 ```yaml
-- uses: JunxiangPan/cbp-action@v0.1.3
+- uses: JunxiangPan/cbp-action@v0.1.4
   with:
     root: .
     config: .cbp/config.json
@@ -212,7 +212,7 @@ encoding gate, and rule auditor; it is not a separate binary-security metric.
 Every supported config should declare:
 
 ```json
-"schema_version": "0.1.3"
+"schema_version": "0.1.4"
 ```
 
 Old `v0.1.0` configs that omit it are accepted and migrated in memory with a
@@ -230,7 +230,7 @@ silently misread.
 Deprecation is a three-step process:
 
 ```text
-v0.1.3: documentation + DeprecationWarning, old behavior still works
+v0.1.4: documentation + DeprecationWarning, old behavior still works
 v0.2.0: old behavior still works, but emits a mandatory warning
 v1.0.0+: code may be removed only after the warning period
 ```
@@ -325,7 +325,7 @@ python tools/stamp_coverage.py --root . --coverage coverage.json
 The release workflow publishes it with `--notes-file` and then runs:
 
 ```bash
-python -m cbp.cli --verify-release v0.1.3 --repository owner/repo
+python -m cbp.cli --verify-release v0.1.4 --repository owner/repo
 ```
 
 The command fetches the live GitHub release body and compares its normalized
@@ -364,7 +364,7 @@ See [`RELEASING.md`](RELEASING.md) for the commit -> CI -> tag -> release order.
 
 ## Status
 
-v0.1.3 is a standalone release candidate. It does not import anything from
+v0.1.4 is a standalone release candidate. It does not import anything from
 the host product's `quality/`, `checks/`, or `tools/` directories.
 
 ### Coverage numbers in CI
