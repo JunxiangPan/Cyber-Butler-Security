@@ -59,6 +59,7 @@ ALLOWED_ROOT_FILES = {
     "config.pro.example.json",
     "config.lite.example.json",
     "VERSION",
+    "ACCEPTANCE_PROOF.md",
 }
 DENIED_PARTS = {
     "agentruntime/data",
