@@ -1,4 +1,4 @@
-# Dashboard background engine
+﻿# Dashboard background engine
 
 ## Contents
 
@@ -80,7 +80,7 @@ composited frame to a frozen `BitmapSource`. Measured cost: 24 frames of
 {
   "theme": "light",
   "language": "zh",
-  "background": "D:\\Pictures\\loop.gif",
+  "background": "C:\\Pictures\\loop.gif",
   "enable_animated_bg": true
 }
 ```
@@ -99,13 +99,13 @@ safe to delete.
 
 ```powershell
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qqlocal agentshared -SmokeTest
+  -ProjectRoot C:\path\to\project -SmokeTest
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qqlocal agentshared -SmokeSettings
+  -ProjectRoot C:\path\to\project -SmokeSettings
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qqlocal agentshared -SmokeSettingsDialog -SmokeSettingsShot shot.png
+  -ProjectRoot C:\path\to\project -SmokeSettingsDialog -SmokeSettingsShot shot.png
 powershell -NoProfile -Sta -ExecutionPolicy Bypass -File tools\cyber_butler_dashboard.ps1 `
-  -ProjectRoot D:\qqlocal agentshared -SmokeBackground -SmokeAssetDir C:\path\to\media
+  -ProjectRoot C:\path\to\project -SmokeBackground -SmokeAssetDir C:\path\to\media
 ```
 
 `-SmokeBackground` prints a JSON report: format, element kind, frame count,

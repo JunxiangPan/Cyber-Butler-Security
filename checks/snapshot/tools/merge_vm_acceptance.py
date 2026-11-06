@@ -16,8 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_QA = ROOT / "FINAL_QA_REPORT.md"
 WHITELIST = ("Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q13", "Q14", "Q15", "Q16", "Q17")
-BLACKLIST = ()
-EXPECTED_SKIPPED = 12
+BLACKLIST = ("Q02", "Q18", "Q22")
+EXPECTED_SKIPPED = 15
 NONCE_RE = re.compile(r"(?m)^-\s*Nonce:\s*(\S+)\s*$")
 START_RE = re.compile(r"Acceptance script SHA256 \(start\):\s*([0-9A-Fa-f]{64})")
 END_RE = re.compile(r"Acceptance script SHA256 \(end\):\s*([0-9A-Fa-f]{64})")

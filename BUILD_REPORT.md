@@ -82,17 +82,17 @@ EXIT_CODE=0
 ```
 ## mutation check (real assertion inversion)
 ```text
-TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_acl_effective.py:16 test_kernel_acl_denies_write
+TARGET C:\qq苏瑾言大肥鱼\public-release\tests\test_acl_effective.py:16 test_kernel_acl_denies_write
 ORIGINAL assert user
 MUTATED  assert not user
 EXIT=1 KILLED=True
 RESTORED=True SHA256=2b528e8f0166bc890004c85aae390f83e80d89f4758bf155626c5250e76e114b
-TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:11 test_all_supported_languages_have_technical_header
+TARGET C:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:11 test_all_supported_languages_have_technical_header
 ORIGINAL assert header
 MUTATED  assert not header
 EXIT=1 KILLED=True
 RESTORED=True SHA256=d2aac531f2d7d181d7595db7c89418da98ec79ef8254d54825585d8b8a0d03be
-TARGET D:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:18 test_manifest_prompt_formats_count
+TARGET C:\qq苏瑾言大肥鱼\public-release\tests\test_approval_i18n.py:18 test_manifest_prompt_formats_count
 ORIGINAL assert "3" in approval_i18n.t("manifest", count=3)
 MUTATED  assert not "3" in approval_i18n.t("manifest", count=3)
 EXIT=1 KILLED=True
@@ -137,7 +137,7 @@ CASE=verify_repeat METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error":
 CASE=trash_undo METHOD=POST PATH=/trash/undo HTTP=200 BODY={"ok": true, "restored": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-ppx3e3fe\\shared\\fixture-delete.txt", "id": "99882fa73052"}
 CASE=verify_after_undo METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error": "pending request not found or expired"}
 RUNTIME_FIXTURE_OK
-EVIDENCE=D:\qq苏瑾言大肥鱼\public-release\quality\artifacts\runtime_fixture\http_statuses.json
+EVIDENCE=C:\qq苏瑾言大肥鱼\public-release\quality\artifacts\runtime_fixture\http_statuses.json
 EXIT_CODE=0
 ```
 ## Fixture HTTP evidence
@@ -173,7 +173,7 @@ packaging gates OK
 code comments gate OK
 docs consistency gate OK
 text hygiene OK
-wrote D:\qq苏瑾言大肥鱼\public-release-v1.6.3.zip
+wrote C:\qq苏瑾言大肥鱼\public-release-v1.6.3.zip
 version=1.6.3 files=356 bytes=51350913
 sha256=2caa60b88fe9e65b2f8b818d967d91593a4b1491cbd0ea15e0013af15327aca8
 EXIT_CODE=0

@@ -11,12 +11,12 @@ Describe 'Visual installer' {
         $command = New-CyberButlerInteractiveInstallCommand `
             -InstallerPath "C:\A B\Install-CyberButler.ps1" `
             -Tier Medium `
-            -InstallPath "D:\Cyber'Butler" `
+            -InstallPath "C:\Cyber'Butler" `
             -OwnerQQ "10001" `
             -WebUIBind Loopback
         $command | Should Match "-Tier 'Medium'"
         $command | Should Match "C:\\A B\\Install-CyberButler.ps1"
-        $command | Should Match "D:\\Cyber''Butler"
+        $command | Should Match "C:\\Cyber''Butler"
         $command | Should Match "-WebUIBind 'Loopback'"
         $command | Should Not Match 'ApiKeyFile'
     }

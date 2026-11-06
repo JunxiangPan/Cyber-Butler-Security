@@ -1,4 +1,4 @@
-# Cyber-Butler Web UI
+﻿# Cyber-Butler Web UI
 
 > v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
 
@@ -59,7 +59,7 @@ python otp_mailer.py
 Start the API:
 
 ```powershell
-$env:WEBUI_CONFIG = 'D:\path\to\webui\config.json'
+$env:WEBUI_CONFIG = 'C:\path\to\webui\config.json'
 .\.venv\Scripts\python.exe run.py
 ```
 

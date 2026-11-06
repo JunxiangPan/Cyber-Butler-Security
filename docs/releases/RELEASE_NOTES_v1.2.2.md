@@ -1,4 +1,4 @@
-# v1.2.2 — Unified install tree
+﻿# v1.2.2 — Unified install tree
 
 > Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
 
@@ -18,7 +18,7 @@
 ## Why
 
 The previous shortcut pointed at `public-release\tools\`, while the updater
-modified `D:\qqlocal agentshared`. A successful reinstall/downgrade changed the root
+modified `C:\path\to\project`. A successful reinstall/downgrade changed the root
 version label but not the interface that was actually running. The shortcut now
 starts the root launcher, so an update changes the code that opens next time.
 

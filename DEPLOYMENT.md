@@ -1,4 +1,4 @@
-# Cyber-Butler / local agent部署与排障交接
+﻿# Cyber-Butler / local agent部署与排障交接
 
 ## 故障排查入口
 
@@ -178,7 +178,7 @@ FROM memory_sources, json_each(memory_sources.source_json) AS j;
 
 - 新增 `sujinyan-chat-16k:latest`，`num_ctx=16384`；保留 `sujinyan-chat-24k:latest` 用于回滚。
 - `local_qwen36.model` 已切到 16k。
-- 第二个 Ollama 实例：`127.0.0.1:11435`，共享 `D:\.ollama\models`，`OLLAMA_KEEP_ALIVE=10m`，仅用于 bge。
+- 第二个 Ollama 实例：`127.0.0.1:11435`，共享 `%LOCALAPPDATA%\ollama\models`，`OLLAMA_KEEP_ALIVE=10m`，仅用于 bge。
 - embedding base 已改为 `http://127.0.0.1:11435/v1`。
 - bge 在 11434/11435 均已停止；qwen 16k-only 采样：
   - min 2209 MiB / median 2219 MiB / max 2239 MiB（60 samples）。
@@ -277,7 +277,7 @@ outer_signal.token.dpapi`，只能通过 DPAPI 解密，不写入 outbox。
 手动启动 / 幂等验证：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "D:\qqlocal agentshared\public-release\webui\start-services.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\project\public-release\webui\start-services.ps1"
 Start-ScheduledTask -TaskName 'Cyber-Butler Web UI Services'
 Get-ScheduledTaskInfo -TaskName 'Cyber-Butler Web UI Services'
 ```

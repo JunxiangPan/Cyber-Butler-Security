@@ -7,7 +7,7 @@ overlay), and verifies that each imported symbol is defined there.
 
 Usage:
     python tools/check-overlay-compat.py \
-        --official-source D:\\tmp\\AgentRuntime-4.29.3 \
+        --official-source C:\path\to\official-source \
         --overlay overlay \
         --expected-version 4.29.3
 """

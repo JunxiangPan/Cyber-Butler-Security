@@ -63,3 +63,22 @@ def test_target_not_allowed_returns_403(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(broker, "_allowed_target", lambda path: False)
     result = broker.execute({"id": "more", "action": "delete", "target": str(target), "_snapshot": None})
     assert result.status == 403
+
+
+def test_missing_target_and_write_create_conflict(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "_allowed_target", lambda path: True)
+    missing = tmp_path / "missing.txt"
+    assert broker.execute({"id": "m", "action": "delete", "target": str(missing), "_snapshot": None}).status == 404
+    target = tmp_path / "exists.txt"; target.write_text("x", encoding="utf-8")
+    result = broker.execute({"id": "m", "action": "write_file", "target": str(target), "content": "y", "mode": "create", "_snapshot": Snap(target)})
+    assert result.status == 409
+
+
+def test_overwrite_missing_source_and_staging_value_error(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "_allowed_target", lambda path: True)
+    monkeypatch.setattr(broker, "inside_shared", lambda path: True)
+    target = tmp_path / "target.txt"; target.write_text("x", encoding="utf-8")
+    result = broker.execute({"id": "m", "action": "overwrite", "target": str(target), "source": str(tmp_path / "absent"), "_snapshot": None})
+    assert result.status == 409
+    result = broker.execute({"id": "m", "action": "overwrite", "target": str(target), "source": str(tmp_path / "absent"), "_snapshot": None, "_source_snapshot": None})
+    assert result.status == 409

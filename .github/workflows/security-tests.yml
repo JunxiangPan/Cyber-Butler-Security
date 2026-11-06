@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: python -m pip install -r requirements-dev.txt
+        run: python -m pip install --require-hashes -r requirements-dev.lock
       - name: Privacy and identifier scan
         run: python tools/privacy_scan.py
       - name: Validate test matrix disclosures
@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: python -m pip install -r requirements-dev.txt
+        run: python -m pip install --require-hashes -r requirements-dev.lock
       - name: Packaging preflight (text / placeholders / dry-run / wheelhouse)
         run: python quality/preflight.py
       - name: UI sanity gate

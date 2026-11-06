@@ -1,4 +1,4 @@
-# Cyber-Butler v1.6.2 QA Follow-ups
+﻿# Cyber-Butler v1.6.2 QA Follow-ups
 
 ## Contents
 
@@ -145,7 +145,7 @@ ode.exe` while the running
 ### 4. Defender exclusion is hardcoded to C:\CyberButler
 
 - Encountered on the host install:
-  `D:\qqlocal agentshared`.
+  `C:\path\to\project`.
 - Files: `installer/lib/Add-DefenderExclusion.ps1`,
   `installer/CyberButler.Installer.GUI.ps1`.
 - Current behavior: any non-default path + checked exclusion fails with:

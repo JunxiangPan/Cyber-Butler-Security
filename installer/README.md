@@ -1,4 +1,4 @@
-# Cyber-Butler Installer (v1.6.3)
+﻿# Cyber-Butler Installer (v1.6.3)
 
 > v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
 
@@ -627,7 +627,7 @@ agentruntime_plugin_memorix
 ```powershell
 .\installer\Install-CyberButler.ps1 `
   -Tier Medium `
-  -PersonalPluginsPath D:\qqlocal agentshared\AgentRuntime\data\plugins
+  -PersonalPluginsPath C:\path\to\project\AgentRuntime\data\plugins
 ```
 
 规则：
@@ -642,17 +642,17 @@ agentruntime_plugin_memorix
 
 ### 从 v1.5.x 迁移
 
-v1.5.x 通常安装在 `D:\qqlocal agentshared`，v1.6.0 默认安装到 `C:\CyberButler`。这不是原地升级。
+v1.5.x 通常安装在 `C:\path\to\project`，v1.6.0 默认安装到 `C:\CyberButler`。这不是原地升级。
 
 ```text
-旧安装：D:\qqlocal agentshared\AgentRuntime\data\plugins
+旧安装：C:\path\to\project\AgentRuntime\data\plugins
 新安装：C:\CyberButler\AgentRuntime\data\plugins
 ```
 
 安装时指定旧插件源：
 
 ```powershell
--PersonalPluginsPath "D:\qqlocal agentshared\AgentRuntime\data\plugins"
+-PersonalPluginsPath "C:\path\to\project\AgentRuntime\data\plugins"
 ```
 
 旧安装的 `AgentRuntime/data/`（记忆、对话历史、数据库）不会自动迁移，需要手动处理。v1.6.0 目标目录已有个人插件时，不传 `-PersonalPluginsPath` 会保留现有插件。

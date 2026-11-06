@@ -116,3 +116,6 @@ quality/artifacts/
 
 
 ACCEPTANCE_PROOF.md
+
+# Runtime broker log; never commit
+/tools/totp_broker.log

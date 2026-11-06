@@ -9,7 +9,7 @@ into the install root when this installer is run from the release tree, then
 performs a stop/start recovery self-test.
 
 Usage (elevated):
-    powershell -ExecutionPolicy Bypass -File tools\install_lhm_watchdog.ps1 -ProjectRoot D:\qqlocal agentshared
+    powershell -ExecutionPolicy Bypass -File tools\install_lhm_watchdog.ps1 -ProjectRoot C:\path\to\project
 #>
 param(
     [string]$ProjectRoot = '',

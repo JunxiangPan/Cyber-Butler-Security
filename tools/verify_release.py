@@ -89,9 +89,8 @@ def main() -> int:
         if version_tuple >= (1, 6, 4):
             print("INVALID ValueError: v1.6.4 requires the four-file signature reports")
             return 1
-        if not args.legacy:
-            print("LEGACY VERIFY MODE: 使用 --legacy 才能验旧签名")
-            return 1
+        # v1.6.3 and older are auto-detected as legacy; --legacy stays accepted
+        # for callers that want to make the compatibility mode explicit.
         try:
             public_key = _load_pinned_public_key(args.pubkey)
             signature = base64.b64decode(Path(args.signature).read_text(encoding="ascii").strip())

@@ -98,7 +98,7 @@ if (-not $embedListening) {
         $embedEnv = @{
             OLLAMA_HOST = '127.0.0.1:11435'
             OLLAMA_KEEP_ALIVE = '10m'
-            OLLAMA_MODELS = 'D:\.ollama\models'
+            OLLAMA_MODELS = $(if ($env:OLLAMA_MODELS) { $env:OLLAMA_MODELS } else { Join-Path $env:LOCALAPPDATA 'ollama\models' })
             OLLAMA_LLM_LIBRARY = 'cpu'
         }
         $previous = @{}
