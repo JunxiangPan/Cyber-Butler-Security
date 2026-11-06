@@ -8,19 +8,91 @@ Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.m
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
 
-## Current release candidate — v1.6.3 RC
+## Current status — v1.6.4 candidate
 
-**Status:** v1.6.3 is a **Release Candidate**, not a final release. The current candidate is **unsigned**: FINAL_QA_REPORT is BLOCKED and ACCEPTANCE_PROOF.md and update-manifest.sig do not exist yet.
+**Status:** v1.6.4 is a candidate, not a published release. The ZIP, manifest,
+VM proof and signature chain are not final until the physical VM acceptance
+run completes.
 
-- Candidate package: `public-release-v1.6.3.zip`
-- The package is **not signed** yet; no signature is claimed.
-- **Mandatory acceptance before publication:**
-  1. clean-VM, offline install with a real phone-authenticator TOTP approval;
-  2. WebUI two-stage delete undo + capacity-breaker test;
-  3. `tools/Test-TwoStageTrashACL.ps1` real ACL/SYSTEM/purge verification.
-- Do not mark the GitHub release as Latest until all three pass.
-- The current offline package still requires a system CPython 3.13. It is not
-  zero-dependency.
+- CBP 0.1.0 is a separate package and is prepared for its own GitHub release.
+- VM acceptance for CBS 1.6.4 remains pending.
+- No v1.7+ business code is being written before the CBP feedback cycle.
+
+## Multi-project version matrix
+
+The five projects are peers. There is no parent release that contains the
+others.
+
+| Project | Current | Next | Independent version line |
+|---|---|---|---|
+| CBS | 1.6.4 | 1.7.0 | CBS 1.7.x |
+| CBP | 0.1.0 | 0.2.0 | CBP 0.2.x |
+| CBR | not released | 0.1.0 | CBR 0.1.x |
+| CBM | not released | 0.1.0 | CBM 0.1.x |
+| CBC | not released | 0.1.0 | CBC 0.1.x |
+| cbc-event | not released | 0.1.0 | cbc-event 0.1.x |
+
+`CB-2026.11` is a synchronization snapshot, not a product version. It is a
+table of versions that happen to be tested together; it does not make one
+component a parent of another.
+
+## cbc-event 0.1.x compatibility contract
+
+Within the `0.1.x` line:
+
+- fields may only be added; existing field names and types must not be removed
+  or changed;
+- every consumer must ignore unknown fields and emit a `WARN`, never reject the
+  whole event or crash;
+- producers must preserve `timestamp`, `source`, `level`, `action`, `detail`,
+  `evidence_hash`, `prev_hash`, `event_hash`, and `seq` semantics;
+- breaking changes require a new major protocol version and a migration note.
+
+## Integration test strategy
+
+A separate `integration-tests` repository or directory owns cross-project tests.
+It is not a product package and must not be imported by CBS, CBP, CBR, CBM, or
+CBC.
+
+The matrix must run the five components together and verify:
+
+- event ordering by `seq` and `timestamp`;
+- hash chain continuity across all sources;
+- no event loss during concurrent producers;
+- no producer blocks another producer;
+- CBC can read the combined stream and flag tampering;
+- default-off behavior when CBC is absent (no listening socket, no extra
+  process).
+
+Component repositories keep their own test baselines. Integration tests are
+additional evidence, not a replacement for each component's tests, coverage
+gate, or documentation audit.
+
+## CB-2026.11 synchronization rules
+
+A snapshot is valid only when every row below is satisfied:
+
+| Component | Required alignment |
+|---|---|
+| CBS 1.7.0 | compatible with cbc-event 0.1.x |
+| CBP 0.2.0 | emits and accepts cbc-event 0.1.x |
+| CBR 0.1.0 | optionally emits cbc-event 0.1.x; no CBS requirement |
+| CBM 0.1.0 | optionally emits cbc-event 0.1.x; no CBS requirement |
+| CBC 0.1.0 | reads every event in cbc-event 0.1.x |
+| cbc-event 0.1.x | append-only fields within 0.1.x |
+
+Recommended install order for a one-shot aligned setup:
+
+```text
+1. cbc-event 0.1.x
+2. CBC 0.1.x
+3. CBS 1.7.x
+4. CBP 0.2.x
+5. CBR 0.1.x and CBM 0.1.x as needed
+```
+
+The order is a convenience, not a runtime requirement. Every component must
+start successfully without its siblings.
 
 ## Cross-version upgrade and migration policy
 
@@ -29,7 +101,7 @@ Minimum v2.0 interface contract and trust boundaries:
 The only supported upgrade path is:
 
 ```text
-v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
+v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.6.4 (signed baseline)  ->  v1.7.0 (deep-water features)
 ```
 
 ### v1.6.2 -> v1.6.3
@@ -50,15 +122,15 @@ v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
 
 ### v1.7.0 and later
 
-- The installer must block upgrades from v1.6.2 or earlier with this message:
+- The installer must block upgrades from v1.6.2, v1.6.3, or an unreadable version with this message:
 
 ```text
-Please upgrade to v1.6.3 first to complete the architecture decoupling,
-then upgrade to v1.7.0.
+Please upgrade through v1.6.4 first. v1.6.4 is the current signed baseline;
+v1.7.0 cannot be installed directly from v1.6.3.
 ```
 
 - A v1.7.0 installer may proceed only when the installed VERSION is at least
-  `1.6.3`.
+  `1.6.4`.
 - The version gate is fail-closed: if the installed version cannot be read, the
   installer stops instead of guessing.
 
