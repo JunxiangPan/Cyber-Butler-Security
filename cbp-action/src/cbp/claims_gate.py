@@ -18,8 +18,13 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         return False, "claims_manifest and claims_notes must be configured"
     manifest = cfg.path(cfg.claims_manifest)
     notes = cfg.path(cfg.claims_notes)
-    if not manifest.is_file() or not notes.is_file():
-        return False, "quality-manifest.json or release notes missing"
+    if not manifest.is_file():
+        return False, (
+            "quality-manifest.json missing. "
+            "Run `python tools/dogfood_manifest.py --root .` first to generate a local manifest."
+        )
+    if not notes.is_file():
+        return False, "release notes missing. Run the dogfood command first to generate them."
     data = json.loads(manifest.read_text(encoding="utf-8"))
     counts = data.get("counts", {})
     expected = f"{counts.get('passed', -1)}/{counts.get('total', -1)}"

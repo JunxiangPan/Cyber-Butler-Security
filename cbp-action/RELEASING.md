@@ -48,6 +48,9 @@ Run these in order:
    ```bash
    python -m cbp.cli --root . --mode enforce
    ```
+4. Do not commit the generated `quality-manifest.json`,
+   `quality-manifest.json.sha256`, or `docs/RELEASE_NOTES.generated.md`.
+   They are local-only and ignored by `.gitignore`.
 
 Expected order:
 
