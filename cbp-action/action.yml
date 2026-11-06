@@ -8,11 +8,9 @@ inputs:
     description: Optional CBP JSON/TOML config path (defaults to root/cbp.json)
     default: ""
   coverage-json:
-    required: true
     description: Path to coverage.py JSON output
     default: ""
   coverage-allowlist:
-    required: true
     description: Path to the coverage allowlist JSON
     default: ""
   coverage-threshold:
@@ -22,30 +20,24 @@ inputs:
     description: Minimum policy coverage
     default: "85"
   dependency-lock:
-    required: true
     description: Hash-locked requirements file
     default: ""
   installer-core:
-    required: true
     description: Installer file that must contain --require-hashes
     default: ""
   docs-manifest:
-    required: true
     description: Incident-history manifest
     default: ""
   binary-artifacts:
-    required: true
     description: Directory containing .build.json and .sbom.json
     default: ""
   package-zip:
     description: Optional release ZIP to scan instead of the repository
     default: ""
   claims-manifest:
-    required: true
     description: quality-manifest.json used by the claims gate
     default: ""
   claims-notes:
-    required: true
     description: release notes checked by the claims gate
     default: ""
   enable-coverage:

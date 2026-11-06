@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1 — 2026-11-06
+
+- Added a strict UTF-8 no-BOM encoding gate (tracked text files only).
+- Release claims now validate prose gate counts, not only `QUALITY_COUNTS`.
+- Generated release notes use the actual gate count dynamically.
+- Action path inputs are optional and fail closed only when their gate is enabled.
+- `security_core` coverage now measures the actual gate modules.
+- Documented checksum + run-id pinning instead of cryptographic-signature wording.
+- CBP is distributed through GitHub Actions/Releases only; PyPI publication is not used.
+
 ## 0.1.0 — 2026-11-06
 
 Initial standalone release candidate.

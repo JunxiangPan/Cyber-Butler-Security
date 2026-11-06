@@ -51,6 +51,15 @@
     {
       "name": "security_core",
       "files": [
+        "src/cbp/coverage_gate.py",
+        "src/cbp/dependency_gate.py",
+        "src/cbp/comment_gate.py",
+        "src/cbp/docs_gate.py",
+        "src/cbp/binary_gate.py",
+        "src/cbp/claims_gate.py",
+        "src/cbp/config.py",
+        "src/cbp/cli.py",
+        "src/cbp/encoding_gate.py",
         "tools/audit_rule_sources.py"
       ],
       "threshold": 90,

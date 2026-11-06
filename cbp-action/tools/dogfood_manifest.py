@@ -3,7 +3,7 @@
 
 The generator never reads an existing quality manifest. It calls the gate
 functions directly, writes a provisional manifest only to let the claims gate
-run, then writes the final manifest and release-note count after all six gates
+run, then writes the final manifest and release-note count after all seven gates
 have actually passed.
 """
 from __future__ import annotations
@@ -90,11 +90,14 @@ def _write_manifest(path: Path, manifest: dict[str, Any]) -> None:
     _atomic_write(path, json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
 
 
-def _write_notes(template: Path, output: Path, counts: str) -> None:
+def _write_notes(template: Path, output: Path, counts: str, gate_count: int) -> None:
     text = template.read_text(encoding="utf-8")
     updated, count = COUNT.subn(f"QUALITY_COUNTS: {counts}", text)
     if count != 1:
         raise ManifestError("release-note template must contain exactly one QUALITY_COUNTS line")
+    if "__GATE_COUNT__" not in updated:
+        raise ManifestError("release-note template must contain __GATE_COUNT__")
+    updated = updated.replace("__GATE_COUNT__", str(gate_count))
     _atomic_write(output, updated)
 
 
@@ -145,7 +148,7 @@ def generate(
         "coverage": coverage_numbers,
     }
     _write_manifest(output, provisional)
-    _write_notes(notes_template, notes_output, "6/7")
+    _write_notes(notes_template, notes_output, "6/7", gate_count=7)
     cfg.claims_manifest = output
     cfg.claims_notes = notes_output
     claims_ok, claims_detail = claims_gate.run(cfg)
@@ -168,7 +171,7 @@ def generate(
     if problems:
         raise ManifestError("; ".join(problems))
     _write_manifest(output, final_manifest)
-    _write_notes(notes_template, notes_output, "7/7")
+    _write_notes(notes_template, notes_output, "7/7", gate_count=7)
     if claims_gate.run(cfg)[0] is False:
         raise ManifestError("final claims verification failed")
     digest = hashlib.sha256(output.read_bytes()).hexdigest()

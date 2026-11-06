@@ -13,8 +13,8 @@ then look for a run.
 5. Create the annotated tag on that same commit:
 
    ```bash
-   git tag -a v0.1.0 -m "CBP v0.1.0"
-   git push origin v0.1.0
+   git tag -a v0.1.1 -m "CBP v0.1.1"
+   git push origin v0.1.1
    ```
 
 6. Push the tag. Tag pushes do not trigger CI and do not trigger the
@@ -24,7 +24,7 @@ then look for a run.
 
    ```text
    ci_run_id   = the dogfood run id
-   release_tag = v0.1.0
+   release_tag = v0.1.1
    ```
 
 8. The release workflow downloads only that run's artifact, verifies its
@@ -89,17 +89,17 @@ Before publishing, configure the `main` branch:
 ### Tag is wrong, release not created
 
 ```bash
-git tag -d v0.1.0
-git push origin :refs/tags/v0.1.0
+git tag -d v0.1.1
+git push origin :refs/tags/v0.1.1
 # fix the commit, rerun CI, retag the exact CI commit
-git tag -a v0.1.0 -m "CBP v0.1.0"
-git push origin v0.1.0
+git tag -a v0.1.1 -m "CBP v0.1.1"
+git push origin v0.1.1
 ```
 
 ### Release exists with wrong assets
 
 ```bash
-gh release delete v0.1.0 --yes
+gh release delete v0.1.1 --yes
 # fix, rerun CI, and create the tag only after CI passes
 ```
 
@@ -120,7 +120,7 @@ before releasing.
 
 ## Preconditions
 
-- `v0.1.0` tag exists on the CI commit.
+- `v0.1.1` tag exists on the CI commit.
 - CI artifact exists for the exact run id.
 - `quality-manifest.json.sha256` matches.
 - The artifact contains `docs/RELEASE_NOTES.generated.md`.

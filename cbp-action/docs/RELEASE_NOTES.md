@@ -1,5 +1,7 @@
 # CBP releases
 
-QUALITY_COUNTS: 6/6
+QUALITY_COUNTS: __CI_GENERATED__
 
-CBP is self-checked with all six gates before a release.
+CBP is self-checked with all __GATE_COUNT__ gates before a release.
+
+Quick start: see [`usage.yml`](usage.yml).
