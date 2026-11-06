@@ -1,4 +1,4 @@
-﻿# v1.2.2 — Unified install tree
+# v1.2.2 — Unified install tree
 
 > Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
 

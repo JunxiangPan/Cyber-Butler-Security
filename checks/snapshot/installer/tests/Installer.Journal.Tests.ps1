@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $scriptPath = Join-Path $installerRoot 'Install-CyberButler.ps1'
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
@@ -193,7 +193,7 @@ Describe 'Installer journal lifecycle' {
             Add-CyberButlerJournalStep -Journal $journal -Name 'prepare' -Status completed | Out-Null
             Add-CyberButlerJournalStep -Journal $journal -Name 'build' -Status in_progress | Out-Null
 
-            $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Resume -StatePath $journal.StatePath 2>&1
+            $out = & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Resume -StatePath $journal.StatePath 2>&1
             $LASTEXITCODE | Should Be 0
             (($out -join "`n") -match 'RESUME next=build') | Should Be $true
         } finally {
@@ -212,7 +212,7 @@ Describe 'Installer journal lifecycle' {
             New-CyberButlerTrackedDirectory -Journal $journal -Step 'build' -Path $created -AllowedRoot $install | Out-Null
             Add-CyberButlerJournalStep -Journal $journal -Name 'build' -Status failed | Out-Null
 
-            $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Rollback -StatePath $journal.StatePath 2>&1
+            $out = & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Rollback -StatePath $journal.StatePath 2>&1
             $LASTEXITCODE | Should Be 0
             (($out -join "`n") -match 'ROLLBACK rolled_back') | Should Be $true
             (Test-Path -LiteralPath $created) | Should Be $false

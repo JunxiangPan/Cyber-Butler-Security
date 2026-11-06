@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\install_daily_tasks.log'
 Set-Content -LiteralPath $log -Value ('install daily tasks ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8

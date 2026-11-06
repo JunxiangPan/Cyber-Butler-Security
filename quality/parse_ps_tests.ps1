@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Parse-only gate for test/support PowerShell files. It does not run PSSA rules;
 it only rejects parser errors.

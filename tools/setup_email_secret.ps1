@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 #Requires -Version 5.1
 <#
 Configure the Cyber-Butler email approval channel.

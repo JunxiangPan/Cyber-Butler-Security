@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Windows acceptance probe for Two-Stage Delayed Delete ACL isolation.
@@ -123,7 +123,7 @@ try {
         $result.owner_read_denied = $true
     }
 
-    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument (
+    $action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument (
         '-NoProfile -ExecutionPolicy Bypass -File "' + $probeScript + '"' +
         ' -Source "' + $payload + '"' +
         ' -Entry "' + $entry + '"' +
@@ -156,7 +156,7 @@ try {
     if ($ServiceAccountPassword) {
         $cred = New-Object System.Management.Automation.PSCredential('CyberButlerSvc', $ServiceAccountPassword)
         try {
-            $probeProcess = Start-Process -FilePath 'powershell.exe' -Credential $cred -WindowStyle Hidden -PassThru -Wait `
+            $probeProcess = Start-Process -FilePath 'pwsh.exe' -Credential $cred -WindowStyle Hidden -PassThru -Wait `
                 -ArgumentList @('-NoProfile', '-Command', 'Get-Content -LiteralPath ''' + $payload + ''' -Raw')
             $result.service_read = if ($probeProcess.ExitCode -eq 0) { 'SUCCEEDED (FAIL)' } else { 'DENIED' }
         } catch {

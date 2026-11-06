@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 <#
 Production-safe updater with local overlay rendering.
 

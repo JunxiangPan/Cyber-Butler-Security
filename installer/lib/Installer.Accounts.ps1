@@ -1,4 +1,4 @@
-﻿# Local service-account lifecycle for the Cyber-Butler installer.
+# Local service-account lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 if (-not ('CyberButler.LsaRights' -as [type])) {

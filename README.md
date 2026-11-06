@@ -7,6 +7,10 @@
 
 CBS release packages pass the Cyber-Butler-Pipeline (CBP) baseline gates, but this does not prove that the code is absolutely secure. CBP is a consistency check for common low-level errors and obvious fabrication; it cannot stop a privileged operator from bypassing the process or replace independent security review.
 
+## Requirements
+
+CBS requires PowerShell 7+ (`pwsh`). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
+
 ## Status at a glance
 
 | Component | Status | Note |

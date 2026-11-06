@@ -99,7 +99,7 @@ def _sid(account: str) -> str:
     if os.name != "nt":
         return "S-1-5-18"
     command = [
-        "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
         f"$u=Get-LocalUser -Name '{account.replace(chr(39), chr(39)*2)}' -ErrorAction Stop; $u.Sid.Value",
     ]
@@ -188,7 +188,7 @@ def remove_policy() -> None:
     # An empty pipeline makes Remove-NetFirewallRule fail even though there is
     # nothing to remove. Only invoke it when matching rules actually exist.
     result = _run([
-        "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
         "$r=@(Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue); if($r.Count -gt 0){ $r | Remove-NetFirewallRule -ErrorAction Stop }",
     ])
@@ -213,7 +213,7 @@ def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
         return {"mode": effective_mode, "applied": 0, "sid": sid}
     for command in commands:
         result = _run([
-            "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+            "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
             "-Command", command,
         ])
         if result.returncode != 0:

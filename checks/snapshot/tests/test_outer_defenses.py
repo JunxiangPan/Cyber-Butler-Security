@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_installer_is_not_a_powershell_bypass_shell() -> None:
     source = (ROOT / "build" / "CyberButlerLauncher.cs").read_text(encoding="utf-8-sig")
     assert "ExecutionPolicy Bypass" not in source
-    assert "powershell.exe" not in source
+    assert "pwsh.exe" not in source
     assert "RunspaceFactory" in source
 
 

@@ -1,4 +1,4 @@
-﻿# Cyber-Butler Web UI
+# Cyber-Butler Web UI
 
 > v1.6.1 status, incomplete work, and non-guarantees: [../docs/STATUS_v1.6.1.md](../docs/STATUS_v1.6.1.md).
 

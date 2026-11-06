@@ -1,4 +1,4 @@
-﻿# Launch the long-running game-mode monitor as a detached child.
+# Launch the long-running game-mode monitor as a detached child.
 # The scheduled task can then end successfully (LastTaskResult=0) without
 # keeping a long-running PowerShell process inside the task instance.
 $ErrorActionPreference = 'Stop'
@@ -15,7 +15,7 @@ function Write-LaunchLog([string]$message) {
 }
 
 function Get-MonitorProcesses {
-    return @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+    return @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -and $_.CommandLine -like '*game-mode.ps1*' -and $_.CommandLine -notlike '*ListGames*' })
 }
 
@@ -31,7 +31,7 @@ if (-not (Test-Path -LiteralPath $monitor)) {
 }
 
 try {
-    Start-Process -FilePath 'powershell.exe' `
+    Start-Process -FilePath 'pwsh.exe' `
         -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',('"' + $monitor + '"')) `
         -WorkingDirectory $PSScriptRoot -WindowStyle Hidden | Out-Null
 } catch {

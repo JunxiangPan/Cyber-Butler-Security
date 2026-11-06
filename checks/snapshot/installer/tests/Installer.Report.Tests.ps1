@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Report.ps1')

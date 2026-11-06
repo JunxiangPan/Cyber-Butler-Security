@@ -2794,7 +2794,7 @@ def verify_runtime_acl() -> None:
     try:
         result = subprocess.run(
             [
-                "powershell.exe",
+                "pwsh.exe",
                 "-NoProfile",
                 "-NonInteractive",
                 "-ExecutionPolicy", "Bypass",

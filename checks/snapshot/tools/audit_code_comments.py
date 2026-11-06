@@ -72,7 +72,7 @@ def powershell_findings() -> tuple[list[str], list[dict], int]:
     if not script.is_file():
         return ["tools/audit_ps_comments.ps1 is missing"], [], 0
     result = subprocess.run(
-        ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+        ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
          "-File", str(script), "-Root", str(ROOT)],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
     )

@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\install_startup_tasks.log'
 Set-Content -LiteralPath $log -Value ('install startup tasks ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8
@@ -18,8 +18,8 @@ function Install-Task([string]$name, [string]$exe, [string]$taskArgs, [string]$w
     Log ("installed " + $name)
 }
 
-Install-Task 'AuxRuntime Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-auxruntime.ps1')) (Join-Path $root 'tools') 'AuxRuntime + guardian as test-user at logon'
-Install-Task 'Game Mode Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as test-user at logon'
+Install-Task 'AuxRuntime Startup' $launcher ('--exe "pwsh.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-auxruntime.ps1')) (Join-Path $root 'tools') 'AuxRuntime + guardian as test-user at logon'
+Install-Task 'Game Mode Startup' $launcher ('--exe "pwsh.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as test-user at logon'
 
 # Remove the old Startup shortcuts so they cannot double-start AuxRuntime.
 $startup = 'YOUR_USER_PATH\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'

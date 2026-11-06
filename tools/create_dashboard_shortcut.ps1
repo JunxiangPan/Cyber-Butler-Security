@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 Create a desktop shortcut for the Cyber-Butler dashboard.
 
@@ -28,7 +28,7 @@ $shortcutPath = Join-Path $desktop ($ShortcutName + '.lnk')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $launcher
-$shortcut.Arguments = '--exe "powershell.exe" --workdir "' + (Split-Path -Parent $dashboard) + '" --args "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File \"' + $dashboard + '\" -ProjectRoot \"' + $ProjectRoot + '\"" --hidden'
+$shortcut.Arguments = '--exe "pwsh.exe" --workdir "' + (Split-Path -Parent $dashboard) + '" --args "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File \"' + $dashboard + '\" -ProjectRoot \"' + $ProjectRoot + '\"" --hidden'
 $shortcut.WorkingDirectory = Join-Path $ProjectRoot 'tools'
 $shortcut.IconLocation = (Join-Path $env:SystemRoot 'System32\shell32.dll') + ',21'
 $shortcut.Description = 'Cyber-Butler 本地主控台（只读）'

@@ -1,4 +1,4 @@
-﻿# Read-only defense diagnostics for the Cyber-Butler installer.
+# Read-only defense diagnostics for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Tier.ps1 first.
 
 function New-CyberButlerDiagnosticItem {

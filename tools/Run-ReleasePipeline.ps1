@@ -103,7 +103,7 @@ Add-Report ''
 Run-Process 'install CBP from hashed wheelhouse' 'python' @('-m', 'pip', 'install', '--require-hashes', '--find-links', 'installer/wheelhouse', '-r', 'requirements-runtime.lock')
 Run-Process 'forbidden terms / private paths in all text' 'python' @('tools/audit_text_hygiene.py', '.')
 Run-Process 'packaging preflight' 'python' @('quality/preflight.py')
-Run-Process 'test PowerShell syntax' 'powershell.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'quality/parse_ps_tests.ps1')
+Run-Process 'test PowerShell syntax' 'pwsh.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'quality/parse_ps_tests.ps1')
 Run-Process 'code comments (AST)' 'python' @('tools/audit_code_comments.py')
 Run-Process 'docs consistency' 'python' @('tools/audit_docs_consistency.py')
 Run-Process 'UI sanity (styled console, no dead UI terms/routes)' 'python' @('quality/ui_gate.py')

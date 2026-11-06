@@ -1,4 +1,4 @@
-﻿# State journal, backups, and reverse actions for the Cyber-Butler installer.
+# State journal, backups, and reverse actions for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 before this file.
 
 function Save-CyberButlerJournal {

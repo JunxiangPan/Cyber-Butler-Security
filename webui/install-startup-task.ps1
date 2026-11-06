@@ -1,4 +1,4 @@
-﻿# Register the Cyber-Butler Web UI + OTP mailer logon task.
+# Register the Cyber-Butler Web UI + OTP mailer logon task.
 # AtLogOn is intentional: the OTP mailer uses the interactive user's DPAPI
 # secret, so a SYSTEM AtStartup task is not suitable.
 $ErrorActionPreference = 'Stop'
@@ -9,7 +9,7 @@ if (-not (Test-Path -LiteralPath $script)) {
 }
 
 $userId = "$env:COMPUTERNAME\$env:USERNAME"
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+$action = New-ScheduledTaskAction -Execute 'pwsh.exe' `
     -Argument "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$script`"" `
     -WorkingDirectory $PSScriptRoot
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $userId
@@ -29,4 +29,4 @@ Register-ScheduledTask -TaskName $taskName -Description 'Cyber-Butler Web UI (87
 
 Write-Output "Installed task: $taskName"
 Write-Output "Trigger: AtLogOn $userId (+20s)"
-Write-Output "Action: powershell.exe -File `"$script`""
+Write-Output "Action: pwsh.exe -File `"$script`""

@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\install_weekly_task.log'
 Set-Content -LiteralPath $log -Value ('install weekly ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8
@@ -7,7 +7,7 @@ function Log([string]$m) { Add-Content -LiteralPath $log -Value ("{0:yyyy-MM-dd 
 Unregister-ScheduledTask -TaskName 'AgentRuntime Nightly Restart' -Confirm:$false -ErrorAction SilentlyContinue
 Log 'removed daily AgentRuntime Nightly Restart'
 
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+$action = New-ScheduledTaskAction -Execute 'pwsh.exe' `
     -Argument ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f (Join-Path $root 'tools\weekly-selfheal.ps1')) `
     -WorkingDirectory (Join-Path $root 'tools')
 $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At '4:00AM'

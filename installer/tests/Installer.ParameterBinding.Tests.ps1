@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 AST-level parameter binding test. It deliberately does not use a single-line
 regex: PowerShell's parser handles continuation lines and nested commands.

@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Local packaging preflight. It does not create Windows accounts; that needs the
 real elevated installer. It exercises path creation, Chinese/Unicode paths,

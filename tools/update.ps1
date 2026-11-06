@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 <#
 Apply a Cyber-Butler release with code-only replacement.
 

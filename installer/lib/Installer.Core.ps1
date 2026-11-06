@@ -1,4 +1,4 @@
-﻿# Real core deployment: download, verify, extract, venv, overlay.
+# Real core deployment: download, verify, extract, venv, overlay.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 <#

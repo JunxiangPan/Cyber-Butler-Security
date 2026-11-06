@@ -1,4 +1,8 @@
-﻿# Documentation index
+# Documentation
+
+> CBS requires PowerShell 7+ (`pwsh.exe`). Windows PowerShell 5.1 is not supported.
+
+# Documentation index
 
 ## Contents
 

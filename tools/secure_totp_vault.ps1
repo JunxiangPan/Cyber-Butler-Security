@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 $desktop = 'YOUR_USER_PATH\Desktop'
 $vault = 'YOUR_USER_PATH\Documents\local agentTOTP保险箱'

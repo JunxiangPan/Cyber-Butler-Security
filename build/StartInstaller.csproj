@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -12,6 +12,7 @@
     <FileVersion>1.6.4.0</FileVersion>
     <Version>1.6.4</Version>
     <Nullable>disable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>disable</ImplicitUsings>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

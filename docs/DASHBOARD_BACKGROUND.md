@@ -1,4 +1,4 @@
-﻿# Dashboard background engine
+# Dashboard background engine
 
 ## Contents
 

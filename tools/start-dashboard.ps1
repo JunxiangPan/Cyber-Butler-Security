@@ -1,4 +1,4 @@
-﻿# Launch the local Cyber-Butler dashboard with a diagnostic log.
+# Launch the local Cyber-Butler dashboard with a diagnostic log.
 # The WPF dashboard runs hidden from the shortcut; if it fails, show a visible
 # error instead of leaving the user with a shortcut that does nothing.
 param(

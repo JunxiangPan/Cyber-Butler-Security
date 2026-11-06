@@ -1,8 +1,10 @@
-﻿using System;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Security.Principal;
+using System.Windows.Forms;
 
 [assembly: AssemblyTitle("Cyber-Butler Installer")]
 [assembly: AssemblyDescription("Installer entry point (PowerShell fallback shell, no in-process PowerShell dependency)")]
@@ -40,7 +42,7 @@ internal static class InstallerProgram
     private static int RunGui(string gui)
     {
         ProcessStartInfo psi = new ProcessStartInfo();
-        psi.FileName = "powershell.exe";
+        psi.FileName = "pwsh.exe";
         psi.Arguments = "-NoProfile -STA -ExecutionPolicy RemoteSigned -File \"" + gui + "\"";
         psi.WorkingDirectory = Path.GetDirectoryName(gui);
         psi.UseShellExecute = false;
@@ -49,7 +51,18 @@ internal static class InstallerProgram
         psi.RedirectStandardOutput = true;
         psi.RedirectStandardError = true;
         Log("starting PowerShell with ExecutionPolicy RemoteSigned gui=" + gui);
-        using (Process child = Process.Start(psi))
+        Process child;
+        try
+        {
+            child = Process.Start(psi);
+        }
+        catch (Win32Exception)
+        {
+            MessageBox.Show("CBS requires PowerShell 7. Please install it from Microsoft.", "PowerShell 7 required", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Log("pwsh.exe not found");
+            return 7;
+        }
+        using (child)
         {
             if (child == null) { Log("Process.Start returned null"); return 4; }
             child.OutputDataReceived += (sender, args) => { if (!string.IsNullOrEmpty(args.Data)) Log("stdout: " + args.Data); };

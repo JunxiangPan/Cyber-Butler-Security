@@ -1,4 +1,4 @@
-﻿# Helpers for the Cyber-Butler WPF installer front-end.
+# Helpers for the Cyber-Butler WPF installer front-end.
 
 function ConvertTo-CyberButlerPowerShellLiteral {
     param([AllowEmptyString()][string]$Value)

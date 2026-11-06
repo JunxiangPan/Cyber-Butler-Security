@@ -1,4 +1,4 @@
-﻿# DEPRECATED: use cyber_butler_dashboard.ps1; this file has no desktop shortcut.
+# DEPRECATED: use cyber_butler_dashboard.ps1; this file has no desktop shortcut.
 #Requires -Version 5.1
 Add-Type -AssemblyName PresentationFramework
 
@@ -182,7 +182,7 @@ $updateButton.Add_Click({
     $statusText.Text = '正在请求管理员权限...'
     try {
         $argString = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $mergeScript + '" -TargetRoot "' + $root + '" -ConfirmationText "' + $phrase + '" -StatusFile "' + $statusFile + '" -AllowLocalCodeChanges'
-        $script:child = Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $argString -PassThru
+        $script:child = Start-Process -FilePath 'pwsh.exe' -Verb RunAs -ArgumentList $argString -PassThru
         $script:lastStatusAt = Get-Date
         $timer.Start()
     } catch {

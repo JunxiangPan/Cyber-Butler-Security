@@ -1,4 +1,4 @@
-﻿# Cyber-Butler v1.6.0
+# Cyber-Butler v1.6.0
 
 > Community acknowledgements: [CONTRIBUTORS.md](../../CONTRIBUTORS.md)
 

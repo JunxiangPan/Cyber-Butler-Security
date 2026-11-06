@@ -1,4 +1,4 @@
-﻿# Recover a stale game-mode state if the monitor process was terminated.
+# Recover a stale game-mode state if the monitor process was terminated.
 # Intended to run every minute from Task Scheduler as the desktop user.
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -22,19 +22,19 @@ try {
 if (-not $state.active) { exit 0 }
 
 # If the monitor is still alive, it owns recovery.
-$monitors = @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+$monitors = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -ErrorAction SilentlyContinue |
     Where-Object { $_.CommandLine -and $_.CommandLine -like '*game-mode.ps1*' -and $_.CommandLine -notlike '*ListGames*' })
 if ($monitors.Count -gt 0) { exit 0 }
 
 # Do not restore while a game/launcher is still present.
-$listOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $gameScript -ListGames 2>&1 | Out-String)
+$listOutput = (& pwsh.exe -NoProfile -ExecutionPolicy Bypass -File $gameScript -ListGames 2>&1 | Out-String)
 if ($listOutput -notmatch 'No game processes detected') {
     Write-WatchdogLog 'game still detected; leaving active state for the next check'
     exit 0
 }
 
 Write-WatchdogLog 'monitor is gone and no game is detected; running RestoreOnly'
-$restoreOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $gameScript -RestoreOnly 2>&1 | Out-String)
+$restoreOutput = (& pwsh.exe -NoProfile -ExecutionPolicy Bypass -File $gameScript -RestoreOnly 2>&1 | Out-String)
 $restoreOutput.Trim() | ForEach-Object { Write-WatchdogLog $_ }
 
 if ($restoreOutput -notmatch 'Restore-only finished') {

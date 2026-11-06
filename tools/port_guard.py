@@ -41,7 +41,7 @@ def listener_pids(port: int = 18090) -> set[int]:
     if os.name != "nt":
         return set()
     command = [
-        "powershell.exe",
+        "pwsh.exe",
         "-NoProfile",
         "-NonInteractive",
         "-ExecutionPolicy",

@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 One-command VM acceptance after the installer has been started/completed.
 The physical phone scan is the only non-automatable step; the script prompts

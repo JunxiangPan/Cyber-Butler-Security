@@ -1,4 +1,4 @@
-﻿# Cyber-Butler v1.6.4 visual installer front-end.
+# Cyber-Butler v1.6.4 visual installer front-end.
 # The actual privileged installation still runs in a visible elevated console so
 # approval tokens and TOTP enrollment remain explicit, auditable user actions.
 
@@ -1265,7 +1265,7 @@ Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
             $runOnce = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce'
             New-Item -Path $runOnce -Force | Out-Null
             Set-ItemProperty -Path $runOnce -Name 'CyberButlerSvcProfileCleanup' `
-                -Value ('powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $cleanupScript + '"')
+                -Value ('pwsh.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $cleanupScript + '"')
             $errors.Add('profile still loaded; cleanup scheduled for next reboot')
         } catch { $errors.Add('schedule: ' + $_.Exception.Message) }
     } elseif (Test-Path -LiteralPath $userProfilePath) {
@@ -1591,7 +1591,7 @@ $startButton.Add_Click({
         if ($defenderExclusionCheck.IsChecked) {
             $defenderScript = Join-Path $installerRoot 'lib\Add-DefenderExclusion.ps1'
             try {
-                $defOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $defenderScript -InstallRoot $installPath -AllowCustomRoot 2>&1
+                $defOut = & pwsh.exe -NoProfile -ExecutionPolicy Bypass -File $defenderScript -InstallRoot $installPath -AllowCustomRoot 2>&1
                 if ($LASTEXITCODE -ne 0) { throw (($defOut | ForEach-Object { [string]$_ }) -join ' ') }
                 Write-GuiLog (Get-UiText 'DefenderExclusionDone')
             } catch {

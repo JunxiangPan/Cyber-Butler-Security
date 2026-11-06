@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
@@ -17,7 +17,9 @@ Describe 'Installer services safety' {
         $mediumPrincipal.user_id | Should Be $desktop
         $mediumPrincipal.logon_type | Should Be 'Interactive'
         ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).kind | Should Be 'task'
-        { Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'service' -ServiceAccount $service } | Should Throw
+        $threw = $false
+        try { Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'service' -ServiceAccount $service | Out-Null } catch { $threw = $true }
+        $threw | Should Be $true
     }
 
     It 'skips when all tasks and ports are already healthy' {

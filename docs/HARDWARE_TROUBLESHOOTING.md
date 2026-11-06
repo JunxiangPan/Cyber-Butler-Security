@@ -1,4 +1,4 @@
-﻿# 硬件故障排查：NVIDIA `VIDEO_TDR_ERROR`（0x116）
+# 硬件故障排查：NVIDIA `VIDEO_TDR_ERROR`（0x116）
 
 ## Contents
 

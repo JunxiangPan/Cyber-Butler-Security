@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $repoRoot = Split-Path -Parent $installerRoot
 $gui = Join-Path $installerRoot 'CyberButler.Installer.GUI.ps1'
@@ -23,7 +23,7 @@ Describe 'Visual installer' {
 
     It 'loads its WPF XAML in a self-test' {
         (Test-Path -LiteralPath $gui) | Should Be $true
-        $output = & powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File $gui -SelfTest 2>&1
+        $output = & pwsh.exe -NoProfile -STA -ExecutionPolicy Bypass -File $gui -SelfTest 2>&1
         $LASTEXITCODE | Should Be 0
         (($output | ForEach-Object { [string]$_ }) -join "`n") | Should Match 'GUI_XAML_OK'
     }

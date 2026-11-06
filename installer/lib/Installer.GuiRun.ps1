@@ -1,4 +1,4 @@
-﻿# GUI orchestration helpers for the Cyber-Butler installer.
+# GUI orchestration helpers for the Cyber-Butler installer.
 # Keep the privileged install in a hidden child process and surface only the
 # approval/TOTP steps through the WPF window.
 
@@ -349,7 +349,7 @@ function Remove-CyberButlerPackage {
         $commands += ("for (`$i=0; `$i -lt 30; `$i++) { try { Remove-Item -LiteralPath '" + $escaped + "' -Recurse -Force -ErrorAction Stop; if (-not (Test-Path -LiteralPath '" + $escaped + "')) { break } } catch { Write-Verbose 'optional operation failed' }; Start-Sleep -Seconds 2 }")
     }
     $command = 'Start-Sleep -Seconds 8; ' + ($commands -join '; ')
-    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $command) | Out-Null
+    Start-Process -FilePath 'pwsh.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $command) | Out-Null
     return ($targets -join '; ')
 }
 
@@ -508,7 +508,7 @@ function Start-CyberButlerGuiInstall {
     $oldSmtpAuth = $env:CB_SMTP_AUTH_CODE
     if (-not [string]::IsNullOrWhiteSpace($SmtpAuth)) { $env:CB_SMTP_AUTH_CODE = $SmtpAuth }
     try {
-        $process = Start-Process -FilePath 'powershell.exe' `
+        $process = Start-Process -FilePath 'pwsh.exe' `
         -ArgumentList $argumentLine `
         -WorkingDirectory (Split-Path -Parent $InstallerPath) `
         -WindowStyle Hidden `

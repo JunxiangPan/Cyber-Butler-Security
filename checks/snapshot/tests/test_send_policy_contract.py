@@ -1,4 +1,4 @@
-﻿"""Contract test for the URL/outside-shared send approval path.
+"""Contract test for the URL/outside-shared send approval path.
 
 The overlay classifies URLs and files outside the shared folder as risky and
 calls the Broker with a complete manifest. The Broker must issue a TOTP

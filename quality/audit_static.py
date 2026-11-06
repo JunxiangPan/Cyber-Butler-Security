@@ -50,7 +50,7 @@ def main() -> int:
     module = os.environ.get("CBS_PSSA_MODULE", r"C:\PSSA\PSScriptAnalyzer.psd1")
     pssa = ROOT / "quality" / "audit_pssa.ps1"
     ok, _ = run("PSScriptAnalyzer", [
-        "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+        "pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
         "-File", str(pssa), "-ModulePath", module,
     ])
     failures += 0 if ok else 1

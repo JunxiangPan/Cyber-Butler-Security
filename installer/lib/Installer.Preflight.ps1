@@ -1,4 +1,4 @@
-﻿# Read-only preflight for the Cyber-Butler installer.
+# Read-only preflight for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 before this file.
 
 if (-not (Get-Command Get-CyberButlerExistingState -ErrorAction SilentlyContinue)) {

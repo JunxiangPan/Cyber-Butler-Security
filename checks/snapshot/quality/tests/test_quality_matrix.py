@@ -251,7 +251,7 @@ def test_q22_port_conflict_preflight():
             listeners.append(sock)
         probe = ROOT / "quality" / "port_conflict_probe.ps1"
         result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(probe), "-Root", str(ROOT)],
+            ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(probe), "-Root", str(ROOT)],
             capture_output=True, text=True, timeout=45,
         )
         assert result.returncode == 0, result.stderr

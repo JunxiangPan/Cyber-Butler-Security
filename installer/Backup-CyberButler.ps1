@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Create an integrity-checked backup of Cyber-Butler user data.

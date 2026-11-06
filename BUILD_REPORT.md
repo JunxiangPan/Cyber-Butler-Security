@@ -1,4 +1,4 @@
-﻿# BUILD_REPORT
+# BUILD_REPORT
 - Release Version: 1.6.4
 
 - Current Commit: db07919ed54b1e3bf847faf6a1f98d4b6e8f04b8

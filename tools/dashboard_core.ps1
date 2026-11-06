@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 Cyber-Butler dashboard core helpers.
 Only status probing, version/root resolution and audit-tail reading remain.

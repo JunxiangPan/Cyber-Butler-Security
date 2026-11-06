@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $profileRoot = Join-Path $installerRoot 'profiles'
 $scriptPath = Join-Path $installerRoot 'Install-CyberButler.ps1'
@@ -73,7 +73,7 @@ Describe 'Installer PlanOnly' {
     It 'plans a fresh install without writing files' {
         $target = Join-Path $env:TEMP ('cb-installer-fresh-' + [guid]::NewGuid().ToString('N'))
         try {
-            $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -Tier Medium -InstallPath $target 2>&1
+            $out = & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -Tier Medium -InstallPath $target 2>&1
             $LASTEXITCODE | Should Be 0
             (($out -join "`n") -match 'Existing install: None') | Should Be $true
             (Test-Path -LiteralPath $target) | Should Be $false
@@ -87,7 +87,7 @@ Describe 'Installer PlanOnly' {
         try {
             New-Item -ItemType Directory -Path (Join-Path $target 'AgentRuntime') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $target 'VERSION') -Value '1.6.0' -Encoding ASCII
-            $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -Tier Medium -InstallPath $target 2>&1
+            $out = & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -Tier Medium -InstallPath $target 2>&1
             $LASTEXITCODE | Should Be 0
             (($out -join "`n") -match 'Existing install: Legacy') | Should Be $true
             (($out -join "`n") -match 'upgrade / repair / migration') | Should Be $true
@@ -97,7 +97,7 @@ Describe 'Installer PlanOnly' {
     }
 
     It 'returns NeedsApproval for non-interactive install' {
-        $out = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Tier High -NonInteractive 2>&1
+        $out = & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Tier High -NonInteractive 2>&1
         $LASTEXITCODE | Should Be 10
         (($out -join "`n") -match 'interactive approval') | Should Be $true
     }

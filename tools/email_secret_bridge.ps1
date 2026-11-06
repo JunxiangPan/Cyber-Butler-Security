@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 Decrypt the machine-scope email configuration and emit it as JSON on stdout.
 

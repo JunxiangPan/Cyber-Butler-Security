@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Continue'
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\weekly-selfheal.log'
 $memoryFile = Join-Path $root 'tools\weekly-selfheal-memory.jsonl'
@@ -137,7 +137,7 @@ function Stop-Stack {
     try { Stop-ScheduledTask -TaskName 'AuxRuntime Startup' -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
     try { Stop-ScheduledTask -TaskName 'AgentRuntime Service' -ErrorAction SilentlyContinue } catch { Write-Verbose 'optional operation failed' }
     Start-Sleep -Seconds 2
-    $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='node.exe' OR Name='powershell.exe'" -ErrorAction SilentlyContinue)
+    $procs = @(Get-CimInstance Win32_Process -Filter "Name='python.exe' OR Name='node.exe' OR Name='pwsh.exe'" -ErrorAction SilentlyContinue)
     foreach ($p in $procs) {
         $cmd = [string]$p.CommandLine
         $kill = $false
@@ -153,7 +153,7 @@ function Stop-Stack {
         if ($p.Name -eq 'python.exe' -and $cmd -match 'auxruntime_guard\.py') { $kill = $true }
         if ($p.Name -eq 'node.exe' -and $cmd -match 'AuxRuntime.*index\.mjs') { $kill = $true }
         if ($p.Name -eq 'node.exe' -and $cmd -match 'playwright.*mcp.*cli\.js') { $kill = $true }
-        if ($p.Name -eq 'powershell.exe' -and $cmd -match 'run-agentruntime-service\.ps1') { $kill = $true }
+        if ($p.Name -eq 'pwsh.exe' -and $cmd -match 'run-agentruntime-service\.ps1') { $kill = $true }
         if ($kill) {
             try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop; Log ('killed ' + $p.ProcessId + ' ' + $p.Name) } catch { Log ('kill failed ' + $p.ProcessId + ': ' + $_.Exception.Message) }
         }

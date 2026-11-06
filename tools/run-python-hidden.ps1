@@ -1,4 +1,4 @@
-﻿# Hidden Python launcher for scheduled tasks.
+# Hidden Python launcher for scheduled tasks.
 # A task action that starts python.exe directly leaves a visible console.
 # pythonw.exe avoids the console but can break applications that write to
 # stdout/stderr. This wrapper keeps python.exe hidden and redirects its output.

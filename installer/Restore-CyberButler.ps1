@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Restore a Cyber-Butler backup created by Backup-CyberButler.ps1.

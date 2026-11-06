@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 $shared = 'YOUR_USER_PATH\Desktop\shared专用文件夹'
 $log = 'YOUR_PROJECT_PATH\tools\protect_shared_acl.log'

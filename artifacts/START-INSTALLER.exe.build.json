@@ -1,8 +1,8 @@
 {
   "schema": "cbp-binary-provenance/v1",
   "path": "START-INSTALLER.exe",
-  "sha256": "7A47EDEE70C587C5C57078FD9AE47A054267A9175CCDFE7C23A25D4FF7D0ECAC",
-  "size_bytes": 35103303,
+  "sha256": "2CF157ABADAD4166E8B1F884A861064A7B6AD888B0554EEF6EE011A112731071",
+  "size_bytes": 67909794,
   "build": {
     "tool": "dotnet publish",
     "sdk": "8.0.427",

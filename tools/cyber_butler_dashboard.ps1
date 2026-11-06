@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 Cyber-Butler Dashboard - pure security status panel.
 Only security audit, network whitelist and system settings remain.

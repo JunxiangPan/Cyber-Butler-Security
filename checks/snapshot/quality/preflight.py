@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Three local gates run before packaging.
 
 1. Text hygiene + placeholder allowlist
@@ -78,7 +78,7 @@ def dry_run() -> list[str]:
     if not script.is_file():
         return ["missing quality/installer_dry_run.ps1"]
     result = subprocess.run(
-        ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+        ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
          "-File", str(script)],
         capture_output=True, text=True, timeout=120,
     )

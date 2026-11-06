@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Migrate a v1.6.2 Cyber-Butler installation to the v1.6.3 independent model.

@@ -1,4 +1,4 @@
-﻿# DPAPI secret material and local-overlay lifecycle for the installer.
+# DPAPI secret material and local-overlay lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerSecretPaths {

@@ -157,7 +157,7 @@ def create_app(settings: Settings | None = None, mailer=None, services=None) -> 
         if bridge.exists():
             try:
                 completed = subprocess.run(
-                    ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
+                    ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
                     capture_output=True,
                     text=True,
                     timeout=15,

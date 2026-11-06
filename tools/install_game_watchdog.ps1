@@ -1,4 +1,4 @@
-﻿# Install a per-user, one-minute watchdog for stale game-mode state.
+# Install a per-user, one-minute watchdog for stale game-mode state.
 # Run from an elevated PowerShell once per deployment.
 $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot 'game-mode-watchdog.ps1'
@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $launcher)) { throw "missing $launcher" }
 
 # Use the signed native launcher with CREATE_NO_WINDOW; no wscript/cmd shim.
 $action = New-ScheduledTaskAction -Execute $launcher `
-    -Argument ('--exe "powershell.exe" --workdir "' + $PSScriptRoot + '" --args "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"' + $script + '\"" --hidden --wait')
+    -Argument ('--exe "pwsh.exe" --workdir "' + $PSScriptRoot + '" --args "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"' + $script + '\"" --hidden --wait')
 $trigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(1)) `
     -RepetitionInterval (New-TimeSpan -Minutes 1) `
     -RepetitionDuration (New-TimeSpan -Days 3650)

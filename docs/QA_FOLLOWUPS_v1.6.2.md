@@ -1,4 +1,4 @@
-﻿# Cyber-Butler v1.6.2 QA Follow-ups
+# Cyber-Butler v1.6.2 QA Follow-ups
 
 ## Contents
 

@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Journal.ps1')
 $mainScript = Join-Path $installerRoot 'Install-CyberButler.ps1'
-$psExe = Join-Path $PSHOME 'powershell.exe'
+$psExe = Join-Path $PSHOME 'pwsh.exe'
 
 <#
 .SYNOPSIS
