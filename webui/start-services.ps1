@@ -7,8 +7,8 @@ $parent = Split-Path $webRoot -Parent
 # webui is always an immediate child of the project root. The old
 # heuristic went one level too high and looked for C:\webui-config.json.
 $root = $parent
-$python = Join-Path $webRoot '.venv\Scripts\python.exe'
-$pythonw = Join-Path $webRoot '.venv\Scripts\pythonw.exe'
+$python = Join-Path $parent 'python\python.exe'
+$pythonw = Join-Path $parent 'python\pythonw.exe'
 if (-not (Test-Path -LiteralPath $pythonw)) { $pythonw = $python }
 $config = Join-Path $root 'webui-config.json'
 # settings.py also accepts webui\config.json; keep the older layout working.

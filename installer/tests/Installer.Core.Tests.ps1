@@ -60,7 +60,7 @@ Describe 'Installer core deployment' {
             (Test-Path -LiteralPath (Join-Path $target 'workspace')) | Should Be $true
             (Test-Path -LiteralPath (Join-Path $target 'AgentRuntime')) | Should Be $false
             (Test-Path -LiteralPath (Join-Path $target 'AuxRuntimeApplication')) | Should Be $false
-            (Test-Path -LiteralPath (Join-Path $target 'webui\.venv\Scripts\python.exe')) | Should Be $true
+            (Test-Path -LiteralPath (Join-Path $target 'python\python.exe')) | Should Be $true
         } finally { Remove-Item -LiteralPath $base -Recurse -Force }
     }
 
@@ -68,10 +68,10 @@ Describe 'Installer core deployment' {
         $base = Join-Path $env:TEMP ('cb-core-satisfied-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $base -Force | Out-Null
         try {
-            foreach ($dir in @('tools', 'webui', 'webui\.venv\Scripts', 'data', 'workspace')) {
+            foreach ($dir in @('tools', 'webui', 'python', 'data', 'workspace')) {
                 New-Item -ItemType Directory -Path (Join-Path $base $dir) -Force | Out-Null
             }
-            foreach ($file in @('tools\broker.py', 'tools\email_approval.py', 'tools\wfp_guard.py', 'webui\run.py', 'webui\requirements.txt', 'webui\.venv\Scripts\python.exe', 'VERSION')) {
+            foreach ($file in @('tools\broker.py', 'tools\email_approval.py', 'tools\wfp_guard.py', 'webui\run.py', 'webui\requirements.txt', 'python\python.exe', 'python\pip.pyz', 'VERSION')) {
                 Set-Content -LiteralPath (Join-Path $base $file) -Value 'fixture' -Encoding ASCII
             }
             $test = Test-CyberButlerCoreDeploy -InstallPath $base

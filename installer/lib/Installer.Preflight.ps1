@@ -216,7 +216,7 @@ function Get-CyberButlerPythonSnapshot {
     if ($CandidatePaths.Count -gt 0) {
         foreach ($candidate in $CandidatePaths) { if ($candidate) { $paths.Add([string]$candidate) } }
     } else {
-        $paths.Add((Join-Path $InstallPath '.python\python.exe'))
+        $paths.Add((Join-Path $InstallPath 'python\python.exe'))
         $command = Get-Command python.exe -ErrorAction SilentlyContinue
         if ($command) { $paths.Add([string]$command.Source) }
         $launcher = Get-Command py.exe -ErrorAction SilentlyContinue
@@ -285,7 +285,7 @@ function Get-CyberButlerPythonSnapshot {
             $versionTooNew = (($major -gt 3) -or ($major -eq 3 -and $minor -ge 14))
             $versionOk = ($major -eq 3 -and $minor -ge 10 -and $minor -le 13)
         }
-        $candidateSource = if ($full -like ((Join-Path ([IO.Path]::GetFullPath($InstallPath)) '.python') + '\*')) { 'bundled' } else { 'system' }
+        $candidateSource = if ($full -like ((Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'python') + '\*')) { 'bundled' } else { 'system' }
         $candidates.Add([pscustomobject][ordered]@{
             found = $true
             path = $realPath
@@ -378,7 +378,7 @@ function Get-CyberButlerPreflight {
     $pythonUsable = $null -ne $resolvedPython
     $pythonNeedsBundle = -not $pythonUsable
     $pythonSource = if ($resolvedPython) { [string]$resolvedPython.python_source } else { 'bundled' }
-    $pythonTargetPath = Join-Path ([IO.Path]::GetFullPath($InstallPath)) '.python\python.exe'
+    $pythonTargetPath = Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'python\python.exe'
     $pythonResolvedPath = if ($resolvedPython) { [string]$resolvedPython.path } else { $pythonTargetPath }
     $pythonResolvedVersion = if ($resolvedPython) { [string]$resolvedPython.version } else { 'Python 3.13.17 (bundled target)' }
     if ($pythonNeedsBundle) {

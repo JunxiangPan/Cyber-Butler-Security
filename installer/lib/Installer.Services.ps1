@@ -94,10 +94,10 @@ function Get-CyberButlerServiceSpecs {
 
     $rootFull = [IO.Path]::GetFullPath($Root)
     if (-not $DesktopAccount) { $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name }
-    $python = Join-Path $rootFull 'webui\.venv\Scripts\python.exe'
+    $python = Join-Path $rootFull 'python\python.exe'
     $pythonw = $python
     $webPython = $python
-    $webPythonw = Join-Path $rootFull 'webui\.venv\Scripts\pythonw.exe'
+    $webPythonw = Join-Path $rootFull 'python\pythonw.exe'
     if (-not (Test-Path -LiteralPath $webPythonw)) { $webPythonw = $webPython }
     $launcher = Join-Path $rootFull 'tools\CyberButlerLauncher.exe'
     $webLog = Join-Path $rootFull 'webui\data\webui-service.log'

@@ -54,8 +54,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "a7f1c5a1d2b6105492d0282349aa93c856e9cc9082bf6ade11ec1904acb29df9",
-      "size": 3750
+      "sha256": "3f289d68c00a1f242a8951f36dc756eb390fa401cc02dff350f7712a7533309f",
+      "size": 3942
     },
     {
       "path": "README_de.md",
@@ -99,8 +99,8 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "d47505a028ad2b8271922d3f7d66c38ae2a82ac867021b9d7bd22b1328a73594",
-      "size": 24442
+      "sha256": "dca1a8aca85b191fad53c7e0e0257c31b8bca81280db129643412a53105fd8f7",
+      "size": 24680
     },
     {
       "path": "SECURITY.md",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "b879aa842dd2b90b7716362ce22c7d7c810082ad6cbf7af1b31dde9bc9e420f2",
+      "sha256": "6fdcfb36d8777084f803b524119fe78078b5906128de62a429b5f131559b0834",
       "size": 1077
     },
     {
@@ -619,8 +619,8 @@
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "2197c9228d9eea68ed9f5ee350040c7241ef57adb4dafd958f95f916cb0363bc",
-      "size": 59157
+      "sha256": "ee6474fb8ab1c17645ad73515385afb46b4acdb7ed11dc3e52b20f5225a5092f",
+      "size": 59143
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -674,8 +674,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "ca3c673511b03a1ffc8263b2885a63786cb49526805a38f4f9ec30c15fb01c20",
-      "size": 28113
+      "sha256": "b5809e53e841dc0d04f4efe8bc429776acde99f79811628f1e75b2da4c427934",
+      "size": 29379
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -704,13 +704,13 @@
     },
     {
       "path": "installer/lib/Installer.Preflight.ps1",
-      "sha256": "aa38849d0b9986644e48d2ba1dabd3d7e533a7920ce1280aefa898f0cd9b28f3",
-      "size": 19870
+      "sha256": "ef62b80a92d37a2e5437d5265d4379d76fe88deb20f37f950cc7c3de98145b47",
+      "size": 19867
     },
     {
       "path": "installer/lib/Installer.Python.ps1",
-      "sha256": "576294f47dc00869581ecd2b3e332654c9260140a39d7fd533840f97d32eaa1c",
-      "size": 15105
+      "sha256": "453996e3d2d4260cd0651c7da669932f841a170953e9c60c76129402b5cac175",
+      "size": 15102
     },
     {
       "path": "installer/lib/Installer.Report.ps1",
@@ -724,8 +724,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "ad26a478d8090dbdf224db0f43360b2ec33bb1f22b096667534b4f065152fc19",
-      "size": 39455
+      "sha256": "1298ecfe899bc323bd6170c0f9620500e745f4155f0fb1c5276d3cc857c81453",
+      "size": 39429
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -734,8 +734,8 @@
     },
     {
       "path": "installer/lib/Installer.Totp.ps1",
-      "sha256": "746aa83105e565fda979ae7f0dc95ff265ab853c3ef7c946f90876d5a6788319",
-      "size": 29095
+      "sha256": "004a555952e2bbc7435885d8f2febacc361cc88908051a6451825316efcb164c",
+      "size": 29082
     },
     {
       "path": "installer/lib/Installer.Upgrade.ps1",
@@ -768,6 +768,16 @@
       "size": 558
     },
     {
+      "path": "installer/python-embed/pip.pyz",
+      "sha256": "be510f6d23d345eeabdd3eec2599a3ca2df3cbc98c4afbe2631561ca12e744d7",
+      "size": 1891753
+    },
+    {
+      "path": "installer/python-embed/python-3.13.17-embed-amd64.zip",
+      "sha256": "9e35319bffedab8b36ad44d8f377cb4f1733bcec257a0b6d04d94f01486ddb38",
+      "size": 11441267
+    },
+    {
       "path": "installer/tests/Installer.AcceptanceScript.Tests.ps1",
       "sha256": "ef154b33a8e1631cd621c2ea407b82cc85048b0e1f24d6a25e73094188fcc57f",
       "size": 2174
@@ -784,8 +794,8 @@
     },
     {
       "path": "installer/tests/Installer.Core.Tests.ps1",
-      "sha256": "337b0135ae37a8c8fabf03ea98e24b421898d92a08a9deaf81a34f9752f8a5b2",
-      "size": 4782
+      "sha256": "2bbcd7c1168b4f63c09f1f2c057f57325c117ed5f27380a260460588cdff91ef",
+      "size": 4761
     },
     {
       "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
@@ -1819,8 +1829,8 @@
     },
     {
       "path": "webui/start-services.ps1",
-      "sha256": "daacba5aef3678f55ea80791690b7e5b00d36b41b308f08f7bcabc9e11afb80b",
-      "size": 4656
+      "sha256": "25f1929ba6ad0981dcbcf50055b867ca0f305fc39eb5c91ea49c9f1e3308a900",
+      "size": 4640
     },
     {
       "path": "webui/static/console.css",

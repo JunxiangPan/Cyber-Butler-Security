@@ -581,7 +581,7 @@ if (-not $failure -and $coreNeedsDeploy) {
         Add-MainJournalStep -Journal $journal -Name 'core' -Status $(if ([string]$coreResult.status -eq 'skipped') { 'skipped' } else { 'completed' }) -Reason $coreReason
     }
     if (-not $failure -and -not $SkipDependencyInstall) {
-        $webPython = Join-Path $InstallPath 'webui\.venv\Scripts\python.exe'
+        $webPython = Join-Path $InstallPath 'python\python.exe'
         if (Test-Path -LiteralPath $webPython) {
             $depProbe = Test-CyberButlerCbsPythonDependencies -PythonPath $webPython
             if (-not $depProbe.ok) {
@@ -611,7 +611,7 @@ $aclRoot = $InstallPath
 $toolsPath = Join-Path $aclRoot 'tools'
 $aclPaths = @(Get-CyberButlerAclTargets -InstallPath $aclRoot)
 $vaultPath = Join-Path $toolsPath 'totp-vault'
-$pythonAclPath = Join-Path $aclRoot '.python'
+$pythonAclPath = Join-Path $aclRoot 'python'
 if (Test-Path -LiteralPath $pythonAclPath) { $aclPaths = @($aclPaths) + $pythonAclPath }
 
 function Complete-MainSecurityStep {

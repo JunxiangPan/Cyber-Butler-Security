@@ -6,7 +6,7 @@ function Get-CyberButlerPythonTargetPath {
         [Parameter(Mandatory = $true)]
         [string]$InstallPath
     )
-    return (Join-Path ([IO.Path]::GetFullPath($InstallPath)) '.python\python.exe')
+    return (Join-Path ([IO.Path]::GetFullPath($InstallPath)) 'python\python.exe')
 }
 
 function Get-CyberButlerPythonSourceConfig {
@@ -183,7 +183,7 @@ function Invoke-CyberButlerPythonBootstrap {
 
     $root = [IO.Path]::GetFullPath($InstallPath)
     New-Item -ItemType Directory -Path $root -Force | Out-Null
-    $targetRoot = Join-Path $root '.python'
+    $targetRoot = Join-Path $root 'python'
     $createdTarget = -not (Test-Path -LiteralPath $targetRoot)
     $staging = Join-Path $root ('.python-installer-' + [guid]::NewGuid().ToString('N') + '.exe')
     if ($null -ne $Journal) { Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status in_progress | Out-Null }
@@ -232,7 +232,7 @@ function Invoke-CyberButlerPythonBootstrap {
             return [pscustomobject]@{ status = 'failed'; code = 'python_bootstrap_failed'; reason = 'sha_mismatch'; message = ('Python installer SHA-256 mismatch: expected ' + $hash + ', got ' + $actual) }
         }
 
-        Write-Host 'PYTHON installing Python 3.13 into .python (this may take several minutes)...'
+        Write-Host 'PYTHON installing Python 3.13 into python (this may take several minutes)...'
         $pythonLog = Join-Path $root 'python-install.log'
         # InstallAllUsers=1 is required for a reliable custom TargetDir on a
         # clean Windows image; InstallAllUsers=0 can silently install into the

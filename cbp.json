@@ -68,5 +68,31 @@
     }
   ],
   "enable_encoding": true,
-  "schema_version": "0.1.4"
+  "schema_version": "0.1.4",
+  "custom_rules": [
+    {
+      "id": "CBP-CUSTOM-NO-RAW-PYTHON",
+      "name": "no_raw_python",
+      "pattern": "(?m)(?<![\\/\\w-])(?:&\\s*|Start-Process\\s+-FilePath\\s+['\"]?|Get-Command\\s+['\"]?)python(?:\\.exe)?",
+      "files": [
+        "installer/lib/Installer.Core.ps1",
+        "webui/start-services.ps1"
+      ],
+      "message": "Use $InstallRoot\\python\\python.exe, never a bare python command.",
+      "mode": "enforce",
+      "severity": "error"
+    },
+    {
+      "id": "CBP-CUSTOM-REQUIRE-BROKER-ASSERT",
+      "name": "require_broker_assert",
+      "pattern": "HARD ASSERT FAILED: tools/broker.py",
+      "required_pattern": "HARD ASSERT FAILED: tools/broker.py",
+      "files": [
+        "installer/lib/Installer.Core.ps1"
+      ],
+      "message": "Installer must assert tools/broker.py exists.",
+      "mode": "enforce",
+      "severity": "error"
+    }
+  ]
 }

@@ -77,6 +77,13 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
             matcher = re.compile(expression, flags)
         except re.error as exc:
             return False, f"custom rule {name} has invalid regex: {exc}"
+        required = rule.get("required_pattern", "")
+        required_matcher = None
+        if required:
+            try:
+                required_matcher = re.compile(required, flags)
+            except re.error as exc:
+                return False, f"custom rule {name} has invalid required_pattern: {exc}"
         limit = int(rule.get("max_matches", 100))
         count = 0
         for path in _files(cfg, files, rule.get("exclude", [])):
@@ -88,6 +95,11 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
             if error:
                 findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] unreadable: {error}")
                 count += 1
+                continue
+            if required_matcher is not None:
+                if required_matcher.search(text) is None:
+                    findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] {message} (required pattern missing)")
+                    count += 1
                 continue
             for match in matcher.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1

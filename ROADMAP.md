@@ -539,3 +539,6 @@ Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED -
 - Upgrade CBP SHA-256 self-seal to a DPAPI key + HMAC signature.
 - Fix the C# self-contained `START-INSTALLER.exe` silent-exit launcher and add a VM smoke test.
 - Install `jinja2` in CI and restore WebUI template/API tests.
+## Deployment invariants
+
+CBP must verify CI green **and** statically reject install scripts that depend on host environment paths or skip core-file assertions. See `docs/40-history/incidents/v1.6.4-vm-installer-environment-split.md`.

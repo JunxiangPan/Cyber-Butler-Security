@@ -13,29 +13,47 @@ function Get-CyberButlerCorePython {
         [string]$ServiceRoot = '',
         [bool]$Isolation = $false
     )
-    if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf)) {
-        $preferred = [IO.Path]::GetFullPath($PreferredPath)
-        if ($Isolation -and $ServiceRoot -and $preferred -match '^[A-Za-z]:\\Users\\') {
-            # A standard service account cannot read a per-user Python install.
-            # Materialize the base runtime under the service-readable install
-            # root, then create the venv from that copy.
-            $sourceRoot = Split-Path -Parent $preferred
-            $servicePythonRoot = Join-Path $ServiceRoot '.python'
-            $servicePython = Join-Path $servicePythonRoot 'python.exe'
-            if (-not (Test-Path -LiteralPath $servicePython)) {
-                if (Test-Path -LiteralPath $servicePythonRoot) {
-                    Remove-Item -LiteralPath $servicePythonRoot -Recurse -Force -ErrorAction SilentlyContinue
-                }
-                Copy-Item -LiteralPath $sourceRoot -Destination $servicePythonRoot -Recurse -Force
-            }
-            if (Test-Path -LiteralPath $servicePython) { return [IO.Path]::GetFullPath($servicePython) }
-        }
-        return $preferred
+    if ([string]::IsNullOrWhiteSpace($ServiceRoot)) { throw 'ServiceRoot is required for bundled Python.' }
+    $target = Join-Path ([IO.Path]::GetFullPath($ServiceRoot)) 'python\python.exe'
+    if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+        throw ('Bundled Python is missing: ' + $target + '. Core deployment must extract installer/python-embed first.')
     }
-    $command = Get-Command python.exe -ErrorAction SilentlyContinue
-    if (-not $command) { $command = Get-Command py.exe -ErrorAction SilentlyContinue }
-    if (-not $command) { throw 'Python was not found.' }
-    return [string]$command.Source
+    return [IO.Path]::GetFullPath($target)
+}
+
+<#
+.SYNOPSIS
+    Deploy-CyberButlerPortablePython extracts the bundled embeddable Python.
+.DESCRIPTION
+    Extracts installer/python-embed into <InstallPath>\python, enables site
+    packages, copies pip.pyz, and returns absolute interpreter paths.
+#>
+function Deploy-CyberButlerPortablePython {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallPath,
+        [Parameter(Mandatory = $true)][string]$ReleaseRoot
+    )
+    $root = [IO.Path]::GetFullPath($InstallPath)
+    $pythonRoot = Join-Path $root 'python'
+    $python = Join-Path $pythonRoot 'python.exe'
+    $embed = Join-Path $ReleaseRoot 'installer\python-embed\python-3.13.17-embed-amd64.zip'
+    $pip = Join-Path $ReleaseRoot 'installer\python-embed\pip.pyz'
+    if (-not (Test-Path -LiteralPath $embed)) { throw ('Portable Python archive missing: ' + $embed) }
+    if (-not (Test-Path -LiteralPath $pip)) { throw ('Portable pip archive missing: ' + $pip) }
+    if ((-not (Test-Path -LiteralPath $python)) -or (-not (Test-Path -LiteralPath (Join-Path $pythonRoot 'pip.pyz')))) {
+        if (Test-Path -LiteralPath $pythonRoot) { Remove-Item -LiteralPath $pythonRoot -Recurse -Force }
+        New-Item -ItemType Directory -Path $pythonRoot -Force | Out-Null
+        Expand-Archive -LiteralPath $embed -DestinationPath $pythonRoot -Force
+        $pth = Get-ChildItem -LiteralPath $pythonRoot -Filter 'python*._pth' -File | Select-Object -First 1
+        if ($null -eq $pth) { throw 'Portable Python ._pth file is missing.' }
+        $text = Get-Content -LiteralPath $pth.FullName -Raw -Encoding UTF8
+        if ($text -notmatch '(?m)^import site$') { $text = $text -replace '(?m)^#import site\s*$','import site' }
+        if ($text -notmatch 'Lib\site-packages') { $text = $text.TrimEnd() + [Environment]::NewLine + 'Lib\site-packages' + [Environment]::NewLine }
+        Set-Content -LiteralPath $pth.FullName -Value $text -Encoding UTF8
+        Copy-Item -LiteralPath $pip -Destination (Join-Path $pythonRoot 'pip.pyz') -Force
+    }
+    if (-not (Test-Path -LiteralPath $python)) { throw ('Portable Python extraction failed: ' + $python) }
+    return [pscustomobject]@{ python = $python; python_root = $pythonRoot; pip = (Join-Path $pythonRoot 'pip.pyz') }
 }
 
 <#
@@ -314,11 +332,9 @@ function Test-CyberButlerCoreDeploy {
     }
     $root = [IO.Path]::GetFullPath($InstallPath)
     $missing = New-Object System.Collections.Generic.List[string]
-    foreach ($rel in @('tools/broker.py','tools\email_approval.py','tools\wfp_guard.py','webui/run.py','webui/requirements.txt','workspace','data')) {
+    foreach ($rel in @('tools/broker.py','tools\email_approval.py','tools\wfp_guard.py','webui/run.py','webui/requirements.txt','python\python.exe','python\pip.pyz','workspace','data')) {
         if (-not (Test-Path -LiteralPath (Join-Path $root $rel))) { $missing.Add($rel) }
     }
-    $venvPython = Join-Path $root 'webui\.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('webui/.venv/Scripts/python.exe') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'VERSION'))) { $missing.Add('VERSION') }
     $satisfied = $missing.Count -eq 0
     return [pscustomobject]@{
@@ -433,7 +449,7 @@ function Invoke-CyberButlerCoreDeploy {
 
     $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
     if ($test.satisfied -and -not $SkipDependencyInstall) {
-        $dependencyProbe = Test-CyberButlerCbsPythonDependencies -PythonPath (Join-Path $InstallPath 'webui\.venv\Scripts\python.exe')
+        $dependencyProbe = Test-CyberButlerCbsPythonDependencies -PythonPath (Join-Path $InstallPath 'python\python.exe')
         if (-not $dependencyProbe.ok) {
             $test.satisfied = $false
             $test.reason = 'CBS Python dependencies missing: ' + $dependencyProbe.reason
@@ -507,20 +523,23 @@ function Invoke-CyberButlerCoreDeploy {
             throw ('broker_config.json does not contain workspace root: ' + $workspaceRoot)
         }
 
-        $webVenv = Join-Path $paths.webui '.venv'
+        $portable = Deploy-CyberButlerPortablePython -InstallPath $root -ReleaseRoot $releaseRoot
+        $python = $portable.python
         if (-not $SkipDependencyInstall) {
-            $python = Get-CyberButlerCorePython -PreferredPath $PythonPath -ServiceRoot $root -Isolation:($Tier -eq 'High')
-            & $python -m venv $webVenv
-            if ($LASTEXITCODE -ne 0) { throw 'webui python -m venv failed.' }
             $webRequirements = Join-Path $paths.webui 'requirements.txt'
+            $wheelhouse = Join-Path $releaseRoot 'installer\wheelhouse'
             $webPipLog = Join-Path $root 'installer-report\webui-pip-install.log'
-            $webPipRun = Invoke-CyberButlerPipInstall -PythonPath (Join-Path $webVenv 'Scripts\python.exe') -Requirements $webRequirements -LogPath $webPipLog -SitePackagesPath (Join-Path $webVenv 'Lib\site-packages')
-            if ($webPipRun.exit_code -ne 0) { throw ('CBS Web UI pip install failed. pip log: ' + $webPipLog) }
-        } else {
-            New-Item -ItemType Directory -Path (Join-Path $webVenv 'Scripts') -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $webVenv 'Scripts\python.exe') -Value '' -Encoding ASCII
+            New-Item -ItemType Directory -Path (Split-Path -Parent $webPipLog) -Force | Out-Null
+            $pipArgs = @($portable.pip, 'install', '--disable-pip-version-check', '--no-warn-script-location', '--no-index', '--find-links', $wheelhouse, '-r', $webRequirements)
+            & $python @pipArgs *> $webPipLog
+            if ($LASTEXITCODE -ne 0) { throw ('CBS portable Python dependency install failed; log: ' + $webPipLog) }
         }
-
+        if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $root 'tools') 'broker.py'))) {
+            throw 'HARD ASSERT FAILED: tools/broker.py was not copied into the install root.'
+        }
+        if (-not (Test-Path -LiteralPath $python)) {
+            throw 'HARD ASSERT FAILED: bundled python/python.exe is missing.'
+        }
         $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Handlers $Handlers
         if (-not $asserted.satisfied) { throw ('CBS core assertion failed: ' + ($asserted.missing -join ', ')) }
         if ($null -ne $Journal -and $stepStarted) {
