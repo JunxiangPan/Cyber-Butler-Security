@@ -1437,7 +1437,8 @@ def email_watch(request_id: str) -> None:
                 return
         with broker_state._lock:
             broker_state._pending = None
-        ok, result = execute(request)
+        execution = execute(request)
+        ok, result = execution.ok, execution.message
         log(f"email approved: {request_id} ok={ok} {result}")
         _email_result(config, request, result)
         return
@@ -1809,7 +1810,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "_snapshot": target_snapshot,
                 "_source_snapshot": source_snapshot,
             }
-            ok, result = execute(request)
+            execution = execute(request)
+            ok, result = execution.ok, execution.message
             if ok:
                 _audit_bypass(request, result, str(bypass.get("scope", "")))
                 log(f"bypass executed: {request_id} {action} {target_text}")
@@ -1855,7 +1857,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "_snapshot": target_snapshot,
                 "_source_snapshot": source_snapshot,
             }
-            ok, result = execute(request)
+            execution = execute(request)
+            ok, result = execution.ok, execution.message
             if ok:
                 _audit_scoped(request, result, str(scoped.get("root", "")))
                 log(f"scoped token executed: {request_id} {action} {target_text}")
@@ -1909,7 +1912,8 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "_snapshot": target_snapshot,
             "_source_snapshot": source_snapshot,
         }
-        ok, result = execute(request)
+        execution = execute(request)
+        ok, result = execution.ok, execution.message
         _audit_auto(request, ok, result)
         if not ok:
             return 400, {"ok": False, "error": result, "auto_executed": False}
@@ -2266,7 +2270,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             return 200, {"ok": True, "approved": True, "id": request_id, "result": "已授权发送"}
 
     execution = execute(request)
-    ok, result = execution
+    ok, result = execution.ok, execution.message
     send_qq(result)
     bypass = None
     scoped = None

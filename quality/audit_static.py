@@ -26,6 +26,11 @@ def run(name: str, command: list[str]) -> tuple[bool, str]:
 
 
 def main() -> int:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
     failures = 0
     ok, _ = run("mypy", [
         sys.executable, "-m", "mypy", "--ignore-missing-imports",

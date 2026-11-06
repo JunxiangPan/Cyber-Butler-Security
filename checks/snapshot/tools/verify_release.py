@@ -9,6 +9,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sign_release
@@ -135,10 +136,11 @@ def main() -> int:
 
     manifest = Path(args.manifest)
     version = sign_release.release_version(manifest)
+    version_tuple: tuple[int, int, int]
     try:
-        version_tuple = sign_release._version_tuple(version)
+        version_tuple = cast(tuple[int, int, int], sign_release._version_tuple(version))
     except sign_release.SignGateError:
-        version_tuple = (1, 6, 3)
+        version_tuple = cast(tuple[int, int, int], (1, 6, 3))
     reason = _revoked(manifest, args.revoked_file)
     if reason:
         print("REVOKED: " + reason)
