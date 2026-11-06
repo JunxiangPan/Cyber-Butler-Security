@@ -94,6 +94,69 @@ Recommended install order for a one-shot aligned setup:
 The order is a convenience, not a runtime requirement. Every component must
 start successfully without its siblings.
 
+## CBP governance
+
+### Iron law 3: CBP is the calibrator, not an exception
+
+CBP must pass the same six gates it enforces:
+
+```text
+coverage
+dependency
+comments
+docs
+binary
+claims
+```
+
+`cbp-action` CI must run all six against itself, explicitly, and block a release
+when any gate fails. The self-check is not optional because CBP defines the
+rules.
+
+Release cadence:
+
+- **Patch** (weekly or more often): threshold calibration, new detection rules,
+  gate groups, and false-positive fixes. Backward compatible; no `cbp.json`
+  format change; no forced upgrade for other components.
+- **Minor** (quarterly): new gate types or adapter formats. Backward compatible;
+  old configurations remain valid.
+- **Major** (at most once a year): `cbp.json` schema or gate-report format
+  changes. Every component must upgrade in the same `CB-YYYY.MM` synchronization
+  snapshot.
+
+### Iron law 4: problem reflection
+
+Every CB component (CBS, CBR, CBM, CBC, and CBP itself) that discovers a new
+failure class must fix the product issue and add the corresponding CBP detection
+rule in the same change set.
+
+A reflection change contains three parts:
+
+1. the business-code fix;
+2. the CBP detection rule;
+3. a **negative test** that constructs a violating sample and asserts CBP blocks
+   it, plus a **positive test** that constructs a compliant sample and asserts
+   CBP allows it.
+
+Both tests are bound by full pytest node IDs in the rule registry. A rule
+without both tests is not mergeable. If CBP cannot detect the issue, or should
+not, the pull request must state why and a human must approve the exception.
+
+Every rule records its source: component, PR, issue, and rule changelog entry.
+`rules/registry.json` is append-only for rule IDs: an existing ID may be marked
+`deprecated` but not deleted, and its source fields may only be corrected for a
+documented typo in `RULES-CHANGELOG.md`.
+
+At minimum, these discoveries trigger reflection:
+
+```text
+CBS new authorization bypass       -> CBP static rule
+CBR new hallucinated-package shape -> CBP dependency allow/deny rule
+CBM new secret format              -> CBP privacy/secret regex rule
+CBC new cbc-event tampering method -> CBP hash-chain/schema rule
+CBP dogfooding failure             -> fix + rule + both tests
+```
+
 ## Cross-version upgrade and migration policy
 
 **Hard rule:** a direct overwrite from v1.6.2 to v1.7.0 is forbidden.

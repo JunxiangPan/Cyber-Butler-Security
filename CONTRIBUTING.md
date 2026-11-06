@@ -129,3 +129,20 @@ Any pull request that changes an API, installation flow, service identity, ACL, 
 ## Release discipline
 
 Read [docs/RELEASE_DISCIPLINE.md](docs/RELEASE_DISCIPLINE.md). A fix that is not committed and pushed is not released, and must not be claimed in release notes.
+
+## CB governance and problem reflection
+
+CBS, CBP, CBR, CBM, and CBC are peers supervised by the same CBP gates. A change
+that discovers a new failure class must include:
+
+- the product fix;
+- a CBP detection rule;
+- a negative test that proves the rule blocks a violating sample;
+- a positive test that proves the rule allows a compliant sample;
+- a `RULES-CHANGELOG.md` entry with component, PR, issue, and both pytest node
+  IDs.
+
+The rule registry is append-only for rule IDs: mark a rule `deprecated` instead
+of deleting it. Source fields are immutable except for a documented typo
+correction. If CBP cannot detect the issue, state why and obtain human approval.
+See `cbp-action/CONTRIBUTING.md` for the executable checks.
