@@ -13,6 +13,12 @@ inputs:
   coverage-allowlist:
     description: Path to the coverage allowlist JSON
     default: ""
+  coverage-signature:
+    description: Optional coverage.json SHA256 sidecar
+    default: ""
+  require-coverage-signature:
+    description: Require the coverage sidecar to match
+    default: "false"
   coverage-threshold:
     description: Minimum allowlisted measured coverage
     default: "80"
@@ -81,6 +87,8 @@ runs:
         OUTPUT=$(python -m cbp.cli --root "${{ inputs.root }}" \
           --coverage-json "${{ inputs.coverage-json }}" \
           --coverage-allowlist "${{ inputs.coverage-allowlist }}" \
+          --coverage-signature "${{ inputs.coverage-signature }}" \
+          --require-coverage-signature "${{ inputs.require-coverage-signature }}" \
           --coverage-threshold "${{ inputs.coverage-threshold }}" \
           --policy-coverage-threshold "${{ inputs.policy-coverage-threshold }}" \
           --dependency-lock "${{ inputs.dependency-lock }}" \

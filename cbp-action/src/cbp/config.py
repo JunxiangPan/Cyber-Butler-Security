@@ -36,6 +36,8 @@ class GateConfig:
     claims_manifest: Path | None = None
     claims_notes: Path | None = None
     release_body: Path | str = ""
+    coverage_signature: Path | str = ""
+    require_coverage_signature: bool = False
 
     def path(self, value: Path | str) -> Path:
         """Resolve a configured path against the repository root."""

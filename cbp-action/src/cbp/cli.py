@@ -20,6 +20,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy-coverage-threshold", type=float, default=None)
     parser.add_argument("--coverage-json", default="")
     parser.add_argument("--coverage-allowlist", default="")
+    parser.add_argument("--coverage-signature", default="")
+    parser.add_argument("--require-coverage-signature", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--dependency-lock", default="")
     parser.add_argument("--install-command", default="")
     parser.add_argument("--docs-manifest", default="")
@@ -48,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.policy_coverage_threshold is not None:
         overrides["policy_threshold"] = args.policy_coverage_threshold
     for key, value in {
-        "coverage_json": args.coverage_json, "coverage_allowlist": args.coverage_allowlist,
+        "coverage_json": args.coverage_json, "coverage_allowlist": args.coverage_allowlist, "coverage_signature": args.coverage_signature,
         "dependency_lock": args.dependency_lock, "install_command": args.install_command,
         "docs_manifest": args.docs_manifest, "binary_artifacts": args.binary_artifacts,
         "package_zip": args.package_zip, "claims_manifest": args.claims_manifest,
@@ -58,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
             overrides[key] = value
     if args.manifest:
         overrides["claims_manifest"] = args.manifest
-    for key in ("enable_coverage", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims", "enable_custom"):
+    for key in ("enable_coverage", "require_coverage_signature", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims", "enable_custom"):
         value = getattr(args, key)
         if value is not None:
             overrides[key] = value

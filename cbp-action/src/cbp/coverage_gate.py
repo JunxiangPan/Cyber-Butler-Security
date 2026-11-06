@@ -3,6 +3,7 @@ from __future__ import annotations
 
 RULE_ID = "CBP-COV-001"
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -89,6 +90,14 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     allowlist = cfg.path(cfg.coverage_allowlist)
     if not coverage.is_file() or not allowlist.is_file():
         return False, "coverage.json or coverage_allowlist.json is missing"
+    if getattr(cfg, "require_coverage_signature", False):
+        signature = cfg.path(getattr(cfg, "coverage_signature", "") or (str(coverage) + ".sha256"))
+        if not signature.is_file():
+            return False, f"coverage signature missing: {signature}"
+        parts = signature.read_text(encoding="utf-8").strip().split()
+        actual = hashlib.sha256(coverage.read_bytes()).hexdigest()
+        if not parts or parts[0].lower() != actual.lower():
+            return False, "coverage signature mismatch"
     data = json.loads(coverage.read_text(encoding="utf-8"))
     allow = json.loads(allowlist.read_text(encoding="utf-8"))
     files = {_norm(str(key)): value for key, value in data["files"].items()}

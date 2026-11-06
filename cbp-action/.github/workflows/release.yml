@@ -60,7 +60,7 @@ jobs:
           test -f "$GITHUB_WORKSPACE/README.md"
           test -f "$GITHUB_WORKSPACE/usage.yml"
           test -f "$GITHUB_WORKSPACE/SECURITY.md"
-          for name in root config coverage-json coverage-allowlist coverage-threshold policy-coverage-threshold dependency-lock install-command docs-manifest binary-artifacts package-zip claims-manifest claims-notes release-body sarif-output enable-coverage enable-encoding enable-dependency enable-comments enable-docs enable-binary enable-claims enable-custom mode; do
+          for name in root config coverage-json coverage-allowlist coverage-signature require-coverage-signature coverage-threshold policy-coverage-threshold dependency-lock install-command docs-manifest binary-artifacts package-zip claims-manifest claims-notes release-body sarif-output enable-coverage enable-encoding enable-dependency enable-comments enable-docs enable-binary enable-claims enable-custom mode; do
             grep -q "^  ${name}:" "$GITHUB_WORKSPACE/action.yml"
           done
   publish:
