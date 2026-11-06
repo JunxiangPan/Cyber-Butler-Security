@@ -11,6 +11,7 @@ HANDWRITTEN = re.compile(r"(?<![\w/])26\s*/\s*26(?![\w/])")
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Match release-note quality claims to the machine manifest."""
     manifest = cfg.path("quality-manifest.json")
     notes = cfg.path("docs/releases/RELEASE_NOTES_v1.6.4.md")
     if not manifest.is_file() or not notes.is_file():

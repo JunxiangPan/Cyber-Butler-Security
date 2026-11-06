@@ -34,6 +34,7 @@ def _check(path, findings):
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Reject missing docstrings, argument mismatches, and slop comments."""
     findings: list[str] = []
     for relative in cfg.comment_files:
         path = cfg.path(relative)

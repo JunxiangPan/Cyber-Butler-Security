@@ -31,6 +31,7 @@ def _candidates(cfg: GateConfig):
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Require provenance and SBOM records for large release binaries."""
     candidates = _candidates(cfg)
     for name, size, data in candidates:
         artifacts = cfg.path(cfg.binary_artifacts)

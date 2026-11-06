@@ -9,6 +9,7 @@ from typing import Any
 
 @dataclass
 class GateConfig:
+    """Inputs and thresholds for one CBP audit run."""
     root: Path
     coverage_json: Path
     coverage_allowlist: Path
@@ -31,6 +32,7 @@ class GateConfig:
     enable_claims: bool = True
 
     def path(self, value: Path | str) -> Path:
+        """Resolve a configured path against the repository root."""
         p = Path(value)
         return p if p.is_absolute() else self.root / p
 
@@ -52,6 +54,7 @@ def _read_config(path: Path) -> dict[str, Any]:
 
 
 def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] | None = None) -> GateConfig:
+    """Load JSON or TOML config and apply command-line overrides."""
     root = root.resolve()
     data: dict[str, Any] = {}
     if config_path and config_path.is_file():

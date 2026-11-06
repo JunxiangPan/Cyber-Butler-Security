@@ -10,14 +10,21 @@ from .config import load_config
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run enabled CBP gates and return a process exit code."""
     parser = argparse.ArgumentParser(prog="cbp")
     parser.add_argument("--root", default=".")
     parser.add_argument("--config", default="")
     parser.add_argument("--mode", choices=("audit", "enforce"), default="enforce")
-    parser.add_argument("--coverage-threshold", type=float, default=80.0)
-    parser.add_argument("--policy-coverage-threshold", type=float, default=85.0)
+    parser.add_argument("--coverage-threshold", type=float, default=None)
+    parser.add_argument("--policy-coverage-threshold", type=float, default=None)
     args = parser.parse_args(argv)
-    cfg = load_config(Path(args.root), Path(args.config) if args.config else None, {"coverage_threshold": args.coverage_threshold, "policy_threshold": args.policy_coverage_threshold})
+    config_path = Path(args.config) if args.config else Path(args.root) / "cbp.json"
+    overrides = {}
+    if args.coverage_threshold is not None:
+        overrides["coverage_threshold"] = args.coverage_threshold
+    if args.policy_coverage_threshold is not None:
+        overrides["policy_threshold"] = args.policy_coverage_threshold
+    cfg = load_config(Path(args.root), config_path, overrides)
     checks = []
     if cfg.enable_coverage:
         checks.append(("coverage", coverage_gate.run))

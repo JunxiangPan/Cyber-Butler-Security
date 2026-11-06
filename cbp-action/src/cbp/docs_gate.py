@@ -8,6 +8,7 @@ from .config import GateConfig
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Verify every incident postmortem against its recorded SHA256."""
     manifest = cfg.path(cfg.docs_manifest)
     if not manifest.is_file():
         return False, f"{cfg.docs_manifest} is missing"

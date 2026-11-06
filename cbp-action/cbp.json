@@ -1,0 +1,13 @@
+{
+  "coverage_json": "coverage.json",
+  "coverage_allowlist": "coverage_allowlist.json",
+  "broker_files": ["src/cbp/coverage_gate.py", "src/cbp/dependency_gate.py", "src/cbp/comment_gate.py", "src/cbp/docs_gate.py", "src/cbp/binary_gate.py", "src/cbp/claims_gate.py", "src/cbp/config.py"],
+  "policy_file": "src/cbp/coverage_gate.py",
+  "coverage_threshold": 80,
+  "policy_threshold": 80,
+  "comment_files": ["src/cbp/config.py", "src/cbp/coverage_gate.py", "src/cbp/dependency_gate.py", "src/cbp/comment_gate.py", "src/cbp/docs_gate.py", "src/cbp/binary_gate.py", "src/cbp/claims_gate.py", "src/cbp/cli.py"],
+  "enable_dependency": false,
+  "enable_docs": false,
+  "enable_binary": false,
+  "enable_claims": false
+}

@@ -19,6 +19,7 @@ def _allowed(ranges: list[dict]) -> set[int]:
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Check policy and broker coverage against configured thresholds."""
     coverage = cfg.path(cfg.coverage_json)
     allowlist = cfg.path(cfg.coverage_allowlist)
     if not coverage.is_file() or not allowlist.is_file():
@@ -26,7 +27,7 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     data = json.loads(coverage.read_text(encoding="utf-8"))
     allow = json.loads(allowlist.read_text(encoding="utf-8"))
     files = {_norm(str(key)): value for key, value in data["files"].items()}
-    policy = files.get(cfg.policy_file)
+    policy = files.get(_norm(cfg.policy_file))
     if policy is None:
         return False, f"{cfg.policy_file} not measured"
     policy_pct = float(policy["summary"]["percent_covered"])
@@ -35,7 +36,7 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     missing_total = 0
     statements = 0
     for relative in cfg.broker_files:
-        entry = files.get(relative)
+        entry = files.get(_norm(relative))
         if entry is None:
             return False, f"{relative} not measured"
         statements += int(entry["summary"]["num_statements"])
