@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif
+from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, verify_release
 from .config import load_config
 
 
@@ -32,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--release-body", default="")
     parser.add_argument("--manifest", default="")
     parser.add_argument("--sarif-output", default="")
+    parser.add_argument("--verify-release", default="")
+    parser.add_argument("--repository", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-encoding", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-dependency", type=lambda x: x.lower() == "true", default=None)
@@ -41,6 +44,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-claims", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-custom", type=lambda x: x.lower() == "true", default=None)
     args = parser.parse_args(argv)
+    if args.verify_release:
+        repository = args.repository or os.environ.get("GITHUB_REPOSITORY", "")
+        if not repository:
+            print("VERIFY_RELEASE_FAILED: --repository or GITHUB_REPOSITORY is required")
+            return 1
+        body = Path(args.release_body) if args.release_body else Path(args.root) / "docs" / "RELEASE_BODY.md"
+        ok, detail = verify_release.verify(repository, args.verify_release, body, verify_release.token_from_env())
+        print(("RELEASE_BODY_OK " if ok else "") + detail)
+        return 0 if ok else 1
     config_path = Path(args.config) if args.config else Path(args.root) / "cbp.json"
     if not args.config and not config_path.is_file():
         config_path = Path(args.root) / ".cbp" / "config.json"

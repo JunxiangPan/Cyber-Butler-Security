@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Run-ReleasePipeline.ps1
 
@@ -19,7 +19,9 @@ param(
     [switch]$ApproveChangedPipeline,
     [switch]$Candidate,
     [switch]$Sign,
-    [string]$InstallRoot = 'C:\CyberButler'
+    [string]$InstallRoot = 'C:\CyberButler',
+    [string]$VerifyReleaseTag = '',
+    [string]$Repository = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -75,11 +77,11 @@ function Run-Step([string]$name, [scriptblock]$action) {
 }
 function Run-Process([string]$name, [string]$exe, [string[]]$arguments) {
     Run-Step $name { & $exe @arguments }
+}
 function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
     Add-Report ('## WARNING: ' + $name)
     $output = (& $exe @arguments 2>&1 | Out-String).Replace($root, '<repo>')
     Add-Report ('```text' + [Environment]::NewLine + $output.Trim() + [Environment]::NewLine + 'EXIT_CODE=' + $LASTEXITCODE + [Environment]::NewLine + '```')
-}
 }
 
 Add-Report '# BUILD_REPORT'
@@ -246,4 +248,8 @@ Run-Process 'verify RSA signature' 'python' @(
 )
 if ($Sign) {
     Write-Host 'Signing is intentionally a separate step after human review of BUILD_REPORT.md.'
+}
+if ($VerifyReleaseTag) {
+    if ([string]::IsNullOrWhiteSpace($Repository)) { throw 'Repository is required with -VerifyReleaseTag' }
+    Run-Process 'verify published release body' 'python' @('-m', 'cbp.cli', '--verify-release', $VerifyReleaseTag, '--repository', $Repository)
 }

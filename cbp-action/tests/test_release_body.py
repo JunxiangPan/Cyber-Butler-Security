@@ -53,3 +53,20 @@ def test_body_needs_quality_counts(tmp_path: Path) -> None:
     passed, detail = run(_cfg(tmp_path, BODY.replace("QUALITY_COUNTS: 7/7\n", "")))
     assert passed is False
     assert "QUALITY_COUNTS" in detail
+
+
+def test_missing_body_file_fails(tmp_path: Path) -> None:
+    cfg = _cfg(tmp_path, BODY)
+    cfg.release_body = "missing.md"
+    passed, detail = run(cfg)
+    assert passed is False and "release body missing" in detail
+
+
+def test_body_wrong_counts_fails(tmp_path: Path) -> None:
+    passed, detail = run(_cfg(tmp_path, BODY.replace("7/7", "6/7")))
+    assert passed is False and "release body 6/7" in detail
+
+
+def test_unknown_gate_word_fails(tmp_path: Path) -> None:
+    passed, detail = run(_cfg(tmp_path, BODY.replace("seven", "eleven")))
+    assert passed is False and "unknown gate count" in detail

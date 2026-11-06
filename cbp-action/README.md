@@ -166,7 +166,7 @@ Suggested migration:
 3. When the group is stable, change mode to "enforce".
 ```
 
-`target_files`, `target_files`, `policy_file`, `coverage_threshold`, and
+`target_files`, `policy_file`, `coverage_threshold`, and
 `policy_threshold` remain supported for single-group configurations.
 
 ## Self-test
@@ -190,6 +190,45 @@ cryptographic signature.
 
 `security_core` coverage is the coverage of the gate modules, config, CLI,
 encoding gate, and rule auditor; it is not a separate binary-security metric.
+
+## Release body and errata
+
+`docs/RELEASE_BODY.md` is the only accepted source for the GitHub Release body.
+The release workflow publishes it with `--notes-file` and then runs:
+
+```bash
+python -m cbp.cli --verify-release v0.1.2 --repository owner/repo
+```
+
+The command fetches the live GitHub release body and compares its normalized
+SHA256 with the checked-in file. If the body was edited in the GitHub web UI,
+it exits non-zero with:
+
+```text
+ERRATA release body mismatch ...
+```
+
+CBP cannot prevent an owner from editing a release on GitHub. But if you do,
+the evidence chain breaks. Always update `docs/RELEASE_BODY.md`, re-run CI, and
+publish a new tag (or a patch release). If you must edit an old release, the
+edit is only acceptable after the evidence is regenerated and checked in; a
+silent web edit is an ERRATA, not a valid update.
+
+This is the open-source release discipline: edits are allowed, silent edits are
+not.
+
+### Protect tags
+
+In GitHub, open **Settings -> Tags -> New rule** and protect released tags:
+
+```text
+Tag pattern: v*
+Allow deletions: off
+Allow force pushes: off
+```
+
+Tag protection prevents accidental re-pointing of a released tag. It does not
+prevent editing a Release body; `verify-release` covers that gap.
 
 ## Releasing
 
