@@ -11,18 +11,18 @@ from typing import Any
 class GateConfig:
     """Inputs and thresholds for one CBP audit run."""
     root: Path
-    coverage_json: Path
-    coverage_allowlist: Path
-    broker_files: tuple[str, ...] = ("src/broker.py",)
-    policy_file: str = "src/broker.py"
+    coverage_json: Path | str = ""
+    coverage_allowlist: Path | str = ""
+    broker_files: tuple[str, ...] = ()
+    policy_file: str = ""
     coverage_threshold: float = 80.0
     policy_threshold: float = 85.0
-    dependency_lock: Path = Path("requirements.lock")
-    installer_core: Path = Path("installer/lib/Installer.Core.ps1")
-    docs_manifest: Path = Path("docs/history-manifest.json")
-    comment_files: tuple[str, ...] = ("src/broker.py",)
+    dependency_lock: Path | str = ""
+    installer_core: Path | str = ""
+    docs_manifest: Path | str = ""
+    comment_files: tuple[str, ...] = ()
     binary_limit_mb: float = 5.0
-    binary_artifacts: Path = Path("artifacts")
+    binary_artifacts: Path | str = ""
     package_zip: Path | None = None
     enable_coverage: bool = True
     enable_dependency: bool = True
@@ -62,7 +62,7 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
     if config_path and config_path.is_file():
         data = _read_config(config_path)
     data.update(overrides or {})
-    cfg = GateConfig(root=root, coverage_json=root / "coverage.json", coverage_allowlist=root / "coverage_allowlist.json")
+    cfg = GateConfig(root=root)
     for key, value in data.items():
         if not hasattr(cfg, key):
             continue

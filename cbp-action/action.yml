@@ -5,11 +5,13 @@ inputs:
     description: Repository root
     default: "."
   coverage-json:
+    required: true
     description: Path to coverage.py JSON output
-    default: "coverage.json"
+    default: ""
   coverage-allowlist:
+    required: true
     description: Path to the coverage allowlist JSON
-    default: "coverage_allowlist.json"
+    default: ""
   coverage-threshold:
     description: Minimum allowlisted broker coverage
     default: "80"
@@ -17,26 +19,32 @@ inputs:
     description: Minimum policy coverage
     default: "85"
   dependency-lock:
+    required: true
     description: Hash-locked requirements file
-    default: "requirements-runtime.lock"
+    default: ""
   installer-core:
+    required: true
     description: Installer file that must contain --require-hashes
-    default: "installer/lib/Installer.Core.ps1"
+    default: ""
   docs-manifest:
+    required: true
     description: Incident-history manifest
-    default: "docs/history-manifest.json"
+    default: ""
   binary-artifacts:
+    required: true
     description: Directory containing .build.json and .sbom.json
-    default: "artifacts"
+    default: ""
   package-zip:
     description: Optional release ZIP to scan instead of the repository
     default: ""
   claims-manifest:
+    required: true
     description: quality-manifest.json used by the claims gate
-    default: "quality-manifest.json"
+    default: ""
   claims-notes:
+    required: true
     description: release notes checked by the claims gate
-    default: "docs/releases/RELEASE_NOTES_v1.6.4.md"
+    default: ""
   enable-coverage:
     default: "true"
   enable-dependency:
