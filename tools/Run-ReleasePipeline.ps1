@@ -68,7 +68,7 @@ $report = New-Object System.Collections.Generic.List[string]
 function Add-Report([string]$text) { $report.Add($text); Write-Host $text }
 function Run-Step([string]$name, [scriptblock]$action) {
     Add-Report ('## ' + $name)
-    $output = & $action 2>&1 | Out-String
+    $output = (& $action 2>&1 | Out-String).Replace($root, '<repo>')
     $code = $LASTEXITCODE
     Add-Report ('```text' + [Environment]::NewLine + $output.Trim() + [Environment]::NewLine + 'EXIT_CODE=' + $code + [Environment]::NewLine + '```')
     if ($code -ne 0) { throw ('gate failed: ' + $name + ' exit=' + $code) }
@@ -77,7 +77,7 @@ function Run-Process([string]$name, [string]$exe, [string[]]$arguments) {
     Run-Step $name { & $exe @arguments }
 function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
     Add-Report ('## WARNING: ' + $name)
-    $output = & $exe @arguments 2>&1 | Out-String
+    $output = (& $exe @arguments 2>&1 | Out-String).Replace($root, '<repo>')
     Add-Report ('```text' + [Environment]::NewLine + $output.Trim() + [Environment]::NewLine + 'EXIT_CODE=' + $LASTEXITCODE + [Environment]::NewLine + '```')
 }
 }

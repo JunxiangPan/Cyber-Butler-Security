@@ -20,7 +20,7 @@ BINARY_SUFFIXES = {
     ".pyc", ".pyd", ".pdb", ".zip", ".gz", ".ttf", ".woff", ".woff2",
     ".db", ".graph", ".pdf",
 }
-SKIP_PARTS = {".git", ".venv", "__pycache__", "wheelhouse", "node_modules", "backups", "vendor-audit"}
+SKIP_PARTS = {".git", ".venv", "__pycache__", "wheelhouse", "node_modules", "backups", "vendor-audit", "artifacts"}
 SKIP_FILES = {"tools/audit_text_hygiene.py", "tools/totp_broker.log"}
 FORBIDDEN = (
     ("private_path", re.compile("C:" + re.escape(chr(92)) + "Users", re.IGNORECASE)),
