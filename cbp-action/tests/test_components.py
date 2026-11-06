@@ -47,7 +47,7 @@ def test_dependency_success_and_failure(tmp_path: Path) -> None:
 
 def test_comment_gate_rejects_slop_and_missing_doc(tmp_path: Path) -> None:
     src = tmp_path / "x.py"; cfg = _cfg(tmp_path, comment_files=("x.py",))
-    src.write_text('def Public(value):\n    """Return value to the caller safely."""\n    return value  # Send email\n', encoding="utf-8")
+    src.write_text('def Public(value):\n    """Return value to the caller safely."""\n    return value  # This is a function\n', encoding="utf-8")
     assert comment_gate.run(cfg)[0] is False
     src.write_text('def Public(value):\n    """Return value to the caller safely."""\n    return value\n', encoding="utf-8")
     assert comment_gate.run(cfg)[0] is True

@@ -80,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
             overrides[key] = value
     cfg = load_config(Path(args.root), config_path, overrides)
     checks = []
-    if getattr(cfg, "enable_encoding", True):
+    if cfg.enable_encoding:
         checks.append(("encoding", encoding_gate.run))
     if cfg.enable_coverage:
         checks.append(("coverage", coverage_gate.run))
@@ -90,11 +90,11 @@ def main(argv: list[str] | None = None) -> int:
         checks.append(("comments", comment_gate.run))
     if cfg.enable_docs:
         checks.append(("docs", docs_gate.run))
-    if getattr(cfg, "enable_claims", True):
+    if cfg.enable_claims:
         checks.append(("claims", claims_gate.run))
-    if getattr(cfg, "enable_custom", True):
+    if cfg.enable_custom:
         checks.append(("custom", custom_rules.run))
-    if getattr(cfg, "enable_upgrade", True):
+    if cfg.enable_upgrade:
         checks.append(("upgrade", upgrade_gate.run))
     if cfg.enable_binary:
         checks.append(("binary", binary_gate.run))
@@ -105,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
         gate_results.append((name, passed, detail))
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
         ok = ok and passed
+    if not checks:
+        ok = False
     if args.sarif_output:
         try:
             target = Path(args.sarif_output)
@@ -113,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         except OSError as exc:
             print(f"sarif: FAIL cannot write {args.sarif_output}: {exc}")
             ok = False
-    print("CBP_RESULT=" + ("PASS" if ok else "FAIL"))
+    print("CBP_RESULT=" + ("PASS" if ok else "FAIL") + " gates_ran=" + str(len(checks)))
     return 0 if ok or args.mode in {"audit", "warn"} else 1
 
 

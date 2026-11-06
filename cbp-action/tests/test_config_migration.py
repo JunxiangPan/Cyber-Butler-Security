@@ -41,3 +41,16 @@ def test_current_config_without_new_fields_runs(tmp_path: Path) -> None:
     cfg = load_config(tmp_path, path)
     assert cfg.custom_rules == ()
     assert cfg.evidence_readers == {}
+
+
+def test_unknown_key_is_rejected(tmp_path: Path) -> None:
+    path = _write(tmp_path, {"schema_version": "0.1.3", "coverage_threshhold": 99})
+    with pytest.raises(ValueError, match="unknown cbp.json key"):
+        load_config(tmp_path, path)
+
+
+def test_custom_and_upgrade_switches_are_real(tmp_path: Path) -> None:
+    path = _write(tmp_path, {"schema_version": "0.1.3", "enable_custom": False, "enable_upgrade": False})
+    cfg = load_config(tmp_path, path)
+    assert cfg.enable_custom is False
+    assert cfg.enable_upgrade is False

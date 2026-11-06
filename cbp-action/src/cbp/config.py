@@ -52,6 +52,8 @@ class GateConfig:
     enable_docs: bool = True
     enable_binary: bool = True
     enable_claims: bool = False
+    enable_custom: bool = True
+    enable_upgrade: bool = True
     claims_manifest: Path | None = None
     claims_notes: Path | None = None
     release_body: Path | str = ""
@@ -74,8 +76,11 @@ def _read_config(path: Path) -> dict[str, Any]:
     except ModuleNotFoundError:
         try:
             import tomli  # optional fallback
-        except ModuleNotFoundError:
-            return {}
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "TOML configuration requires Python 3.11+ or the tomli package; "
+                "install tomli instead of silently using an empty configuration"
+            ) from exc
         return tomli.loads(text)
     return tomllib.loads(text)
 
@@ -116,6 +121,9 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
         data = _read_config(config_path)
     data.update(overrides or {})
     data, migration_warnings = _migrate(data)
+    unknown = sorted(set(data) - set(GateConfig.__dataclass_fields__))
+    if unknown:
+        raise ValueError("unknown cbp.json key(s): " + ", ".join(unknown))
     for message in migration_warnings:
         _warn(message)
     cfg = GateConfig(root=root, schema_version=SCHEMA_VERSION)
