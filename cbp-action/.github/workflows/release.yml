@@ -82,4 +82,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -f artifact/docs/RELEASE_NOTES.generated.md
-          gh release create "${{ inputs.release_tag }}" dist/* artifact/quality-manifest.json artifact/quality-manifest.json.sha256 artifact/docs/RELEASE_NOTES.generated.md --notes-file artifact/docs/RELEASE_NOTES.generated.md
+          gh release create "${{ inputs.release_tag }}" dist/* artifact/quality-manifest.json artifact/quality-manifest.json.sha256 artifact/docs/RELEASE_NOTES.generated.md --notes-file "$GITHUB_WORKSPACE/docs/RELEASE_BODY.md"

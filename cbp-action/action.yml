@@ -38,7 +38,10 @@ inputs:
     description: quality-manifest.json used by the claims gate
     default: ""
   claims-notes:
-    description: release notes checked by the claims gate
+    description: generated release notes checked by the claims gate
+    default: ""
+  release-body:
+    description: checked-in release body validated by the claims gate
     default: ""
   enable-coverage:
     default: "true"
@@ -81,6 +84,7 @@ runs:
           --package-zip "${{ inputs.package-zip }}" \
           --claims-manifest "${{ inputs.claims-manifest }}" \
           --claims-notes "${{ inputs.claims-notes }}" \
+          --release-body "${{ inputs.release-body }}" \
           --enable-coverage "${{ inputs.enable-coverage }}" \
           --enable-encoding "${{ inputs.enable-encoding }}" \
           --enable-dependency "${{ inputs.enable-dependency }}" \

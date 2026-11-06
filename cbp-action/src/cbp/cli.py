@@ -26,6 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--package-zip", default="")
     parser.add_argument("--claims-manifest", default="")
     parser.add_argument("--claims-notes", default="")
+    parser.add_argument("--release-body", default="")
     parser.add_argument("--manifest", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-encoding", type=lambda x: x.lower() == "true", default=None)
@@ -48,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
         "dependency_lock": args.dependency_lock, "install_command": args.install_command,
         "docs_manifest": args.docs_manifest, "binary_artifacts": args.binary_artifacts,
         "package_zip": args.package_zip, "claims_manifest": args.claims_manifest,
-        "claims_notes": args.claims_notes,
+        "claims_notes": args.claims_notes, "release_body": args.release_body,
     }.items():
         if value:
             overrides[key] = value

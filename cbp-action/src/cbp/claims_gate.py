@@ -5,6 +5,7 @@ RULE_ID = "CBP-CLM-001"
 
 import json
 import re
+from pathlib import Path
 
 from .config import GateConfig
 
@@ -16,6 +17,37 @@ WORDS = {
         ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
     )
 }
+
+
+def _gate_number(text: str, total: int, *, required: bool) -> str:
+    match = GATE_CLAIM.search(text)
+    if not match:
+        return "release body must state the gate count" if required else ""
+    token = match.group(1).lower()
+    number = int(token) if token.isdigit() else WORDS.get(token)
+    if number is None:
+        return f"unknown gate count claim: {match.group(0)}"
+    if number != total:
+        return f"notes claim {token} gates but manifest has {total}"
+    return ""
+
+
+def _body_problem(path: Path, expected: str, total: int) -> str:
+    if not path.is_file():
+        return f"release body missing: {path}"
+    text = path.read_text(encoding="utf-8")
+    tokens = TOKEN.findall(text)
+    if len(tokens) != 1:
+        return "release body needs exactly one QUALITY_COUNTS line"
+    actual = f"{tokens[0][0]}/{tokens[0][1]}"
+    if actual != expected:
+        return f"release body {actual} != manifest {expected}"
+    problem = _gate_number(text, total, required=True)
+    if problem:
+        return "release body " + problem
+    if "First public release" in text:
+        return "release body must not claim First public release"
+    return ""
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
@@ -42,12 +74,12 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     if actual != expected:
         return False, f"notes {actual} != manifest {expected}"
     total = int(counts.get("total", -1))
-    gate_claim = GATE_CLAIM.search(text)
-    if gate_claim:
-        token = gate_claim.group(1).lower()
-        number = int(token) if token.isdigit() else WORDS.get(token)
-        if number is None:
-            return False, f"unknown gate count claim: {gate_claim.group(0)}"
-        if number != total:
-            return False, f"notes claim {token} gates but manifest has {total}"
+    gate_problem = _gate_number(text, total, required=False)
+    if gate_problem:
+        return False, gate_problem
+    body = getattr(cfg, "release_body", "")
+    if body:
+        body_problem = _body_problem(cfg.path(body), expected, total)
+        if body_problem:
+            return False, body_problem
     return True, f"claims={actual}"
