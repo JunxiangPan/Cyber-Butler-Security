@@ -19,13 +19,13 @@ RULE_IDS = {
 LOCATION = re.compile(r"^(?P<file>[^:\n]+):(?P<line>\d+):\s*(?P<message>.+)$")
 
 
-def _result(gate: str, detail: str, root: Path) -> dict:
+def _result(gate: str, detail: str, root: Path, level: str = "error") -> dict:
     rule_id = RULE_IDS.get(gate, "CBP-UNKNOWN-001")
     lines = [line.strip() for line in detail.splitlines() if line.strip()]
     message = " / ".join(lines) if lines else gate + " gate failed"
     result = {
         "ruleId": rule_id,
-        "level": "error",
+        "level": level,
         "message": {"text": message[:1000]},
         "partialFingerprints": {
             "primaryLocationLineHash": hashlib.sha256((gate + ":" + message).encode("utf-8")).hexdigest()[:16]
@@ -49,9 +49,9 @@ def _result(gate: str, detail: str, root: Path) -> dict:
 def build(gate_results: list[tuple[str, bool, str]], root: Path) -> dict:
     """Return a SARIF 2.1.0 document for all failed gates."""
     results = [
-        _result(gate, detail, root)
+        _result(gate, detail, root, "warning" if passed else "error")
         for gate, passed, detail in gate_results
-        if not passed
+        if not passed or "WARN" in detail
     ]
     rules = []
     seen = set()
