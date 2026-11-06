@@ -162,15 +162,18 @@ class ExecutionResult:
         return self.status == 200
 
     def __iter__(self):
+        """Yield the legacy (ok, message) tuple view."""
         yield self.ok
         yield self.message
 
 
 def _ok(message: str) -> ExecutionResult:
+    """Return a successful execution result."""
     return ExecutionResult(200, message, "ok")
 
 
 def _fail(message: str, status: int = 500, code: str = "broker.execute_failed") -> ExecutionResult:
+    """Return a typed failed execution result."""
     return ExecutionResult(status, message, code)
 
 
@@ -735,6 +738,7 @@ DEFAULT_WORKSPACE_ROOT = Path(r"C:\CyberButler\workspace")
 
 
 def _workspace_roots() -> tuple[Path, ...]:
+    """Return the configured workspace roots."""
     return broker_policy.workspace_roots(_policy_context())
 
 
@@ -763,6 +767,7 @@ PROTECTED_RULE_NAMES = {
 
 
 def _policy_context() -> PolicyContext:
+    """Build the immutable policy context from broker state."""
     return PolicyContext(
         root=ROOT,
         shared=SHARED,
@@ -779,10 +784,12 @@ def _policy_context() -> PolicyContext:
 
 
 def _inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
+    """Return whether path resolves inside any supplied root."""
     return broker_policy.inside_any(path, roots)
 
 
 def _workspace_text(target: str) -> bool:
+    """Check a target against workspace roots without resolving it."""
     return broker_policy.workspace_text(target, _policy_context())
 
 
@@ -792,10 +799,12 @@ def classify(action: str, target: str) -> str:
 
 
 def _critical_integrity_hit(target: str) -> bool:
+    """Return whether a target is a protected repository file."""
     return broker_policy.critical_integrity_hit(target, _policy_context())
 
 
 def _rule_tampering_hit(target: str) -> bool:
+    """Return whether a target is a protected broker rule."""
     return broker_policy.rule_tampering_hit(target, _policy_context())
 
 
@@ -827,14 +836,17 @@ def _audit_protection(event: str, action: str, target: str, reason: str) -> None
 
 
 def _allowed_target(path: Path) -> bool:
+    """Return whether a target belongs to an allowed root."""
     return broker_policy.allowed_target(path, _policy_context())
 
 
 def _target_mode(action: str, target: str) -> str:
+    """Return create/replace classification for one target."""
     return broker_policy.target_mode(action, target)
 
 
 def _bypass_scope(action: str, target: str) -> str:
+    """Build the bypass token scope for an action and target."""
     return broker_policy.bypass_scope(action, target)
 
 

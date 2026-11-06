@@ -44,12 +44,14 @@ class SignGateError(RuntimeError):
 
 
 def _read(path: Path) -> str:
+    """Read a release report or raise SignGateError."""
     if not path.is_file():
         raise SignGateError(f"{path.name} is missing")
     return path.read_text(encoding="utf-8-sig")
 
 
 def _version_tuple(version: str) -> tuple[int, int, int]:
+    """Parse a dotted release version into a three-part tuple."""
     parts = re.findall(r"\d+", version)
     if not parts:
         raise SignGateError("release version is missing or malformed")
@@ -72,6 +74,7 @@ def release_version(path: Path) -> str:
 
 
 def _recount(items: list[dict]) -> dict[str, int]:
+    """Recompute status counts from manifest items."""
     return {
         "total": len(items),
         "passed": sum(1 for item in items if item.get("status") == "passed"),
@@ -170,12 +173,14 @@ def check_proof(root: Path) -> str:
 
 
 def _coverage(text: str) -> None:
+    """Require non-empty static-analysis coverage lines."""
     for tool in ("mypy", "pyright", "PSSA", "vulture"):
         if not re.search(rf"{tool}:\s*\d+/\d+", text, re.IGNORECASE):
             raise SignGateError("BUILD_REPORT Static Analysis Coverage missing or blank for " + tool)
 
 
 def _section_lines(text: str, heading: str) -> list[str]:
+    """Extract and validate a BUILD_REPORT section."""
     if heading not in text:
         raise SignGateError("BUILD_REPORT missing section " + heading)
     body = text.split(heading, 1)[1].split("\n## ", 1)[0]
@@ -188,6 +193,7 @@ def _section_lines(text: str, heading: str) -> list[str]:
 
 
 def check_build(root: Path, expected_challenge: str) -> tuple[str, str]:
+    """Validate BUILD_REPORT against the challenge and proof."""
     text = _read(root / BUILD)
     match = re.search(r"(?m)^ChallengeCode:\s*(\S+)\s*$", text)
     if not match or not CHALLENGE_RE.fullmatch(match.group(1)):
@@ -207,6 +213,7 @@ def check_build(root: Path, expected_challenge: str) -> tuple[str, str]:
 
 
 def check_nonce_consistency(root: Path, expected_challenge: str, version: str) -> None:
+    """Require the same nonce across QA, proof, and build report."""
     if _version_tuple(version) >= (1, 6, 4):
         qa_nonce = check_quality(root)
     else:
@@ -228,6 +235,7 @@ def require_gate(root: Path, expected_challenge: str, version: str = "1.6.4") ->
 
 
 def main() -> int:
+    """Validate all release gates before signing."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--key", required=True)
@@ -258,6 +266,7 @@ def main() -> int:
 
 
 def build_signed_payload(manifest: Path, build: Path, qa: Path, proof: Path) -> bytes:
+    """Build the exact four-file payload signed by the release key."""
     parts = [
         hashlib.sha256(manifest.read_bytes()).hexdigest().upper(),
         hashlib.sha256(build.read_bytes()).hexdigest().upper(),
@@ -275,6 +284,7 @@ def sign_manifest(
     qa: Path | None = None,
     proof: Path | None = None,
 ) -> None:
+    """Sign a release only after every gate passes."""
     private_key = serialization.load_pem_private_key(key.read_bytes(), password=None)
     if not isinstance(private_key, rsa.RSAPrivateKey):
         raise ValueError("release key must be RSA")
