@@ -77,7 +77,7 @@ jobs:
       - name: Offline hash install
         run: python quality/offline_hash_install.py
       - name: Pester installer red lines
-        shell: powershell
+        shell: pwsh
         run: |
           if (-not (Get-Module -ListAvailable Pester | Where-Object { $_.Version -eq [version]'3.4.0' })) {
             Install-Module Pester -RequiredVersion 3.4.0 -Force -Scope CurrentUser -SkipPublisherCheck
