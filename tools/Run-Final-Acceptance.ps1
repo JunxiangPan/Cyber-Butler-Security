@@ -160,8 +160,31 @@ if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
     $package = Get-ChildItem -Path (Join-Path $env:USERPROFILE 'Downloads') -Filter $packageName -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 if ($package) {
+    if ([string]::IsNullOrWhiteSpace($PackageZip)) { $PackageZip = $package.FullName }
     Add-Proof ('- Package SHA256: ' + (Get-FileHash $package.FullName -Algorithm SHA256).Hash)
 }
+$installerSha = 'N/A'
+if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [IO.Compression.ZipFile]::OpenRead($PackageZip)
+        try {
+            $entry = $archive.GetEntry('START-INSTALLER.exe')
+            if ($entry) {
+                $stream = $entry.Open()
+                try {
+                    $sha = [Security.Cryptography.SHA256]::Create()
+                    try {
+                        $installerSha = ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '')
+                    } finally { $sha.Dispose() }
+                } finally { $stream.Dispose() }
+            }
+        } finally { $archive.Dispose() }
+    } catch {
+        $installerSha = 'N/A'
+    }
+}
+Add-Proof ('- Installer SHA256: ' + $installerSha)
 $reportPath = 'C:\ProgramData\CyberButler\installer-report\install-report.json'
 if (Test-Path $reportPath) {
     $report = Get-Content $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json

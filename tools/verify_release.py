@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import zipfile
 import hashlib
 import sys
 from pathlib import Path
@@ -43,6 +44,22 @@ def _legacy_pinned(manifest: Path, signature: Path) -> bool:
         )
     except OSError:
         return False
+
+
+def _zip_installer_sha256(package: Path) -> str | None:
+    """Return the SHA256 of START-INSTALLER.exe inside a release ZIP."""
+    try:
+        with zipfile.ZipFile(package) as archive:
+            return hashlib.sha256(archive.read("START-INSTALLER.exe")).hexdigest().upper()
+    except (KeyError, OSError, zipfile.BadZipFile):
+        return None
+
+
+def _proof_installer_sha256(proof: Path) -> str | None:
+    """Read the installer hash recorded by Run-Final-Acceptance.ps1."""
+    import re
+    match = re.search(r"(?m)^-\s*Installer SHA256:\s*([0-9A-Fa-f]{64})\s*$", proof.read_text(encoding="utf-8-sig"))
+    return match.group(1).upper() if match else None
 
 
 def _load_pinned_public_key(path: str = "") -> rsa.RSAPublicKey:
@@ -88,6 +105,7 @@ def main() -> int:
     parser.add_argument("--proof", default="")
     parser.add_argument("--quality-manifest", default="")
     parser.add_argument("--legacy", action="store_true")
+    parser.add_argument("--package", default="")
     args = parser.parse_args()
 
     manifest = Path(args.manifest)
@@ -137,6 +155,15 @@ def main() -> int:
     except (InvalidSignature, ValueError, OSError, sign_release.SignGateError) as exc:
         print(f"INVALID {type(exc).__name__}: {exc}")
         return 1
+    if args.package:
+        expected_installer = _proof_installer_sha256(Path(args.proof))
+        actual_installer = _zip_installer_sha256(Path(args.package))
+        if not expected_installer or not actual_installer:
+            print("INVALID: package/installer hash missing from proof or ZIP")
+            return 1
+        if expected_installer != actual_installer:
+            print("INVALID: final package START-INSTALLER.exe does not match ACCEPTANCE_PROOF")
+            return 1
     print("VALID")
     return 0
 
