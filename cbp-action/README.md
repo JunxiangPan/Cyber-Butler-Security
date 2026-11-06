@@ -197,7 +197,7 @@ See [`RELEASING.md`](RELEASING.md) for the commit -> CI -> tag -> release order.
 
 ## Status
 
-v0.1.1 is a standalone release candidate. It does not import anything from
+v0.1.2 is a standalone release candidate. It does not import anything from
 the host product's `quality/`, `checks/`, or `tools/` directories.
 
 ### Coverage numbers in CI

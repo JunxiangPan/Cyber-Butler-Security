@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 — 2026-11-06
+
+- Added checked-in `docs/RELEASE_BODY.md`, validated by the claims gate and used by `gh release create`.
+- Added SARIF 2.1.0 output via `--sarif-output`.
+- Added the eighth `custom` gate for config-driven regex/literal rules (warn by default).
+- Added optional `coverage.json.sha256` sidecar verification.
+- Release body is included in the documentation hash manifest.
+
 ## 0.1.1 — 2026-11-06
 
 - Added a strict UTF-8 no-BOM encoding gate (tracked text files only).
