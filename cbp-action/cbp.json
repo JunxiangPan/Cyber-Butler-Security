@@ -23,7 +23,8 @@
     "src/cbp/claims_gate.py",
     "src/cbp/cli.py",
     "tools/audit_rule_sources.py",
-    "tools/dogfood_manifest.py"
+    "tools/dogfood_manifest.py",
+    "tools/verify_manifest_artifact.py"
   ],
   "enable_dependency": true,
   "enable_docs": true,

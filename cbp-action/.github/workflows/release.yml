@@ -1,21 +1,90 @@
 name: release
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: CI run id whose quality-manifest artifact must be released
+        required: true
+      release_tag:
+        description: Release tag, for example v0.1.0
+        required: true
+      allow_placeholders:
+        description: Explicitly allow unresolved GitHub placeholder strings
+        type: boolean
+        default: false
 permissions:
   contents: write
+  actions: read
 jobs:
-  release:
+  verify-artifact:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: python -m pip install -e ".[test]"
+      - name: Download manifest artifact by explicit run id
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -n "${{ inputs.ci_run_id }}"
+          gh run download "${{ inputs.ci_run_id }}" \
+            -n "quality-manifest-${{ inputs.ci_run_id }}" \
+            -D artifact
+      - name: Verify manifest hash, run id, commit, and notes
+        run: |
+          python tools/verify_manifest_artifact.py \
+            --manifest artifact/quality-manifest.json \
+            --hash artifact/quality-manifest.json.sha256 \
+            --notes artifact/docs/RELEASE_NOTES.generated.md \
+            --run-id "${{ inputs.ci_run_id }}" \
+            --commit-sha "$(git rev-parse HEAD)"
+      - name: Reject unresolved publishing placeholders
+        if: ${{ inputs.allow_placeholders != true }}
+        run: |
+          if grep -R "<YOUR_GITHUB_USER>" README.md SECURITY.md usage.yml; then
+            echo "unresolved publishing placeholder" >&2
+            exit 1
+          fi
+      - name: Check Action metadata files
+        run: |
+          test -f action.yml
+          test -f README.md
+          test -f usage.yml
+          test -f SECURITY.md
+          for name in root config coverage-json coverage-threshold dependency-lock installer-core docs-manifest binary-artifacts claims-manifest claims-notes mode; do
+            grep -q "^  ${name}:" action.yml
+          done
+  publish:
+    needs: verify-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - run: python -m pip install --upgrade build
       - run: python -m build
-      - name: Publish GitHub Release assets
+      - name: Download verified artifact again
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes
+        run: |
+          gh run download "${{ inputs.ci_run_id }}" \
+            -n "quality-manifest-${{ inputs.ci_run_id }}" \
+            -D artifact
+      - name: Publish release from the generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f artifact/docs/RELEASE_NOTES.generated.md
+          gh release create "${{ inputs.release_tag }}" \
+            dist/* \
+            artifact/quality-manifest.json \
+            artifact/quality-manifest.json.sha256 \
+            artifact/docs/RELEASE_NOTES.generated.md \
+            --notes-file artifact/docs/RELEASE_NOTES.generated.md

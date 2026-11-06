@@ -56,6 +56,31 @@ result=CBP_RESULT=PASS
 
 or `CBP_RESULT=FAIL`.
 
+### Inputs
+
+| Input | Meaning |
+|---|---|
+| `root` | Repository root |
+| `config` | Optional CBP JSON/TOML config |
+| `coverage-json` | coverage.py JSON output |
+| `coverage-allowlist` | Allowlist JSON |
+| `coverage-threshold` | Legacy single-group threshold |
+| `policy-coverage-threshold` | Legacy policy threshold |
+| `dependency-lock` | Hash-locked requirements file |
+| `installer-core` | Installer that enforces `--require-hashes` |
+| `docs-manifest` | Document SHA256 manifest |
+| `binary-artifacts` | `.build.json` / `.sbom.json` directory |
+| `package-zip` | Optional release ZIP |
+| `claims-manifest` | Generated `quality-manifest.json` |
+| `claims-notes` | Generated release notes |
+| `enable-coverage` | Enable coverage gate |
+| `enable-dependency` | Enable dependency gate |
+| `enable-comments` | Enable comment gate |
+| `enable-docs` | Enable docs gate |
+| `enable-binary` | Enable binary gate |
+| `enable-claims` | Enable claims gate |
+| `mode` | `audit`, `warn`, or `enforce` |
+
 ### Required path inputs
 
 `coverage-json`, `coverage-allowlist`, `dependency-lock`, `installer-core`,
@@ -147,3 +172,9 @@ The package has no runtime dependencies outside the Python standard library.
 
 v0.1.0 is a standalone release candidate. It does not import anything from
 the host product's `quality/`, `checks/`, or `tools/` directories.
+
+### Coverage numbers in CI
+
+CI coverage may differ from local by ±0.5% due to platform-specific line
+coverage. The gate uses the CI value.
+
