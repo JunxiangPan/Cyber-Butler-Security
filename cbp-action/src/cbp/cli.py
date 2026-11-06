@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, dependency_gate, docs_gate, encoding_gate
+from . import binary_gate, claims_gate, comment_gate, coverage_gate, dependency_gate, docs_gate, encoding_gate, sarif
 from .config import load_config
 
 
@@ -28,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--claims-notes", default="")
     parser.add_argument("--release-body", default="")
     parser.add_argument("--manifest", default="")
+    parser.add_argument("--sarif-output", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-encoding", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-dependency", type=lambda x: x.lower() == "true", default=None)
@@ -76,10 +78,20 @@ def main(argv: list[str] | None = None) -> int:
     if cfg.enable_binary:
         checks.append(("binary", binary_gate.run))
     ok = True
+    gate_results = []
     for name, check in checks:
         passed, detail = check(cfg)
+        gate_results.append((name, passed, detail))
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
         ok = ok and passed
+    if args.sarif_output:
+        try:
+            target = Path(args.sarif_output)
+            document = sarif.build(gate_results, Path(args.root))
+            target.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+        except OSError as exc:
+            print(f"sarif: FAIL cannot write {args.sarif_output}: {exc}")
+            ok = False
     print("CBP_RESULT=" + ("PASS" if ok else "FAIL"))
     return 0 if ok or args.mode in {"audit", "warn"} else 1
 

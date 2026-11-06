@@ -26,7 +26,7 @@ copy-paste comments, and edited evidence fail closed.
 ## GitHub Action
 
 ```yaml
-- uses: JunxiangPan/cbp-action@v0.1.1
+- uses: JunxiangPan/cbp-action@v0.1.2
   with:
     root: .
     config: .cbp/config.json

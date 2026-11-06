@@ -43,6 +43,9 @@ inputs:
   release-body:
     description: checked-in release body validated by the claims gate
     default: ""
+  sarif-output:
+    description: optional SARIF 2.1.0 output path
+    default: ""
   enable-coverage:
     default: "true"
   enable-encoding:
@@ -85,6 +88,7 @@ runs:
           --claims-manifest "${{ inputs.claims-manifest }}" \
           --claims-notes "${{ inputs.claims-notes }}" \
           --release-body "${{ inputs.release-body }}" \
+          --sarif-output "${{ inputs.sarif-output }}" \
           --enable-coverage "${{ inputs.enable-coverage }}" \
           --enable-encoding "${{ inputs.enable-encoding }}" \
           --enable-dependency "${{ inputs.enable-dependency }}" \

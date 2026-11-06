@@ -1,6 +1,9 @@
 # Example: .github/workflows/ci.yml in a normal Python project
 name: quality
 on: [push, pull_request]
+permissions:
+  contents: read
+  security-events: write
 jobs:
   cbp:
     runs-on: ubuntu-latest
@@ -14,7 +17,7 @@ jobs:
           python -m pip install coverage pytest
           python -m coverage run --branch -m pytest -q
           python -m coverage json -o coverage.json
-      - uses: JunxiangPan/cbp-action@v0.1.1
+      - uses: JunxiangPan/cbp-action@v0.1.2
         with:
           root: .
           config: .cbp/config.json
@@ -29,4 +32,10 @@ jobs:
           enable-docs: "false"
           enable-binary: "false"
           enable-claims: "false"
+          sarif-output: cbp.sarif
           mode: enforce
+      - name: Upload CBP findings
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: cbp.sarif
