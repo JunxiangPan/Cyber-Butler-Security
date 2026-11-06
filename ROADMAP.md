@@ -1,5 +1,31 @@
 # Roadmap / 路线图
 
+## Development Principles / 开发原则
+
+These principles are mandatory for CBS, CBP, CBR, CBM, CBC, and every future
+CB project. They are review gates, not slogans.
+
+1. **Governance first (治理前置).** Configure CBP before feature work starts:
+   coverage, dependency locking, comment hygiene, documentation locks, release
+   claims, and SARIF upload. A project without a working governance baseline is
+   not ready to accept feature code.
+2. **Zero deviation (零容忍偏离).** Fake mocks, artificial coverage, deleted
+   assertions, unhashed dependencies, and hand-written evidence are defects. Fix
+   the test or the design; never negotiate with the gate. Spend the extra hours
+   on real tests rather than carrying a minute of debt.
+3. **Evidence over narrative.** A release claim is valid only when the matching
+   machine-readable evidence is present and reproducible in CI.
+4. **Smooth upgrades (平滑升级).** Minor releases must not break existing
+   configuration or CI. New checks are opt-in or safe by default; legacy fields
+   are auto-mapped with a warning; removals require two minor releases of notice
+   and a migration path.
+5. **The first sample is CBS v1.6.4.** CBS 1.6.4 is the reference implementation
+   of this philosophy. It becomes the template only after it passes CBP's gates
+   with real evidence; narrative completion does not count.
+
+Any change that violates these principles is rejected even if it makes a demo
+look better.
+
 > This roadmap describes intended direction, not a delivery promise. Security
 > work is gated on reproducible tests and a signed release; dates are not
 > commitments.

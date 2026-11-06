@@ -1,5 +1,22 @@
 # CBP roadmap
 
+## Development Principles
+
+CBP is governed by the CB ecosystem principles:
+
+1. **Governance first**: configure CBP before feature code. Coverage, dependency
+   hashes, comments, documentation locks, release claims, and SARIF are part of
+   the definition of done.
+2. **Zero deviation**: fake mocks, coverage games, deleted assertions, and
+   hand-written evidence are defects. Do not lower the gate to match the code.
+3. **Evidence over narrative**: every release claim must map to reproducible
+   machine-readable evidence.
+4. **Smooth upgrades**: minor releases never break existing configuration or CI;
+   new checks are opt-in or safe by default; deprecations last at least two
+   minor releases.
+5. **CBS v1.6.4 is the first sample**: it becomes the template only after real
+   CBP evidence, not after a narrative claim.
+
 ## Versioning law
 
 CBP follows one rule above feature pressure:
