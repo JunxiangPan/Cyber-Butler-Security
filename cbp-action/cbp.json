@@ -21,7 +21,8 @@
     "src/cbp/docs_gate.py",
     "src/cbp/binary_gate.py",
     "src/cbp/claims_gate.py",
-    "src/cbp/cli.py"
+    "src/cbp/cli.py",
+    "tools/audit_rule_sources.py"
   ],
   "enable_dependency": true,
   "enable_docs": true,
@@ -40,6 +41,14 @@
         "src/cbp/config.py"
       ],
       "threshold": 80,
+      "mode": "enforce"
+    },
+    {
+      "name": "security_core",
+      "files": [
+        "tools/audit_rule_sources.py"
+      ],
+      "threshold": 90,
       "mode": "enforce"
     }
   ],

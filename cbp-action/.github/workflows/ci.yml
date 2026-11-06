@@ -19,3 +19,4 @@ jobs:
       - run: python -m coverage run --branch -m pytest -q tests
       - run: python -m coverage json -o coverage.json
       - run: python -m cbp.cli --root . --mode enforce
+      - run: python tools/audit_rule_sources.py --root .
