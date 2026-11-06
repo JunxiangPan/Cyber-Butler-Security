@@ -29,6 +29,22 @@ gN4gZu7wm+PyzyFAFeQUAIDWedOiDL66cdfU7FV3/hAlAgMBAAE=
 -----END PUBLIC KEY-----"""
 
 
+MIN_ACCEPTED_VERSION = (1, 6, 4)
+LEGACY_PINNED_MANIFEST_SHA256 = "4FD70FA524DC973D134B677E7F6B1300B2385000FB57E9ECEBDA8EC114F2207"
+LEGACY_PINNED_SIGNATURE_SHA256 = "DCBC343077B450DFA258E985F398A8FAD71CC6FD8349547A4FA57E90C996A235"
+
+
+def _legacy_pinned(manifest: Path, signature: Path) -> bool:
+    """Return True only for the exact signed v1.6.3 compatibility asset."""
+    try:
+        return (
+            hashlib.sha256(manifest.read_bytes()).hexdigest().upper() == LEGACY_PINNED_MANIFEST_SHA256
+            and hashlib.sha256(signature.read_bytes()).hexdigest().upper() == LEGACY_PINNED_SIGNATURE_SHA256
+        )
+    except OSError:
+        return False
+
+
 def _load_pinned_public_key(path: str = "") -> rsa.RSAPublicKey:
     """Load the compiled-in key; a supplied file must byte-match it."""
     raw = PINNED_PUBLIC_KEY.encode("utf-8")
@@ -85,12 +101,14 @@ def main() -> int:
         print("REVOKED: " + reason)
         return 1
 
+    pinned_legacy = _legacy_pinned(manifest, Path(args.signature))
+    if version_tuple < MIN_ACCEPTED_VERSION and not args.legacy and not pinned_legacy:
+        print("DOWNGRADE_REJECTED: version < 1.6.4; pass --legacy only for an audited old asset")
+        return 1
     if not (args.build_report and args.qa_report and args.proof):
-        if version_tuple >= (1, 6, 4):
+        if version_tuple >= MIN_ACCEPTED_VERSION:
             print("INVALID ValueError: v1.6.4 requires the four-file signature reports")
             return 1
-        # v1.6.3 and older are auto-detected as legacy; --legacy stays accepted
-        # for callers that want to make the compatibility mode explicit.
         try:
             public_key = _load_pinned_public_key(args.pubkey)
             signature = base64.b64decode(Path(args.signature).read_text(encoding="ascii").strip())

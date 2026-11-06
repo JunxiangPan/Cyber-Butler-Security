@@ -50,3 +50,13 @@ AgentRuntime v4.29.3 and AuxRuntime v2.2.1 are external upstream applications. C
 
 WFP remains in audit mode in v1.6.3. CBS does not currently provide an outbound enforcement block at the WFP layer. The red-team defence matrix therefore reports the WFP unknown-egress test as **FAIL**, not PASS or SKIP, until a real enforce implementation and rollback test exist.
 
+
+## Installer SBOM scope
+
+`artifacts/START-INSTALLER.exe.sbom.json` is generated from the self-contained
+`START-INSTALLER.deps.json`. It lists the .NET runtime pack and ILLink task and
+sets `nuget_packages` to an empty list because `build/StartInstaller.csproj`
+has no `PackageReference`.
+
+It is not a recursive third-party NuGet graph. This is an explicit scope
+limitation, not a claim that every transitive package was audited.

@@ -21,8 +21,13 @@ RECOVERY_FILE = TOTP_VAULT / "recovery_hashes.json"
 LEGACY_SECRET_FILE = ROOT / "tools" / "totp_secret.dpapi"
 LEGACY_RECOVERY_FILE = ROOT / "tools" / "totp_recovery.json"
 TOKEN_FILE = ROOT / "tools" / "broker_token.txt"
-LOG = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker.log") if TEST_MODE else (ROOT / "tools" / "totp_broker.log")
-AUDIT = ROOT / "tools" / "totp_broker_audit.jsonl"
+_RUNTIME_LOG_DIR = Path(os.environ.get("CBS_LOG_ROOT", str(Path(os.environ.get("PROGRAMDATA", tempfile.gettempdir())) / "CyberButler" / "logs")))
+try:
+    _RUNTIME_LOG_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
+LOG = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker.log") if TEST_MODE else (_RUNTIME_LOG_DIR / "totp_broker.log")
+AUDIT = (Path(tempfile.gettempdir()) / "cyberbutler-test-broker-audit.jsonl") if TEST_MODE else (_RUNTIME_LOG_DIR / "totp_broker_audit.jsonl")
 BROKER_CONFIG = ROOT / "tools" / "broker_config.json"
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("CBS_TEST_PORT", "18090")) if TEST_MODE else 18090

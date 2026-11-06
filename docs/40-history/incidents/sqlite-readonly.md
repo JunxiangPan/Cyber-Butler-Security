@@ -9,7 +9,7 @@
 
 ## Symptom
 
-`sqlite3.OperationalError: attempt to write a readonly database` or `unable to open database file` while AstrBot started under the service account.
+`sqlite3.OperationalError: attempt to write a readonly database` or `unable to open database file` while external agent started under the service account.
 
 ## Root causes found
 
@@ -19,11 +19,11 @@
 
 ## Alternatives predicted and abandoned
 
-- Move the DB into a writable subdirectory: rejected because AstrBot's database path is fixed at `data\data_v4.db`.
-- Run AstrBot as SYSTEM: rejected, loses High isolation.
+- Move the DB into a writable subdirectory: rejected because external agent's database path is fixed at `data\data_v4.db`.
+- Run external agent as SYSTEM: rejected, loses High isolation.
 - Use Medium: works but not High.
 - Replace the DB file with a copy: rejected as unsafe without a consistent SQLite backup; the final design keeps the existing data and grants the service account write/delete on the data root.
 
 ## Resolution
 
-Data write probe in the service wrapper; SQLite write test; data ACL repair; SCM service starts AstrBot and 6185 listens.
+Data write probe in the service wrapper; SQLite write test; data ACL repair; SCM service starts external agent and 6185 listens.

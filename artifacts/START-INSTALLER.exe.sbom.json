@@ -1,21 +1,21 @@
 {
   "schema": "cbp-binary-sbom/v1",
   "binary": "START-INSTALLER.exe",
+  "version": "1.6.4",
+  "source": "build/START-INSTALLER.deps.json",
+  "scope": "self-contained-runtime",
+  "nuget_packages": [],
   "components": [
     {
-      "name": "Microsoft.NETCore.App.Runtime.win-x64",
-      "version": "8.0.21",
+      "name": "runtimepack.Microsoft.NETCore.App.Runtime.win-x64",
+      "version": "8.0.33",
       "type": "runtime-pack"
     },
     {
-      "name": "Microsoft.NETCore.App.Host.win-x64",
-      "version": "8.0.21",
-      "type": "runtime-pack"
-    },
-    {
-      "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-      "version": "8.0.21",
-      "type": "runtime-pack"
+      "name": "Microsoft.NET.ILLink.Tasks",
+      "version": "8.0.33",
+      "type": "build-task"
     }
-  ]
+  ],
+  "limitation": "No PackageReference or NuGet package is present. This SBOM covers the self-contained .NET runtime pack and ILLink task from START-INSTALLER.deps.json; it is not a recursive NuGet dependency graph."
 }

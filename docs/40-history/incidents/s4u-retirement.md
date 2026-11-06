@@ -19,4 +19,4 @@ Task Scheduler returned `Access is denied` for S4U registration and `username or
 
 ## Resolution
 
-Native SCM service `CyberButlerAstrBot` running as `CyberButlerSvc`, with a locked binary ACL and SCM-managed recovery.
+Native SCM service `CyberButlerAgent` running as `CyberButlerSvc`, with a locked binary ACL and SCM-managed recovery.

@@ -9,7 +9,7 @@
 
 ## Symptom
 
-After a Services assertion failure, `AstrBot Service` disappeared from Task Scheduler, so the failure could not be reproduced or inspected.
+After a Services assertion failure, `external agent service` disappeared from Task Scheduler, so the failure could not be reproduced or inspected.
 
 ## Cause
 
@@ -23,4 +23,4 @@ The rollback unconditionally unregistered tasks created during the install.
 
 ## Resolution
 
-`Undo-CyberButlerServices` now accepts `KeepTaskDefinitions`; the Services failure path keeps `AstrBot Service` (now the SCM service definition) and only stops processes/ports.
+`Undo-CyberButlerServices` now accepts `KeepTaskDefinitions`; the Services failure path keeps `external agent service` (now the SCM service definition) and only stops processes/ports.

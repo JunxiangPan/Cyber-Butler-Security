@@ -19,10 +19,9 @@ function Install-Task([string]$name, [string]$exe, [string]$taskArgs, [string]$w
 }
 
 Install-Task 'AuxRuntime Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-auxruntime.ps1')) (Join-Path $root 'tools') 'AuxRuntime + guardian as test-user at logon'
-Install-Task 'Ollama Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-ollama.ps1')) (Join-Path $root 'tools') 'Ollama + local model at logon'
 Install-Task 'Game Mode Startup' $launcher ('--exe "powershell.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $root 'tools'), (Join-Path $root 'tools\start-game-mode.ps1')) (Join-Path $root 'tools') 'Game mode monitor launcher as test-user at logon'
 
-# Remove the old Startup shortcuts so they cannot double-start AuxRuntime/Ollama.
+# Remove the old Startup shortcuts so they cannot double-start AuxRuntime.
 $startup = 'YOUR_USER_PATH\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
 $backup = Join-Path $root 'tools\startup-backup'
 New-Item -ItemType Directory -Force -Path $backup | Out-Null

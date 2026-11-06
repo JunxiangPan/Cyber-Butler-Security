@@ -23,4 +23,4 @@ Task definition and directory ACLs were changed without preserving the administr
 
 ## Resolution
 
-Stop the SCM service before replacing the binary; keep administrators/SYSTEM full control of the service directory; use a dedicated read-only service binary ACL for `CyberButlerSvc`. Task rollback preserves the AstrBot service definition on assertion failure.
+Stop the SCM service before replacing the binary; keep administrators/SYSTEM full control of the service directory; use a dedicated read-only service binary ACL for `CyberButlerSvc`. Task rollback preserves the external agent service definition on assertion failure.

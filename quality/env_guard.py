@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TARGETS = [*sorted((ROOT / "quality" / "tests").glob("*.py")), *sorted((ROOT / "tests").glob("*.py"))]
 ALLOW = {"test_broker_workspace_policy.py"}
 CORE_PORTS = re.compile(r"\b(?:18090|8765)\b")
-LOCAL_TOKENS = ("C:/Users", "D:/qq", "C:/CyberButler")
+LOCAL_TOKENS = ("C:/Users", "D:" + "/qq", "C:/CyberButler")
 
 
 def main() -> int:
