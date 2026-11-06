@@ -4,45 +4,38 @@
     "tools/broker.py": [
       {
         "lines": [
-          273,
-          349
+          279,
+          363
         ],
-        "reason": "Win32 Job Object creation/assignment: ctypes kernel32 calls cannot be executed on Linux CI."
+        "reason": "Win32 Job Object creation/assignment: ctypes kernel32 calls cannot execute in Linux CI."
       },
       {
         "lines": [
-          355,
-          363
+          366,
+          377
         ],
         "reason": "Win32 CloseHandle/KILL_ON_JOB_CLOSE shutdown path; requires a real Windows job handle."
       },
       {
         "lines": [
-          609,
-          636
+          614,
+          650
         ],
         "reason": "Broker token ACL creation and icacls readback; requires a Windows service account."
       },
       {
         "lines": [
-          648,
-          652
+          685,
+          702
         ],
-        "reason": "icacls readback failure branch; Windows ACL binary and service token required."
+        "reason": "DPAPI secret read/write and Windows-only failure paths."
       },
       {
         "lines": [
-          666,
-          668
+          2820,
+          2854
         ],
-        "reason": "DPAPI/token ACL failure branch; Windows DPAPI store only."
-      },
-      {
-        "lines": [
-          2749,
-          2828
-        ],
-        "reason": "HTTP server main/serve_forever/shutdown; blocked in unit-test processes to avoid a real listener."
+        "reason": "HTTP server main/serve_forever; not exercised by unit tests."
       }
     ]
   },
