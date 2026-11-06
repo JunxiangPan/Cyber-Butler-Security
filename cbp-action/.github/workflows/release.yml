@@ -82,15 +82,18 @@ jobs:
         run: |
           python -m pip install --force-reinstall --no-deps dist/*.whl
           python -c "import cbp; print(cbp.__file__)"
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: 'dist/*.whl'
       - name: Download verified artifact again
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh run download "${{ inputs.ci_run_id }}" -n "quality-manifest-${{ inputs.ci_run_id }}" -D artifact
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            dist/*.whl
+            artifact/quality-manifest.json
+            artifact/quality-manifest.json.sha256
       - name: Publish release from the generated notes
         env:
           GH_TOKEN: ${{ github.token }}

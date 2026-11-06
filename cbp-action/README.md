@@ -274,6 +274,22 @@ not import or execute third-party code.
 Rules are regex or literal, support `ignore_case`, `multiline`, and `dotall`,
 and default to `warn` so a new language cannot break another project's CI.
 
+## Verifying build provenance
+
+The release wheel and the manifest evidence are covered by GitHub OIDC
+attestation. Verify them from a checkout of the release repository:
+
+```bash
+gh attestation verify cbp_action-0.1.4-py3-none-any.whl   --repo JunxiangPan/cbp-action
+
+gh attestation verify quality-manifest.json   --repo JunxiangPan/cbp-action
+
+gh attestation verify quality-manifest.json.sha256   --repo JunxiangPan/cbp-action
+```
+
+CBP validates code execution paths, but cannot prove the semantic validity of
+test assertions.
+
 ## Release body and errata
 
 `docs/RELEASE_BODY.md` is the only accepted source for the GitHub Release body.

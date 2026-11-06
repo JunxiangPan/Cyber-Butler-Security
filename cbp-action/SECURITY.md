@@ -29,7 +29,9 @@ Release wheels are built in GitHub Actions and attested with
 artifact with:
 
 ```bash
-gh attestation verify cbp_action-0.1.3-py3-none-any.whl --repo JunxiangPan/cbp-action
+gh attestation verify cbp_action-0.1.4-py3-none-any.whl --repo JunxiangPan/cbp-action
+gh attestation verify quality-manifest.json --repo JunxiangPan/cbp-action
+gh attestation verify quality-manifest.json.sha256 --repo JunxiangPan/cbp-action
 ```
 
 The SHA256 checksum and run-id are still published, but they are not a
