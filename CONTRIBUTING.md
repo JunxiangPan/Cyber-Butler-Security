@@ -4,6 +4,13 @@
 > refactors. Read `SECURITY.md` and `docs/TROUBLESHOOTING.md` before changing
 > ACLs, service identities, the Broker, or the installer.
 
+## Versioning
+
+Minor releases are backward compatible. New gates, inputs and config fields
+must be opt-in or have safe defaults. Legacy fields are auto-mapped with a
+warning and remain accepted for at least two minor releases. Major releases
+require a migration guide and a maintained previous major line.
+
 ## 1. Fork safely
 
 1. Fork the repository into your own account.

@@ -31,6 +31,9 @@ inputs:
   install-command:
     description: Installer file that must contain --require-hashes
     default: ""
+  installer-core:
+    description: Deprecated alias for install-command (accepted through v0.2.x)
+    default: ""
   docs-manifest:
     description: Incident-history manifest
     default: ""
@@ -92,7 +95,7 @@ runs:
           --coverage-threshold "${{ inputs.coverage-threshold }}" \
           --policy-coverage-threshold "${{ inputs.policy-coverage-threshold }}" \
           --dependency-lock "${{ inputs.dependency-lock }}" \
-          --install-command "${{ inputs.install-command }}" \
+          --install-command "${{ inputs.install-command || inputs.installer-core }}" \
           --docs-manifest "${{ inputs.docs-manifest }}" \
           --binary-artifacts "${{ inputs.binary-artifacts }}" \
           --package-zip "${{ inputs.package-zip }}" \

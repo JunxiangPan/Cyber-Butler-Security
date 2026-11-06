@@ -8,6 +8,18 @@ Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.m
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
 
+## Versioning law
+
+Minor releases are backward compatible. A user must be able to change only the
+version number and keep the existing CI running. New checks are opt-in or safe
+by default; legacy configuration is auto-mapped in memory with a warning.
+
+A major release is reserved for an incompatible architecture change. It must
+include a migration guide, an automated converter where possible, and a
+maintained previous major line so users choose when to upgrade.
+
+Deprecation is staged over at least two minor releases before removal.
+
 ## Current status — v1.6.4 candidate
 
 **Status:** v1.6.4 is a candidate, not a published release. The ZIP, manifest,

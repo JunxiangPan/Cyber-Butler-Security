@@ -87,6 +87,7 @@ or `CBP_RESULT=FAIL`.
 | `policy-coverage-threshold` | Legacy policy threshold |
 | `dependency-lock` | Hash-locked requirements file |
 | `install-command` | Installer that enforces `--require-hashes` |
+| `installer-core` | Deprecated alias for `install-command` |
 | `docs-manifest` | Document SHA256 manifest |
 | `binary-artifacts` | `.build.json` / `.sbom.json` directory |
 | `package-zip` | Optional release ZIP |

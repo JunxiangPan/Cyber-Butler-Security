@@ -25,6 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--require-coverage-signature", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--dependency-lock", default="")
     parser.add_argument("--install-command", default="")
+    parser.add_argument("--installer-core", dest="install_command", default=argparse.SUPPRESS)
     parser.add_argument("--docs-manifest", default="")
     parser.add_argument("--binary-artifacts", default="")
     parser.add_argument("--package-zip", default="")

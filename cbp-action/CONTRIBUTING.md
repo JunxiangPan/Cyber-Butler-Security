@@ -26,9 +26,22 @@ python -m cbp.cli --root . --mode enforce
 Describe the failure mode the change prevents. Include the test that would fail
 without the change and the command output showing it now passes.
 
+## Versioning and compatibility
+
+Versioning is part of the review, not a release-time afterthought.
+
+- Every minor release must be backward compatible.
+- New gates, rules, inputs, and config fields are opt-in or safe by default.
+- Legacy config fields must be auto-mapped in memory and emit a warning.
+- A deprecated field remains usable for at least two minor releases.
+- A major release needs a migration guide and a maintained previous major line.
+
+See [`UPGRADING.md`](UPGRADING.md) and [`ROADMAP.md`](ROADMAP.md). A pull request
+that removes a legacy field without this process is rejected.
+
 ## CB governance checks
 
-CBP is the calibrator, not an exception. Every CBP change must pass the six
+CBP is the calibrator, not an exception. Every CBP change must pass the eight
 gates:
 
 ```bash
