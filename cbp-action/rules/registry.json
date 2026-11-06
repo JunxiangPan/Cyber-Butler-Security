@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "CBP-COV-001",
+      "gate": "coverage",
+      "description": "Coverage groups below their enforce threshold fail the gate.",
+      "source": {
+        "project": "CBP",
+        "pr": "stage-b-seed",
+        "issue": "stage-b-seed"
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_cov_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_cov_001_positive",
+      "status": "active"
+    },
+    {
+      "id": "CBP-DEP-001",
+      "gate": "dependency",
+      "description": "A lock without pinned hashes or an installer without --require-hashes fails.",
+      "source": {
+        "project": "CBP",
+        "pr": "stage-b-seed",
+        "issue": "stage-b-seed"
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_dep_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_dep_001_positive",
+      "status": "active"
+    },
+    {
+      "id": "CBP-CMT-001",
+      "gate": "comments",
+      "description": "Generic boilerplate public docstrings fail the comment gate.",
+      "source": {
+        "project": "CBP",
+        "pr": "stage-b-seed",
+        "issue": "stage-b-seed"
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_cmt_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_cmt_001_positive",
+      "status": "active"
+    },
+    {
+      "id": "CBP-DOC-001",
+      "gate": "docs",
+      "description": "A documented file whose SHA256 no longer matches the manifest fails.",
+      "source": {
+        "project": "CBP",
+        "pr": "stage-b-seed",
+        "issue": "stage-b-seed"
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_doc_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_doc_001_positive",
+      "status": "active"
+    },
+    {
+      "id": "CBP-CLM-001",
+      "gate": "claims",
+      "description": "Release-note QUALITY_COUNTS must match the machine manifest.",
+      "source": {
+        "project": "CBP",
+        "pr": "stage-b-seed",
+        "issue": "stage-b-seed"
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_clm_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_clm_001_positive",
+      "status": "active"
+    }
+  ]
+}

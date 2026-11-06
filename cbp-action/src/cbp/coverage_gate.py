@@ -1,6 +1,8 @@
 """Generic coverage gate with independent enforce/warn groups."""
 from __future__ import annotations
 
+RULE_ID = "CBP-COV-001"
+
 import json
 from pathlib import Path
 from typing import Any

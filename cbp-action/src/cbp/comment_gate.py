@@ -1,6 +1,8 @@
 """Generic AST/token comment gate."""
 from __future__ import annotations
 
+RULE_ID = "CBP-CMT-001"
+
 import ast
 import re
 import tokenize

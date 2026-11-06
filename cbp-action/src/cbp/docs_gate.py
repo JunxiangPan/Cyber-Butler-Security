@@ -1,6 +1,8 @@
 """Generic incident-history manifest gate."""
 from __future__ import annotations
 
+RULE_ID = "CBP-DOC-001"
+
 import hashlib
 import json
 

@@ -1,6 +1,8 @@
 """Generic release-claim reconciliation gate."""
 from __future__ import annotations
 
+RULE_ID = "CBP-CLM-001"
+
 import json
 import re
 

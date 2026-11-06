@@ -1,6 +1,8 @@
 """Generic pinned + hashed dependency gate."""
 from __future__ import annotations
 
+RULE_ID = "CBP-DEP-001"
+
 import re
 
 from .config import GateConfig
