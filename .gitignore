@@ -129,3 +129,5 @@ cbp-action/docs/RELEASE_NOTES.generated.md
 cbp-action/quality-manifest.json.sha256
 
 cbp-action/quality-manifest.json.sha256
+
+build/obj/
