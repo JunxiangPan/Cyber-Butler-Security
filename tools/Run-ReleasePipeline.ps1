@@ -55,6 +55,10 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw ('invalid release version: ' +
 if ([string]$manifestVersion -ne $Version) {
     throw ('version mismatch: -Version ' + $Version + ' != update-manifest.json ' + $manifestVersion)
 }
+$declaredVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+if ($declaredVersion -ne $Version) {
+    throw ('version gate: -Version ' + $Version + ' != VERSION ' + $declaredVersion)
+}
 $releaseBranch = 'release/v' + $Version
 $head = (& git -C $root rev-parse HEAD 2>&1 | Out-String).Trim()
 $upstream = (& git -C $root rev-parse ('origin/' + $releaseBranch) 2>&1 | Out-String).Trim()
@@ -101,10 +105,6 @@ Run-Process 'code comments (AST)' 'python' @('tools/audit_code_comments.py')
 Run-Process 'docs consistency' 'python' @('tools/audit_docs_consistency.py')
 Run-Process 'UI sanity (styled console, no dead UI terms/routes)' 'python' @('quality/ui_gate.py')
 Run-Process 'acceptance fragility (TOTP 429 retry)' 'python' @('quality/fragility_gate.py')
-$declaredVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
-if ($declaredVersion -ne $Version) {
-    throw ('version gate: -Version ' + $Version + ' != VERSION ' + $declaredVersion)
-}
 $launcherPath = Join-Path $root 'tools\CyberButlerLauncher.exe'
 if (-not (Test-Path -LiteralPath $launcherPath)) { throw 'version gate: launcher exe missing' }
 $launcherVersion = (Get-Item -LiteralPath $launcherPath).VersionInfo.FileVersion
