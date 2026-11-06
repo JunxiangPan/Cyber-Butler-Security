@@ -102,13 +102,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: quality-manifest-${{ github.run_id }}
-          path: .
+          path: artifact
       - name: Verify manifest hash
         run: |
-          actual=$(sha256sum quality-manifest.json | awk '{print $1}')
-          expected=$(awk '{print $1}' quality-manifest.json.sha256)
+          actual=$(sha256sum artifact/quality-manifest.json | awk '{print $1}')
+          expected=$(awk '{print $1}' artifact/quality-manifest.json.sha256)
+          echo "artifact_manifest=$GITHUB_WORKSPACE/artifact/quality-manifest.json"
           echo "actual=$actual"
           echo "expected=$expected"
           test "$actual" = "$expected"
-      - name: Verify manifest with CBP
-        run: python -m cbp.cli --root . --mode enforce
+      - name: Verify manifest with CBP from artifact
+        run: |
+          echo "CBP_MANIFEST=$GITHUB_WORKSPACE/artifact/quality-manifest.json"
+          python -m cbp.cli --root . --mode enforce             --manifest "$GITHUB_WORKSPACE/artifact/quality-manifest.json"             --claims-notes "$GITHUB_WORKSPACE/artifact/docs/RELEASE_NOTES.generated.md"

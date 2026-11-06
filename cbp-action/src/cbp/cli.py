@@ -26,6 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--package-zip", default="")
     parser.add_argument("--claims-manifest", default="")
     parser.add_argument("--claims-notes", default="")
+    parser.add_argument("--manifest", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-dependency", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-comments", type=lambda x: x.lower() == "true", default=None)
@@ -50,6 +51,8 @@ def main(argv: list[str] | None = None) -> int:
     }.items():
         if value:
             overrides[key] = value
+    if args.manifest:
+        overrides["claims_manifest"] = args.manifest
     for key in ("enable_coverage", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims"):
         value = getattr(args, key)
         if value is not None:

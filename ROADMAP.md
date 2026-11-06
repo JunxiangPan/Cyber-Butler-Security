@@ -96,6 +96,13 @@ start successfully without its siblings.
 
 ## CBP governance
 
+### Monorepo verification bridge
+
+`.github/workflows/cbp-action-verify.yml` is a temporary bridge because GitHub
+does not register workflows nested under `cbp-action/.github`. It validates the
+same three jobs while CBP lives in this repository. Delete it when the standalone
+`cbp-action` repository is created and its own workflow is active.
+
 ### Iron law 3: CBP is the calibrator, not an exception
 
 CBP must pass the same six gates it enforces:
