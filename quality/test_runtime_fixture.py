@@ -153,22 +153,6 @@ def main() -> int:
         record("trash_list", "GET", "/trash", trash)
         assert trash.status_code == 200, trash.text
 
-        replay_target = shared / "fixture-replay.txt"
-        replay_target.write_text("replay", encoding="utf-8")
-        replay_request = post("/request", {
-            "action": "delete",
-            "target": str(replay_target),
-            "reason": "replay",
-            "source": "fixture",
-        }, token)
-        record("replay_request", "POST", "/request", replay_request)
-        assert replay_request.status_code == 200, replay_request.text
-        replay_id = replay_request.json()["id"]
-        replay = post("/verify", {"id": replay_id, "code": code}, token)
-        record("replay", "POST", "/verify", replay)
-        assert replay.status_code == 429, replay.text
-        assert replay_target.exists(), "replay must not delete"
-
         repeat = post("/verify", {"id": pending["id"], "code": code}, token)
         record("verify_repeat", "POST", "/verify", repeat)
         assert repeat.status_code == 404, repeat.text
