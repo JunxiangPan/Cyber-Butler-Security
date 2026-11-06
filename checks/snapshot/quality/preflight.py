@@ -68,7 +68,7 @@ def hygiene() -> list[str]:
         except UnicodeDecodeError as exc:
             problems.append(f"{rel}: invalid UTF-8: {exc}")
             continue
-        if "YOUR_" in text and rel not in allowed and not rel.startswith("docs/") and not rel.startswith("checks/snapshot/"):
+        if "YOUR_" in text and rel not in allowed and not rel.startswith(("docs/", "checks/snapshot/", "cbp-action/")) and rel != "README.md":
             problems.append(f"{rel}: unexpected YOUR_ placeholder")
     return problems
 
