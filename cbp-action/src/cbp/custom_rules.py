@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
+from . import readers
 
 RULE_ID = "CBP-CST-001"
 SKIP_PARTS = {".git", ".venv", "venv", "__pycache__", "node_modules", "wheelhouse"}
@@ -53,26 +54,42 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         if severity not in {"error", "warning", "note"}:
             return False, f"custom rule {name} has invalid severity {severity!r}"
         rule_id = _rule_id(rule, index)
-        matcher = None
-        if rule.get("match", "regex") == "regex":
-            try:
-                matcher = re.compile(pattern)
-            except re.error as exc:
-                return False, f"custom rule {name} has invalid regex: {exc}"
-        elif rule.get("match") == "literal":
-            matcher = None
-        else:
+        match_kind = rule.get("match", "regex")
+        if match_kind not in {"regex", "literal"}:
             return False, f"custom rule {name} has invalid match mode"
+        flags = 0
+        raw_flags = rule.get("flags", [])
+        if isinstance(raw_flags, str):
+            raw_flags = [raw_flags]
+        if not isinstance(raw_flags, list):
+            return False, f"custom rule {name} has invalid flags"
+        for flag_name in raw_flags:
+            if flag_name == "ignore_case":
+                flags |= re.IGNORECASE
+            elif flag_name == "multiline":
+                flags |= re.MULTILINE
+            elif flag_name == "dotall":
+                flags |= re.DOTALL
+            else:
+                return False, f"custom rule {name} has unknown flag {flag_name!r}"
+        try:
+            expression = re.escape(pattern) if match_kind == "literal" else pattern
+            matcher = re.compile(expression, flags)
+        except re.error as exc:
+            return False, f"custom rule {name} has invalid regex: {exc}"
         limit = int(rule.get("max_matches", 100))
         count = 0
         for path in _files(cfg, files, rule.get("exclude", [])):
             try:
-                text = path.read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError) as exc:
-                findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] unreadable: {exc}")
+                reader = readers.resolve(cfg, path, str(rule.get("reader", "")))
+            except ValueError as exc:
+                return False, f"custom rule {name}: {exc}"
+            text, error = readers.read(path, reader)
+            if error:
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] unreadable: {error}")
                 count += 1
                 continue
-            for match in (matcher.finditer(text) if matcher else re.finditer(re.escape(pattern), text)):
+            for match in matcher.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
                 findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line}: [{rule_id}] {message}")
                 count += 1

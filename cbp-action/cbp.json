@@ -45,7 +45,8 @@
         "src/cbp/cli.py",
         "src/cbp/encoding_gate.py",
         "src/cbp/custom_rules.py",
-        "src/cbp/sarif.py"
+        "src/cbp/sarif.py",
+        "src/cbp/readers.py"
       ],
       "threshold": 80,
       "mode": "enforce"
@@ -64,7 +65,8 @@
         "src/cbp/encoding_gate.py",
         "tools/audit_rule_sources.py",
         "src/cbp/custom_rules.py",
-        "src/cbp/sarif.py"
+        "src/cbp/sarif.py",
+        "src/cbp/readers.py"
       ],
       "threshold": 90,
       "mode": "enforce"
@@ -91,5 +93,13 @@
       "severity": "warning",
       "mode": "warn"
     }
-  ]
+  ],
+  "evidence_readers": {
+    "python": {
+      "suffixes": [
+        ".py"
+      ],
+      "encoding": "utf-8"
+    }
+  }
 }

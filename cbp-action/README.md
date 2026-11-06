@@ -8,6 +8,13 @@ trust a green check without evidence.
 CBP is intentionally small: Python standard library at runtime, JSON/TOML
 configuration, and one CLI used by both GitHub Actions and local CI.
 
+CBP is designed to evolve. As the CB ecosystem grows, CBP's rule engine will expand to cover different languages and frameworks.
+
+The core 80% is language-neutral: encoding, documentation locks, release claims,
+dependency policy, and provenance. The remaining 20% is supplied by configured
+custom rules and evidence readers, so a React, Node.js, or future language
+project can extend the gate without changing CBP source.
+
 ## What it catches
 
 | Gate | What it rejects |
@@ -190,6 +197,42 @@ cryptographic signature.
 
 `security_core` coverage is the coverage of the gate modules, config, CLI,
 encoding gate, and rule auditor; it is not a separate binary-security metric.
+
+## Cross-language custom rules
+
+Evidence readers are declared in `cbp.json` and selected by suffix or explicitly
+by a rule. A reader is only a text decoder plus suffix/limit metadata; CBP does
+not import or execute third-party code.
+
+```json
+{
+  "evidence_readers": {
+    "javascript": {"suffixes": [".js", ".jsx", ".ts", ".tsx"], "encoding": "utf-8"},
+    "python": {"suffixes": [".py"], "encoding": "utf-8"}
+  },
+  "custom_rules": [
+    {
+      "name": "no-dangerous-html",
+      "pattern": "dangerouslySetInnerHTML",
+      "files": ["webui/**/*.jsx"],
+      "reader": "javascript",
+      "message": "Do not inject raw HTML.",
+      "mode": "warn"
+    },
+    {
+      "name": "no-node-eval",
+      "pattern": "\beval\s*\(",
+      "files": ["webui/**/*.js"],
+      "reader": "javascript",
+      "message": "Do not use eval().",
+      "mode": "warn"
+    }
+  ]
+}
+```
+
+Rules are regex or literal, support `ignore_case`, `multiline`, and `dotall`,
+and default to `warn` so a new language cannot break another project's CI.
 
 ## Release body and errata
 
