@@ -132,3 +132,5 @@ cbp-action/quality-manifest.json.sha256
 
 build/obj/
 .coverage
+
+build/bin/
