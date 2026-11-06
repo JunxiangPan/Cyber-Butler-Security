@@ -14,7 +14,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="cbp")
     parser.add_argument("--root", default=".")
     parser.add_argument("--config", default="")
-    parser.add_argument("--mode", choices=("audit", "enforce"), default="enforce")
+    parser.add_argument("--mode", choices=("audit", "warn", "enforce"), default="enforce")
     parser.add_argument("--coverage-threshold", type=float, default=None)
     parser.add_argument("--policy-coverage-threshold", type=float, default=None)
     parser.add_argument("--coverage-json", default="")
@@ -74,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
         ok = ok and passed
     print("CBP_RESULT=" + ("PASS" if ok else "FAIL"))
-    return 0 if ok or args.mode == "audit" else 1
+    return 0 if ok or args.mode in {"audit", "warn"} else 1
 
 
 if __name__ == "__main__":

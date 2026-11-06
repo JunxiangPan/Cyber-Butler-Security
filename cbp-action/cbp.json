@@ -38,7 +38,8 @@
         "src/cbp/docs_gate.py",
         "src/cbp/binary_gate.py",
         "src/cbp/claims_gate.py",
-        "src/cbp/config.py"
+        "src/cbp/config.py",
+        "src/cbp/cli.py"
       ],
       "threshold": 80,
       "mode": "enforce"
