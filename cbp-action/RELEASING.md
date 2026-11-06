@@ -34,6 +34,30 @@ then look for a run.
 If the tag points at a newer commit than the CI run, verification fails by
 design. Re-run CI on the tag commit, then retry the release with the new run id.
 
+## Local final check
+
+Run these in order:
+
+1. If any tracked documentation changed, update `docs/history-manifest.json`
+   first. Otherwise the docs gate fails before manifest generation.
+2. Generate a local-only manifest:
+   ```bash
+   GITHUB_ACTIONS=false python tools/dogfood_manifest.py --root .
+   ```
+3. Run the full gate against that local manifest:
+   ```bash
+   python -m cbp.cli --root . --mode enforce
+   ```
+
+Expected order:
+
+```text
+docs hash updated -> dogfood manifest -> cbp.cli PASS
+```
+
+The generated `quality-manifest.json` and `docs/RELEASE_NOTES.generated.md`
+are local-only and ignored by git.
+
 ## Local manifest debugging
 
 Do not set `GITHUB_ACTIONS=true` for local debugging. Set it to `false` or leave
