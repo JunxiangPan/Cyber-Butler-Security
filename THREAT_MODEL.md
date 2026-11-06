@@ -141,3 +141,14 @@ This is intentional: it is the agent's capability. ACL evidence must be read as
 
 VM acceptance evidence is tamper-evident, not remote attestation. A malicious
 machine owner who fabricates logs cannot be disproved by local hashes alone.
+
+
+## 9. Installer Elevation Boundary
+
+`START-INSTALLER.exe` hides the PowerShell child with
+`CreateNoWindow=true` / `UseShellExecute=false` and redirects its stdout and
+stderr to `logs/installer.log`.
+
+The UAC self-elevation step still uses `UseShellExecute=true` with
+`Verb=runas`; the .NET API requires ShellExecute for elevation. This is the only
+remaining ShellExecute use and is documented here rather than silently omitted.

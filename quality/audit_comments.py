@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import ast
+import re
 import sys
+import tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = [ROOT / "tools" / "broker.py", ROOT / "tools" / "broker_policy.py", ROOT / "tools" / "broker_state.py", ROOT / "tools" / "broker_config.py"]
 GENERIC = ("caller-supplied value", "function result, or none", "helper/type")
+SLOP = re.compile(r"#\s*(send|get|set|run|handle|process|check|do|call)", re.IGNORECASE)
 
 
 def _check(node: ast.AST, path: Path) -> list[str]:
@@ -40,6 +43,10 @@ def main() -> int:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 findings.extend(_check(node, path))
+        with path.open("r", encoding="utf-8") as handle:
+            for token in tokenize.generate_tokens(handle.readline):
+                if token.type == tokenize.COMMENT and SLOP.search(token.string):
+                    findings.append(f"{path.name}:{token.start[0]}: slop comment {token.string.strip()}")
     if findings:
         print("COMMENT_AUDIT_FAILED")
         for item in findings[:80]:

@@ -23,12 +23,18 @@ internal static class InstallerProgram
 
     private static void Log(string message)
     {
+        string line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message + Environment.NewLine;
         try
         {
-            File.AppendAllText(Path.Combine(Path.GetTempPath(), "CyberButler-installer-shell.log"),
-                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message + Environment.NewLine);
+            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            Directory.CreateDirectory(logDir);
+            File.AppendAllText(Path.Combine(logDir, "installer.log"), line);
         }
-        catch { }
+        catch
+        {
+            try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "CyberButler-installer-shell.log"), line); }
+            catch { }
+        }
     }
 
     private static int RunGui(string gui)
@@ -40,10 +46,16 @@ internal static class InstallerProgram
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
         psi.WindowStyle = ProcessWindowStyle.Hidden;
+        psi.RedirectStandardOutput = true;
+        psi.RedirectStandardError = true;
         Log("starting PowerShell with ExecutionPolicy RemoteSigned gui=" + gui);
         using (Process child = Process.Start(psi))
         {
             if (child == null) { Log("Process.Start returned null"); return 4; }
+            child.OutputDataReceived += (sender, args) => { if (!string.IsNullOrEmpty(args.Data)) Log("stdout: " + args.Data); };
+            child.ErrorDataReceived += (sender, args) => { if (!string.IsNullOrEmpty(args.Data)) Log("stderr: " + args.Data); };
+            child.BeginOutputReadLine();
+            child.BeginErrorReadLine();
             child.WaitForExit();
             Log("PowerShell exited code=" + child.ExitCode);
             return child.ExitCode;
