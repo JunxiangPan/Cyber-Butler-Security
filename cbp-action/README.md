@@ -1,48 +1,78 @@
-# Cyber Butler Pipeline (CBP)
+# CBP — Coverage and Build Policy
 
-CBP is a standalone set of repository gates for coverage, hash-locked
-dependencies, comment quality, incident-history manifests, release binaries,
-and release-note claims.
+A reusable, self-hosted quality gate for repositories that do not want to
+trust a green check without evidence.
 
-There are **no CBS paths baked into the Action**. Every path input is empty by
-default and must be supplied by the calling project.
+CBP is intentionally small: Python standard library at runtime, JSON/TOML
+configuration, and one CLI used by both GitHub Actions and local CI.
+
+## What it catches
+
+| Gate | What it rejects |
+|---|---|
+| coverage | measured coverage below the configured floor, or missing allowlist entries |
+| dependency | unpinned packages, missing SHA256 hashes, installers without `--require-hashes` |
+| comments | public functions/classes without docstrings, missing `Args` names, generic boilerplate, `# Send ...`-style comments |
+| docs | files whose SHA256 no longer matches the documentation manifest |
+| binary | large binaries without `.build.json`/`.sbom.json`, or provenance hash/size mismatches |
+| claims | release notes whose `QUALITY_COUNTS` do not match the generated manifest |
+
+It is designed to make fake tests, fake coverage, dependency substitution,
+copy-paste comments, and edited evidence fail closed.
 
 ## GitHub Action
 
 ```yaml
-- uses: your-org/cbp-action@<pinned-sha>
+- uses: your-org/cbp-action@v0.1.0
   with:
     root: .
+    config: .cbp/config.json
     coverage-json: coverage.json
-    coverage-allowlist: coverage_allowlist.json
+    coverage-allowlist: .cbp/coverage_allowlist.json
     coverage-threshold: "80"
     policy-coverage-threshold: "85"
-    dependency-lock: requirements-runtime.lock
-    installer-core: installer/lib/Installer.Core.ps1
-    docs-manifest: docs/history-manifest.json
+    dependency-lock: requirements.lock
+    installer-core: installer/install.ps1
+    docs-manifest: .cbp/docs-manifest.json
     binary-artifacts: artifacts
     claims-manifest: quality-manifest.json
-    claims-notes: docs/releases/RELEASE_NOTES.md
+    claims-notes: RELEASE_NOTES.md
     enable-coverage: "true"
     enable-dependency: "true"
     enable-comments: "true"
     enable-docs: "true"
     enable-binary: "true"
-    enable-claims: "true"
+    enable-claims: "false"
     mode: enforce
 ```
 
-The action writes `result=CBP_RESULT=PASS` or `CBP_RESULT=FAIL` to
-`$GITHUB_OUTPUT`.
+The output is written to `$GITHUB_OUTPUT` as:
+
+```text
+result=CBP_RESULT=PASS
+```
+
+or `CBP_RESULT=FAIL`.
+
+### Required path inputs
+
+`coverage-json`, `coverage-allowlist`, `dependency-lock`, `installer-core`,
+`docs-manifest`, `binary-artifacts`, `claims-manifest`, and `claims-notes` have
+**no product-specific defaults**. Pass only the gates you enable.
+
+### Minimal Python project example
+
+See [`usage.yml`](usage.yml) for a complete workflow that runs coverage,
+then calls the Action.
 
 ## Local CLI
 
 ```bash
-python -m pip install -e .
+python -m pip install -e ".[test]"
 python -m cbp.cli --root /path/to/repo --config .cbp/config.json
 ```
 
-`audit` mode prints failures but exits zero; `enforce` exits non-zero.
+`audit` mode reports failures but exits zero; `enforce` exits non-zero.
 
 ```bash
 python -m cbp.cli --root . --mode audit
@@ -51,32 +81,38 @@ python -m cbp.cli --root . --mode enforce
 
 ## Configuration
 
-See `schemas/config.schema.json`. All paths are resolved relative to `root`.
-Every gate can be disabled with its own `enable-*` flag.
+See [`schemas/config.schema.json`](schemas/config.schema.json).
 
 ```json
 {
   "coverage_json": "coverage.json",
-  "coverage_allowlist": "coverage_allowlist.json",
-  "broker_files": ["src/broker.py"],
-  "policy_file": "src/broker.py",
+  "coverage_allowlist": ".cbp/coverage_allowlist.json",
+  "measured_files": ["src/example.py"],
+  "policy_file": "src/example.py",
   "coverage_threshold": 80,
   "policy_threshold": 85,
-  "comment_files": ["src/broker.py"],
+  "comment_files": ["src/example.py"],
   "enable_claims": false
 }
 ```
 
-## Gates
+All paths are relative to `root`. Every gate can be disabled with its
+`enable_*` field or the matching Action input.
 
-- coverage: policy and allowlisted broker coverage
-- dependency: pinned packages, SHA256 hashes, `--require-hashes`
-- comments: public docstrings, argument names, generic boilerplate, and slop comments
-- docs: incident manifest hashes
-- binary: `.build.json` / `.sbom.json` provenance and SBOM binary hash
-- claims: release-note `QUALITY_COUNTS` vs `quality-manifest.json`
+## Self-test
+
+```bash
+cd cbp-action
+python -m pip install -e ".[test]"
+python -m coverage run --branch -m pytest -q tests
+python -m coverage json -o coverage.json
+python -m cbp.cli --root . --mode enforce
+```
+
+The package has no runtime dependencies outside the Python standard library.
+`pytest` and `coverage` are optional test dependencies.
 
 ## Status
 
-CBP-0 and CBP-1 are implemented. CBS owns thin `quality/*.py` wrappers; CBP does
-not import `quality/`, `checks/`, or `tools/` from CBS.
+v0.1.0 is a standalone release candidate. It does not import anything from
+the host product's `quality/`, `checks/`, or `tools/` directories.

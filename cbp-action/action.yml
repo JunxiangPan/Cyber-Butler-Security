@@ -4,6 +4,9 @@ inputs:
   root:
     description: Repository root
     default: "."
+  config:
+    description: Optional CBP JSON/TOML config path (defaults to root/cbp.json)
+    default: ""
   coverage-json:
     required: true
     description: Path to coverage.py JSON output
@@ -13,7 +16,7 @@ inputs:
     description: Path to the coverage allowlist JSON
     default: ""
   coverage-threshold:
-    description: Minimum allowlisted broker coverage
+    description: Minimum allowlisted measured coverage
     default: "80"
   policy-coverage-threshold:
     description: Minimum policy coverage

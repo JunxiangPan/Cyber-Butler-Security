@@ -35,7 +35,7 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         return False, f"policy coverage {policy_pct:.2f}% < {cfg.policy_threshold:.2f}%"
     missing_total = 0
     statements = 0
-    for relative in cfg.broker_files:
+    for relative in (getattr(cfg, "measured_files", ()) or cfg.broker_files):
         entry = files.get(_norm(relative))
         if entry is None:
             return False, f"{relative} not measured"

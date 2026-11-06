@@ -14,6 +14,7 @@ class GateConfig:
     coverage_json: Path | str = ""
     coverage_allowlist: Path | str = ""
     broker_files: tuple[str, ...] = ()
+    measured_files: tuple[str, ...] = ()
     policy_file: str = ""
     coverage_threshold: float = 80.0
     policy_threshold: float = 85.0
