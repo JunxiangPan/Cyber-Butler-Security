@@ -6,6 +6,7 @@ import argparse
 import base64
 import zipfile
 import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -53,6 +54,30 @@ def _zip_installer_sha256(package: Path) -> str | None:
             return hashlib.sha256(archive.read("START-INSTALLER.exe")).hexdigest().upper()
     except (KeyError, OSError, zipfile.BadZipFile):
         return None
+
+
+def _verify_package_manifest(package: Path, manifest: Path) -> str | None:
+    """Check every manifest file against the release ZIP bytes."""
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8-sig"))
+        with zipfile.ZipFile(package) as archive:
+            names = {name for name in archive.namelist() if not name.endswith("/")}
+            expected = {str(item["path"]): item for item in data["files"]}
+            missing = sorted(set(expected) - names)
+            if missing:
+                return "package missing manifest entries: " + ",".join(missing[:3])
+            for path, item in expected.items():
+                payload = archive.read(path)
+                if len(payload) != int(item["size"]):
+                    return "package size mismatch: " + path
+                if hashlib.sha256(payload).hexdigest().lower() != str(item["sha256"]).lower():
+                    return "package hash mismatch: " + path
+            unlisted = sorted(names - set(expected) - {"update-manifest.json"})
+            if unlisted:
+                return "package contains unlisted entries: " + ",".join(unlisted[:3])
+        return None
+    except (KeyError, ValueError, OSError, zipfile.BadZipFile) as exc:
+        return "package manifest check failed: " + str(exc)
 
 
 def _proof_installer_sha256(proof: Path) -> str | None:
@@ -123,6 +148,16 @@ def main() -> int:
     if version_tuple < MIN_ACCEPTED_VERSION and not args.legacy and not pinned_legacy:
         print("DOWNGRADE_REJECTED: version < 1.6.4; pass --legacy only for an audited old asset")
         return 1
+    if args.package:
+        expected_installer = _proof_installer_sha256(Path(args.proof))
+        actual_installer = _zip_installer_sha256(Path(args.package))
+        if expected_installer and actual_installer and expected_installer != actual_installer:
+            print("INVALID: final package START-INSTALLER.exe does not match ACCEPTANCE_PROOF")
+            return 1
+        package_error = _verify_package_manifest(Path(args.package), manifest)
+        if package_error:
+            print("INVALID: " + package_error)
+            return 1
     if not (args.build_report and args.qa_report and args.proof):
         if version_tuple >= MIN_ACCEPTED_VERSION:
             print("INVALID ValueError: v1.6.4 requires the four-file signature reports")
