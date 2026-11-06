@@ -45,7 +45,10 @@ def hygiene() -> list[str]:
         if not raw:
             continue
         rel = raw.decode("utf-8", "replace").replace("\\", "/")
-        if rel.startswith(("overlay/", "plugins/", "quality/")) or rel == "FINAL_QA_REPORT.md":
+        if (
+            rel.startswith(("overlay/", "plugins/", "quality/", ".cbp/"))
+            or rel in {"FINAL_QA_REPORT.md", "quality-manifest.json", "quality-manifest.sha256"}
+        ):
             continue
         path = ROOT / rel
         if not path.is_file() or path.suffix.lower() in BINARY_SUFFIXES:
