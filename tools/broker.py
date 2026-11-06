@@ -167,6 +167,16 @@ class ExecutionResult:
         yield self.message
 
 
+def _execution_values(execution: object) -> tuple[bool, str]:
+    """Accept typed results and legacy tuple return values from test doubles."""
+    if isinstance(execution, ExecutionResult):
+        return execution.ok, execution.message
+    pair = execution
+    if isinstance(pair, tuple) and len(pair) == 2:
+        return bool(pair[0]), str(pair[1])
+    raise TypeError("execute() must return ExecutionResult or (ok, message)")
+
+
 def _ok(message: str) -> ExecutionResult:
     """Return a successful execution result."""
     return ExecutionResult(200, message, "ok")
@@ -1438,7 +1448,7 @@ def email_watch(request_id: str) -> None:
         with broker_state._lock:
             broker_state._pending = None
         execution = execute(request)
-        ok, result = execution.ok, execution.message
+        ok, result = _execution_values(execution)
         log(f"email approved: {request_id} ok={ok} {result}")
         _email_result(config, request, result)
         return
@@ -1811,7 +1821,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "_source_snapshot": source_snapshot,
             }
             execution = execute(request)
-            ok, result = execution.ok, execution.message
+            ok, result = _execution_values(execution)
             if ok:
                 _audit_bypass(request, result, str(bypass.get("scope", "")))
                 log(f"bypass executed: {request_id} {action} {target_text}")
@@ -1858,7 +1868,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
                 "_source_snapshot": source_snapshot,
             }
             execution = execute(request)
-            ok, result = execution.ok, execution.message
+            ok, result = _execution_values(execution)
             if ok:
                 _audit_scoped(request, result, str(scoped.get("root", "")))
                 log(f"scoped token executed: {request_id} {action} {target_text}")
@@ -1913,7 +1923,7 @@ def run_request(payload: dict) -> tuple[int, dict]:
             "_source_snapshot": source_snapshot,
         }
         execution = execute(request)
-        ok, result = execution.ok, execution.message
+        ok, result = _execution_values(execution)
         _audit_auto(request, ok, result)
         if not ok:
             return 400, {"ok": False, "error": result, "auto_executed": False}
@@ -2270,7 +2280,7 @@ def run_verify(payload: dict) -> tuple[int, dict]:
             return 200, {"ok": True, "approved": True, "id": request_id, "result": "已授权发送"}
 
     execution = execute(request)
-    ok, result = execution.ok, execution.message
+    ok, result = _execution_values(execution)
     send_qq(result)
     bypass = None
     scoped = None
