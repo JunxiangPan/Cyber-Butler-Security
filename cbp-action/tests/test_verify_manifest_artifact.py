@@ -9,7 +9,7 @@ import pytest
 
 from tools import verify_manifest_artifact as verifier
 
-RUN_ID = "42212006579"
+RUN_ID = "test-run-001"
 COMMIT = "0b6b5012b6fe0164dada4e4935ab991edeb4602c"
 
 
