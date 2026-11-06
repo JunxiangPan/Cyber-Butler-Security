@@ -1,0 +1,91 @@
+"""Config-driven regex/literal custom rules."""
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from .config import GateConfig
+
+RULE_ID = "CBP-CST-001"
+SKIP_PARTS = {".git", ".venv", "venv", "__pycache__", "node_modules", "wheelhouse"}
+
+
+def _rule_id(rule: dict, index: int) -> str:
+    raw = str(rule.get("id") or rule.get("name") or f"rule-{index}").upper()
+    safe = re.sub(r"[^A-Z0-9_-]+", "-", raw).strip("-")
+    return raw if raw.startswith("CBP-CUSTOM-") else f"CBP-CUSTOM-{safe}"
+
+
+def _files(cfg: GateConfig, patterns: list[str], excludes: list[str]) -> list[Path]:
+    result: list[Path] = []
+    for pattern in patterns:
+        for path in cfg.root.glob(pattern):
+            if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+                continue
+            relative = path.relative_to(cfg.root).as_posix()
+            if any(Path(relative).match(ex) for ex in excludes):
+                continue
+            if path not in result:
+                result.append(path)
+    return result
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Evaluate configured rules; warn by default, enforce on demand."""
+    rules = getattr(cfg, "custom_rules", ()) or ()
+    findings: list[str] = []
+    enforced = False
+    for index, rule in enumerate(rules):
+        if not isinstance(rule, dict):
+            return False, f"custom rule {index} must be an object"
+        name = rule.get("name")
+        pattern = rule.get("pattern")
+        files = rule.get("files")
+        message = rule.get("message")
+        if not all(isinstance(value, str) and value for value in (name, pattern, message)):
+            return False, f"custom rule {index} needs name, pattern, and message"
+        if not isinstance(files, list) or not files or not all(isinstance(item, str) and item for item in files):
+            return False, f"custom rule {name} needs a non-empty files array"
+        mode = rule.get("mode", "warn")
+        if mode not in {"warn", "enforce"}:
+            return False, f"custom rule {name} has invalid mode {mode!r}"
+        severity = rule.get("severity", "warning")
+        if severity not in {"error", "warning", "note"}:
+            return False, f"custom rule {name} has invalid severity {severity!r}"
+        rule_id = _rule_id(rule, index)
+        matcher = None
+        if rule.get("match", "regex") == "regex":
+            try:
+                matcher = re.compile(pattern)
+            except re.error as exc:
+                return False, f"custom rule {name} has invalid regex: {exc}"
+        elif rule.get("match") == "literal":
+            matcher = None
+        else:
+            return False, f"custom rule {name} has invalid match mode"
+        limit = int(rule.get("max_matches", 100))
+        count = 0
+        for path in _files(cfg, files, rule.get("exclude", [])):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] unreadable: {exc}")
+                count += 1
+                continue
+            for match in (matcher.finditer(text) if matcher else re.finditer(re.escape(pattern), text)):
+                line = text.count("\n", 0, match.start()) + 1
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line}: [{rule_id}] {message}")
+                count += 1
+                if count >= limit:
+                    break
+            if count >= limit:
+                break
+        if count and mode == "enforce":
+            enforced = True
+    if not rules:
+        return True, "custom=0 rules"
+    if findings:
+        prefix = "custom=FAIL" if enforced else "custom=WARN"
+        return (not enforced), prefix + " " + "\n".join(findings)
+    return True, f"custom={len(rules)} rules"
+

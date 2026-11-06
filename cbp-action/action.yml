@@ -60,6 +60,9 @@ inputs:
     default: "true"
   enable-claims:
     default: "true"
+  enable-custom:
+    description: enable config-driven custom rules
+    default: "true"
   mode:
     description: audit logs failures but exits zero; enforce exits non-zero
     default: "enforce"
@@ -96,6 +99,7 @@ runs:
           --enable-docs "${{ inputs.enable-docs }}" \
           --enable-binary "${{ inputs.enable-binary }}" \
           --enable-claims "${{ inputs.enable-claims }}" \
+          --enable-custom "${{ inputs.enable-custom }}" \
           --mode "${{ inputs.mode }}" 2>&1)
         CODE=$?
         echo "$OUTPUT"

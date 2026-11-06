@@ -3,9 +3,9 @@
 CBP is a fail-closed quality gate designed to verify that AI or humans did not
 fake coverage, tamper with evidence, or ship unvetted binaries.
 
-### 7 Strict Gates
+### 8 Strict Gates
 
-This release ships with 7 active gates that block the release pipeline if
+This release ships with 8 active gates that block the release pipeline if
 violated:
 
 - Encoding: rejects GBK, Windows-1252, and UTF-8 BOM.
@@ -15,19 +15,20 @@ violated:
 - Docs: binds documentation hashes to prevent silent deletion.
 - Claims: matches Release Notes against the CI-generated manifest.
 - Binary: requires `.build.json` and SBOM for large binaries.
+- Custom: evaluates regex/literal rules from `custom_rules` (warn by default).
 
 ### True Data (Dogfooding)
 
 CBP must pass its own gates before release:
 
-- CBP Core Coverage: 88.31% (Threshold: 80%)
-- Security Core Coverage: 90.72% (Threshold: 90%)
-- Test Suite: 83 passed
+- CBP Core Coverage: 88.33% (Threshold: 80%)
+- Security Core Coverage: 90.30% (Threshold: 90%)
+- Test Suite: 101 passed
 - Self-Bootstrapped: Generated dynamically via `cbp-action dogfood job`.
 
-QUALITY_COUNTS: 7/7
+QUALITY_COUNTS: 8/8
 
-CBP is self-checked with all seven gates before a release.
+CBP is self-checked with all eight gates before a release.
 
 ### Immutable Evidence Chain
 

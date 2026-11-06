@@ -6,7 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, dependency_gate, docs_gate, encoding_gate, sarif
+from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif
 from .config import load_config
 
 
@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-docs", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-binary", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-claims", type=lambda x: x.lower() == "true", default=None)
+    parser.add_argument("--enable-custom", type=lambda x: x.lower() == "true", default=None)
     args = parser.parse_args(argv)
     config_path = Path(args.config) if args.config else Path(args.root) / "cbp.json"
     if not args.config and not config_path.is_file():
@@ -57,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
             overrides[key] = value
     if args.manifest:
         overrides["claims_manifest"] = args.manifest
-    for key in ("enable_coverage", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims"):
+    for key in ("enable_coverage", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims", "enable_custom"):
         value = getattr(args, key)
         if value is not None:
             overrides[key] = value
@@ -75,6 +76,8 @@ def main(argv: list[str] | None = None) -> int:
         checks.append(("docs", docs_gate.run))
     if getattr(cfg, "enable_claims", True):
         checks.append(("claims", claims_gate.run))
+    if getattr(cfg, "enable_custom", True):
+        checks.append(("custom", custom_rules.run))
     if cfg.enable_binary:
         checks.append(("binary", binary_gate.run))
     ok = True

@@ -43,7 +43,9 @@
         "src/cbp/claims_gate.py",
         "src/cbp/config.py",
         "src/cbp/cli.py",
-        "src/cbp/encoding_gate.py"
+        "src/cbp/encoding_gate.py",
+        "src/cbp/custom_rules.py",
+        "src/cbp/sarif.py"
       ],
       "threshold": 80,
       "mode": "enforce"
@@ -60,7 +62,9 @@
         "src/cbp/config.py",
         "src/cbp/cli.py",
         "src/cbp/encoding_gate.py",
-        "tools/audit_rule_sources.py"
+        "tools/audit_rule_sources.py",
+        "src/cbp/custom_rules.py",
+        "src/cbp/sarif.py"
       ],
       "threshold": 90,
       "mode": "enforce"
@@ -72,5 +76,20 @@
   "binary_artifacts": "artifacts",
   "claims_manifest": "quality-manifest.json",
   "claims_notes": "docs/RELEASE_NOTES.generated.md",
-  "enable_encoding": true
+  "enable_encoding": true,
+  "release_body": "docs/RELEASE_BODY.md",
+  "custom_rules": [
+    {
+      "id": "CBP-CUSTOM-CBP-MARKER",
+      "name": "no_internal_marker",
+      "pattern": "CBP_FORBIDDEN_MARKER",
+      "match": "literal",
+      "files": [
+        "src/**/*.py"
+      ],
+      "message": "Internal forbidden marker found.",
+      "severity": "warning",
+      "mode": "warn"
+    }
+  ]
 }

@@ -20,6 +20,7 @@ class GateConfig:
     policy_threshold: float = 85.0
     dependency_lock: Path | str = ""
     install_command: Path | str = ""
+    custom_rules: tuple[dict, ...] = ()
     docs_manifest: Path | str = ""
     comment_files: tuple[str, ...] = ()
     binary_limit_mb: float = 5.0

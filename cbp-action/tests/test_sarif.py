@@ -21,3 +21,12 @@ def test_sarif_failure_has_location() -> None:
     assert result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"] == "src/example.py"
     assert result["locations"][0]["physicalLocation"]["region"]["startLine"] == 12
     json.dumps(document)
+
+
+def test_sarif_without_location_and_duplicate_rule() -> None:
+    document = sarif.build([
+        ("coverage", False, "coverage below threshold"),
+        ("coverage", False, "coverage below threshold again"),
+    ], Path("."))
+    assert len(document["runs"][0]["results"]) == 2
+    assert len(document["runs"][0]["tool"]["driver"]["rules"]) == 1

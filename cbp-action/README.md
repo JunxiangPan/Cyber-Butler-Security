@@ -19,6 +19,7 @@ configuration, and one CLI used by both GitHub Actions and local CI.
 | binary | large binaries without `.build.json`/`.sbom.json`, or provenance hash/size mismatches |
 | claims | release notes whose `QUALITY_COUNTS` do not match the generated manifest |
 | encoding | tracked text files that are not strict UTF-8 or carry a BOM |
+| custom | configured regex/literal rules in `custom_rules` (warn by default) |
 
 It is designed to make fake tests, fake coverage, dependency substitution,
 copy-paste comments, and edited evidence fail closed.
@@ -74,6 +75,8 @@ or `CBP_RESULT=FAIL`.
 | `package-zip` | Optional release ZIP |
 | `claims-manifest` | Generated `quality-manifest.json` |
 | `claims-notes` | Generated release notes |
+| `release-body` | Checked-in GitHub Release body |
+| `sarif-output` | Optional SARIF 2.1.0 output path |
 | `enable-coverage` | Enable coverage gate |
 | `enable-encoding` | Enable strict UTF-8 no-BOM gate |
 | `enable-dependency` | Enable dependency gate |
@@ -81,6 +84,7 @@ or `CBP_RESULT=FAIL`.
 | `enable-docs` | Enable docs gate |
 | `enable-binary` | Enable binary gate |
 | `enable-claims` | Enable claims gate |
+| `enable-custom` | Enable config-driven custom rules |
 | `mode` | `audit`, `warn`, or `enforce` |
 
 ### Required path inputs
