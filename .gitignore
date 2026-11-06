@@ -134,3 +134,5 @@ build/obj/
 .coverage
 
 build/bin/
+
+public-release-v*.zip
