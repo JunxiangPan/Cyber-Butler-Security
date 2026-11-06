@@ -14,6 +14,7 @@ No zip is produced when any gate is red.
 #>
 [CmdletBinding()]
 param(
+    [string]$Version = '',
     [string]$Challenge = '',
     [switch]$ApproveChangedPipeline,
     [switch]$Candidate,
@@ -46,11 +47,19 @@ if ([string]::IsNullOrWhiteSpace($Challenge)) { throw 'A non-empty random challe
 $gitStatus = (& git -C $root status --porcelain 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw ('git status failed: ' + $gitStatus) }
 if ($gitStatus) { throw 'release discipline: working tree is dirty; commit before packaging' }
+$manifestPath = Join-Path $root 'update-manifest.json'
+if (-not (Test-Path -LiteralPath $manifestPath)) { throw 'update-manifest.json is missing; cannot determine release version' }
+$manifestVersion = (Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json).version
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = [string]$manifestVersion }
+if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw ('invalid release version: ' + $Version) }
+if ([string]$manifestVersion -ne $Version) {
+    throw ('version mismatch: -Version ' + $Version + ' != update-manifest.json ' + $manifestVersion)
+}
+$releaseBranch = 'release/v' + $Version
 $head = (& git -C $root rev-parse HEAD 2>&1 | Out-String).Trim()
-$upstream = (& git -C $root rev-parse origin/release/v1.6.3 2>&1 | Out-String).Trim()
-if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw 'release discipline: cannot resolve HEAD or origin/release/v1.6.3' }
-if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != origin/release/v1.6.3 ' + $upstream + '; push first') }
-
+$upstream = (& git -C $root rev-parse ('origin/' + $releaseBranch) 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw ('release discipline: cannot resolve HEAD or origin/' + $releaseBranch) }
+if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != origin/' + $releaseBranch + ' ' + $upstream + '; push first') }
 $report = New-Object System.Collections.Generic.List[string]
 function Add-Report([string]$text) { $report.Add($text); Write-Host $text }
 function Run-Step([string]$name, [scriptblock]$action) {
@@ -70,6 +79,7 @@ function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
 }
 
 Add-Report '# BUILD_REPORT'
+Add-Report ('- Release Version: ' + $Version)
 Add-Report ''
 Add-Report ('- Current Commit: ' + $head)
 Add-Report ('- Build Time: ' + (Get-Date).ToUniversalTime().ToString('o'))
@@ -92,6 +102,9 @@ Run-Process 'docs consistency' 'python' @('tools/audit_docs_consistency.py')
 Run-Process 'UI sanity (styled console, no dead UI terms/routes)' 'python' @('quality/ui_gate.py')
 Run-Process 'acceptance fragility (TOTP 429 retry)' 'python' @('quality/fragility_gate.py')
 $declaredVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+if ($declaredVersion -ne $Version) {
+    throw ('version gate: -Version ' + $Version + ' != VERSION ' + $declaredVersion)
+}
 $launcherPath = Join-Path $root 'tools\CyberButlerLauncher.exe'
 if (-not (Test-Path -LiteralPath $launcherPath)) { throw 'version gate: launcher exe missing' }
 $launcherVersion = (Get-Item -LiteralPath $launcherPath).VersionInfo.FileVersion
@@ -147,7 +160,7 @@ if ($Candidate) {
         Remove-Item -LiteralPath $tokenPath -Force -ErrorAction SilentlyContinue
         Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
     }
-    $candidateZip = Join-Path (Split-Path -Parent $root) 'public-release-v1.6.3.zip'
+    $candidateZip = Join-Path (Split-Path -Parent $root) ('public-release-v' + $Version + '.zip')
     if (-not (Test-Path -LiteralPath $candidateZip)) { throw 'candidate build did not create the zip' }
     $candidateHash = (Get-FileHash -LiteralPath $candidateZip -Algorithm SHA256).Hash
     Add-Report ('- Candidate Zip SHA256: ' + $candidateHash)
@@ -208,7 +221,7 @@ try {
     Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
 }
 
-$zip = Join-Path (Split-Path -Parent $root) 'public-release-v1.6.3.zip'
+$zip = Join-Path (Split-Path -Parent $root) ('public-release-v' + $Version + '.zip')
 if (-not (Test-Path -LiteralPath $zip)) { throw 'package_release.py did not create the zip' }
 $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 Add-Report ''
