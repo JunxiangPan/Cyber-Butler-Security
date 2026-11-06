@@ -13,14 +13,13 @@ class GateConfig:
     root: Path
     coverage_json: Path | str = ""
     coverage_allowlist: Path | str = ""
-    broker_files: tuple[str, ...] = ()
-    measured_files: tuple[str, ...] = ()
+    target_files: tuple[str, ...] = ()
     coverage_groups: tuple[dict[str, Any], ...] = ()
     policy_file: str = ""
     coverage_threshold: float = 80.0
     policy_threshold: float = 85.0
     dependency_lock: Path | str = ""
-    installer_core: Path | str = ""
+    install_command: Path | str = ""
     docs_manifest: Path | str = ""
     comment_files: tuple[str, ...] = ()
     binary_limit_mb: float = 5.0
@@ -69,7 +68,7 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
     for key, value in data.items():
         if not hasattr(cfg, key):
             continue
-        if key in {"coverage_json", "coverage_allowlist", "dependency_lock", "installer_core", "docs_manifest", "binary_artifacts", "package_zip", "claims_manifest", "claims_notes"} and value is not None:
+        if key in {"coverage_json", "coverage_allowlist", "dependency_lock", "install_command", "docs_manifest", "binary_artifacts", "package_zip", "claims_manifest", "claims_notes"} and value is not None:
             value = Path(value)
         setattr(cfg, key, value)
     return cfg

@@ -20,7 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--coverage-json", default="")
     parser.add_argument("--coverage-allowlist", default="")
     parser.add_argument("--dependency-lock", default="")
-    parser.add_argument("--installer-core", default="")
+    parser.add_argument("--install-command", default="")
     parser.add_argument("--docs-manifest", default="")
     parser.add_argument("--binary-artifacts", default="")
     parser.add_argument("--package-zip", default="")
@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
         overrides["policy_threshold"] = args.policy_coverage_threshold
     for key, value in {
         "coverage_json": args.coverage_json, "coverage_allowlist": args.coverage_allowlist,
-        "dependency_lock": args.dependency_lock, "installer_core": args.installer_core,
+        "dependency_lock": args.dependency_lock, "install_command": args.install_command,
         "docs_manifest": args.docs_manifest, "binary_artifacts": args.binary_artifacts,
         "package_zip": args.package_zip, "claims_manifest": args.claims_manifest,
         "claims_notes": args.claims_notes,

@@ -1,7 +1,7 @@
 {
   "coverage_json": "coverage.json",
   "coverage_allowlist": "coverage_allowlist.json",
-  "broker_files": [
+  "target_files": [
     "tools/broker.py"
   ],
   "policy_file": "tools/broker_policy.py",
@@ -12,7 +12,7 @@
     "tools/broker_policy.py"
   ],
   "dependency_lock": "requirements-runtime.lock",
-  "installer_core": "installer/lib/Installer.Core.ps1",
+  "install_command": "installer/lib/Installer.Core.ps1",
   "docs_manifest": "docs/history-manifest.json",
   "binary_artifacts": "artifacts",
   "enable_claims": true,

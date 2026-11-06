@@ -35,7 +35,7 @@ copy-paste comments, and edited evidence fail closed.
     coverage-threshold: "80"
     policy-coverage-threshold: "85"
     dependency-lock: requirements.lock
-    installer-core: installer/install.ps1
+    install-command: installer/install.ps1
     docs-manifest: .cbp/docs-manifest.json
     binary-artifacts: artifacts
     claims-manifest: quality-manifest.json
@@ -68,7 +68,7 @@ or `CBP_RESULT=FAIL`.
 | `coverage-threshold` | Legacy single-group threshold |
 | `policy-coverage-threshold` | Legacy policy threshold |
 | `dependency-lock` | Hash-locked requirements file |
-| `installer-core` | Installer that enforces `--require-hashes` |
+| `install-command` | Installer that enforces `--require-hashes` |
 | `docs-manifest` | Document SHA256 manifest |
 | `binary-artifacts` | `.build.json` / `.sbom.json` directory |
 | `package-zip` | Optional release ZIP |
@@ -116,7 +116,7 @@ See [`schemas/config.schema.json`](schemas/config.schema.json).
 {
   "coverage_json": "coverage.json",
   "coverage_allowlist": ".cbp/coverage_allowlist.json",
-  "measured_files": ["src/example.py"],
+  "target_files": ["src/example.py"],
   "policy_file": "src/example.py",
   "coverage_threshold": 80,
   "policy_threshold": 85,
@@ -154,7 +154,7 @@ Suggested migration:
 3. When the group is stable, change mode to "enforce".
 ```
 
-`broker_files`, `measured_files`, `policy_file`, `coverage_threshold`, and
+`target_files`, `target_files`, `policy_file`, `coverage_threshold`, and
 `policy_threshold` remain supported for single-group configurations.
 
 ## Self-test
@@ -162,7 +162,7 @@ Suggested migration:
 ```bash
 cd cbp-action
 python -m pip install -e ".[test]"
-python -m coverage run --branch -m pytest -q tests
+python -m coverage run --branch --source=src/cbp,tools -m pytest -q tests
 python -m coverage json -o coverage.json
 python -m cbp.cli --root . --mode enforce
 ```

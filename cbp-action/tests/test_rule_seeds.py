@@ -43,7 +43,7 @@ def _dependency(tmp_path: Path, include_hash: bool) -> GateConfig:
     lock = "pytest==9.2.0\n" + ("    --hash=sha256:" + "a" * 64 + "\n" if include_hash else "")
     (tmp_path / "requirements.lock").write_text(lock, encoding="utf-8")
     (tmp_path / "install.sh").write_text("#!/bin/sh\npip install --require-hashes -r requirements.lock\n", encoding="utf-8")
-    return GateConfig(root=tmp_path, dependency_lock="requirements.lock", installer_core="install.sh")
+    return GateConfig(root=tmp_path, dependency_lock="requirements.lock", install_command="install.sh")
 
 
 def test_rule_dep_001_negative(tmp_path) -> None:

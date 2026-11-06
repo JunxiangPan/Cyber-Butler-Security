@@ -1,7 +1,7 @@
 {
   "coverage_json": "coverage.json",
   "coverage_allowlist": "coverage_allowlist.json",
-  "broker_files": [
+  "target_files": [
     "src/cbp/coverage_gate.py",
     "src/cbp/dependency_gate.py",
     "src/cbp/comment_gate.py",
@@ -67,7 +67,7 @@
     }
   ],
   "dependency_lock": "requirements-test.lock",
-  "installer_core": "install-test.sh",
+  "install_command": "install-test.sh",
   "docs_manifest": "docs/history-manifest.json",
   "binary_artifacts": "artifacts",
   "claims_manifest": "quality-manifest.json",

@@ -22,7 +22,7 @@ inputs:
   dependency-lock:
     description: Hash-locked requirements file
     default: ""
-  installer-core:
+  install-command:
     description: Installer file that must contain --require-hashes
     default: ""
   docs-manifest:
@@ -75,7 +75,7 @@ runs:
           --coverage-threshold "${{ inputs.coverage-threshold }}" \
           --policy-coverage-threshold "${{ inputs.policy-coverage-threshold }}" \
           --dependency-lock "${{ inputs.dependency-lock }}" \
-          --installer-core "${{ inputs.installer-core }}" \
+          --install-command "${{ inputs.install-command }}" \
           --docs-manifest "${{ inputs.docs-manifest }}" \
           --binary-artifacts "${{ inputs.binary-artifacts }}" \
           --package-zip "${{ inputs.package-zip }}" \

@@ -21,5 +21,5 @@ def test_coverage_gate_rejects_low_coverage(tmp_path: Path) -> None:
 
 
 def test_dependency_gate_requires_hash_lock(tmp_path: Path) -> None:
-    cfg = GateConfig(root=tmp_path, coverage_json=tmp_path / "c.json", coverage_allowlist=tmp_path / "a.json", dependency_lock=tmp_path / "lock", installer_core=tmp_path / "installer")
+    cfg = GateConfig(root=tmp_path, coverage_json=tmp_path / "c.json", coverage_allowlist=tmp_path / "a.json", dependency_lock=tmp_path / "lock", install_command=tmp_path / "installer")
     assert dependency_run(cfg)[0] is False

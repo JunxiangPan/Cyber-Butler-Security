@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .config import GateConfig
 
-SUFFIXES = {".exe", ".dll", ".bin"}
+SUFFIXES = (".exe", ".dll", ".bin", ".so", ".dylib", ".whl", ".tar.gz")
 SUPPORTED_SCOPES = {"self-contained-runtime", "runtime-pack", "runtime-only"}
 
 
@@ -21,12 +21,19 @@ def _candidates(cfg: GateConfig):
     package = cfg.path(cfg.package_zip) if cfg.package_zip else None
     if package and package.is_file():
         with zipfile.ZipFile(package) as archive:
-            return [(name, info_size(archive, name), archive.read(name)) for name in archive.namelist() if name.lower().endswith(tuple(SUFFIXES)) and info_size(archive, name) > cfg.binary_limit_mb * 1024 * 1024]
+            return [(name, info_size(archive, name), archive.read(name)) for name in archive.namelist() if name.lower().endswith(SUFFIXES) and info_size(archive, name) > cfg.binary_limit_mb * 1024 * 1024]
     result = []
     for path in cfg.root.rglob("*"):
-        if path.is_file() and path.suffix.lower() in SUFFIXES and path.stat().st_size > cfg.binary_limit_mb * 1024 * 1024:
+        if path.is_file() and path.name.lower().endswith(SUFFIXES) and path.stat().st_size > cfg.binary_limit_mb * 1024 * 1024:
             text = path.as_posix()
-            if ".git" not in path.parts and ".venv" not in path.parts and "build/bin" not in text and "build/obj" not in text and "build/publish" not in text:
+            if (
+                ".git" not in path.parts
+                and ".venv" not in path.parts
+                and "wheelhouse" not in path.parts
+                and "build/bin" not in text
+                and "build/obj" not in text
+                and "build/publish" not in text
+            ):
                 result.append((path.name, path.stat().st_size, path.read_bytes()))
     return result
 
@@ -53,4 +60,6 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
             return False, f"{name} provenance hash mismatch"
         if int(record.get("size_bytes", -1)) != size:
             return False, f"{name} provenance size mismatch"
+    if not candidates:
+        return True, "N/A (no binaries found)"
     return True, f"binaries={len(candidates)}"

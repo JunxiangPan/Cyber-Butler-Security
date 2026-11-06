@@ -12,7 +12,7 @@ from cbp import binary_gate, claims_gate, comment_gate, config, coverage_gate, d
 
 
 def _cfg(tmp_path: Path, **kw):
-    base = dict(root=tmp_path, coverage_json=tmp_path / "coverage.json", coverage_allowlist=tmp_path / "allow.json", policy_file="tools/broker_policy.py", broker_files=("tools/broker.py",))
+    base = dict(root=tmp_path, coverage_json=tmp_path / "coverage.json", coverage_allowlist=tmp_path / "allow.json", policy_file="tools/broker_policy.py", target_files=("tools/broker.py",))
     base.update(kw)
     return config.GateConfig(**base)
 
@@ -38,10 +38,10 @@ def test_coverage_success_and_failure(tmp_path: Path) -> None:
 
 def test_dependency_success_and_failure(tmp_path: Path) -> None:
     lock = tmp_path / "lock"; installer = tmp_path / "installer"
-    cfg = _cfg(tmp_path, dependency_lock=lock, installer_core=installer)
+    cfg = _cfg(tmp_path, dependency_lock=lock, install_command=installer)
     assert dependency_gate.run(cfg)[0] is False
-    installer.write_text("--require-hashes", encoding="utf-8")
-    lock.write_text("requests==2.0 \\n --hash=sha256:abc\n", encoding="utf-8")
+    installer.write_text("pip install --require-hashes -r requirements.lock\n", encoding="utf-8")
+    lock.write_text("requests==2.0 \\\n    --hash=sha256:" + "a" * 64 + "\n", encoding="utf-8")
     assert dependency_gate.run(cfg)[0] is True
 
 
@@ -104,8 +104,9 @@ def test_comment_gate_missing_docstring(tmp_path: Path) -> None:
 
 def test_dependency_gate_missing_hash(tmp_path: Path) -> None:
     lock = tmp_path / "lock"; installer = tmp_path / "installer"
-    lock.write_text("requests==2.0\n", encoding="utf-8"); installer.write_text("--require-hashes", encoding="utf-8")
-    assert dependency_gate.run(_cfg(tmp_path, dependency_lock=lock, installer_core=installer))[0] is False
+    lock.write_text("requests==2.0\n", encoding="utf-8")
+    installer.write_text("pip install --require-hashes -r requirements.lock\n", encoding="utf-8")
+    assert dependency_gate.run(_cfg(tmp_path, dependency_lock=lock, install_command=installer))[0] is False
 
 
 def test_docs_gate_hash_mismatch(tmp_path: Path) -> None:

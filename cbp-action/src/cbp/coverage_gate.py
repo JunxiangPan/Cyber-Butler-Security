@@ -73,6 +73,16 @@ def _group_stats(
     return passed, detail, missing_files
 
 
+def _coverage_is_fresh(cfg: GateConfig, coverage: Path, relative_files: list[str]) -> str:
+    sources = [cfg.path(relative) for relative in relative_files if cfg.path(relative).is_file()]
+    if not sources:
+        return ""
+    newest = max(path.stat().st_mtime for path in sources)
+    if coverage.stat().st_mtime < newest:
+        return "coverage.json is older than the measured source; regenerate coverage"
+    return ""
+
+
 def run(cfg: GateConfig) -> tuple[bool, str]:
     """Check every configured coverage group and honor its mode."""
     coverage = cfg.path(cfg.coverage_json)
@@ -84,6 +94,18 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     files = {_norm(str(key)): value for key, value in data["files"].items()}
 
     groups = getattr(cfg, "coverage_groups", ())
+    tracked_targets: list[str] = []
+    if groups:
+        for group in groups:
+            raw = group.get("files", [])
+            if isinstance(raw, str):
+                raw = [raw]
+            tracked_targets.extend(_expand_files(cfg, list(raw)))
+    else:
+        tracked_targets = list(cfg.target_files)
+    freshness = _coverage_is_fresh(cfg, coverage, tracked_targets)
+    if freshness:
+        return False, freshness
     if groups:
         ok = True
         details: list[str] = []
@@ -110,7 +132,7 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         return False, f"policy coverage {policy_pct:.2f}% < {cfg.policy_threshold:.2f}%"
     missing_total = 0
     statements = 0
-    for relative in (getattr(cfg, "measured_files", ()) or cfg.broker_files):
+    for relative in cfg.target_files:
         entry = files.get(_norm(relative))
         if entry is None:
             return False, f"{relative} not measured"
@@ -119,5 +141,5 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         missing_total += len([line for line in entry["missing_lines"] if line not in allowed])
     pct = (statements - missing_total) / statements * 100.0 if statements else 0.0
     if pct < float(cfg.coverage_threshold):
-        return False, f"broker coverage {pct:.2f}% < {cfg.coverage_threshold:.2f}%"
+        return False, f"target coverage {pct:.2f}% < {cfg.coverage_threshold:.2f}%"
     return True, f"coverage={pct:.2f}% policy={policy_pct:.2f}%"

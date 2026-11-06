@@ -10,7 +10,6 @@ from .config import GateConfig
 
 TOKEN = re.compile(r"(?m)^QUALITY_COUNTS:\s*(\d+)/(\d+)\s*$")
 GATE_CLAIM = re.compile(r"\b(?:all|across|through)\s+([A-Za-z]+|\d+)\s+gates?\b", re.IGNORECASE)
-HANDWRITTEN = re.compile(r"(?<![\w/])26\s*/\s*26(?![\w/])")
 WORDS = {
     word: number
     for number, word in enumerate(
@@ -51,8 +50,4 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
             return False, f"unknown gate count claim: {gate_claim.group(0)}"
         if number != total:
             return False, f"notes claim {token} gates but manifest has {total}"
-    if HANDWRITTEN.search(text):
-        return False, "handwritten 26/26 claim is forbidden"
-    if data.get("profile") == "release" and int(counts.get("passed", 0)) != 26:
-        return False, "release profile is not 26/26"
     return True, f"claims={actual}"
