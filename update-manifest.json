@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "6fdcfb36d8777084f803b524119fe78078b5906128de62a429b5f131559b0834",
+      "sha256": "09c4d1d03bcee8eae9b1a54118880ef0d1cf5c150fab0919b6e61537edc6fd0f",
       "size": 1077
     },
     {
@@ -256,6 +256,11 @@
       "path": "docs/40-history/incidents/v1.6.3-fake-qa-report.md",
       "sha256": "2fe376b9d681cb2b73462199356ff4bad5de0641762da03227dad0e3a35f27b2",
       "size": 4783
+    },
+    {
+      "path": "docs/40-history/incidents/v1.6.4-vm-installer-environment-split.md",
+      "sha256": "11a0f5021c622adc8ebfc0774c40f39c6264b8472ac90d54c63e0928042a60f4",
+      "size": 1823
     },
     {
       "path": "docs/40-history/incidents/wfp-empty-rules.md",
