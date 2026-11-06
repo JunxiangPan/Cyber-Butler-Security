@@ -19,9 +19,32 @@ pwsh -NoProfile -Command "$PSVersionTable.PSVersion"
 
 CBS does not support Windows PowerShell 5.1 for installation or acceptance.
 
+## Unblock the transferred package first
+
+Files copied from a host machine into a VM carry the Windows **Mark of the Web**
+(Zone.Identifier). SmartScreen can silently block the unsigned self-contained
+launcher with no UAC prompt and no visible error.
+
+Before extracting:
+
+1. Right-click the transferred ZIP, choose **Properties**.
+2. Tick **Unblock** at the bottom of the General tab, then **Apply**.
+3. Extract the ZIP into a clean directory.
+4. Right-click `START-INSTALLER.exe`, choose **Properties**, and confirm
+   **Unblock** is ticked as well.
+
+PowerShell 7 equivalent, after extraction:
+
+```powershell
+Get-ChildItem C:\path\to\extracted -Recurse -File | Unblock-File
+```
+
+If the launcher still does not start, check next to it for `crash.log` and
+`logs\installer.log`; these are the designed failure evidence.
+
 ## Install
 
-1. Extract the release ZIP to a clean directory.
+1. Extract the unblocked release ZIP to a clean directory.
 2. Run `START-INSTALLER.exe` as administrator.
 3. Complete the GUI installation. The launcher now starts `pwsh.exe`; if PowerShell 7 is missing it shows: `CBS requires PowerShell 7. Please install it from Microsoft.`
 4. Confirm the install report and services are healthy.

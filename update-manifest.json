@@ -389,8 +389,8 @@
     },
     {
       "path": "docs/WINDOWS_VM_ACCEPTANCE.md",
-      "sha256": "e5e21cff785542e845ba27e0e31fdb6a47fe2578b3cee31eaa0f357fbc5d12e0",
-      "size": 1961
+      "sha256": "922c1856700f82cf2ab09b8c42b13d3f867cb0494f812c537aab450271bbf996",
+      "size": 2790
     },
     {
       "path": "docs/_data/clean-vm-expected.json",
