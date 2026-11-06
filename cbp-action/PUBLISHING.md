@@ -66,11 +66,14 @@ git tag -a v0.1.0 -m "CBP v0.1.0"
 git push origin v0.1.0
 ```
 
-Pushing the tag triggers `.github/workflows/release.yml`:
+A tag push does **not** trigger CI or the release workflow. The release is
+manual-only: trigger `.github/workflows/release.yml` with the CI run id and the
+tag. It downloads that run's manifest artifact, verifies the SHA256, checks the
+run id and commit, then publishes:
 
 ```text
 python -m build
-gh release create v0.1.0 dist/* --generate-notes
+gh release create v0.1.0 dist/* ... --notes-file artifact/docs/RELEASE_NOTES.generated.md
 ```
 
 Verify the release has:
