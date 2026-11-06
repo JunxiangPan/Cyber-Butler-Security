@@ -34,6 +34,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-claims", type=lambda x: x.lower() == "true", default=None)
     args = parser.parse_args(argv)
     config_path = Path(args.config) if args.config else Path(args.root) / "cbp.json"
+    if not args.config and not config_path.is_file():
+        config_path = Path(args.root) / ".cbp" / "config.json"
     overrides = {}
     if args.coverage_threshold is not None:
         overrides["coverage_threshold"] = args.coverage_threshold

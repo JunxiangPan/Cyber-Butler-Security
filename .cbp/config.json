@@ -1,0 +1,16 @@
+{
+  "coverage_json": "coverage.json",
+  "coverage_allowlist": "coverage_allowlist.json",
+  "broker_files": ["tools/broker.py"],
+  "policy_file": "tools/broker_policy.py",
+  "coverage_threshold": 80.0,
+  "policy_threshold": 85.0,
+  "comment_files": ["tools/broker.py", "tools/broker_policy.py"],
+  "dependency_lock": "requirements-runtime.lock",
+  "installer_core": "installer/lib/Installer.Core.ps1",
+  "docs_manifest": "docs/history-manifest.json",
+  "binary_artifacts": "artifacts",
+  "enable_claims": true,
+  "claims_manifest": "quality-manifest.json",
+  "claims_notes": "docs/releases/RELEASE_NOTES_v1.6.4.md"
+}

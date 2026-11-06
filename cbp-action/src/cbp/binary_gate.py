@@ -44,6 +44,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         scope = sbom_record.get("scope")
         if scope is not None and scope not in SUPPORTED_SCOPES:
             return False, f"{name} has unsupported SBOM scope {scope!r}"
+        if sbom_record.get("binary_sha256") and sbom_record["binary_sha256"].upper() != hashlib.sha256(data).hexdigest().upper():
+            return False, f"{name} SBOM binary hash mismatch"
+        if "binary_size" in sbom_record and int(sbom_record["binary_size"]) != size:
+            return False, f"{name} SBOM binary size mismatch"
         record = json.loads(build.read_text(encoding="utf-8"))
         if record.get("sha256", "").upper() != hashlib.sha256(data).hexdigest().upper():
             return False, f"{name} provenance hash mismatch"

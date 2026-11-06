@@ -31,7 +31,7 @@ NONCE = "A-READY-SIGN-0001"
 
 def _manifest(status: dict[str, str] | None = None) -> dict:
     rows = [{**item, "status": (status or {}).get(item["id"], "passed")} for item in ITEMS]
-    return {"schema": "cbp-quality-manifest/v1", "version": "1.6.4", "nonce": NONCE, "profile": "release", "generated_at": "2026-11-06T00:00:00Z", "source": {"pytest": "pytest_exit=0"}, "items": rows, "counts": {"total": 26, "passed": sum(1 for r in rows if r["status"] == "passed"), "failed": 0, "blocked": sum(1 for r in rows if r["status"] == "blocked"), "skipped_by_design": 0}, "overall": "PASS"}
+    return {"schema": "cbp-quality-manifest/v1", "version": "1.6.4", "nonce": NONCE, "profile": "release", "generated_at": "2026-11-06T00:00:00Z", "source": {"pytest": "pytest_exit=0"}, "items": rows, "counts": {"total": 26, "passed": sum(1 for r in rows if r["status"] == "passed"), "failed": 0, "blocked": sum(1 for r in rows if r["status"] == "blocked"), "skipped_by_design": 0}, "overall": "PASS", "dependency_gate_status": "PASS", "comment_audit_status": "PASS", "binary_provenance_status": "PASS"}
 
 
 def _proof() -> str:

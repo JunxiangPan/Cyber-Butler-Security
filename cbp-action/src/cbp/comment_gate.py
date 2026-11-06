@@ -8,6 +8,7 @@ import tokenize
 from .config import GateConfig
 
 SLOP = re.compile(r"#\s*(send|get|set|run|handle|process|check|do|call)\b", re.IGNORECASE)
+GENERIC = ("caller-supplied value", "function result, or none", "helper/type")
 
 
 def _check(path, findings):
@@ -22,6 +23,8 @@ def _check(path, findings):
         if len(doc.strip()) < 20:
             findings.append(f"{path.name}:{node.lineno}: public {name} lacks substantive docstring")
             continue
+        if any(phrase in doc.casefold() for phrase in GENERIC):
+            findings.append(f"{path.name}:{node.lineno}: public {name} docstring is generic boilerplate")
         args = [a.arg for a in node.args.args if a.arg not in {"self", "cls"}] if hasattr(node, "args") else []
         if "Args:" in doc or "Parameters:" in doc:
             for arg in args:

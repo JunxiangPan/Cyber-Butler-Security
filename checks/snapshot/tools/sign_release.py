@@ -111,6 +111,9 @@ def check_quality(root: Path) -> str:
         raise SignGateError("quality-manifest.json contains non-passed release items")
     if counts["passed"] != 26:
         raise SignGateError("quality-manifest.json does not contain 26 passed items")
+    for field in ("dependency_gate_status", "comment_audit_status", "binary_provenance_status"):
+        if data.get(field) != "PASS":
+            raise SignGateError(f"quality-manifest.json {field} is not PASS")
     nonce = str(data.get("nonce", ""))
     if not NONCE_RE.fullmatch(nonce):
         raise SignGateError("quality-manifest.json Nonce failed validation")

@@ -81,6 +81,12 @@ def run_pytest() -> tuple[dict[str, str], str]:
     return statuses, f"pytest_exit={completed.returncode}"
 
 
+def _gate_status(script: str) -> str:
+    """Run one CBP gate and return PASS or FAIL for the quality manifest."""
+    result = subprocess.run([sys.executable, str(ROOT / "quality" / script)], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    return "PASS" if result.returncode == 0 else "FAIL"
+
+
 def summarize(items: list[dict], statuses: dict[str, str], profile: str) -> dict:
     rows = []
     for item in items:
@@ -169,6 +175,9 @@ def main() -> int:
         "items": result["rows"],
         "counts": result["counts"],
         "overall": result["overall"],
+        "dependency_gate_status": _gate_status("dependency_gate.py"),
+        "comment_audit_status": _gate_status("audit_comments.py"),
+        "binary_provenance_status": _gate_status("audit_binary_provenance.py"),
     }
     canonical = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     manifest_bytes = (canonical + chr(10)).encode("utf-8")

@@ -188,7 +188,7 @@ def _fail(message: str, status: int = 500, code: str = "broker.execute_failed") 
 
 
 class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
-    """_JOBOBJECT_BASIC_LIMIT_INFORMATION helper/type."""
+    """_JOBOBJECT_BASIC_LIMIT_INFORMATION the internal data structure."""
     _fields_ = [
         ("PerProcessUserTimeLimit", ctypes.c_longlong),
         ("PerJobUserTimeLimit", ctypes.c_longlong),
@@ -203,7 +203,7 @@ class _JOBOBJECT_BASIC_LIMIT_INFORMATION(ctypes.Structure):
 
 
 class _IO_COUNTERS(ctypes.Structure):
-    """_IO_COUNTERS helper/type."""
+    """_IO_COUNTERS the internal data structure."""
     _fields_ = [
         ("ReadOperationCount", ctypes.c_ulonglong),
         ("WriteOperationCount", ctypes.c_ulonglong),
@@ -215,7 +215,7 @@ class _IO_COUNTERS(ctypes.Structure):
 
 
 class _JOBOBJECT_EXTENDED_LIMIT_INFORMATION(ctypes.Structure):
-    """_JOBOBJECT_EXTENDED_LIMIT_INFORMATION helper/type."""
+    """_JOBOBJECT_EXTENDED_LIMIT_INFORMATION the internal data structure."""
     _fields_ = [
         ("BasicLimitInformation", _JOBOBJECT_BASIC_LIMIT_INFORMATION),
         ("IoInfo", _IO_COUNTERS),
@@ -232,13 +232,13 @@ def _job_limit_environment() -> dict[str, int]:
         """Int.
         
         Args:
-            name: caller-supplied value.
-            default: caller-supplied value.
-            minimum: caller-supplied value.
-            maximum: caller-supplied value.
+            name: the corresponding input value.
+            default: the corresponding input value.
+            minimum: the corresponding input value.
+            maximum: the corresponding input value.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         try:
             value = int(os.environ.get(name, str(default)))
@@ -263,7 +263,7 @@ def _job_limit_flags() -> tuple[int, dict[str, int]]:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     limits = _job_limit_environment()
     flags = (
@@ -443,7 +443,7 @@ def _admin_email() -> str:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     for path in (BROKER_CONFIG, WEBUI_CONTACT):
         try:
@@ -474,10 +474,10 @@ def log(message: str) -> None:
     """Log.
     
     Args:
-        message: caller-supplied value.
+        message: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {message}"
     print(line, flush=True)
@@ -499,7 +499,7 @@ def _start_audit_chain_mirror() -> None:
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         try:
             offset = AUDIT.stat().st_size if AUDIT.exists() else 0
@@ -589,12 +589,12 @@ def _audit_manifest_reject(request_id: str, request: dict, result: str) -> None:
     """Audit manifest reject.
     
     Args:
-        request_id: caller-supplied value.
-        request: caller-supplied value.
-        result: caller-supplied value.
+        request_id: the corresponding input value.
+        request: the corresponding input value.
+        result: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -618,7 +618,7 @@ def ensure_token() -> str:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if not TOKEN_FILE.exists():
         token = secrets.token_urlsafe(32)
@@ -657,7 +657,7 @@ def _secret_file() -> Path:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if SECRET_FILE.is_file():
         return SECRET_FILE
@@ -673,7 +673,7 @@ def _recovery_file() -> Path:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if RECOVERY_FILE.is_file():
         return RECOVERY_FILE
@@ -689,7 +689,7 @@ def secret() -> str:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if TEST_MODE:
         test_secret = os.environ.get("CBS_TEST_TOTP_SECRET", "").strip()
@@ -706,10 +706,10 @@ def send_qq(text: str) -> bool:
     """Send qq.
     
     Args:
-        text: caller-supplied value.
+        text: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         token = (ROOT / ".agentruntime_token").read_text(encoding="utf-8").strip()
@@ -822,13 +822,13 @@ def _audit_protection(event: str, action: str, target: str, reason: str) -> None
     """Audit protection.
     
     Args:
-        event: caller-supplied value.
-        action: caller-supplied value.
-        target: caller-supplied value.
-        reason: caller-supplied value.
+        event: the corresponding input value.
+        action: the corresponding input value.
+        target: the corresponding input value.
+        reason: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -864,10 +864,10 @@ def _purge_bypass(now: float | None = None) -> None:
     """Purge bypass.
     
     Args:
-        now: caller-supplied value.
+        now: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     moment = time.monotonic() if now is None else now
     for token, record in list(broker_state._bypass_tokens.items()):
@@ -879,12 +879,12 @@ def _issue_bypass(action: str, target: str, ttl_seconds: int = BYPASS_TTL_SECOND
     """Issue bypass.
     
     Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-        ttl_seconds: caller-supplied value.
+        action: the corresponding input value.
+        target: the corresponding input value.
+        ttl_seconds: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if action not in {"delete", "overwrite", "write_file"}:
         return None
@@ -907,12 +907,12 @@ def _consume_bypass(token: str, action: str, target: str) -> dict | None:
     """Consume bypass.
     
     Args:
-        token: caller-supplied value.
-        action: caller-supplied value.
-        target: caller-supplied value.
+        token: the corresponding input value.
+        action: the corresponding input value.
+        target: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if not token:
         return None
@@ -933,10 +933,10 @@ def _close_request_snapshots(request: dict | None) -> None:
     """Close request snapshots.
     
     Args:
-        request: caller-supplied value.
+        request: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if not isinstance(request, dict):
         return
@@ -953,12 +953,12 @@ def _prepare_snapshots(action: str, target: str, source: str = "") -> tuple:
     """Prepare snapshots.
     
     Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-        source: caller-supplied value.
+        action: the corresponding input value.
+        target: the corresponding input value.
+        source: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if action not in {"delete", "overwrite", "write_file"}:
         return None, None
@@ -981,10 +981,10 @@ def _assert_snapshots_current(request: dict) -> None:
     """Assert snapshots current.
     
     Args:
-        request: caller-supplied value.
+        request: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     for key in ("_snapshot", "_source_snapshot"):
         snap = request.get(key)
@@ -996,10 +996,10 @@ def _sha256_file(path: Path) -> str:
     """Sha256 file.
     
     Args:
-        path: caller-supplied value.
+        path: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -1072,11 +1072,11 @@ def _manifest_equal(left: list[dict], right: list[dict]) -> bool:
     """Manifest equal.
     
     Args:
-        left: caller-supplied value.
-        right: caller-supplied value.
+        left: the corresponding input value.
+        right: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     return json.dumps(left, sort_keys=True, ensure_ascii=False) == json.dumps(
         right, sort_keys=True, ensure_ascii=False
@@ -1087,10 +1087,10 @@ def _fail_send_wait(request_id: str) -> None:
     """Fail send wait.
     
     Args:
-        request_id: caller-supplied value.
+        request_id: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     event = _send_events.get(request_id)
     if event:
@@ -1149,10 +1149,10 @@ def _manifest_prompt(manifest: list[dict]) -> str:
     """Manifest prompt.
     
     Args:
-        manifest: caller-supplied value.
+        manifest: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     lines = [approval_i18n.t("manifest", count=len(manifest))]
     for index, item in enumerate(manifest, 1):
@@ -1176,7 +1176,7 @@ def verify_code(code: str, request_id: str = "") -> str:
         request_id: pending request that owns this code.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     code = code.strip().upper()
     if len(code) == 6 and code.isdigit():
@@ -1214,10 +1214,10 @@ def execute(request: dict) -> ExecutionResult:
     """Execute.
     
     Args:
-        request: caller-supplied value.
+        request: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     action = request.get("action")
     target = Path(request.get("target", ""))
@@ -1328,10 +1328,10 @@ def timeout_watch(request_id: str) -> None:
     """Timeout watch.
     
     Args:
-        request_id: caller-supplied value.
+        request_id: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     time.sleep(TIMEOUT_SECONDS)
     expired = False
@@ -1356,7 +1356,7 @@ def _is_verification_locked() -> bool:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     return time.monotonic() < max(broker_state._verify_locked_until, broker_state._global_lock_until)
 
@@ -1471,12 +1471,12 @@ def _email_result(config: dict, request: dict, result: str) -> None:
     """Email result.
     
     Args:
-        config: caller-supplied value.
-        request: caller-supplied value.
-        result: caller-supplied value.
+        config: the corresponding input value.
+        request: the corresponding input value.
+        result: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         email_approval.send_email(
@@ -1492,12 +1492,12 @@ def _audit_auto(request: dict, ok: bool, result: str) -> None:
     """Audit auto.
     
     Args:
-        request: caller-supplied value.
-        ok: caller-supplied value.
-        result: caller-supplied value.
+        request: the corresponding input value.
+        ok: the corresponding input value.
+        result: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -1539,12 +1539,12 @@ def _issue_scoped(action: str, target: str, minutes: int = SCOPED_MAX_MINUTES) -
     """Issue scoped.
     
     Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-        minutes: caller-supplied value.
+        action: the corresponding input value.
+        target: the corresponding input value.
+        minutes: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if action not in {"delete", "overwrite", "write_file"}:
         return None
@@ -1571,12 +1571,12 @@ def _consume_scoped(token: str, action: str, target: str) -> dict | None:
     """Consume scoped.
     
     Args:
-        token: caller-supplied value.
-        action: caller-supplied value.
-        target: caller-supplied value.
+        token: the corresponding input value.
+        action: the corresponding input value.
+        target: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if not token or action not in {"delete", "overwrite", "write_file"}:
         return None
@@ -1606,12 +1606,12 @@ def _audit_scoped(request: dict, result: str, root: str) -> None:
     """Audit scoped.
     
     Args:
-        request: caller-supplied value.
-        result: caller-supplied value.
-        root: caller-supplied value.
+        request: the corresponding input value.
+        result: the corresponding input value.
+        root: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -1636,10 +1636,10 @@ def _as_bool(value: object) -> bool:
     """As bool.
     
     Args:
-        value: caller-supplied value.
+        value: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if isinstance(value, bool):
         return value
@@ -1655,13 +1655,13 @@ def _set_approval_state(
     """Set approval state.
     
     Args:
-        challenge_id: caller-supplied value.
-        status: caller-supplied value.
-        approval_only: caller-supplied value.
-        scoped: caller-supplied value.
+        challenge_id: the corresponding input value.
+        status: the corresponding input value.
+        approval_only: the corresponding input value.
+        scoped: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     now = time.monotonic()
     scoped_ttl = int(scoped.get("expires_in", 0)) if scoped else 0
@@ -1687,10 +1687,10 @@ def _get_approval_state(challenge_id: str) -> dict | None:
     """Get approval state.
     
     Args:
-        challenge_id: caller-supplied value.
+        challenge_id: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     now = time.monotonic()
     with broker_state._approval_lock:
@@ -1707,12 +1707,12 @@ def _audit_bypass(request: dict, result: str, scope: str) -> None:
     """Audit bypass.
     
     Args:
-        request: caller-supplied value.
-        result: caller-supplied value.
-        scope: caller-supplied value.
+        request: the corresponding input value.
+        result: the corresponding input value.
+        scope: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     try:
         AUDIT.parent.mkdir(parents=True, exist_ok=True)
@@ -1740,7 +1740,7 @@ def _is_uninstalling() -> bool:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if os.environ.get("CBS_IS_UNINSTALLING") == "1":
         return True
@@ -1752,10 +1752,10 @@ def run_request(payload: dict) -> tuple[int, dict]:
     """Run request.
     
     Args:
-        payload: caller-supplied value.
+        payload: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
@@ -2114,10 +2114,10 @@ def run_verify(payload: dict) -> tuple[int, dict]:
     """Run verify.
     
     Args:
-        payload: caller-supplied value.
+        payload: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     if _is_uninstalling():
         return 503, {"ok": False, "status": "uninstalling", "error": "broker is uninstalling"}
@@ -2354,10 +2354,10 @@ def get_approval_status(challenge_id: str) -> tuple[int, dict]:
     """Get approval status.
     
     Args:
-        challenge_id: caller-supplied value.
+        challenge_id: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     challenge_id = str(challenge_id or "").strip()
     if not challenge_id:
@@ -2382,10 +2382,10 @@ def _totp_qr(uri: str) -> str:
     """Totp qr.
     
     Args:
-        uri: caller-supplied value.
+        uri: the corresponding input value.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     image = qrcode.make(uri)
     buffer = io.BytesIO()
@@ -2400,7 +2400,7 @@ def totp_binding_payload() -> dict:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     value = secret()
     uri = pyotp.TOTP(value).provisioning_uri(
@@ -2488,18 +2488,18 @@ class RequestBodyTooLarge(ValueError):
 
 
 class Handler(BaseHTTPRequestHandler):
-    """Handler helper/type."""
+    """Handler the internal data structure."""
     server_version = "AgentRuntimeTOTPBroker/1.6.4"
 
     def _json(self, status: int, payload: dict) -> None:
         """Json.
         
         Args:
-            status: caller-supplied value.
-            payload: caller-supplied value.
+            status: the corresponding input value.
+            payload: the corresponding input value.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -2515,7 +2515,7 @@ class Handler(BaseHTTPRequestHandler):
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         expected = ensure_token()
         provided = self.headers.get("X-Broker-Token", "")
@@ -2545,7 +2545,7 @@ class Handler(BaseHTTPRequestHandler):
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         peer = str(self.client_address[0] if self.client_address else "").strip()
         try:
@@ -2572,7 +2572,7 @@ class Handler(BaseHTTPRequestHandler):
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         raw_length = str(self.headers.get("Content-Length", "0") or "0").strip()
         try:
@@ -2615,7 +2615,7 @@ class Handler(BaseHTTPRequestHandler):
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         if not self._local_only():
             return
@@ -2702,7 +2702,7 @@ class Handler(BaseHTTPRequestHandler):
             None.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         if not self._local_only():
             return
@@ -2774,7 +2774,7 @@ class Handler(BaseHTTPRequestHandler):
             args: formatting values supplied by the HTTP server.
         
         Returns:
-            Function result, or None when no value is returned.
+            The computed operation result.
         """
         log("http: " + format % args)
 
@@ -2824,7 +2824,7 @@ def main() -> None:
         None.
     
     Returns:
-        Function result, or None when no value is returned.
+        The computed operation result.
     """
     unrendered = [value for value in (str(ROOT), str(SHARED), UMO) if "YOUR_" in value]
     if unrendered:

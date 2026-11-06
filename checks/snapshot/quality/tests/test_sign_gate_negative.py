@@ -46,6 +46,9 @@ def _manifest(items: list[dict] | None = None, nonce: str = NONCE) -> dict:
             "skipped_by_design": sum(1 for row in rows if row["status"] == "skipped-by-design"),
         },
         "overall": "PASS",
+        "dependency_gate_status": "PASS",
+        "comment_audit_status": "PASS",
+        "binary_provenance_status": "PASS",
     }
 
 
