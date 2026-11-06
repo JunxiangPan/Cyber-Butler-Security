@@ -7,9 +7,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 from cbp.config import load_config  # noqa: E402
 from cbp.coverage_gate import run  # noqa: E402
+from cbp.source_hash import stamp  # noqa: E402
 
 
 def main() -> int:
+    stamp(ROOT / "coverage.json", ROOT)
     passed, detail = run(load_config(ROOT, ROOT / "cbp.json"))
     print(("COVERAGE_OK: " if passed else "COVERAGE_FAILED: ") + detail)
     return 0 if passed else 1

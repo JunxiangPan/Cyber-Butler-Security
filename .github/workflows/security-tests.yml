@@ -69,6 +69,7 @@ jobs:
         run: |
           python -m coverage run --branch -m pytest -q tests/
           python -m coverage json -o coverage.json
+          python -c "from pathlib import Path; from cbp.source_hash import stamp; stamp(Path('coverage.json'), Path('.'))"
           python quality/coverage_gate.py
       - name: CBP dependency hash gate
         run: python quality/dependency_gate.py
