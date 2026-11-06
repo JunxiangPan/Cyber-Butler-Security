@@ -14,7 +14,7 @@ jobs:
           python -m pip install coverage pytest
           python -m coverage run --branch -m pytest -q
           python -m coverage json -o coverage.json
-      - uses: your-org/cbp-action@v0.1.0
+      - uses: <YOUR_GITHUB_USER>/cbp-action@v0.1.0
         with:
           root: .
           config: .cbp/config.json

@@ -1,5 +1,7 @@
 # CBP — Coverage and Build Policy
 
+> **Before publishing:** globally replace `<YOUR_GITHUB_USER>` with your GitHub username or organization.
+
 A reusable, self-hosted quality gate for repositories that do not want to
 trust a green check without evidence.
 
@@ -23,7 +25,7 @@ copy-paste comments, and edited evidence fail closed.
 ## GitHub Action
 
 ```yaml
-- uses: your-org/cbp-action@v0.1.0
+- uses: <YOUR_GITHUB_USER>/cbp-action@v0.1.0
   with:
     root: .
     config: .cbp/config.json

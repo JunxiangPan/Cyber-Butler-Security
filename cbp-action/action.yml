@@ -98,3 +98,7 @@ runs:
         echo "$OUTPUT"
         echo "$OUTPUT" | grep -E '^CBP_RESULT=' | tail -1 >> "$GITHUB_OUTPUT"
         exit $CODE
+
+branding:
+  icon: shield
+  color: blue

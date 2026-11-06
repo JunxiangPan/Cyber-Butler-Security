@@ -69,3 +69,9 @@ CBS tests use synthetic external agents, not real third-party applications as fi
 ## Private vulnerability reporting
 
 Use GitHub Security Advisories: <https://github.com/JunxiangPan/Cyber-Butler-Security/security/advisories/new>. Do not file a public issue for an unfixed vulnerability.
+
+## Quality gates
+
+Cyber-Butler-Security uses [CBP](https://github.com/<YOUR_GITHUB_USER>/cbp-action) to enforce quality gates.
+CBP is packaged from `cbp-action/` and consumed here as a pinned, hashed wheel.
+
