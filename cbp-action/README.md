@@ -10,6 +10,8 @@ configuration, and one CLI used by both GitHub Actions and local CI.
 
 CBP is designed to evolve. As the CB ecosystem grows, CBP's rule engine will expand to cover different languages and frameworks.
 
+Smooth upgrade is a promise. If you ship a breaking change without proper migration, CBP will break your pipeline.
+
 CBP is designed for long-term stability. Upgrading CBP will not break your existing CI. New gates are opt-in by default, and legacy fields are auto-mapped.
 
 The core 80% is language-neutral: encoding, documentation locks, release claims,
@@ -29,6 +31,7 @@ project can extend the gate without changing CBP source.
 | claims | release notes whose `QUALITY_COUNTS` do not match the generated manifest |
 | encoding | tracked text files that are not strict UTF-8 or carry a BOM |
 | custom | configured regex/literal rules in `custom_rules` (warn by default) |
+| upgrade | configured upgrade script, old-config fixtures, and schema compatibility |
 
 It is designed to make fake tests, fake coverage, dependency substitution,
 copy-paste comments, and edited evidence fail closed.
@@ -103,6 +106,7 @@ or `CBP_RESULT=FAIL`.
 | `enable-binary` | Enable binary gate |
 | `enable-claims` | Enable claims gate |
 | `enable-custom` | Enable config-driven custom rules |
+| `enable-upgrade` | Enable upgrade compatibility checks |
 | `mode` | `audit`, `warn`, or `enforce` |
 
 ### Required path inputs

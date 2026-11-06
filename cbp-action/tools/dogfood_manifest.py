@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from cbp import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate
+from cbp import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, upgrade_gate
 from cbp.config import GateConfig, load_config
 
 GENERATED_BY = "cbp-action dogfood job"
@@ -48,16 +48,16 @@ def validate_manifest(manifest: dict[str, Any], *, actions: bool = False) -> lis
     if manifest.get("schema") != SCHEMA:
         problems.append("schema must be cbp-quality-manifest/v1")
     gates = manifest.get("gates")
-    expected = {"coverage", "dependency", "comments", "docs", "binary", "encoding", "claims", "custom"}
+    expected = {"coverage", "dependency", "comments", "docs", "binary", "encoding", "claims", "custom", "upgrade"}
     if not isinstance(gates, dict) or set(gates) != expected:
-        problems.append("gates must contain exactly the eight CBP gates")
+        problems.append("gates must contain exactly the nine CBP gates")
     elif any(value != "PASS" for value in gates.values()):
         problems.append("gate statuses must all be PASS")
     counts = manifest.get("counts")
     if not isinstance(counts, dict) or not isinstance(counts.get("passed"), int) or not isinstance(counts.get("total"), int):
         problems.append("counts.passed/counts.total must be integers")
-    elif counts["total"] != 8 or counts["passed"] > counts["total"]:
-        problems.append("counts must be within 8/8")
+    elif counts["total"] != 9 or counts["passed"] > counts["total"]:
+        problems.append("counts must be within 9/9")
     if manifest.get("generated_by") != GENERATED_BY:
         problems.append(f"generated_by must be {GENERATED_BY}")
     if actions:
@@ -81,6 +81,7 @@ def _run_gate(name: str, cfg: GateConfig) -> tuple[bool, str]:
         "binary": binary_gate.run,
         "encoding": encoding_gate.run,
         "custom": custom_rules.run,
+        "upgrade": upgrade_gate.run,
     }
     if name not in functions:
         raise ManifestError(f"unknown gate: {name}")
@@ -128,7 +129,7 @@ def generate(
         raise ManifestError("GITHUB_SHA is required when GITHUB_ACTIONS=true")
     statuses: dict[str, str] = {}
     coverage_numbers: dict[str, float] = {}
-    for name in ("coverage", "dependency", "comments", "docs", "binary", "encoding", "custom"):
+    for name in ("coverage", "dependency", "comments", "docs", "binary", "encoding", "custom", "upgrade"):
         passed, detail = _run_gate(name, cfg)
         statuses[name] = "PASS" if passed else "FAIL"
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
@@ -136,7 +137,7 @@ def generate(
             raise ManifestError(f"{name} gate failed")
         if name == "coverage":
             coverage_numbers = _gate_detail(detail)
-    provisional_counts = {"passed": 7, "total": 8}
+    provisional_counts = {"passed": 8, "total": 9}
     provisional = {
         "schema": SCHEMA,
         "profile": "dogfood",
@@ -149,7 +150,7 @@ def generate(
         "coverage": coverage_numbers,
     }
     _write_manifest(output, provisional)
-    _write_notes(notes_template, notes_output, "7/8", gate_count=8)
+    _write_notes(notes_template, notes_output, "8/9", gate_count=9)
     cfg.claims_manifest = output
     cfg.claims_notes = notes_output
     configured_body = cfg.release_body
@@ -168,14 +169,14 @@ def generate(
         "generated_at": _now(),
         "generated_by": GENERATED_BY,
         "gates": statuses,
-        "counts": {"passed": 8, "total": 8},
+        "counts": {"passed": 9, "total": 9},
         "coverage": coverage_numbers,
     }
     problems = validate_manifest(final_manifest, actions=actions)
     if problems:
         raise ManifestError("; ".join(problems))
     _write_manifest(output, final_manifest)
-    _write_notes(notes_template, notes_output, "8/8", gate_count=8)
+    _write_notes(notes_template, notes_output, "9/9", gate_count=9)
     if claims_gate.run(cfg)[0] is False:
         raise ManifestError("final claims verification failed")
     digest = hashlib.sha256(output.read_bytes()).hexdigest()

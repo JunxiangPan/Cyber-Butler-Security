@@ -72,6 +72,9 @@ inputs:
   enable-custom:
     description: enable config-driven custom rules
     default: "true"
+  enable-upgrade:
+    description: enable config-driven upgrade checks
+    default: "true"
   mode:
     description: audit logs failures but exits zero; enforce exits non-zero
     default: "enforce"
@@ -111,6 +114,7 @@ runs:
           --enable-binary "${{ inputs.enable-binary }}" \
           --enable-claims "${{ inputs.enable-claims }}" \
           --enable-custom "${{ inputs.enable-custom }}" \
+          --enable-upgrade "${{ inputs.enable-upgrade }}" \
           --mode "${{ inputs.mode }}" 2>&1)
         CODE=$?
         echo "$OUTPUT"

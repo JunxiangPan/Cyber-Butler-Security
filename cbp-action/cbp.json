@@ -46,7 +46,8 @@
         "src/cbp/encoding_gate.py",
         "src/cbp/custom_rules.py",
         "src/cbp/sarif.py",
-        "src/cbp/readers.py"
+        "src/cbp/readers.py",
+        "src/cbp/upgrade_gate.py"
       ],
       "threshold": 80,
       "mode": "enforce"
@@ -66,7 +67,8 @@
         "tools/audit_rule_sources.py",
         "src/cbp/custom_rules.py",
         "src/cbp/sarif.py",
-        "src/cbp/readers.py"
+        "src/cbp/readers.py",
+        "src/cbp/upgrade_gate.py"
       ],
       "threshold": 90,
       "mode": "enforce"
@@ -102,5 +104,8 @@
       "encoding": "utf-8"
     }
   },
-  "schema_version": "0.1.2"
+  "schema_version": "0.1.2",
+  "upgrade_fixtures": [
+    "tests/fixtures/cbp_v0.1.0.json"
+  ]
 }

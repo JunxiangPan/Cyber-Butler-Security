@@ -83,3 +83,20 @@ suggested field names only after reviewing the output.
 Revert the action version to the previous minor. CBP does not rewrite the
 checked-in configuration during migration, so rollback is a version change, not
 a data recovery operation.
+
+## Upgrade gate
+
+Projects can configure an upgrade script, old configuration fixtures, and a
+previous/current JSON Schema comparison. The gate runs in CI and fails closed:
+
+```json
+{
+  "upgrade_script": "pytest tests/test_upgrade.py",
+  "upgrade_fixtures": ["tests/fixtures/v0.1.0_config.json"],
+  "previous_schema": "schemas/config.v0.1.1.schema.json",
+  "current_schema": "schemas/config.schema.json",
+  "allow_breaking_changes": false
+}
+```
+
+A schema regression requires explicit `allow_breaking_changes: true`.

@@ -34,6 +34,12 @@ class GateConfig:
     install_command: Path | str = ""
     custom_rules: tuple[dict, ...] = ()
     evidence_readers: dict = field(default_factory=dict)
+    upgrade_script: str = ""
+    upgrade_fixtures: tuple[str, ...] = ()
+    previous_schema: str = ""
+    current_schema: str = ""
+    allow_breaking_changes: bool = False
+    upgrade_timeout_seconds: int = 120
     docs_manifest: Path | str = ""
     comment_files: tuple[str, ...] = ()
     binary_limit_mb: float = 5.0

@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, verify_release
+from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
 from .config import load_config
 
 
@@ -44,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-binary", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-claims", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-custom", type=lambda x: x.lower() == "true", default=None)
+    parser.add_argument("--enable-upgrade", type=lambda x: x.lower() == "true", default=None)
     args = parser.parse_args(argv)
     if args.verify_release:
         repository = args.repository or os.environ.get("GITHUB_REPOSITORY", "")
@@ -73,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
             overrides[key] = value
     if args.manifest:
         overrides["claims_manifest"] = args.manifest
-    for key in ("enable_coverage", "require_coverage_signature", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims", "enable_custom"):
+    for key in ("enable_coverage", "require_coverage_signature", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims", "enable_custom", "enable_upgrade"):
         value = getattr(args, key)
         if value is not None:
             overrides[key] = value
@@ -93,6 +94,8 @@ def main(argv: list[str] | None = None) -> int:
         checks.append(("claims", claims_gate.run))
     if getattr(cfg, "enable_custom", True):
         checks.append(("custom", custom_rules.run))
+    if getattr(cfg, "enable_upgrade", True):
+        checks.append(("upgrade", upgrade_gate.run))
     if cfg.enable_binary:
         checks.append(("binary", binary_gate.run))
     ok = True
