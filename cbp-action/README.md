@@ -1,6 +1,6 @@
-# CBP — Coverage and Build Policy
+# CBP —Coverage and Build Policy
 
-> **Before publishing:** globally replace `<YOUR_GITHUB_USER>` with your GitHub username or organization.
+> **Before publishing:** globally replace `JunxiangPan` with your GitHub username or organization.
 
 A reusable, self-hosted quality gate for repositories that do not want to
 trust a green check without evidence.
@@ -18,6 +18,7 @@ configuration, and one CLI used by both GitHub Actions and local CI.
 | docs | files whose SHA256 no longer matches the documentation manifest |
 | binary | large binaries without `.build.json`/`.sbom.json`, or provenance hash/size mismatches |
 | claims | release notes whose `QUALITY_COUNTS` do not match the generated manifest |
+| encoding | tracked text files that are not strict UTF-8 or carry a BOM |
 
 It is designed to make fake tests, fake coverage, dependency substitution,
 copy-paste comments, and edited evidence fail closed.
@@ -25,7 +26,7 @@ copy-paste comments, and edited evidence fail closed.
 ## GitHub Action
 
 ```yaml
-- uses: <YOUR_GITHUB_USER>/cbp-action@v0.1.0
+- uses: JunxiangPan/cbp-action@v0.1.0
   with:
     root: .
     config: .cbp/config.json
@@ -74,6 +75,7 @@ or `CBP_RESULT=FAIL`.
 | `claims-manifest` | Generated `quality-manifest.json` |
 | `claims-notes` | Generated release notes |
 | `enable-coverage` | Enable coverage gate |
+| `enable-encoding` | Enable strict UTF-8 no-BOM gate |
 | `enable-dependency` | Enable dependency gate |
 | `enable-comments` | Enable comment gate |
 | `enable-docs` | Enable docs gate |

@@ -50,7 +50,7 @@ jobs:
       - name: Reject unresolved publishing placeholders
         if: ${{ inputs.allow_placeholders != true }}
         run: |
-          if grep -R "<YOUR_GITHUB_USER>" README.md SECURITY.md usage.yml; then
+          if grep -R "JunxiangPan" README.md SECURITY.md usage.yml; then
             echo "unresolved publishing placeholder" >&2
             exit 1
           fi
@@ -60,7 +60,7 @@ jobs:
           test -f README.md
           test -f usage.yml
           test -f SECURITY.md
-          for name in root config coverage-json coverage-threshold dependency-lock installer-core docs-manifest binary-artifacts claims-manifest claims-notes mode; do
+          for name in root config coverage-json coverage-threshold dependency-lock installer-core docs-manifest binary-artifacts claims-manifest claims-notes enable-encoding mode; do
             grep -q "^  ${name}:" action.yml
           done
   publish:

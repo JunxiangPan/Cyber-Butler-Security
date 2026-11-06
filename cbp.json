@@ -66,5 +66,6 @@
       "threshold": 0,
       "mode": "warn"
     }
-  ]
+  ],
+  "enable_encoding": false
 }

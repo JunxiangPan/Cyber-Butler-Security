@@ -4,7 +4,7 @@
 
 Please use GitHub Security Advisories:
 
-`https://github.com/<YOUR_GITHUB_USER>/cbp-action/security/advisories/new`
+`https://github.com/JunxiangPan/cbp-action/security/advisories/new`
 
 Do not open a public issue for an unfixed vulnerability.
 

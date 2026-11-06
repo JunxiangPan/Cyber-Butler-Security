@@ -16,8 +16,8 @@ def _manifest() -> dict:
         "ci_commit_sha": "abc",
         "generated_at": "2026-11-06T00:00:00Z",
         "generated_by": "cbp-action dogfood job",
-        "gates": {name: "PASS" for name in ("coverage", "dependency", "comments", "docs", "binary", "claims")},
-        "counts": {"passed": 6, "total": 6},
+        "gates": {name: "PASS" for name in ("coverage", "dependency", "comments", "docs", "binary", "encoding", "claims")},
+        "counts": {"passed": 7, "total": 7},
         "coverage": {"cbp": 80.0, "security_core": 90.0},
     }
 

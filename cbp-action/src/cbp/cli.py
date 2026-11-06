@@ -5,7 +5,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, dependency_gate, docs_gate
+from . import binary_gate, claims_gate, comment_gate, coverage_gate, dependency_gate, docs_gate, encoding_gate
 from .config import load_config
 
 
@@ -28,6 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--claims-notes", default="")
     parser.add_argument("--manifest", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
+    parser.add_argument("--enable-encoding", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-dependency", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-comments", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-docs", type=lambda x: x.lower() == "true", default=None)
@@ -53,12 +54,14 @@ def main(argv: list[str] | None = None) -> int:
             overrides[key] = value
     if args.manifest:
         overrides["claims_manifest"] = args.manifest
-    for key in ("enable_coverage", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims"):
+    for key in ("enable_coverage", "enable_encoding", "enable_dependency", "enable_comments", "enable_docs", "enable_binary", "enable_claims"):
         value = getattr(args, key)
         if value is not None:
             overrides[key] = value
     cfg = load_config(Path(args.root), config_path, overrides)
     checks = []
+    if getattr(cfg, "enable_encoding", True):
+        checks.append(("encoding", encoding_gate.run))
     if cfg.enable_coverage:
         checks.append(("coverage", coverage_gate.run))
     if cfg.enable_dependency:

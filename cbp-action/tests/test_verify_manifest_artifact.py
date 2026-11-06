@@ -21,8 +21,8 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
         "ci_commit_sha": COMMIT,
         "generated_at": "2026-11-06T00:00:00Z",
         "generated_by": "cbp-action dogfood job",
-        "gates": {name: "PASS" for name in ("coverage", "dependency", "comments", "docs", "binary", "claims")},
-        "counts": {"passed": 6, "total": 6},
+        "gates": {name: "PASS" for name in ("coverage", "dependency", "comments", "docs", "binary", "encoding", "claims")},
+        "counts": {"passed": 7, "total": 7},
         "coverage": {"cbp": 87.0, "security_core": 96.0},
     }
     manifest_path = tmp_path / "quality-manifest.json"
@@ -31,7 +31,7 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
     hash_path = tmp_path / "quality-manifest.json.sha256"
     hash_path.write_text(f"{digest}  quality-manifest.json\n", encoding="utf-8")
     notes = tmp_path / "RELEASE_NOTES.generated.md"
-    notes.write_text("QUALITY_COUNTS: 6/6\n", encoding="utf-8")
+    notes.write_text("QUALITY_COUNTS: 7/7\n", encoding="utf-8")
     return manifest_path, hash_path, notes
 
 
@@ -40,7 +40,7 @@ def _verify(paths: tuple[Path, Path, Path], run_id: str = RUN_ID, commit: str = 
 
 
 def test_artifact_positive(tmp_path) -> None:
-    assert _verify(_fixture(tmp_path))["counts"] == {"passed": 6, "total": 6}
+    assert _verify(_fixture(tmp_path))["counts"] == {"passed": 7, "total": 7}
 
 
 def test_artifact_hash_mismatch_is_rejected(tmp_path) -> None:

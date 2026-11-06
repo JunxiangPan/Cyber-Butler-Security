@@ -24,7 +24,8 @@
     "src/cbp/cli.py",
     "tools/audit_rule_sources.py",
     "tools/dogfood_manifest.py",
-    "tools/verify_manifest_artifact.py"
+    "tools/verify_manifest_artifact.py",
+    "src/cbp/encoding_gate.py"
   ],
   "enable_dependency": true,
   "enable_docs": true,
@@ -41,7 +42,8 @@
         "src/cbp/binary_gate.py",
         "src/cbp/claims_gate.py",
         "src/cbp/config.py",
-        "src/cbp/cli.py"
+        "src/cbp/cli.py",
+        "src/cbp/encoding_gate.py"
       ],
       "threshold": 80,
       "mode": "enforce"
@@ -60,5 +62,6 @@
   "docs_manifest": "docs/history-manifest.json",
   "binary_artifacts": "artifacts",
   "claims_manifest": "quality-manifest.json",
-  "claims_notes": "docs/RELEASE_NOTES.generated.md"
+  "claims_notes": "docs/RELEASE_NOTES.generated.md",
+  "enable_encoding": true
 }

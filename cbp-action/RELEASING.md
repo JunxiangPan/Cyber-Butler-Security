@@ -115,7 +115,7 @@ from `examples/sample-project` before publishing.
 ## Placeholders
 
 `allow_placeholders` is for local debugging only. In GitHub Actions it fails
-closed. Replace `<YOUR_GITHUB_USER>` in README.md, SECURITY.md, and usage.yml
+closed. Replace `JunxiangPan` in README.md, SECURITY.md, and usage.yml
 before releasing.
 
 ## Preconditions

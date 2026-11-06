@@ -27,6 +27,7 @@ class GateConfig:
     binary_artifacts: Path | str = ""
     package_zip: Path | None = None
     enable_coverage: bool = True
+    enable_encoding: bool = True
     enable_dependency: bool = True
     enable_comments: bool = True
     enable_docs: bool = True

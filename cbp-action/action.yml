@@ -50,6 +50,8 @@ inputs:
     default: ""
   enable-coverage:
     default: "true"
+  enable-encoding:
+    default: "true"
   enable-dependency:
     default: "true"
   enable-comments:
@@ -88,6 +90,7 @@ runs:
           --claims-manifest "${{ inputs.claims-manifest }}" \
           --claims-notes "${{ inputs.claims-notes }}" \
           --enable-coverage "${{ inputs.enable-coverage }}" \
+          --enable-encoding "${{ inputs.enable-encoding }}" \
           --enable-dependency "${{ inputs.enable-dependency }}" \
           --enable-comments "${{ inputs.enable-comments }}" \
           --enable-docs "${{ inputs.enable-docs }}" \

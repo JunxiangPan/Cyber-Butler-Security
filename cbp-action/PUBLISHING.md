@@ -6,17 +6,17 @@ examples.
 
 ## 1. Create the standalone repository
 
-Option A — subtree split, preserves history:
+Option A —subtree split, preserves history:
 
 ```bash
 cd /path/to/Cyber-Butler-Security
 git subtree split --prefix=cbp-action -b cbp-v0.1.0
 git checkout cbp-v0.1.0
-git remote add cbp https://github.com/<YOUR_GITHUB_USER>/cbp-action.git
+git remote add cbp https://github.com/JunxiangPan/cbp-action.git
 git push cbp cbp-v0.1.0:main
 ```
 
-Option B — copy the directory:
+Option B —copy the directory:
 
 ```bash
 mkdir cbp-action-repo
@@ -26,7 +26,7 @@ git init
 git add .
 git commit -m "CBP v0.1.0"
 git branch -M main
-git remote add origin https://github.com/<YOUR_GITHUB_USER>/cbp-action.git
+git remote add origin https://github.com/JunxiangPan/cbp-action.git
 git push -u origin main
 ```
 
@@ -54,7 +54,7 @@ examples/
 ## 2. Replace the publishing placeholder
 
 ```bash
-grep -R "<YOUR_GITHUB_USER>" .
+grep -R "JunxiangPan" .
 ```
 
 Replace every hit with the real owner. Commit the replacement.
@@ -89,7 +89,7 @@ Marketplace and GitHub Actions should use a tag while evaluating, but production
 workflows should pin the exact commit:
 
 ```yaml
-uses: <YOUR_GITHUB_USER>/cbp-action@<FULL_COMMIT_SHA>
+uses: JunxiangPan/cbp-action@<FULL_COMMIT_SHA>
 ```
 
 Do not trust a moving minor tag for a security gate.
@@ -100,7 +100,7 @@ Create a release, then open Marketplace publishing for the repository.
 Recommended metadata:
 
 ```text
-Name: CBP — Coverage and Build Policy
+Name: CBP —Coverage and Build Policy
 Category: Security
 Description: Fail closed on fake coverage, unpinned dependencies,
              boilerplate comments, tampered docs, and unsigned binaries.
@@ -113,7 +113,7 @@ The `action.yml` is the Marketplace manifest. Review `README.md`, `LICENSE`,
 
 ```bash
 # In a fresh consumer repository:
-grep -R "<YOUR_GITHUB_USER>" .
+grep -R "JunxiangPan" .
 python -m cbp.cli --root . --mode enforce
 ```
 
