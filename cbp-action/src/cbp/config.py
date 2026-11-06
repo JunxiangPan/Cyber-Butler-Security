@@ -28,6 +28,7 @@ class GateConfig:
     enable_comments: bool = True
     enable_docs: bool = True
     enable_binary: bool = True
+    enable_claims: bool = True
 
     def path(self, value: Path | str) -> Path:
         p = Path(value)
