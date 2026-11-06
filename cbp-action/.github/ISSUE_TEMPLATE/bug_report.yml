@@ -1,0 +1,33 @@
+name: Bug report
+description: A gate is wrong, crashes, or gives a misleading result.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include credentials, tokens, or private repository content."
+  - type: input
+    id: version
+    attributes:
+      label: CBP version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest config, file layout, and command that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and logs
+    validations:
+      required: true
