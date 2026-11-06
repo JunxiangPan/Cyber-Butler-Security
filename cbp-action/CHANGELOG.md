@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 — 2026-11-07
+
+- Removed `shell=True` from the upgrade gate; scripts are parsed with `shlex.split` and shell metacharacters are rejected.
+- Rejected upgrade-script execution on `pull_request` and `pull_request_target` events.
+- Added GitHub OIDC build provenance with `actions/attest-build-provenance`.
+- Bumped the configuration schema to `0.1.3`; old `0.1.x` configs migrate in memory.
+
 ## 0.1.2 — 2026-11-06
 
 - Added checked-in `docs/RELEASE_BODY.md`, validated by the claims gate and used by `gh release create`.

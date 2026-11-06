@@ -21,3 +21,16 @@ runtime.
 
 Security fixes target the latest v0.1.x release. The release workflow publishes
 wheels from tagged commits only.
+
+## Build provenance
+
+Release wheels are built in GitHub Actions and attested with
+`actions/attest-build-provenance` using the workflow's OIDC identity. Verify an
+artifact with:
+
+```bash
+gh attestation verify cbp_action-0.1.3-py3-none-any.whl --repo JunxiangPan/cbp-action
+```
+
+The SHA256 checksum and run-id are still published, but they are not a
+replacement for the OIDC attestation.

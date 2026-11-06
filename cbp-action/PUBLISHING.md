@@ -1,4 +1,4 @@
-# Publishing CBP v0.1.2
+# Publishing CBP v0.1.3
 
 This guide assumes the CBS repository contains `cbp-action/`. The directory is
 self-contained: it has its own `pyproject.toml`, tests, workflows, docs, and
@@ -10,10 +10,10 @@ Option A —subtree split, preserves history:
 
 ```bash
 cd /path/to/Cyber-Butler-Security
-git subtree split --prefix=cbp-action -b cbp-v0.1.2
-git checkout cbp-v0.1.2
+git subtree split --prefix=cbp-action -b cbp-v0.1.3
+git checkout cbp-v0.1.3
 git remote add cbp https://github.com/JunxiangPan/cbp-action.git
-git push cbp cbp-v0.1.2:main
+git push cbp cbp-v0.1.3:main
 ```
 
 Option B —copy the directory:
@@ -24,7 +24,7 @@ cp -a cbp-action/. cbp-action-repo/
 cd cbp-action-repo
 git init
 git add .
-git commit -m "CBP v0.1.2"
+git commit -m "CBP v0.1.3"
 git branch -M main
 git remote add origin https://github.com/JunxiangPan/cbp-action.git
 git push -u origin main
@@ -62,8 +62,8 @@ Replace every hit with the real owner. Commit the replacement.
 ## 3. Tag and release
 
 ```bash
-git tag -a v0.1.2 -m "CBP v0.1.2"
-git push origin v0.1.2
+git tag -a v0.1.3 -m "CBP v0.1.3"
+git push origin v0.1.3
 ```
 
 A tag push does **not** trigger CI or the release workflow. The release is
@@ -73,14 +73,14 @@ run id and commit, then publishes:
 
 ```text
 python -m build
-gh release create v0.1.2 dist/* ... --notes-file artifact/docs/RELEASE_NOTES.generated.md
+gh release create v0.1.3 dist/* ... --notes-file artifact/docs/RELEASE_NOTES.generated.md
 ```
 
 Verify the release has:
 
 ```text
-cbp_action-0.1.2-py3-none-any.whl
-cbp_action-0.1.2.tar.gz
+cbp_action-0.1.3-py3-none-any.whl
+cbp_action-0.1.3.tar.gz
 ```
 
 ## 4. Pin the Action by commit SHA
@@ -118,4 +118,4 @@ python -m cbp.cli --root . --mode enforce
 ```
 
 Also verify that `examples/sample-project/.github/workflows/ci.yml` has been
-updated from `@v0.1.2` to the released commit SHA.
+updated from `@v0.1.3` to the released commit SHA.

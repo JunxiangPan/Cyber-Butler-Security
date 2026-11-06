@@ -50,3 +50,22 @@ def test_schema_break_blocks_unless_allowed(tmp_path: Path) -> None:
     assert passed is False and "schema compatibility failed" in detail
     cfg.allow_breaking_changes = True
     assert upgrade_gate.run(cfg)[0] is True
+
+
+def test_shell_metacharacters_are_rejected(tmp_path: Path) -> None:
+    for script in (
+        f'"{sys.executable}" -c "print(1)" && echo hacked',
+        f'"{sys.executable}" -c "print(1)" | cat',
+        f'"{sys.executable}" -c "print(1)" > out.txt',
+    ):
+        passed, detail = upgrade_gate.run(GateConfig(root=tmp_path, upgrade_script=script))
+        assert passed is False
+        assert "metacharacters" in detail
+
+
+def test_pull_request_event_is_rejected(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "pull_request")
+    cfg = GateConfig(root=tmp_path, upgrade_script=f'"{sys.executable}" -c "print(1)"')
+    passed, detail = upgrade_gate.run(cfg)
+    assert passed is False
+    assert "pull_request" in detail

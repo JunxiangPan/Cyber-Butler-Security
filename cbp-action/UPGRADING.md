@@ -25,13 +25,13 @@ It must include:
 - a maintained previous major line for users who cannot move immediately;
 - a deliberate opt-in point, never an automatic forced upgrade.
 
-## v0.1.2 compatibility matrix
+## v0.1.3 compatibility matrix
 
 | Version | Configuration | Action input | CLI | Result |
 |---|---|---|---|---|
 | v0.1.0 | `installer_core`, `broker_files` | `installer-core` | `--installer-core` | auto-mapped / alias accepted |
 | v0.1.1 | `install-command`, `target_files` | `install-command` | `--install-command` | accepted |
-| v0.1.2 | adds `schema_version`, `custom_rules`, `evidence_readers`, `release_body`, `coverage_signature` | all optional | all optional | accepted |
+| v0.1.3 | adds `schema_version`, `custom_rules`, `evidence_readers`, `release_body`, `coverage_signature` | all optional | all optional | accepted |
 
 Old configurations without `schema_version` are assumed to be `0.1.0` and
 migrated in memory. The actual file is not rewritten unless the user chooses to
@@ -63,11 +63,11 @@ A deprecated item is never the only way to express a required behavior.
 
 ```bash
 # 1. keep the old workflow as a branch/tag
-git switch -c upgrade-cbp-0.1.2
+git switch -c upgrade-cbp-0.1.3
 
 # 2. change only the action version
 #    uses: owner/cbp-action@v0.1.1
-# -> uses: owner/cbp-action@v0.1.2
+# -> uses: owner/cbp-action@v0.1.3
 
 # 3. run the old config unchanged
 python -m cbp.cli --root . --mode enforce

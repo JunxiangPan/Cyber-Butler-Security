@@ -17,7 +17,7 @@ jobs:
           python -m pip install coverage pytest
           python -m coverage run --branch -m pytest -q
           python -m coverage json -o coverage.json
-      - uses: JunxiangPan/cbp-action@v0.1.2
+      - uses: JunxiangPan/cbp-action@v0.1.3
         with:
           root: .
           config: .cbp/config.json

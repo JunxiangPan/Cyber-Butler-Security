@@ -26,7 +26,7 @@ def test_legacy_fields_are_mapped(tmp_path: Path, capsys) -> None:
 def test_missing_schema_version_is_auto_migrated(tmp_path: Path, capsys) -> None:
     path = _write(tmp_path, {"coverage_threshold": 70})
     cfg = load_config(tmp_path, path)
-    assert cfg.schema_version == "0.1.2"
+    assert cfg.schema_version == "0.1.3"
     assert "schema_version missing" in capsys.readouterr().err
 
 
@@ -37,7 +37,7 @@ def test_future_schema_version_is_rejected(tmp_path: Path) -> None:
 
 
 def test_current_config_without_new_fields_runs(tmp_path: Path) -> None:
-    path = _write(tmp_path, {"schema_version": "0.1.2"})
+    path = _write(tmp_path, {"schema_version": "0.1.3"})
     cfg = load_config(tmp_path, path)
     assert cfg.custom_rules == ()
     assert cfg.evidence_readers == {}

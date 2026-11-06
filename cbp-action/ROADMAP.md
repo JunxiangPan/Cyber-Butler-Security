@@ -51,7 +51,7 @@ v0.3.x or later: removal is allowed only after a migration path exists
 
 No configuration item is removed in the same release that deprecates it.
 
-## Current direction (v0.1.2)
+## Current direction (v0.1.3)
 
 - 80% language-neutral core: encoding, documentation locks, release claims,
   dependency policy, and provenance.

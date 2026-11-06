@@ -2,26 +2,38 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shlex
 import subprocess
-import sys
 from pathlib import Path
 
 from .config import GateConfig
 
 RULE_ID = "CBP-UPG-001"
+SHELL_META = re.compile(r"[&|;<>`$]|\r|\n")
 
 
 def _run_script(cfg: GateConfig) -> str:
     script = getattr(cfg, "upgrade_script", "")
     if not script:
         return ""
+    if os.environ.get("GITHUB_EVENT_NAME") in {"pull_request", "pull_request_target"}:
+        return "upgrade script is not allowed on pull_request events"
+    if SHELL_META.search(script):
+        return "upgrade script contains forbidden shell metacharacters"
+    try:
+        arguments = shlex.split(script)
+    except ValueError as exc:
+        return f"upgrade script cannot be parsed safely: {exc}"
+    if not arguments:
+        return "upgrade script is empty after parsing"
     timeout = int(getattr(cfg, "upgrade_timeout_seconds", 120))
     try:
         result = subprocess.run(
-            script,
+            arguments,
             cwd=cfg.root,
-            shell=True,
+            shell=False,
             capture_output=True,
             text=True,
             timeout=timeout,
