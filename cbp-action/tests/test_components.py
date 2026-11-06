@@ -126,3 +126,18 @@ def test_coverage_windows_key_allowlist_and_missing_policy(tmp_path: Path) -> No
     del data["files"]["tools/broker_policy.py"]
     (tmp_path / "coverage.json").write_text(json.dumps(data), encoding="utf-8")
     assert coverage_gate.run(cfg)[0] is False
+
+
+def test_binary_gate_accepts_self_contained_scope(tmp_path: Path) -> None:
+    import zipfile
+    package = tmp_path / "pkg.zip"; payload = b"x" * 6000
+    with zipfile.ZipFile(package, "w", zipfile.ZIP_STORED) as archive:
+        archive.writestr("big.exe", payload)
+    artifacts = tmp_path / "artifacts"; artifacts.mkdir()
+    digest = hashlib.sha256(payload).hexdigest().upper()
+    (artifacts / "big.exe.build.json").write_text(json.dumps({"sha256": digest, "size_bytes": len(payload)}), encoding="utf-8")
+    (artifacts / "big.exe.sbom.json").write_text(json.dumps({"scope": "self-contained-runtime", "components": []}), encoding="utf-8")
+    cfg = _cfg(tmp_path, package_zip=package, binary_artifacts=artifacts, binary_limit_mb=0.001)
+    assert binary_gate.run(cfg)[0] is True
+    (artifacts / "big.exe.sbom.json").write_text(json.dumps({"scope": "unknown-scope"}), encoding="utf-8")
+    assert binary_gate.run(cfg)[0] is False

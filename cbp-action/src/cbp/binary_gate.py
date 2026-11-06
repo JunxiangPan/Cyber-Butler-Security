@@ -9,6 +9,7 @@ from pathlib import Path
 from .config import GateConfig
 
 SUFFIXES = {".exe", ".dll", ".bin"}
+SUPPORTED_SCOPES = {"self-contained-runtime", "runtime-pack", "runtime-only"}
 
 
 def info_size(archive, name):
@@ -39,6 +40,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         sbom = artifacts / (Path(name).name + ".sbom.json")
         if not build.is_file() or not sbom.is_file():
             return False, f"{name} lacks build/SBOM provenance"
+        sbom_record = json.loads(sbom.read_text(encoding="utf-8"))
+        scope = sbom_record.get("scope")
+        if scope is not None and scope not in SUPPORTED_SCOPES:
+            return False, f"{name} has unsupported SBOM scope {scope!r}"
         record = json.loads(build.read_text(encoding="utf-8"))
         if record.get("sha256", "").upper() != hashlib.sha256(data).hexdigest().upper():
             return False, f"{name} provenance hash mismatch"
