@@ -66,6 +66,8 @@ jobs:
           python quality/coverage_gate.py
       - name: CBP dependency hash gate
         run: python quality/dependency_gate.py
+      - name: CBP comment anti-slop gate
+        run: python quality/audit_comments.py
       - name: Pester installer red lines
         shell: powershell
         run: |

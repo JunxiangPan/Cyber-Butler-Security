@@ -14,6 +14,7 @@ from typing import Callable
 
 @dataclass(frozen=True)
 class PolicyContext:
+    """Immutable policy inputs shared by the broker and isolated tests."""
     root: Path
     shared: Path
     workspace_root: Path
@@ -28,6 +29,7 @@ class PolicyContext:
 
 
 def inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
+    """Return True when path resolves inside any supplied root."""
     try:
         resolved = path.resolve(strict=False)
     except (OSError, ValueError):
@@ -42,6 +44,7 @@ def inside_any(path: Path, roots: tuple[Path, ...]) -> bool:
 
 
 def workspace_roots(ctx: PolicyContext) -> tuple[Path, ...]:
+    """Return configured workspace roots, falling back to fixed defaults."""
     roots = [ctx.workspace_root, ctx.default_workspace_root]
     try:
         data = json.loads(ctx.broker_config.read_text(encoding="utf-8"))
@@ -66,6 +69,7 @@ def workspace_roots(ctx: PolicyContext) -> tuple[Path, ...]:
 
 
 def inside_shared(path: Path, ctx: PolicyContext) -> bool:
+    """Return True for a workspace or configured shared-root path."""
     if inside_any(path, workspace_roots(ctx)):
         return True
     try:
@@ -76,8 +80,10 @@ def inside_shared(path: Path, ctx: PolicyContext) -> bool:
 
 
 def workspace_text(target: str, ctx: PolicyContext) -> bool:
+    """Compare a target against workspace roots without resolving it."""
     try:
         def normalise(value: object) -> str:
+            """Normalize a path for case- and separator-insensitive comparison."""
             return os.path.normcase(os.path.normpath(str(value).replace("\\", "/"))).replace("\\", "/").rstrip("/")
         candidate = normalise(target)
         for root in workspace_roots(ctx):
@@ -90,6 +96,7 @@ def workspace_text(target: str, ctx: PolicyContext) -> bool:
 
 
 def classify(action: str, target: str, ctx: PolicyContext) -> str:
+    """Return allow, totp, or deny for one broker request."""
     action = str(action or "").strip().lower()
     if action not in {"delete", "overwrite", "write_file", "send", "send_file"}:
         return "deny"
@@ -115,6 +122,7 @@ def classify(action: str, target: str, ctx: PolicyContext) -> str:
 
 
 def critical_integrity_hit(target: str, ctx: PolicyContext) -> bool:
+    """Return True for a repository integrity file that must never be written."""
     try:
         path = Path(str(target or "")).resolve(strict=False)
         root = ctx.root.resolve(strict=False)
@@ -135,6 +143,7 @@ def critical_integrity_hit(target: str, ctx: PolicyContext) -> bool:
 
 
 def rule_tampering_hit(target: str, ctx: PolicyContext) -> bool:
+    """Return True for broker rules or test/tool source that must not be altered."""
     try:
         path = Path(str(target or "")).resolve(strict=False)
         root = ctx.root.resolve(strict=False)
@@ -151,10 +160,12 @@ def rule_tampering_hit(target: str, ctx: PolicyContext) -> bool:
 
 
 def allowed_target(path: Path, ctx: PolicyContext) -> bool:
+    """Return True when a target belongs to a workspace, temp, or memory root."""
     return inside_shared(path, ctx) or inside_any(path, ctx.tmp_roots) or inside_any(path, ctx.memory_roots)
 
 
 def target_mode(action: str, target: str) -> str:
+    """Classify write_file as create or replace, and map other actions directly."""
     if action == "write_file":
         try:
             return "create" if not Path(target).resolve(strict=False).exists() else "replace"
@@ -166,5 +177,6 @@ def target_mode(action: str, target: str) -> str:
 
 
 def bypass_scope(action: str, target: str) -> str:
+    """Build the action/mode/parent scope string used by bypass tokens."""
     path = Path(target).resolve(strict=False)
     return f"{action}:{target_mode(action, target)}:{str(path.parent.resolve(strict=False)).casefold()}"

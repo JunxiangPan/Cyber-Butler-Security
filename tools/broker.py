@@ -158,6 +158,7 @@ class ExecutionResult:
 
     @property
     def ok(self) -> bool:
+        """Return True only for HTTP 200 execution results."""
         return self.status == 200
 
     def __iter__(self):
@@ -725,6 +726,7 @@ def _notify_async(text: str) -> None:
 
 
 def inside_shared(path: Path) -> bool:
+    """Return True when the path is inside a configured workspace or shared root."""
     return broker_policy.inside_shared(path, _policy_context())
 
 
@@ -785,6 +787,7 @@ def _workspace_text(target: str) -> bool:
 
 
 def classify(action: str, target: str) -> str:
+    """Return the broker risk class for an action and target."""
     return broker_policy.classify(action, target, _policy_context())
 
 
@@ -1147,7 +1150,8 @@ def verify_code(code: str, request_id: str = "") -> str:
     """Verify code.
     
     Args:
-        code: caller-supplied value.
+        code: six-digit TOTP or eight-character recovery code.
+        request_id: pending request that owns this code.
     
     Returns:
         Function result, or None when no value is returned.
@@ -2740,8 +2744,8 @@ class Handler(BaseHTTPRequestHandler):
         """Log message.
         
         Args:
-            fmt: caller-supplied value.
-            args: caller-supplied value.
+            format: HTTP log format string.
+            args: formatting values supplied by the HTTP server.
         
         Returns:
             Function result, or None when no value is returned.

@@ -169,6 +169,7 @@ Run-Process 'coverage measurement' 'python' @('-m', 'coverage', 'run', '--branch
 Run-Process 'coverage json' 'python' @('-m', 'coverage', 'json', '-o', 'coverage.json')
 Run-Process 'CBP coverage gate (allowlisted)' 'python' @('quality/coverage_gate.py')
 Run-Process 'CBP dependency hash gate' 'python' @('quality/dependency_gate.py')
+Run-Process 'CBP comment anti-slop gate' 'python' @('quality/audit_comments.py')
 Run-Step 'Pester' {
     Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
     $result = Invoke-Pester -Script (Join-Path $root 'installer/tests') -PassThru

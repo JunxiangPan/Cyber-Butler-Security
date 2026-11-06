@@ -35,12 +35,12 @@ internal static class InstallerProgram
     {
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = "powershell.exe";
-        psi.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -File \"" + gui + "\"";
+        psi.Arguments = "-NoProfile -STA -ExecutionPolicy RemoteSigned -File \"" + gui + "\"";
         psi.WorkingDirectory = Path.GetDirectoryName(gui);
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
         psi.WindowStyle = ProcessWindowStyle.Hidden;
-        Log("starting PowerShell with ExecutionPolicy Bypass gui=" + gui);
+        Log("starting PowerShell with ExecutionPolicy RemoteSigned gui=" + gui);
         using (Process child = Process.Start(psi))
         {
             if (child == null) { Log("Process.Start returned null"); return 4; }
