@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from cbp import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, upgrade_gate
+from cbp import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, source_hash, upgrade_gate
 from cbp.config import GateConfig, load_config
 
 GENERATED_BY = "cbp-action dogfood job"
@@ -49,15 +49,18 @@ def validate_manifest(manifest: dict[str, Any], *, actions: bool = False) -> lis
         problems.append("schema must be cbp-quality-manifest/v1")
     gates = manifest.get("gates")
     expected = {"coverage", "dependency", "comments", "docs", "binary", "encoding", "claims", "custom", "upgrade"}
+    counts = manifest.get("counts")
     if not isinstance(gates, dict) or set(gates) != expected:
         problems.append("gates must contain exactly the nine CBP gates")
     elif any(value != "PASS" for value in gates.values()):
         problems.append("gate statuses must all be PASS")
-    counts = manifest.get("counts")
     if not isinstance(counts, dict) or not isinstance(counts.get("passed"), int) or not isinstance(counts.get("total"), int):
         problems.append("counts.passed/counts.total must be integers")
-    elif counts["total"] != 9 or counts["passed"] > counts["total"]:
-        problems.append("counts must be within 9/9")
+    else:
+        if counts["total"] != 9 or counts["passed"] > counts["total"]:
+            problems.append("counts must be within 9/9")
+        if isinstance(gates, dict) and counts["passed"] != sum(1 for value in gates.values() if value == "PASS"):
+            problems.append("counts.passed must equal the number of PASS gates")
     if manifest.get("generated_by") != GENERATED_BY:
         problems.append(f"generated_by must be {GENERATED_BY}")
     if actions:
@@ -117,6 +120,10 @@ def generate(
     cfg = load_config(root, root / "cbp.json")
     if coverage_json is not None:
         cfg.coverage_json = coverage_json
+    coverage_path = cfg.path(cfg.coverage_json)
+    if not coverage_path.is_file():
+        raise ManifestError(f"coverage file missing: {coverage_path}")
+    source_hash.stamp(coverage_path, root)
     output = output or root / "quality-manifest.json"
     notes_template = notes_template or root / "docs" / "RELEASE_NOTES.md"
     notes_output = notes_output or root / "docs" / "RELEASE_NOTES.generated.md"

@@ -55,6 +55,9 @@ inputs:
   sarif-output:
     description: optional SARIF 2.1.0 output path
     default: ""
+  baseline:
+    description: optional baseline JSON path
+    default: ""
   enable-coverage:
     default: "true"
   enable-encoding:
@@ -106,6 +109,7 @@ runs:
           --claims-notes "${{ inputs.claims-notes }}" \
           --release-body "${{ inputs.release-body }}" \
           --sarif-output "${{ inputs.sarif-output }}" \
+          --baseline "${{ inputs.baseline }}" \
           --enable-coverage "${{ inputs.enable-coverage }}" \
           --enable-encoding "${{ inputs.enable-encoding }}" \
           --enable-dependency "${{ inputs.enable-dependency }}" \

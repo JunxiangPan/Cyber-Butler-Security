@@ -8,6 +8,7 @@ import re
 import tokenize
 
 from .config import GateConfig
+from .baseline import filter_lines
 
 SLOP = re.compile(r"#\s*(This is|It is|This function|This method|This class)\b", re.IGNORECASE)
 SUPPRESS = re.compile(r"cbp:\s*ignore=(CBP-[A-Z]+-\d{3})", re.IGNORECASE)
@@ -62,6 +63,7 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
                 _check(path, findings)
             except SyntaxError as exc:
                 findings.append(f"{path.name}: parse failed: {exc}")
+    findings = filter_lines(cfg, "comments", findings)
     if findings:
         return False, "\n".join(findings[:80]) + f"\nfindings={len(findings)}"
-    return True, f"comments={len(cfg.comment_files)} files"
+    return True, f"comments={len(cfg.comment_files)} files (balanced against baseline)"

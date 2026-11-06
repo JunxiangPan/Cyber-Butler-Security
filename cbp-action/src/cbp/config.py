@@ -57,6 +57,7 @@ class GateConfig:
     claims_manifest: Path | None = None
     claims_notes: Path | None = None
     release_body: Path | str = ""
+    baseline: Path | str = ""
     coverage_signature: Path | str = ""
     require_coverage_signature: bool = False
 

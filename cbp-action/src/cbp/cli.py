@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
+from . import baseline, binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
 from .config import load_config
 
 
@@ -34,6 +34,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--release-body", default="")
     parser.add_argument("--manifest", default="")
     parser.add_argument("--sarif-output", default="")
+    parser.add_argument("--baseline", default="")
+    parser.add_argument("--generate-baseline", default="")
     parser.add_argument("--verify-release", default="")
     parser.add_argument("--repository", default="")
     parser.add_argument("--enable-coverage", type=lambda x: x.lower() == "true", default=None)
@@ -68,7 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         "dependency_lock": args.dependency_lock, "install_command": args.install_command,
         "docs_manifest": args.docs_manifest, "binary_artifacts": args.binary_artifacts,
         "package_zip": args.package_zip, "claims_manifest": args.claims_manifest,
-        "claims_notes": args.claims_notes, "release_body": args.release_body,
+        "claims_notes": args.claims_notes, "release_body": args.release_body, "baseline": args.baseline,
     }.items():
         if value:
             overrides[key] = value
@@ -107,6 +109,25 @@ def main(argv: list[str] | None = None) -> int:
         ok = ok and passed
     if not checks:
         ok = False
+    baseline_path = Path(args.generate_baseline) if args.generate_baseline else Path(args.baseline) if args.baseline else Path(args.root) / "cbp-baseline.json"
+    if args.generate_baseline:
+        entries = []
+        for gate, passed, detail in gate_results:
+            if not passed:
+                entries.extend((gate, line) for line in detail.splitlines() if line.strip())
+        baseline.write_entries(baseline_path, entries)
+        print(f"BASELINE_WRITTEN path={baseline_path} entries={len(entries)}")
+        return 0
+    allowed_baseline = baseline.load(baseline_path)
+    if allowed_baseline:
+        adjusted = []
+        for gate, passed, detail in gate_results:
+            kept = [line for line in detail.splitlines() if baseline.fingerprint(gate, line) not in allowed_baseline]
+            if not passed and not any(line.strip() for line in kept):
+                passed = True
+            adjusted.append((gate, passed, chr(10).join(kept) if kept else "baseline-suppressed"))
+        gate_results = adjusted
+        ok = all(passed for _, passed, _ in gate_results)
     if args.sarif_output:
         try:
             target = Path(args.sarif_output)

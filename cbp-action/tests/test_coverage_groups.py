@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 
+from cbp import source_hash
 from cbp.config import GateConfig
 from cbp.coverage_gate import run
 
@@ -12,6 +13,7 @@ def _config(tmp_path, mode: str, threshold: float = 80) -> GateConfig:
         "src/a.py": {"summary": {"num_statements": 10, "covered_lines": 5, "percent_covered": 50}, "missing_lines": list(range(6, 11))}
     }}), encoding="utf-8")
     (tmp_path / "coverage_allowlist.json").write_text('{"files": {}}', encoding="utf-8")
+    source_hash.stamp(tmp_path / "coverage.json", tmp_path)
     return GateConfig(
         root=tmp_path,
         coverage_json="coverage.json",

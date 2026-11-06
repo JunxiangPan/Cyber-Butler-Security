@@ -9,13 +9,13 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "f6a488ec87e9c7f8b9260693f084bd572374ec6b484ffa638009e90d3673f78e",
-      "size": 3995
+      "sha256": "4fa3f8112159e10a5f3bba0506f94b83bcd41f480dbd586a1fa9e1e6dc28ec52",
+      "size": 3989
     },
     {
       "path": ".gitignore",
-      "sha256": "e9a239a299975051d30d725206d3c0d507fca88859ae416ffd3588ed056950cc",
-      "size": 2164
+      "sha256": "e0adf41aed5facc95d1bc1f1acb086974a74d816020abf5e5108ed6fb3251925",
+      "size": 2186
     },
     {
       "path": "ACCEPTANCE_PROOF.md",
@@ -1924,8 +1924,8 @@
     },
     {
       "path": "cbp-action/schemas/config.schema.json",
-      "sha256": "c2d5f3f2ee9fde089b6d238f430369b3faf405602d620b9519839eadd07b0527",
-      "size": 2904
+      "sha256": "9bc6740d382cc9e600445d082d399e8a7e9197cc5b38ef660ab2fbaff70fbb6f",
+      "size": 2955
     },
     {
       "path": "cbp.json",

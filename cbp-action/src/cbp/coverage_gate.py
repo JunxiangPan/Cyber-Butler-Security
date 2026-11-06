@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import GateConfig
+from . import source_hash
 
 SKIP_PARTS = {".venv", "site-packages", "node_modules", "__pycache__", ".git"}
 
@@ -74,13 +75,14 @@ def _group_stats(
     return passed, detail, missing_files
 
 
-def _coverage_is_fresh(cfg: GateConfig, coverage: Path, relative_files: list[str]) -> str:
-    sources = [cfg.path(relative) for relative in relative_files if cfg.path(relative).is_file()]
-    if not sources:
-        return ""
-    newest = max(path.stat().st_mtime for path in sources)
-    if coverage.stat().st_mtime < newest:
-        return "coverage.json is older than the measured source; regenerate coverage"
+def _source_hash_problem(root: Path, data: dict) -> str:
+    files = source_hash.measured_files(root, data)
+    expected = data.get("source_files_hash")
+    if not expected:
+        return "" if not files else "coverage.json has no source_files_hash; regenerate and stamp coverage"
+    actual = source_hash.compute(root, files)
+    if actual != expected:
+        return "coverage.json is stale; source files have changed"
     return ""
 
 
@@ -102,19 +104,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     allow = json.loads(allowlist.read_text(encoding="utf-8"))
     files = {_norm(str(key)): value for key, value in data["files"].items()}
 
-    groups = getattr(cfg, "coverage_groups", ())
-    tracked_targets: list[str] = []
-    if groups:
-        for group in groups:
-            raw = group.get("files", [])
-            if isinstance(raw, str):
-                raw = [raw]
-            tracked_targets.extend(_expand_files(cfg, list(raw)))
-    else:
-        tracked_targets = list(cfg.target_files)
-    freshness = _coverage_is_fresh(cfg, coverage, tracked_targets)
+    freshness = _source_hash_problem(cfg.root, data)
     if freshness:
         return False, freshness
+    groups = getattr(cfg, "coverage_groups", ())
     if groups:
         ok = True
         details: list[str] = []

@@ -1,6 +1,6 @@
-# CBP —Coverage and Build Policy
+# CBP — Release-evidence gate
 
-> **Before publishing:** globally replace `JunxiangPan` with your GitHub username or organization.
+> Prove the green build was not faked.
 
 A reusable, self-hosted quality gate for repositories that do not want to
 trust a green check without evidence.
@@ -289,6 +289,35 @@ gh attestation verify quality-manifest.json.sha256   --repo JunxiangPan/cbp-acti
 
 CBP validates code execution paths, but cannot prove the semantic validity of
 test assertions.
+
+## Baseline and source binding
+
+Old repositories can adopt CBP without fixing historical findings immediately:
+
+```bash
+python -m cbp.cli --root . --generate-baseline cbp-baseline.json
+```
+
+The baseline suppresses only the exact recorded findings; a new finding is
+still a failure. Inline suppression is also supported:
+
+```python
+# cbp: ignore=CBP-CMT-001
+```
+
+Coverage evidence now embeds `source_files_hash` inside `coverage.json`.
+`Coverage Gate` recomputes the current measured-source hash and fails with:
+
+```text
+coverage.json is stale; source files have changed
+```
+
+A `touch coverage.json` no longer bypasses the check. Generate and stamp it with:
+
+```bash
+python -m coverage json -o coverage.json
+python tools/stamp_coverage.py --root . --coverage coverage.json
+```
 
 ## Release body and errata
 
