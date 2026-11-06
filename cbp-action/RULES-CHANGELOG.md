@@ -10,3 +10,5 @@ Every CBP detection rule has one row here. The table is parsed by
 | CBP-CMT-001 | CBP | stage-b-seed | stage-b-seed | generic boilerplate public docstring | tests/test_rule_seeds.py::test_rule_cmt_001_negative | tests/test_rule_seeds.py::test_rule_cmt_001_positive | active |
 | CBP-DOC-001 | CBP | stage-b-seed | stage-b-seed | documented file SHA256 mismatch | tests/test_rule_seeds.py::test_rule_doc_001_negative | tests/test_rule_seeds.py::test_rule_doc_001_positive | active |
 | CBP-CLM-001 | CBP | stage-b-seed | stage-b-seed | release-note QUALITY_COUNTS mismatch | tests/test_rule_seeds.py::test_rule_clm_001_negative | tests/test_rule_seeds.py::test_rule_clm_001_positive | active |
+| CBP-CST-001 | CBP | v0.1.2-upgrade | cbp-0.1.2 | configured custom rule matched in enforce mode | tests/test_rule_seeds.py::test_rule_cst_001_negative | tests/test_rule_seeds.py::test_rule_cst_001_positive | active |
+| CBP-UPG-001 | CBP | v0.1.2-upgrade | cbp-0.1.2 | upgrade script or schema compatibility failure | tests/test_rule_seeds.py::test_rule_upg_001_negative | tests/test_rule_seeds.py::test_rule_upg_001_positive | active |

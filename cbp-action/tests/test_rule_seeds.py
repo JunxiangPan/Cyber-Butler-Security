@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from cbp import custom_rules, upgrade_gate
 from cbp.claims_gate import run as run_claims
 from cbp.comment_gate import run as run_comments
 from cbp.config import GateConfig
@@ -102,3 +103,26 @@ def test_rule_clm_001_negative(tmp_path) -> None:
 def test_rule_clm_001_positive(tmp_path) -> None:
     passed, _detail = run_claims(_claims(tmp_path, "2/3"))
     assert passed is True
+
+
+def test_rule_cst_001_negative(tmp_path) -> None:
+    (tmp_path / "x.py").write_text("print('x')" + chr(10), encoding="utf-8")
+    cfg = GateConfig(root=tmp_path, custom_rules=({"name": "no_print", "pattern": "print\\(", "files": ["x.py"], "message": "no print", "mode": "enforce"},))
+    assert custom_rules.run(cfg)[0] is False
+
+
+def test_rule_cst_001_positive(tmp_path) -> None:
+    (tmp_path / "x.py").write_text("print_removed = True" + chr(10), encoding="utf-8")
+    cfg = GateConfig(root=tmp_path, custom_rules=({"name": "no_print", "pattern": "print\\(", "files": ["x.py"], "message": "no print", "mode": "enforce"},))
+    assert custom_rules.run(cfg)[0] is True
+
+
+def test_rule_upg_001_negative(tmp_path) -> None:
+    (tmp_path / "old.json").write_text(json.dumps({"properties": {"a": {}}, "required": ["a"]}), encoding="utf-8")
+    (tmp_path / "new.json").write_text(json.dumps({"properties": {"b": {}}, "required": ["b"]}), encoding="utf-8")
+    cfg = GateConfig(root=tmp_path, previous_schema="old.json", current_schema="new.json")
+    assert upgrade_gate.run(cfg)[0] is False
+
+
+def test_rule_upg_001_positive(tmp_path) -> None:
+    assert upgrade_gate.run(GateConfig(root=tmp_path))[0] is True

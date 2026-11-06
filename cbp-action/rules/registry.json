@@ -70,6 +70,34 @@
       "negative_test": "tests/test_rule_seeds.py::test_rule_clm_001_negative",
       "positive_test": "tests/test_rule_seeds.py::test_rule_clm_001_positive",
       "status": "active"
+    },
+    {
+      "id": "CBP-CST-001",
+      "gate": "custom",
+      "description": "Configured custom rule matched in enforce mode.",
+      "source": {
+        "project": "CBP",
+        "pr": "v0.1.2-upgrade",
+        "issue": "cbp-0.1.2",
+        "seed": false
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_cst_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_cst_001_positive",
+      "status": "active"
+    },
+    {
+      "id": "CBP-UPG-001",
+      "gate": "upgrade",
+      "description": "Upgrade script/schema compatibility failure.",
+      "source": {
+        "project": "CBP",
+        "pr": "v0.1.2-upgrade",
+        "issue": "cbp-0.1.2",
+        "seed": false
+      },
+      "negative_test": "tests/test_rule_seeds.py::test_rule_upg_001_negative",
+      "positive_test": "tests/test_rule_seeds.py::test_rule_upg_001_positive",
+      "status": "active"
     }
   ]
 }
