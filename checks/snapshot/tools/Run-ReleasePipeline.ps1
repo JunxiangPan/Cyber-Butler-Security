@@ -98,6 +98,7 @@ Add-Report ('- MAC: ' + ($macs -join ', '))
 Add-Report ('- VERSION: ' + ((Get-Content (Join-Path $root 'VERSION') -Raw).Trim()))
 Add-Report ''
 
+Run-Process 'install CBP from hashed wheelhouse' 'python' @('-m', 'pip', 'install', '--require-hashes', '--find-links', 'installer/wheelhouse', '-r', 'requirements-runtime.lock')
 Run-Process 'forbidden terms / private paths in all text' 'python' @('tools/audit_text_hygiene.py', '.')
 Run-Process 'packaging preflight' 'python' @('quality/preflight.py')
 Run-Process 'test PowerShell syntax' 'powershell.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'quality/parse_ps_tests.ps1')

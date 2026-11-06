@@ -20,7 +20,7 @@ def main() -> int:
         root = Path(temp)
         wheels = root / "wheelhouse"
         wheels.mkdir()
-        download = subprocess.run([sys.executable, "-m", "pip", "download", "--require-hashes", "-r", str(LOCK), "-d", str(wheels)])
+        download = subprocess.run([sys.executable, "-m", "pip", "download", "--require-hashes", "--find-links", str(ROOT / "installer" / "wheelhouse"), "-r", str(LOCK), "-d", str(wheels)])
         if download.returncode != 0:
             print("OFFLINE_HASH_FAILED: pip download failed")
             return 1
