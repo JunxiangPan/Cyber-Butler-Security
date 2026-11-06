@@ -6,7 +6,7 @@ on:
         description: CI run id whose quality-manifest artifact must be released
         required: true
       release_tag:
-        description: Release tag, for example v0.1.0
+        description: Release tag, for example v0.1.2
         required: true
       allow_placeholders:
         description: Explicitly allow unresolved GitHub placeholder strings
@@ -26,7 +26,8 @@ jobs:
           exit 1
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
+          ref: refs/tags/${{ inputs.release_tag }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -48,12 +49,15 @@ jobs:
             exit 1
           fi
       - name: Check Action metadata files
+        working-directory: .
         run: |
+          pwd
+          ls -la action.yml
           test -f action.yml
           test -f README.md
           test -f usage.yml
           test -f SECURITY.md
-          for name in root config coverage-json coverage-threshold dependency-lock installer-core docs-manifest binary-artifacts claims-manifest claims-notes enable-encoding mode; do
+          for name in root config coverage-json coverage-allowlist coverage-threshold policy-coverage-threshold dependency-lock install-command docs-manifest binary-artifacts package-zip claims-manifest claims-notes enable-coverage enable-encoding enable-dependency enable-comments enable-docs enable-binary enable-claims mode; do
             grep -q "^  ${name}:" action.yml
           done
   publish:
@@ -62,7 +66,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
+          ref: refs/tags/${{ inputs.release_tag }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
