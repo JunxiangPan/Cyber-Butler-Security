@@ -1,8 +1,10 @@
 name: cbp-ci
 on: [push, pull_request]
 jobs:
-  test:
+  test-coverage:
+    name: test-coverage (${{ matrix.os }})
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -18,5 +20,95 @@ jobs:
       - run: python -m pip install -e ".[test]"
       - run: python -m coverage run --branch -m pytest -q tests
       - run: python -m coverage json -o coverage.json
-      - run: python -m cbp.cli --root . --mode enforce
-      - run: python tools/audit_rule_sources.py --root .
+      - name: Upload coverage JSON
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-json-${{ github.run_id }}
+          path: coverage.json
+          if-no-files-found: error
+
+  dogfood-generate:
+    name: dogfood-generate
+    needs: test-coverage
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTIONS: "true"
+      GITHUB_RUN_ID: ${{ github.run_id }}
+      GITHUB_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[test]"
+      - name: Download coverage JSON
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-json-${{ github.run_id }}
+          path: .
+      - name: Generate manifest from real gates
+        run: |
+          python tools/dogfood_manifest.py \
+            --root . \
+            --coverage-json coverage.json \
+            --output quality-manifest.json \
+            --notes-template docs/RELEASE_NOTES.md \
+            --notes-output docs/RELEASE_NOTES.generated.md \
+            --run-id "$GITHUB_RUN_ID" \
+            --commit-sha "$GITHUB_SHA"
+      - name: Validate generated manifest
+        run: |
+          python - <<'PY'
+          import json
+          from tools.dogfood_manifest import validate_manifest
+
+          with open("quality-manifest.json", encoding="utf-8") as handle:
+              manifest = json.load(handle)
+          problems = validate_manifest(manifest, actions=True)
+          if problems:
+              raise SystemExit("manifest validation failed: " + "; ".join(problems))
+          print("MANIFEST_VALID")
+          PY
+      - name: Rule source audit
+        run: python tools/audit_rule_sources.py --root .
+      - name: Upload generated manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-manifest-${{ github.run_id }}
+          path: |
+            quality-manifest.json
+            quality-manifest.json.sha256
+            docs/RELEASE_NOTES.generated.md
+          if-no-files-found: error
+
+  dogfood-verify:
+    name: dogfood-verify
+    needs: dogfood-generate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: python -m pip install -e ".[test]"
+      - name: Download coverage JSON
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-json-${{ github.run_id }}
+          path: .
+      - name: Download generated manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-manifest-${{ github.run_id }}
+          path: .
+      - name: Verify manifest hash
+        run: |
+          actual=$(sha256sum quality-manifest.json | awk '{print $1}')
+          expected=$(awk '{print $1}' quality-manifest.json.sha256)
+          echo "actual=$actual"
+          echo "expected=$expected"
+          test "$actual" = "$expected"
+      - name: Verify manifest with CBP
+        run: python -m cbp.cli --root . --mode enforce
