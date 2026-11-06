@@ -1,0 +1,39 @@
+name: Cyber Butler Pipeline
+description: Recompute coverage, dependency, documentation, binary, and comment gates.
+inputs:
+  root:
+    description: Repository root
+    default: "."
+  coverage-threshold:
+    description: Minimum allowlisted broker coverage
+    default: "80"
+  policy-coverage-threshold:
+    description: Minimum broker policy coverage
+    default: "85"
+  enable-coverage:
+    default: "true"
+  enable-dependency:
+    default: "true"
+  enable-doc-audit:
+    default: "true"
+  enable-binary-audit:
+    default: "true"
+  enable-comment-audit:
+    default: "true"
+  mode:
+    default: "enforce"
+outputs:
+  result:
+    description: PASS or FAIL
+    value: ${{ steps.cbp.outputs.result }}
+runs:
+  using: composite
+  steps:
+    - id: cbp
+      shell: bash
+      run: |
+        python -m pip install -e "${{ github.action_path }}"
+        python -m cbp.cli --root "${{ inputs.root }}" \
+          --coverage-threshold "${{ inputs.coverage-threshold }}" \
+          --policy-coverage-threshold "${{ inputs.policy-coverage-threshold }}" \
+          --mode "${{ inputs.mode }}"
