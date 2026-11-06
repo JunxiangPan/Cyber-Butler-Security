@@ -1,18 +1,19 @@
 ﻿# BUILD_REPORT
+- Release Version: 1.6.4
 
-- Current Commit: 07741a8e7b48c191f6f4c74bc9e33fa9c98c8628
-- Build Time: 2026-11-05T17:00:22.9590390Z
+- Current Commit: db07919ed54b1e3bf847faf6a1f98d4b6e8f04b8
+- Build Time: 2026-11-06T02:25:12.7776872Z
 ## self-seal record
 ```text
 SELF_SEAL_RECORDED files=13
 EXIT_CODE=0
 ```
-ChallengeCode: A-READY-20261106-0110
-- Generated: 2026-11-05T17:00:23.0540766Z
+ChallengeCode: A-READY-REVERSE-20261106
+- Generated: 2026-11-06T02:25:12.8702199Z
 - Host: PCVP
-- Pipeline SHA256: F8E58FDBFEBAC3012C05B4D90B12953C1449C5926B642048DF7CFA92F7F26D2B
+- Pipeline SHA256: 6EAD3E441DFFEC7E22F8D3E01A6A6CEE6E2A60B3598DBE7CE21A5E9E63CF7544
 - MAC: , 00-FF-E3-4C-48-3F, 00-15-5D-52-C3-ED, 34-5A-60-51-09-DD, 00-15-5D-01-6F-0C, DA-7A-22-89-5F-24, , , FA-B3-2F-2D-F4-15, 00-E0-4C-68-02-27
-- VERSION: 1.6.3
+- VERSION: 1.6.4
 
 ## forbidden terms / private paths in all text
 ```text
@@ -26,14 +27,14 @@ EXIT_CODE=0
 ```
 ## test PowerShell syntax
 ```text
-PS_TESTS_PARSED=48
+PS_TESTS_PARSED=49
 PS_TESTS_ERRORS=0
 EXIT_CODE=0
 ```
 ## code comments (AST)
 ```text
 CODE_COMMENT_GATE_OK
-python_functions=516 missing_docstrings=0 powershell_functions=296 missing_block_comments=0
+python_functions=534 missing_docstrings=0 powershell_functions=291 missing_block_comments=0
 EXIT_CODE=0
 ```
 ## docs consistency
@@ -51,33 +52,33 @@ EXIT_CODE=0
 FRAGILITY_GATE_OK
 EXIT_CODE=0
 ```
-- Launcher version: 1.6.3.0
+- Launcher version: 1.6.4.0
 ## static types/dead code/PSScriptAnalyzer
 ```text
 ===== mypy (exit 0) =====
-Success: no issues found in 53 source files
+Success: no issues found in 55 source files
 ===== pyright (exit 0) =====
-<repo>\installer\lib\totp_material.py
-  <repo>\installer\lib\totp_material.py:86:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-  <repo>\installer\lib\totp_material.py:104:16 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-<repo>\tools\audit_chain.py
-  <repo>\tools\audit_chain.py:83:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-<repo>\tools\broker.py
-  <repo>\tools\broker.py:44:12 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
-<repo>\tools\setup_totp.py
-  <repo>\tools\setup_totp.py:14:8 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
+d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py
+  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py:86:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
+  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\installer\lib\totp_material.py:104:16 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
+d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\audit_chain.py
+  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\audit_chain.py:83:20 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
+d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\broker.py
+  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\broker.py:45:12 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
+d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\setup_totp.py
+  d:\qq鑻忕懢瑷€澶ц偉楸糪public-release\tools\setup_totp.py:14:8 - warning: Import "win32crypt" could not be resolved from source (reportMissingModuleSource)
 0 errors, 5 warnings, 0 informations
 ===== vulture (exit 0) =====
 
 ===== PSScriptAnalyzer (exit 0) =====
-PSSA_FILES=65
+PSSA_FILES=63
 PSSA_FINDINGS=0
 STATIC_GATE_OK
 EXIT_CODE=0
 ```
 ## test integrity (MANIFEST + snapshot + empty-assert AST)
 ```text
-TEST_INTEGRITY_OK files=82
+TEST_INTEGRITY_OK files=104
 EXIT_CODE=0
 ```
 ## mutation check (real assertion inversion)
@@ -126,20 +127,19 @@ CASE=no_token_verify METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error
 CASE=no_token_trash METHOD=GET PATH=/trash HTTP=403 BODY={"ok": false, "error": "unauthorized"}
 CASE=no_token_trash_undo METHOD=POST PATH=/trash/undo HTTP=403 BODY={"ok": false, "error": "unauthorized"}
 CASE=forged_token METHOD=POST PATH=/request HTTP=403 BODY={"ok": false, "error": "unauthorized"}
-CASE=request_delete METHOD=POST PATH=/request HTTP=200 BODY={"ok": true, "status": "requires_totp", "id": "99882fa73052", "channel": "webui", "challenge": "", "action": "delete", "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixtur
+CASE=request_delete METHOD=POST PATH=/request HTTP=200 BODY={"ok": true, "status": "requires_totp", "id": "9d31b5ecceea", "channel": "webui", "challenge": "", "action": "delete", "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixtur
 CASE=bad_totp METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error": "invalid verification code", "attempts": 1}
 CASE=bad_totp_second METHOD=POST PATH=/verify HTTP=403 BODY={"ok": false, "error": "invalid verification code", "attempts": 2}
-CASE=good_totp METHOD=POST PATH=/verify HTTP=200 BODY={"ok": true, "id": "99882fa73052", "result": "文件已移入两阶段暂存回收站，10 分钟内可撤回：99882fa73052", "undo_available": true, "trash_id": "99882fa73052", "undo_expires_at": "2026-11-05T17:11:05+00:
-CASE=trash_list METHOD=GET PATH=/trash HTTP=200 BODY={"ok": true, "items": [{"id": "99882fa73052", "original_path": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-ppx3e3fe\\shared\\fixture-delete.txt", "expires_at": "2026-11-05
-CASE=replay_request METHOD=POST PATH=/request HTTP=200 BODY={"ok": true, "status": "requires_totp", "id": "833e18d88b51", "channel": "webui", "challenge": "", "action": "delete", "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixtur
-CASE=replay METHOD=POST PATH=/verify HTTP=429 BODY={"ok": false, "error": "TOTP replay rejected"}
+CASE=good_totp METHOD=POST PATH=/verify HTTP=200 BODY={"ok": true, "id": "9d31b5ecceea", "result": "文件已移入两阶段暂存回收站，10 分钟内可撤回：9d31b5ecceea", "undo_available": true, "trash_id": "9d31b5ecceea", "undo_expires_at": "2026-11-06T02:35:53+00:
+CASE=trash_list METHOD=GET PATH=/trash HTTP=200 BODY={"ok": true, "items": [{"id": "9d31b5ecceea", "original_path": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-fflz0ywp\\shared\\fixture-delete.txt", "expires_at": "2026-11-06
 CASE=verify_repeat METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error": "pending request not found or expired"}
-CASE=trash_undo METHOD=POST PATH=/trash/undo HTTP=200 BODY={"ok": true, "restored": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-ppx3e3fe\\shared\\fixture-delete.txt", "id": "99882fa73052"}
+CASE=trash_undo METHOD=POST PATH=/trash/undo HTTP=200 BODY={"ok": true, "restored": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-fixture-fflz0ywp\\shared\\fixture-delete.txt", "id": "9d31b5ecceea"}
 CASE=verify_after_undo METHOD=POST PATH=/verify HTTP=404 BODY={"ok": false, "error": "pending request not found or expired"}
 RUNTIME_FIXTURE_OK
 EVIDENCE=<repo>\quality\artifacts\runtime_fixture\http_statuses.json
 EXIT_CODE=0
 ```
+PROOF_SHA256: 0D41DA3D92865D139807FEBBFDEDE80021CF6768B529C1D6B42023050697E560
 ## Fixture HTTP evidence
 - quality/artifacts/runtime_fixture/http_statuses.json
 - quality/artifacts/runtime_fixture/audit_tail.jsonl
@@ -162,7 +162,7 @@ EXIT_CODE=0
 ## NOT_FIXED_THIS_ROUND
 - 真实 ACL/DPAPI/WFP/卸载残留仍需干净 VM 验证。
 - PSSA 未覆盖测试脚本全规则，测试脚本只做语法解析。
-- vulture 白名单（vulture_whitelist.py，67 项）仍有动态入口人工审查风险。
+- vulture 白名单仍有动态入口人工审查风险。
 
 ## CANDIDATE mode
 Static, comment and documentation gates passed. Quality/chaos/VM evidence is NOT claimed for this candidate.
@@ -173,11 +173,10 @@ packaging gates OK
 code comments gate OK
 docs consistency gate OK
 text hygiene OK
-wrote <repo>-v1.6.3.zip
-version=1.6.3 files=356 bytes=51350913
-sha256=2caa60b88fe9e65b2f8b818d967d91593a4b1491cbd0ea15e0013af15327aca8
+wrote <repo>-v1.6.4.zip
+version=1.6.4 files=383 bytes=51383478
+sha256=93ce5dd83a08c31b906ae9eb5d3d3cc8f30fbe46f03d546ea54297ccb7f44dd3
 EXIT_CODE=0
 ```
-- Candidate Zip SHA256: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
-- Package Hash: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
-PROOF_SHA256: 0D41DA3D92865D139807FEBBFDEDE80021CF6768B529C1D6B42023050697E560
+- Candidate Zip SHA256: 93CE5DD83A08C31B906AE9EB5D3D3CC8F30FBE46F03D546EA54297CCB7F44DD3
+- Package Hash: 93CE5DD83A08C31B906AE9EB5D3D3CC8F30FBE46F03D546EA54297CCB7F44DD3
