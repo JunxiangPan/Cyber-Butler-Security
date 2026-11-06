@@ -36,21 +36,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -n "${{ inputs.ci_run_id }}"
-          gh run download "${{ inputs.ci_run_id }}" \
-            -n "quality-manifest-${{ inputs.ci_run_id }}" \
-            -D artifact
+          gh run download "${{ inputs.ci_run_id }}" -n "quality-manifest-${{ inputs.ci_run_id }}" -D artifact
       - name: Verify manifest hash, run id, commit, and notes
         run: |
-          python tools/verify_manifest_artifact.py \
-            --manifest artifact/quality-manifest.json \
-            --hash artifact/quality-manifest.json.sha256 \
-            --notes artifact/docs/RELEASE_NOTES.generated.md \
-            --run-id "${{ inputs.ci_run_id }}" \
-            --commit-sha "$(git rev-parse HEAD)"
+          python tools/verify_manifest_artifact.py --manifest=artifact/quality-manifest.json --hash=artifact/quality-manifest.json.sha256 --notes=artifact/docs/RELEASE_NOTES.generated.md --run-id="${{ inputs.ci_run_id }}" --commit-sha="$(git rev-parse HEAD)"
       - name: Reject unresolved publishing placeholders
         if: ${{ inputs.allow_placeholders != true }}
         run: |
-          if grep -R "JunxiangPan" README.md SECURITY.md usage.yml; then
+          if grep -R "<YOUR_GITHUB_USER>" README.md SECURITY.md usage.yml; then
             echo "unresolved publishing placeholder" >&2
             exit 1
           fi
@@ -79,17 +72,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download "${{ inputs.ci_run_id }}" \
-            -n "quality-manifest-${{ inputs.ci_run_id }}" \
-            -D artifact
+          gh run download "${{ inputs.ci_run_id }}" -n "quality-manifest-${{ inputs.ci_run_id }}" -D artifact
       - name: Publish release from the generated notes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -f artifact/docs/RELEASE_NOTES.generated.md
-          gh release create "${{ inputs.release_tag }}" \
-            dist/* \
-            artifact/quality-manifest.json \
-            artifact/quality-manifest.json.sha256 \
-            artifact/docs/RELEASE_NOTES.generated.md \
-            --notes-file artifact/docs/RELEASE_NOTES.generated.md
+          gh release create "${{ inputs.release_tag }}" dist/* artifact/quality-manifest.json artifact/quality-manifest.json.sha256 artifact/docs/RELEASE_NOTES.generated.md --notes-file artifact/docs/RELEASE_NOTES.generated.md

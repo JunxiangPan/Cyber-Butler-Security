@@ -53,14 +53,7 @@ jobs:
           path: .
       - name: Generate manifest from real gates
         run: |
-          python tools/dogfood_manifest.py \
-            --root . \
-            --coverage-json coverage.json \
-            --output quality-manifest.json \
-            --notes-template docs/RELEASE_NOTES.md \
-            --notes-output docs/RELEASE_NOTES.generated.md \
-            --run-id "$GITHUB_RUN_ID" \
-            --commit-sha "$GITHUB_SHA"
+          python tools/dogfood_manifest.py --root=. --coverage-json=coverage.json --output=quality-manifest.json --notes-template=docs/RELEASE_NOTES.md --notes-output=docs/RELEASE_NOTES.generated.md --run-id="$GITHUB_RUN_ID" --commit-sha="$GITHUB_SHA"
       - name: Validate generated manifest
         run: |
           python - <<'PY'
@@ -115,6 +108,9 @@ jobs:
           echo "expected=$expected"
           test "$actual" = "$expected"
       - name: Verify manifest with CBP from artifact
+        env:
+          CBP_MANIFEST: ${{ github.workspace }}/artifact/quality-manifest.json
+          CBP_NOTES: ${{ github.workspace }}/artifact/docs/RELEASE_NOTES.generated.md
         run: |
-          echo "CBP_MANIFEST=$GITHUB_WORKSPACE/artifact/quality-manifest.json"
-          python -m cbp.cli --root . --mode enforce \n            --manifest "$GITHUB_WORKSPACE/artifact/quality-manifest.json" \n            --claims-notes "$GITHUB_WORKSPACE/artifact/docs/RELEASE_NOTES.generated.md"
+          echo "CBP_MANIFEST=$CBP_MANIFEST"
+          python -m cbp.cli --root . --mode enforce --manifest="$CBP_MANIFEST" --claims-notes="$CBP_NOTES"
