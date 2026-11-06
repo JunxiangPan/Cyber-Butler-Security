@@ -37,6 +37,14 @@ pytest node id:
 - [ ] `python -m pytest <positive-node-id>` passes.
 - [ ] `python tools/audit_rule_sources.py --root .` passes.
 
+## Generated manifest
+
+If this PR modifies `quality-manifest.json` manually, explain why. The file is a
+machine-issued artifact from the dogfood job; normal changes must not edit it.
+
+- [ ] I did not hand-edit `quality-manifest.json`.
+- [ ] If I did, the reason is recorded here:
+
 ## Reflection exception
 
 If CBP cannot or should not detect this issue:
