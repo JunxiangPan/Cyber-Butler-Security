@@ -67,5 +67,6 @@
       "mode": "warn"
     }
   ],
-  "enable_encoding": false
+  "enable_encoding": false,
+  "schema_version": "0.1.2"
 }

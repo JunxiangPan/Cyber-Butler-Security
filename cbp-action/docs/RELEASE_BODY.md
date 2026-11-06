@@ -23,7 +23,7 @@ CBP must pass its own gates before release:
 
 - CBP Core Coverage: 89.20% (Threshold: 80%)
 - Security Core Coverage: 90.92% (Threshold: 90%)
-- Test Suite: 116 passed
+- Test Suite: 120 passed
 - Self-Bootstrapped: Generated dynamically via `cbp-action dogfood job`.
 
 QUALITY_COUNTS: 8/8

@@ -2,15 +2,27 @@
 from __future__ import annotations
 
 import json
+import re
+import sys
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+
+SCHEMA_VERSION = "0.1.2"
+LEGACY_FIELDS = {
+    "installer_core": "install_command",
+    "broker_files": "target_files",
+    "measured_files": "target_files",
+}
 
 
 @dataclass
 class GateConfig:
     """Inputs and thresholds for one CBP audit run."""
     root: Path
+    schema_version: str = SCHEMA_VERSION
     coverage_json: Path | str = ""
     coverage_allowlist: Path | str = ""
     target_files: tuple[str, ...] = ()
@@ -62,6 +74,34 @@ def _read_config(path: Path) -> dict[str, Any]:
     return tomllib.loads(text)
 
 
+def _warn(message: str) -> None:
+    print("CBP_CONFIG_WARN: " + message, file=sys.stderr)
+    warnings.warn(message, DeprecationWarning, stacklevel=3)
+
+
+def _migrate(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    warnings_out: list[str] = []
+    declared = data.get("schema_version")
+    if declared is None:
+        declared = "0.1.0"
+        warnings_out.append("schema_version missing; assuming legacy 0.1.0 and auto-migrating in memory")
+    if not isinstance(declared, str) or not re.fullmatch(r"\d+\.\d+\.\d+", declared):
+        raise ValueError("schema_version must be a semantic version such as 0.1.2")
+    current = tuple(int(part) for part in SCHEMA_VERSION.split("."))
+    found = tuple(int(part) for part in declared.split("."))
+    if found > current:
+        raise ValueError(f"unsupported future schema_version {declared}; this CBP supports {SCHEMA_VERSION}")
+    migrated = dict(data)
+    for old, new in LEGACY_FIELDS.items():
+        if old in migrated and new not in migrated:
+            migrated[new] = migrated.pop(old)
+            warnings_out.append(f"legacy field {old!r} mapped to {new!r}; update cbp.json before v0.2.0")
+    if declared != SCHEMA_VERSION:
+        warnings_out.append(f"config schema {declared} was migrated to {SCHEMA_VERSION} in memory; update the checked-in file")
+    migrated["schema_version"] = SCHEMA_VERSION
+    return migrated, warnings_out
+
+
 def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] | None = None) -> GateConfig:
     """Load JSON or TOML config and apply command-line overrides."""
     root = root.resolve()
@@ -69,7 +109,10 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
     if config_path and config_path.is_file():
         data = _read_config(config_path)
     data.update(overrides or {})
-    cfg = GateConfig(root=root)
+    data, migration_warnings = _migrate(data)
+    for message in migration_warnings:
+        _warn(message)
+    cfg = GateConfig(root=root, schema_version=SCHEMA_VERSION)
     for key, value in data.items():
         if not hasattr(cfg, key):
             continue

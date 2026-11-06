@@ -10,6 +10,8 @@ configuration, and one CLI used by both GitHub Actions and local CI.
 
 CBP is designed to evolve. As the CB ecosystem grows, CBP's rule engine will expand to cover different languages and frameworks.
 
+CBP is designed for long-term stability. Upgrading CBP will not break your existing CI. New gates are opt-in by default, and legacy fields are auto-mapped.
+
 The core 80% is language-neutral: encoding, documentation locks, release claims,
 dependency policy, and provenance. The remaining 20% is supplied by configured
 custom rules and evidence readers, so a React, Node.js, or future language
@@ -197,6 +199,37 @@ cryptographic signature.
 
 `security_core` coverage is the coverage of the gate modules, config, CLI,
 encoding gate, and rule auditor; it is not a separate binary-security metric.
+
+## Configuration compatibility
+
+Every supported config should declare:
+
+```json
+"schema_version": "0.1.2"
+```
+
+Old `v0.1.0` configs that omit it are accepted and migrated in memory with a
+`CBP_CONFIG_WARN` message. Legacy fields are mapped automatically:
+
+```text
+installer_core -> install_command
+broker_files   -> target_files
+measured_files -> target_files
+```
+
+A future schema version newer than the running CBP is rejected rather than
+silently misread.
+
+Deprecation is a three-step process:
+
+```text
+v0.1.2: documentation + DeprecationWarning, old behavior still works
+v0.2.0: old behavior still works, but emits a mandatory warning
+v1.0.0+: code may be removed only after the warning period
+```
+
+New gates and fields are optional. A config with no `custom_rules`,
+`evidence_readers`, `release_body`, or `coverage_signature` still runs.
 
 ## Cross-language custom rules
 
