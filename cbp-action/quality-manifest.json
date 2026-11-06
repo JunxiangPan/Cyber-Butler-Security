@@ -1,7 +1,0 @@
-{
-  "profile": "self",
-  "counts": {"passed": 6, "total": 6},
-  "dependency_gate_status": "PASS",
-  "comment_audit_status": "PASS",
-  "binary_provenance_status": "PASS"
-}
