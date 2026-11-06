@@ -153,7 +153,12 @@ $macs = @(Get-NetAdapter | Select-Object -ExpandProperty MacAddress)
 Add-Proof ('- MAC: ' + ($macs -join ', '))
 $version = (Get-Content (Join-Path $InstallRoot 'VERSION') -Raw).Trim()
 Add-Proof ('- VERSION: ' + $version)
-$package = Get-ChildItem -Path (Join-Path $env:USERPROFILE 'Downloads') -Filter 'public-release-v1.6.3.zip' -ErrorAction SilentlyContinue | Select-Object -First 1
+$packageName = 'public-release-v' + $version + '.zip'
+if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
+    $package = Get-Item -LiteralPath $PackageZip
+} else {
+    $package = Get-ChildItem -Path (Join-Path $env:USERPROFILE 'Downloads') -Filter $packageName -ErrorAction SilentlyContinue | Select-Object -First 1
+}
 if ($package) {
     Add-Proof ('- Package SHA256: ' + (Get-FileHash $package.FullName -Algorithm SHA256).Hash)
 }
@@ -249,7 +254,7 @@ if ($id) {
 # 5. Real audit evidence.
 Add-Proof ''
 Add-Proof '## audit.jsonl evidence'
-$auditPath = Join-Path $InstallRoot 'tools\totp_broker_audit.jsonl'
+$auditPath = @((Join-Path $env:ProgramData 'CyberButler\logs\totp_broker_audit.jsonl'), (Join-Path $InstallRoot 'tools\totp_broker_audit.jsonl')) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (Test-Path $auditPath) {
     $audit = Get-Content $auditPath -Tail 5 -Encoding UTF8
     Add-Proof ('```jsonl' + [Environment]::NewLine + (($audit -join [Environment]::NewLine)) + [Environment]::NewLine + '```')
@@ -304,7 +309,7 @@ Write-Host ('PROOF=' + $ProofPath)
 Write-Host ('PROOF_SHA256=' + $proofHash)
 $packageHash = 'N/A'
 if ([string]::IsNullOrWhiteSpace($PackageZip)) {
-    $candidate = Join-Path (Get-Location) 'public-release-v1.6.3.zip'
+    $candidate = Join-Path (Get-Location) ('public-release-v' + $version + '.zip')
     if (Test-Path -LiteralPath $candidate) { $PackageZip = $candidate }
 }
 if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
