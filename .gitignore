@@ -124,3 +124,6 @@ ACCEPTANCE_PROOF.md
 cbp-action/quality-manifest.json
 cbp-action/quality-manifest.sha256
 cbp-action/docs/RELEASE_NOTES.generated.md
+
+/qa-temp/
+cbp-action/quality-manifest.json.sha256
