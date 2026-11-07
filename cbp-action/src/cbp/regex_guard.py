@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 CHILD_TIMEOUT_SECONDS = 2.0
+_RISKY = re.compile(r"(\([^)]*[+*][^)]*\)[+*{])|(\*\*)|(\+\+)|(\[1-9])")
 
 
 class RegexTimeout(RuntimeError):
@@ -41,6 +42,8 @@ def _positions(pattern: str, flags: int, text: str, timeout: float) -> list[int]
             return [match.start() for match in regex_module.finditer(pattern, text, flags=flags, timeout=timeout)]
         except TimeoutError as exc:
             raise RegexTimeout(f"regex exceeded {timeout}s") from exc
+    if not _RISKY.search(pattern):
+        return [match.start() for match in re.finditer(pattern, text, flags)]
     request = json.dumps({"pattern": pattern, "text": text, "flags": flags})
     try:
         completed = subprocess.run(
