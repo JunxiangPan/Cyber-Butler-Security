@@ -1,6 +1,8 @@
 """Config-driven regex/literal custom rules."""
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -33,6 +35,12 @@ def _files(cfg: GateConfig, patterns: list[str], excludes: list[str]) -> list[Pa
     return result
 
 
+def rules_digest(rules, packs) -> str:
+    """Return a stable digest over the effective custom policy."""
+    payload = json.dumps({"rules": rules, "packs": packs}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def run(cfg: GateConfig) -> tuple[bool, str]:
     """Evaluate configured rules; warn by default, enforce on demand."""
     rules = list(getattr(cfg, "custom_rules", ()) or ())
@@ -42,6 +50,12 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         except (KeyError, TypeError, packs_module.PackError) as exc:
             return False, f"custom pack failed: {exc}"
         rules.extend(pack["rules"])
+    digest = rules_digest(rules, getattr(cfg, "packs", ()) or ())
+    manifest = cfg.path(getattr(cfg, "rules_manifest", "") or "") if getattr(cfg, "rules_manifest", "") else None
+    if manifest is not None and manifest.is_file():
+        expected = manifest.read_text(encoding="utf-8").strip().split()[0] if manifest.read_text(encoding="utf-8").strip() else ""
+        if expected != digest:
+            return False, f"custom=FAIL rules hash changed ({digest[:12]}); update RULES-CHANGELOG and rules/rules.sha256"
     findings: list[str] = []
     enforced = False
     integrity = artifact_integrity.check(cfg)
