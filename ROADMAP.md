@@ -545,3 +545,11 @@ CBP must verify CI green **and** statically reject install scripts that depend o
 ## Code signing
 
 Sign `START-INSTALLER.exe` and the release ZIP with SignTool and a trusted certificate so SmartScreen treats the package as signed rather than relying on Mark-of-the-Web cleanup. Until then the launcher and scripts perform best-effort unblocking.
+## v1.6.4 / CBP v0.1.5 boundary
+
+The v0.1.5 CBP line is intentionally limited to P0 fixes and guards discovered in
+VM acceptance: source-hash coverage, artifact integrity, naked-subprocess and
+Python path checks, and the portable-runtime installer fixes. P1/P2 work
+(lcov/cobertura adapters, Action SHA pinning, ReDoS limits, architecture
+changes) is deferred to CBP v0.1.6 so the current candidate can be physically
+accepted first.

@@ -60,3 +60,6 @@ This release turns those lessons into reusable gates:
 - `audit` and `enforce` modes
 - GitHub Action and local CLI entry points
 - Linux and Windows self-tests
+### Scope
+
+v0.1.5 is a P0/VM-guard release. P1/P2 items are deferred to v0.1.6.

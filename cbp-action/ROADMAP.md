@@ -69,3 +69,25 @@ No configuration item is removed in the same release that deprecates it.
 
 These are candidates, not commitments. None may violate the minor-release
 compatibility promise.
+## v0.1.5 release boundary
+
+v0.1.5 contains P0 fixes and the VM-driven guards only: source-hash coverage,
+baseline/suppression, no-raw-interpreter, PowerShell AST parsing, required
+artifact integrity, naked-subprocess rejection, and Python environment-path
+checks. It deliberately does NOT include coverage-adapter rewrites, Action SHA
+pinning, ReDoS limits, or architecture changes.
+
+## v0.1.6 — P1/P2 engineering debt
+
+- Add lcov and cobertura coverage readers/adapters without changing existing
+  Python/hash behavior.
+- Pin every GitHub Action to a commit SHA and add a policy check for floating
+  tags (`@v4`, `@v5`).
+- Add explicit ReDoS limits (pattern length, input size, timeout) to custom and
+  built-in regex gates.
+- Extend baseline/suppression to every gate and add a baseline expiry policy.
+- Prebuild/install the CBP runtime instead of resolving it during install.
+- Make `required_artifacts` a first-class, always-on input after the wheel is
+  published and the CBS config can safely require v0.1.5.
+- Add independent `cbp-verify` release verification and broader evidence
+  readers.

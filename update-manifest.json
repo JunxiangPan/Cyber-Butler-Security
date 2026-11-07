@@ -99,8 +99,8 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "7581736c48598ba4945d8b8acabee7a9cbf3714e840ba3a3101152746c8794e6",
-      "size": 24947
+      "sha256": "5fed1afd62e83afee31befe5783fae8aa1bc559784dab7fa78d2604f45adf1e6",
+      "size": 25388
     },
     {
       "path": "SECURITY.md",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "e31ac9cb42234f6c16aa2f5fb18048499b3a098275446f5c2d03c55267c3341c",
+      "sha256": "ac576f7b03f369e08421721d4ab6ef0acab13bfb631492c8eea7fa0d72585a1c",
       "size": 1077
     },
     {
