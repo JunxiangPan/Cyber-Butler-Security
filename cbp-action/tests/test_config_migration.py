@@ -26,7 +26,7 @@ def test_legacy_fields_are_mapped(tmp_path: Path, capsys) -> None:
 def test_missing_schema_version_is_auto_migrated(tmp_path: Path, capsys) -> None:
     path = _write(tmp_path, {"coverage_threshold": 70})
     cfg = load_config(tmp_path, path)
-    assert cfg.schema_version == "0.1.6"
+    assert cfg.schema_version == "0.1.7"
     assert "schema_version missing" in capsys.readouterr().err
 
 
@@ -37,20 +37,20 @@ def test_future_schema_version_is_rejected(tmp_path: Path) -> None:
 
 
 def test_current_config_without_new_fields_runs(tmp_path: Path) -> None:
-    path = _write(tmp_path, {"schema_version": "0.1.6"})
+    path = _write(tmp_path, {"schema_version": "0.1.7"})
     cfg = load_config(tmp_path, path)
     assert cfg.custom_rules == ()
     assert cfg.evidence_readers == {}
 
 
 def test_unknown_key_is_rejected(tmp_path: Path) -> None:
-    path = _write(tmp_path, {"schema_version": "0.1.6", "coverage_threshhold": 99})
+    path = _write(tmp_path, {"schema_version": "0.1.7", "coverage_threshhold": 99})
     with pytest.raises(ValueError, match="unknown cbp.json key"):
         load_config(tmp_path, path)
 
 
 def test_custom_and_upgrade_switches_are_real(tmp_path: Path) -> None:
-    path = _write(tmp_path, {"schema_version": "0.1.6", "enable_custom": False, "enable_upgrade": False})
+    path = _write(tmp_path, {"schema_version": "0.1.7", "enable_custom": False, "enable_upgrade": False})
     cfg = load_config(tmp_path, path)
     assert cfg.enable_custom is False
     assert cfg.enable_upgrade is False

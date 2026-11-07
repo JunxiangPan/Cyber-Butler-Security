@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.4",
+  "version": "1.6.5",
   "files": [
     {
       "path": ".github/ISSUE_TEMPLATE/documentation.yml",
@@ -9,18 +9,13 @@
     },
     {
       "path": ".github/workflows/security-tests.yml",
-      "sha256": "43bfdd3d673649730720970b9b4b5e9ed63ae6cc5a5fe3f58377f1a6ebf958f4",
+      "sha256": "e83e7a09ad6073aa47fc8fd3afe63fa9ea503e06e72eedb274a36ea9c8f4fdfb",
       "size": 4113
     },
     {
       "path": ".gitignore",
       "sha256": "486e7b09a4fa412739b365efc83879ce800fa65bbbf86bce61801ef3592c4cdc",
       "size": 2221
-    },
-    {
-      "path": "ACCEPTANCE_PROOF.md",
-      "sha256": "da0169d1f609385ee690052a2d311cd2076f178775aa68bb6632d99c3b256f55",
-      "size": 4857
     },
     {
       "path": "CONTRIBUTING.md",
@@ -54,7 +49,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "e361886a8dff8d3930facb8878b57881805b921c441c093c48bb5f660042cc62",
+      "sha256": "048f3aef93cacc5ec8ba6d604da470117c7f2235282709dc473bd01c9aea877e",
       "size": 4172
     },
     {
@@ -119,8 +114,8 @@
     },
     {
       "path": "VERSION",
-      "sha256": "d59aea0896dd259fd8c6d3dc19e1ef546ac4aff511ce368d0e52c7e68183a4f5",
-      "size": 7
+      "sha256": "8317adf0a074d2b6cc6c4fdf29adaf2f7469be6561f211d09a033b784260262e",
+      "size": 6
     },
     {
       "path": "build/CyberButlerLauncher.cs",
@@ -169,7 +164,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "5957ac4fc95b251a760f1ede3dc7b17025f11a57424c9f2f648ee55593398940",
+      "sha256": "e3f21931e7d900677e75af044e3d9182bb32c588a6946f1618dc9a7595478b0c",
       "size": 1077
     },
     {
@@ -609,8 +604,8 @@
     },
     {
       "path": "docs/releases/RELEASE_NOTES_v1.6.4.md",
-      "sha256": "5abb5dcef01468630be54157259a9fb750fcbad3ba9c5771132c607b2715619f",
-      "size": 727
+      "sha256": "9431a8a7cc1a71e3eec6f861ee5bc8c597f06106269bb605d82ab21a4bd91fda",
+      "size": 3497
     },
     {
       "path": "installer/Backup-CyberButler.ps1",
@@ -918,9 +913,9 @@
       "size": 134521
     },
     {
-      "path": "installer/wheelhouse/cbp_action-0.1.4-py3-none-any.whl",
-      "sha256": "6c37857e0b649d35a49e7d40439691395cc8aff5ab414e39991f0e6711d2fdc4",
-      "size": 28929
+      "path": "installer/wheelhouse/cbp_action-0.1.6-py3-none-any.whl",
+      "sha256": "03483a458c906a39a829ab4b3429e2c3dab188444ba2350cede4abd07864cc0f",
+      "size": 32966
     },
     {
       "path": "installer/wheelhouse/certifi-2026.10.23-py3-none-any.whl",
@@ -1259,8 +1254,8 @@
     },
     {
       "path": "tests/test_p0_semantics.py",
-      "sha256": "ee1e7c8ed1ddbfa483816be9336402fc4cb1cca91caa4d214b3e1a46ed9cd57b",
-      "size": 2333
+      "sha256": "188a7269c0217e9628dd55b092153cad31937c4f4f1ddf579f97979b46242a24",
+      "size": 2321
     },
     {
       "path": "tests/test_package_independence.py",
@@ -1459,8 +1454,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "e79c4d4022c06442a478192e7d1b72cdf88fcc0076f4df2a9625f379985c9320",
-      "size": 113235
+      "sha256": "47be85926ca7d774db014bdce90b88efe8bcec71e3c6bd50840e683df3cde483",
+      "size": 113441
     },
     {
       "path": "tools/broker_config.py",
@@ -1614,8 +1609,8 @@
     },
     {
       "path": "tools/package_release.py",
-      "sha256": "c8e775c2393758edd665d398be1f35a1a07bc442bcba4dc7aaf878966b53b349",
-      "size": 10272
+      "sha256": "3b5eee510bfb004329c11f01bfe744d687342814928d58f533df272b117551cf",
+      "size": 10293
     },
     {
       "path": "tools/physical_separation.py",
@@ -1709,8 +1704,8 @@
     },
     {
       "path": "tools/sign_release.py",
-      "sha256": "8f9502e669638e9d5751f2e7a74ca16d5c89edd6ac5e7e5a2b371c3e803b76b3",
-      "size": 13821
+      "sha256": "9e3b43c014a672a7c1f60c7933f854a2269d03a7c1ab8f574846cb59ca368741",
+      "size": 15144
     },
     {
       "path": "tools/start-broker-fallback.bat",

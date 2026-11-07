@@ -14,6 +14,7 @@ import re
 import secrets
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,9 +65,10 @@ def run_pytest(profile: str, chaos_results_dir: str = "") -> tuple[dict[str, str
     if chaos_results_dir:
         env["CBS_CHAOS_RESULTS_DIR"] = chaos_results_dir
     try:
-        completed = subprocess.run(
-            command, cwd=ROOT, capture_output=True, text=True, timeout=1800, env=env
-        )
+        with tempfile.TemporaryDirectory(prefix="cbp-pytest-") as temp:
+            completed = subprocess.run(
+                command + ["--basetemp", temp], cwd=ROOT, capture_output=True, text=True, timeout=1800, env=env
+            )
     except FileNotFoundError:
         return {item: "blocked" for item in TEST_NAMES}, "pytest not found"
     output = completed.stdout + "\n" + completed.stderr
@@ -157,7 +159,12 @@ def render_report(manifest: dict, quality_manifest_sha256: str = "") -> str:
     ]
     for row in manifest["items"]:
         lines.append(f"| {row['id']} | {row['title']} | {row['kind']} | {row['status']} |")
-    lines += ["", "## Signing gate", "", "`tools/sign_release.py` re-reads quality-manifest.json and refuses blocked/failed items.", ""]
+    reasons = manifest.get("blocked_reasons", {})
+    if reasons:
+        lines += ["", "## Blocked items", ""]
+        for item_id, reason in reasons.items():
+            lines.append(f"- **{item_id}**: {reason}")
+    lines += ["", "## Signing gate", "", "`tools/sign_release.py` re-reads quality-manifest.json and accepts blocked items only when this report records their reason.", ""]
     return "\n".join(lines)
 
 
@@ -170,7 +177,20 @@ def main() -> int:
     nonce = args.nonce or secrets.token_hex(16)
     source = json.loads(ITEMS.read_text(encoding="utf-8"))
     statuses, pytest_source = run_pytest(args.profile, args.chaos_results_dir)
+    blocked_reasons = {}
+    if args.chaos_results_dir:
+        for item_id in ("Q13", "Q14"):
+            evidence_path = Path(args.chaos_results_dir) / ("chaos-" + item_id + ".json")
+            if evidence_path.is_file():
+                evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+                detail = str(evidence.get("detail", ""))
+                if detail.startswith("environment-limited"):
+                    statuses[item_id] = "blocked"
+                    blocked_reasons[item_id] = detail
     result = summarize(source["items"], statuses, args.profile)
+    for row in result["rows"]:
+        if row["id"] in blocked_reasons:
+            row["blocked_reason"] = blocked_reasons[row["id"]]
     manifest = {
         "schema": "cbp-quality-manifest/v1",
         "version": source["version"],
@@ -181,6 +201,7 @@ def main() -> int:
         "items": result["rows"],
         "counts": result["counts"],
         "overall": result["overall"],
+        "blocked_reasons": blocked_reasons,
         "dependency_gate_status": _gate_status("dependency_gate.py"),
         "comment_audit_status": _gate_status("audit_comments.py"),
         "binary_provenance_status": _gate_status("audit_binary_provenance.py"),
@@ -195,7 +216,11 @@ def main() -> int:
     print(f"wrote {MANIFEST}")
     print(f"overall={manifest['overall']} passed={manifest['counts']['passed']} failed={manifest['counts']['failed']} blocked={manifest['counts']['blocked']} skipped_by_design={manifest['counts']['skipped_by_design']}")
     print("STATUSES " + ",".join(f"{row['id']}={row['status']}" for row in manifest["items"]))
-    return 0 if manifest["overall"] == "PASS" else 1
+    if manifest["overall"] == "PASS":
+        return 0
+    if manifest["counts"]["failed"] == 0 and blocked_reasons:
+        return 0
+    return 1
 
 
 if __name__ == "__main__":

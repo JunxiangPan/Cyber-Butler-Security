@@ -53,6 +53,8 @@ def _is_absolute_command(value: str) -> bool:
 
 
 PATH_ESCAPE = None  # line-based check below avoids regex escaping ambiguity
+ACTION_REF = re.compile(r"uses:\s*([^\s#]+)")
+FULL_SHA = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}$")
 
 
 def path_escape_findings(cfg: GateConfig) -> list[str]:
@@ -116,6 +118,25 @@ def python_env_findings(cfg: GateConfig) -> list[str]:
     return findings
 
 
+def action_pin_findings(cfg: GateConfig) -> list[str]:
+    """Require every GitHub Action use to be pinned to a full commit SHA."""
+    findings: list[str] = []
+    for path in list(cfg.root.rglob("*.yml")) + list(cfg.root.rglob("*.yaml")):
+        rel = path.relative_to(cfg.root).as_posix()
+        if SKIP_PARTS & set(path.parts) or rel.endswith("usage.yml") or "/examples/" in rel or "/docs/" in rel:
+            continue
+        for line_no, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            match = ACTION_REF.search(line)
+            if not match:
+                continue
+            ref = match.group(1).strip("'\"")
+            if ref.startswith("./") or ref.startswith("docker://"):
+                continue
+            if not FULL_SHA.fullmatch(ref):
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line_no}: GitHub Action is not pinned to a full SHA: {ref}")
+    return findings
+
+
 def check(cfg: GateConfig) -> list[str]:
     """Run both release-integrity checks."""
-    return artifact_findings(cfg) + python_env_findings(cfg) + path_escape_findings(cfg)
+    return artifact_findings(cfg) + python_env_findings(cfg) + path_escape_findings(cfg) + action_pin_findings(cfg)

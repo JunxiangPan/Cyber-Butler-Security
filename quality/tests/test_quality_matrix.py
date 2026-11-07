@@ -239,7 +239,7 @@ def test_q19_qr_uri_matches_broker_secret():
 
 def test_q20_version_single_source():
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    assert version == "1.6.4"
+    assert version == "1.6.5"
     template = (ROOT / "webui" / "templates" / "dashboard.html").read_text(encoding="utf-8")
     assert "v1.6.2" not in template
 

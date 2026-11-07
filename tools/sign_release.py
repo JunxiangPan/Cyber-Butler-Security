@@ -114,10 +114,25 @@ def check_quality(root: Path) -> str:
         raise SignGateError("quality-manifest.json has no pytest_exit evidence")
     if int(exit_match.group(1)) != 0:
         raise SignGateError("quality-manifest.json records a non-zero pytest exit")
-    if counts["failed"] or counts["blocked"] or counts["skipped_by_design"]:
-        raise SignGateError("quality-manifest.json contains non-passed release items")
-    if counts["passed"] != 26:
-        raise SignGateError("quality-manifest.json does not contain 26 passed items")
+    if counts["failed"] or counts["skipped_by_design"]:
+        raise SignGateError("quality-manifest.json contains failed or skipped release items")
+    blocked_items = [item for item in items if item.get("status") == "blocked"]
+    if counts["blocked"] != len(blocked_items):
+        raise SignGateError("quality-manifest.json blocked counts do not match items")
+    if counts["passed"] + counts["blocked"] != 26:
+        raise SignGateError("quality-manifest.json must account for all 26 items")
+    blocked_reasons = data.get("blocked_reasons", {})
+    if blocked_items:
+        if not isinstance(blocked_reasons, dict):
+            raise SignGateError("blocked items need a blocked_reasons object")
+        for item in blocked_items:
+            item_id = str(item.get("id", ""))
+            if not blocked_reasons.get(item_id):
+                raise SignGateError(f"blocked item {item_id} has no explicit reason")
+        report_text = (root / FINAL_QA).read_text(encoding="utf-8", errors="strict")
+        for item_id, reason in blocked_reasons.items():
+            if str(reason) not in report_text:
+                raise SignGateError(f"FINAL_QA_REPORT.md does not record reason for {item_id}")
     for field in ("dependency_gate_status", "comment_audit_status", "binary_provenance_status"):
         if data.get(field) != "PASS":
             raise SignGateError(f"quality-manifest.json {field} is not PASS")

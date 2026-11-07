@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.6 — 2026-11-07
+## 0.1.7 — 2026-11-07
 
 - Added ambiguous Windows-backslash path detection in .py/.ps1 files.
 - Made required_artifacts mandatory whenever package_zip is configured.
@@ -69,4 +69,4 @@ This release turns those lessons into reusable gates:
 - Linux and Windows self-tests
 ### Scope
 
-v0.1.5 is a P0/VM-guard release. P1/P2 items are deferred to v0.1.6.
+v0.1.5 is a P0/VM-guard release. P1/P2 items are deferred to v0.1.7.
