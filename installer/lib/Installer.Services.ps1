@@ -271,19 +271,18 @@ function Test-CyberButlerServices {
 .SYNOPSIS
     New-CyberButlerNativeService registers the SYSTEM broker as a real SCM service.
 .DESCRIPTION
-    Uses New-Service -ErrorAction Stop and start-broker.bat, which sets cwd and
-    PYTHONPATH explicitly. Registration or startup failures are thrown.
+    Runs broker_service.py through the bundled portable Python so pywin32
+    reports SCM state. Registration or startup failures are thrown.
 #>
 function New-CyberButlerNativeService {
     param(
         [Parameter(Mandatory = $true)][string]$Name,
-        [Parameter(Mandatory = $true)][string]$BatPath
+        [Parameter(Mandatory = $true)][string]$Root
     )
-    if (-not (Get-Command New-Service -ErrorAction SilentlyContinue)) { throw 'New-Service is unavailable.' }
-    if (-not (Test-Path -LiteralPath $BatPath -PathType Leaf)) { throw ('Broker wrapper missing: ' + $BatPath) }
-    $cmd = Join-Path $env:SystemRoot 'System32\cmd.exe'
-    if (-not (Test-Path -LiteralPath $cmd)) { throw ('cmd.exe missing: ' + $cmd) }
-    $binary = '"' + $cmd + '" /c "' + $BatPath + '"'
+    $python = Join-Path ([IO.Path]::GetFullPath($Root)) 'python\python.exe'
+    $serviceScript = Join-Path ([IO.Path]::GetFullPath($Root)) 'tools/broker_service.py'
+    if (-not (Test-Path -LiteralPath $python -PathType Leaf)) { throw ('Portable Python missing: ' + $python) }
+    if (-not (Test-Path -LiteralPath $serviceScript -PathType Leaf)) { throw ('Broker service wrapper missing: ' + $serviceScript) }
     $oldTask = $null
     if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
         $oldTask = Get-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
@@ -292,26 +291,16 @@ function New-CyberButlerNativeService {
         try { Unregister-ScheduledTask -TaskName $Name -Confirm:$false -ErrorAction Stop | Out-Null }
         catch { throw ('Failed to remove stale scheduled task ' + $Name + ': ' + $_.Exception.Message) }
     }
-    $existing = Get-Service -Name $Name -ErrorAction SilentlyContinue
-    if ($existing) {
-        try { Stop-Service -Name $Name -Force -ErrorAction Stop } catch {
-            Write-Host ('SERVICE warning stopping existing ' + $Name + ': ' + $_.Exception.Message)
-        }
-        $delete = & sc.exe delete $Name 2>&1
-        if ($LASTEXITCODE -ne 0) { throw ('sc.exe delete failed for ' + $Name + ': ' + ($delete -join ' ')) }
-        Start-Sleep -Seconds 1
-    }
-    try {
-        New-Service -Name $Name -BinaryPathName $binary -DisplayName $Name -Description 'Cyber-Butler Broker (SYSTEM)' -StartupType Automatic -ErrorAction Stop | Out-Null
-        Write-Host ('SERVICE registered native service ' + $Name)
-        Start-Service -Name $Name -ErrorAction Stop
-        Write-Host ('SERVICE started native service ' + $Name)
-    } catch {
-        $message = 'Native service registration/start failed for ' + $Name + ': ' + $_.Exception.Message
-        Write-Host $message
-        throw $message
-    }
+    Write-Host ('SERVICE installing native pywin32 service ' + $Name)
+    $install = & $python $serviceScript --startup auto install 2>&1
+    if ($LASTEXITCODE -ne 0) { throw ('Broker service install failed (' + $LASTEXITCODE + '): ' + ($install -join ' ')) }
+    $start = & $python $serviceScript start 2>&1
+    if ($LASTEXITCODE -ne 0) { throw ('Broker service start failed (' + $LASTEXITCODE + '): ' + ($start -join ' ')) }
+    $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    if (-not $svc) { throw ('Broker service was not created: ' + $Name) }
+    Write-Host ('SERVICE native service ' + $Name + ' status=' + $svc.Status)
 }
+
 
 <#
 .SYNOPSIS
@@ -476,8 +465,7 @@ function Set-CyberButlerServiceTasks {
     $taskBackups = @{}
     foreach ($spec in $specs) {
         if ([string]$spec.kind -eq 'service') {
-            $batPath = Join-Path ([IO.Path]::GetFullPath($Root)) 'start-broker.bat'
-            New-CyberButlerNativeService -Name $spec.name -BatPath $batPath
+            New-CyberButlerNativeService -Name $spec.name -Root ([IO.Path]::GetFullPath($Root))
             $created.Add($spec.name)
             continue
         }

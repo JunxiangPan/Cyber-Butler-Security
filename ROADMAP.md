@@ -542,3 +542,6 @@ Obsolete documents must be moved to `docs/40-history/archive/` with `[ARCHIVED -
 ## Deployment invariants
 
 CBP must verify CI green **and** statically reject install scripts that depend on host environment paths or skip core-file assertions. See `docs/40-history/incidents/v1.6.4-vm-installer-environment-split.md`.
+## Code signing
+
+Sign `START-INSTALLER.exe` and the release ZIP with SignTool and a trusted certificate so SmartScreen treats the package as signed rather than relying on Mark-of-the-Web cleanup. Until then the launcher and scripts perform best-effort unblocking.

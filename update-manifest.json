@@ -54,8 +54,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "75f9263b476d4e5d99d358ace593fb7752efc35611fde285ccb7eea152b41c3f",
-      "size": 4016
+      "sha256": "53413340ba3df0bdd2a2936597b507feccbe2700ceeb8d596ec1a51e3637e949",
+      "size": 4110
     },
     {
       "path": "README_de.md",
@@ -99,8 +99,8 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "dca1a8aca85b191fad53c7e0e0257c31b8bca81280db129643412a53105fd8f7",
-      "size": 24680
+      "sha256": "7581736c48598ba4945d8b8acabee7a9cbf3714e840ba3a3101152746c8794e6",
+      "size": 24947
     },
     {
       "path": "SECURITY.md",
@@ -109,8 +109,8 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "1148c7c9c9dad79bba78a01b09518ea676a7017e51b4d1a1c37add8da82a9334",
-      "size": 67911580
+      "sha256": "cbf33369cf8108e54b48e7466ff98b6609d533b9e5b98cbf09c89afc2603ea13",
+      "size": 67911877
     },
     {
       "path": "THREAT_MODEL.md",
@@ -134,8 +134,8 @@
     },
     {
       "path": "build/StartInstaller.cs",
-      "sha256": "7fc5d7b4b4c9f81880551ecd4bc15098594074ab471d7fd7e1d0cbd057db3568",
-      "size": 9346
+      "sha256": "b26b75b5541e59dd6c68f23644b34f9f9958693570984d11d8d694d3d5f5580d",
+      "size": 9958
     },
     {
       "path": "build/StartInstaller.csproj",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "38cfb3235afcf1601c9b6f5aafdc5edec5faf8c55c097e5cd5c2f3e0d970551f",
+      "sha256": "83b9bdfa49c4fb73d3f9a576bbc1159d561ea7eff0c3d6d0823e31311987fb60",
       "size": 1077
     },
     {
@@ -619,13 +619,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "3c1ccec250e3c543d3af0b88022cea4f2f8677d108a582d8c913657b96021686",
-      "size": 143747
+      "sha256": "72cca1de3f0fb8ff5c837355fe05f68c79062462a0e1fec7616bcb0fc71e52cf",
+      "size": 143750
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "7ac7cc1b65eead13113c4f7e63ca4a83a6c40432335b90e0535d393711b277c8",
-      "size": 59147
+      "sha256": "953044e6d77abe72b71cfdb59a6407b465f2f74943c87b3c27f434bb486f0607",
+      "size": 59150
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -679,8 +679,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "d928a2ab960660febaff076380c899a442a8c6588bba1fde6025611d35967052",
-      "size": 30076
+      "sha256": "b5809e53e841dc0d04f4efe8bc429776acde99f79811628f1e75b2da4c427934",
+      "size": 29379
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -729,8 +729,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "6954cbe85838fec82e34ab132d2f523b0f7f82127838a8658b04147ea036ad3f",
-      "size": 43077
+      "sha256": "eb7dd9a031d88884dcb1aa7cef9bde4628c7cf4aaf7ac8ab180290568d006614",
+      "size": 42623
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",

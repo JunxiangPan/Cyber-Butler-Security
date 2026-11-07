@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Windows.Forms;
 
@@ -18,6 +19,18 @@ using System.Windows.Forms;
 internal static class InstallerProgram
 {
     private const string PwshMissingMessage = "CBS bundled PowerShell 7 could not start. Check crash.log or run START-INSTALLER.exe as administrator.";
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool DeleteFile(string path);
+
+    private static void UnblockDirectory(string directory)
+    {
+        if (!Directory.Exists(directory)) return;
+        foreach (string file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+        {
+            try { DeleteFile(file + ":Zone.Identifier"); } catch { }
+        }
+    }
 
     private static bool IsAdministrator()
     {
@@ -218,6 +231,8 @@ internal static class InstallerProgram
         {
             baseDir = AppDomain.CurrentDomain.BaseDirectory;
             Log("START-INSTALLER boot");
+            UnblockDirectory(baseDir);
+            Log("Mark of the Web streams cleared under " + baseDir);
             string gui = Path.Combine(baseDir, "installer", "CyberButler.Installer.GUI.ps1");
             if (!File.Exists(gui))
             {

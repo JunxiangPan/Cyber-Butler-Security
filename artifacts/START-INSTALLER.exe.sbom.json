@@ -18,8 +18,8 @@
     }
   ],
   "limitation": "No PackageReference or NuGet package is present. This SBOM covers the self-contained .NET runtime pack and ILLink task from START-INSTALLER.deps.json; it is not a recursive NuGet dependency graph.",
-  "binary_sha256": "1148C7C9C9DAD79BBA78A01B09518EA676A7017E51B4D1A1C37ADD8DA82A9334",
-  "binary_size": 67911580,
-  "sha256": "1148C7C9C9DAD79BBA78A01B09518EA676A7017E51B4D1A1C37ADD8DA82A9334",
-  "size_bytes": 67911580
+  "binary_sha256": "CBF33369CF8108E54B48E7466FF98B6609D533B9E5B98CBF09C89AFC2603EA13",
+  "binary_size": 67911877,
+  "sha256": "CBF33369CF8108E54B48E7466FF98B6609D533B9E5B98CBF09C89AFC2603EA13",
+  "size_bytes": 67911877
 }
