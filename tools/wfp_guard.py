@@ -21,6 +21,7 @@ from pathlib import Path
 from wfp_policy import PolicyError, resolve_domains, validate
 
 RULE_PREFIX = "CBS-Agent-Egress"
+PWSH = Path(__file__).resolve().parents[1] / "pwsh" / "pwsh.exe"
 
 # This flag is intentionally mirrored in docs/_data/status-v1.6.2.json.
 # Do not set it to True without implementing and validating the native WFP filter.
@@ -99,7 +100,7 @@ def _sid(account: str) -> str:
     if os.name != "nt":
         return "S-1-5-18"
     command = [
-        "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        str(PWSH), "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
         f"$u=Get-LocalUser -Name '{account.replace(chr(39), chr(39)*2)}' -ErrorAction Stop; $u.Sid.Value",
     ]
@@ -120,7 +121,10 @@ def _run(command: list[str]) -> subprocess.CompletedProcess:
         Function result, or None when no value is returned.
     """
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    return subprocess.run(command, capture_output=True, text=True, timeout=30, creationflags=flags)
+    try:
+        return subprocess.run(command, capture_output=True, text=True, timeout=30, creationflags=flags)
+    except FileNotFoundError as exc:
+        raise WfpError("required external command is missing: " + str(command[0])) from exc
 
 
 def build_apply_commands(policy: dict, sid: str, mode: str | None = None) -> list[str]:
@@ -188,7 +192,7 @@ def remove_policy() -> None:
     # An empty pipeline makes Remove-NetFirewallRule fail even though there is
     # nothing to remove. Only invoke it when matching rules actually exist.
     result = _run([
-        "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        str(PWSH), "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-Command",
         "$r=@(Get-NetFirewallRule -DisplayName 'CBS-Agent-Egress*' -ErrorAction SilentlyContinue); if($r.Count -gt 0){ $r | Remove-NetFirewallRule -ErrorAction Stop }",
     ])
@@ -213,7 +217,7 @@ def apply_policy(policy: dict, *, allow_enforce: bool = False) -> dict:
         return {"mode": effective_mode, "applied": 0, "sid": sid}
     for command in commands:
         result = _run([
-            "pwsh.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+            str(PWSH), "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
             "-Command", command,
         ])
         if result.returncode != 0:

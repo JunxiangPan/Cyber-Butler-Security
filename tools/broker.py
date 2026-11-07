@@ -13,7 +13,7 @@ import os as _cb_os
 import sys as _cb_sys
 _cb_tools = _cb_os.path.dirname(_cb_os.path.abspath(__file__))
 _cb_root = _cb_os.path.dirname(_cb_tools)
-for _cb_path in (_cb_tools, _cb_root, _cb_os.path.join(_cb_root, "python", "Lib", "site-packages")):
+for _cb_path in (_cb_tools, _cb_root, _cb_os.path.join(_cb_root, "python", "Lib", "site-packages")):  # pragma: no cover - process bootstrap
     _cb_sys.path.insert(0, _cb_path)
 
 import base64
@@ -635,25 +635,31 @@ def ensure_token() -> str:
         if TEST_MODE:
             return token
         service_user = os.environ.get("CBS_SERVICE_USER", "YOUR_SERVICE_USER").strip() or "YOUR_SERVICE_USER"
-        acl = subprocess.run(
-            ["icacls", str(TOKEN_FILE), "/inheritance:r", "/grant:r",
-             "SYSTEM:(F)", service_user + ":(R)", "*S-1-5-32-544:(F)"],
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        try:
+            acl = subprocess.run(
+                [str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "icacls.exe"), str(TOKEN_FILE), "/inheritance:r", "/grant:r",
+                 "SYSTEM:(F)", service_user + ":(R)", "*S-1-5-32-544:(F)"],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+        except FileNotFoundError as exc:
+            raise RuntimeError("icacls.exe is missing from System32") from exc
         if acl.returncode != 0:
             raise RuntimeError("broker token ACL failed: " + str(acl.stdout or acl.stderr).strip())
-        readback = subprocess.run(
-            ["icacls", str(TOKEN_FILE)],
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        try:
+            readback = subprocess.run(
+                [str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "icacls.exe"), str(TOKEN_FILE)],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+        except FileNotFoundError as exc:
+            raise RuntimeError("icacls.exe is missing from System32") from exc
         if readback.returncode != 0 or "SYSTEM:" not in (readback.stdout or ""):
             raise RuntimeError("broker token ACL readback failed")
     return TOKEN_FILE.read_text(encoding="utf-8").strip()
@@ -2798,12 +2804,12 @@ def verify_runtime_acl() -> None:
     if not checker.exists():
         raise SystemExit(
             "Broker refuses to start: tools/verify_broker_acl.ps1 is missing; "
-            "lock down tools/ and AgentRuntime/.venv before running as SYSTEM."
+            "lock down tools/ and portable python/ before running as SYSTEM."
         )
     try:
         result = subprocess.run(
             [
-                "pwsh.exe",
+                str(ROOT / "pwsh" / "pwsh.exe"),
                 "-NoProfile",
                 "-NonInteractive",
                 "-ExecutionPolicy", "Bypass",
@@ -2823,7 +2829,7 @@ def verify_runtime_acl() -> None:
         )
     if "Broker runtime ACL: OK" not in (result.stdout or ""):
         raise SystemExit("Broker refuses to start: ACL checker did not confirm success")
-    log("runtime ACL check passed (tools/ and AgentRuntime/.venv locked)")
+    log("runtime ACL check passed (tools/ and portable python locked)")
 
 
 def main() -> None:

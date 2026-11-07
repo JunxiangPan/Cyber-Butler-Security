@@ -34,7 +34,7 @@ class EmailConfigError(RuntimeError):
 def load_config() -> dict:
     """Read the machine-DPAPI encrypted config through the PowerShell bridge."""
     completed = subprocess.run(
-        ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(BRIDGE)],
+        [str(Path(__file__).resolve().parents[1] / "pwsh" / "pwsh.exe"), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(BRIDGE)],
         capture_output=True,
         text=True,
         timeout=20,

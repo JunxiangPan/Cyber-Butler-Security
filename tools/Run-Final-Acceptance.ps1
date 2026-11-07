@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 7.0
 <#
 Run-Final-Acceptance.ps1
 
@@ -71,7 +71,7 @@ function Read-Token() {
 #>
 function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json = '', [string]$token = '') {
     if ([string]::IsNullOrWhiteSpace($token)) { $token = Read-Token }
-    $python = Join-Path $InstallRoot 'webui\.venv\Scripts\python.exe'
+    $python = Join-Path $InstallRoot 'python\python.exe'
     if (-not (Test-Path -LiteralPath $python)) { $python = (Get-Command python.exe -ErrorAction Stop).Source }
     $helper = Join-Path $PSScriptRoot 'acceptance_http.py'
     if (-not (Test-Path -LiteralPath $helper)) { throw 'acceptance_http.py is missing' }

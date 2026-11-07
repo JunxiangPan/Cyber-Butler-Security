@@ -1,4 +1,4 @@
-# Fail-closed check for the SYSTEM Broker runtime.
+﻿# Fail-closed check for the SYSTEM Broker runtime.
 # Run from tools/broker.py startup, and also manually before deploying.
 param(
     [string]$ServiceUser = 'YOUR_SERVICE_USER',
@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $paths = @(
     (Join-Path $root 'tools'),
-    (Join-Path $root 'webui\.venv')
+    (Join-Path $root 'python')
 )
 $bad = New-Object System.Collections.Generic.List[string]
 $writeMask = 'Write|Modify|FullControl|TakeOwnership|ChangePermissions'

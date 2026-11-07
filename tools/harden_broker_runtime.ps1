@@ -1,4 +1,4 @@
-# One-shot elevated ACL hardening for the SYSTEM Broker runtime.
+﻿# One-shot elevated ACL hardening for the SYSTEM Broker runtime.
 # Run only during deployment, from an elevated PowerShell, after testing.
 # This intentionally removes inherited write access and grants the desktop
 # account read/execute only, so game-mode can still load its script.
@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $paths = @(
     (Join-Path $root 'tools'),
-    (Join-Path $root 'webui\.venv')
+    (Join-Path $root 'python')
 )
 
 foreach ($path in $paths) {
