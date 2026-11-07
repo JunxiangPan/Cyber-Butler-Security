@@ -68,7 +68,7 @@
     }
   ],
   "enable_encoding": true,
-  "schema_version": "0.1.7",
+  "schema_version": "0.1.6",
   "custom_rules": [
     {
       "id": "CBP-CUSTOM-NO-RAW-PYTHON",
