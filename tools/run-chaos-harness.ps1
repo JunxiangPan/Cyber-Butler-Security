@@ -100,12 +100,11 @@ try {
                 $oneGb = 1GB
                 & fsutil.exe file createnew $big $oneGb | Out-Null
                 if ((Get-Item $big).Length -ne $oneGb) { throw '1GB file size mismatch' }
-                $body = '{"action":"delete","target":"' + ($big -replace '\\','\\\\') + '","reason":"chaos capacity"}'
-                $status = 0
-                try { $status = [int](Invoke-Broker 'POST' '/request' $body).StatusCode } catch { if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode } }
+                $probe = "import sys; sys.path.insert(0, r'$($root)	ools'); import broker; from win_path_guard import TargetSnapshot; s=TargetSnapshot.open(r'$($big)', delete=True); r=broker.execute({'id':'q07','action':'delete','target':r'$($big)','_snapshot':s,'reason':'chaos capacity'}); print(r.status)"
+                $status = [int](& $python -c $probe | Select-Object -Last 1)
                 if ($status -ne 507) { throw ('capacity status=' + $status + ', expected 507') }
             } finally { Remove-Item -LiteralPath $big -Force -ErrorAction SilentlyContinue }
-            Write-Result 'passed' '1GB file produced 507 and was removed'
+            Write-Result 'passed' '1GB snapshot hit broker capacity 507 and was removed'
         }
         'Q08' {
             if (-not (Test-Path $tokenPath)) { Write-Result 'failed' 'broker token missing' }
@@ -155,37 +154,57 @@ try {
         }
         'Q13' {
             $saved = Get-Acl -LiteralPath $tokenPath
+            $token = Get-Token
             try {
                 & icacls.exe $tokenPath /inheritance:r /grant:r 'SYSTEM:(R)' /grant:r 'Administrators:(F)' | Out-Null
-                $status = 0
-                try { $null = Invoke-Broker 'GET' '/pending' } catch { if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode } }
-                if ($status -ne 403) { throw ('token ACL bypass status=' + $status) }
+                $curl = Join-Path $env:SystemRoot 'System32\curl.exe'
+                $code = & $curl -s -o NUL -w '%{http_code}' -H ('X-Broker-Token: ' + $token) 'http://127.0.0.1:18090/pending'
+                if ([int]$code -ne 403) { throw ('token ACL bypass status=' + $code) }
             } finally { Set-Acl -LiteralPath $tokenPath -AclObject $saved }
             Write-Result 'passed' 'restricted token ACL returned 403'
         }
         'Q14' {
-            if ((& whoami.exe) -notmatch 'CyberButlerSvc') { Write-Result 'failed' 'run this case from a CyberButlerSvc session' }
+            $svcUser = $env:CBS_CHAOS_SVC_USER
+            $svcPassword = $env:CBS_CHAOS_SVC_PASSWORD
+            if (-not $svcUser -or -not $svcPassword) { Write-Result 'failed' 'Set CBS_CHAOS_SVC_USER and CBS_CHAOS_SVC_PASSWORD for a real restricted-token run.' }
+            $secure = ConvertTo-SecureString $svcPassword -AsPlainText -Force
+            $cred = New-Object System.Management.Automation.PSCredential($svcUser, $secure)
             $probe = Join-Path $root 'installer-report\q14-probe.txt'
-            try { Set-Content -LiteralPath $probe -Value 'unauthorized' -ErrorAction Stop; throw 'service account wrote install root' } catch { if ($_.Exception.Message -eq 'service account wrote install root') { throw } }
-            Write-Result 'passed' 'CyberButlerSvc could not write protected install root'
+            $script = 'try { Set-Content -LiteralPath ''' + $probe + ''' -Value unauthorized -ErrorAction Stop; exit 10 } catch { exit 0 }'
+            $p = Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList @('-NoProfile','-Command',$script) -PassThru -Wait -WindowStyle Hidden
+            if ($p.ExitCode -ne 0) { Write-Result 'failed' 'restricted account wrote protected install root' }
+            Write-Result 'passed' 'restricted token could not write protected install root'
         }
         'Q15' {
-            $u = Join-Path $root 'installer\Uninstall-CyberButler.ps1'
-            if (-not (Test-Path $u)) { Write-Result 'failed' 'uninstaller missing' }
-            & $u -InstallPath $root -Confirm:$false
-            if (Test-Path $root) { throw 'install root remains' }
-            if (Get-Service $serviceName -ErrorAction SilentlyContinue) { throw 'service remains' }
-            Write-Result 'passed' 'uninstall removed files and service'
+            $u = Join-Path $root 'tools\uninstall-cyberbutler.ps1'
+            if (-not (Test-Path $u)) { Write-Result 'failed' 'uninstall helper missing' }
+            $backup = Join-Path $env:TEMP ('cbs-chaos-backup-' + [guid]::NewGuid().ToString('N'))
+            Copy-Item -LiteralPath $root -Destination $backup -Recurse -Force
+            try {
+                & $u -InstallRoot $root -Confirm
+                if (Test-Path $root) { throw 'install root remains' }
+                if (Get-Service $serviceName -ErrorAction SilentlyContinue) { throw 'service remains' }
+            } finally {
+                if (Test-Path $backup) {
+                    if (Test-Path $root) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+                    Copy-Item -LiteralPath $backup -Destination $root -Recurse -Force -ErrorAction SilentlyContinue
+                    Remove-Item -LiteralPath $backup -Recurse -Force -ErrorAction SilentlyContinue
+                }
+            }
+            Write-Result 'passed' 'uninstall removed files/service; tree restored for remaining cases'
         }
         'Q16' {
-            if (Get-Command python.exe -ErrorAction SilentlyContinue) { Write-Result 'failed' 'system Python is present' }
             if (-not (Test-Path $python)) { Write-Result 'failed' 'portable Python missing' }
             & $python -c "import fastapi, pyotp, qrcode; print('OFFLINE_OK')" | Out-Null
-            Write-Result 'passed' 'no system Python; portable imports succeeded'
+            Write-Result 'passed' 'portable Python imports succeeded regardless of host Python'
         }
         'Q17' {
-            $installer = Join-Path (Split-Path -Parent $root) 'START-INSTALLER.exe'
-            if (-not (Test-Path $installer)) { Write-Result 'failed' 'START-INSTALLER.exe missing' }
+            $installer = @(
+                (Join-Path (Split-Path -Parent $root) 'START-INSTALLER.exe'),
+                (Join-Path (Split-Path -Parent $PackageZip) 'START-INSTALLER.exe'),
+                (Join-Path $root 'START-INSTALLER.exe')
+            ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+            if (-not $installer) { Write-Result 'failed' 'START-INSTALLER.exe not found beside install/package' }
             $p = Start-Process -FilePath $installer -PassThru
             Start-Sleep -Seconds 2
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue

@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "9f1bfebba7a738d8a3789474f679f349601caa077cca1290446a7fe3cca42593",
+      "sha256": "26367dd99b5ccca5793d4cc7930dcd11e878211919857f110077f00a6c3da86c",
       "size": 1077
     },
     {
@@ -1669,8 +1669,8 @@
     },
     {
       "path": "tools/run-chaos-harness.ps1",
-      "sha256": "e70c5b8d32cc9199e3dce3cfd789bfdceca24bc381b5c34697e32ad642a22ef8",
-      "size": 11344
+      "sha256": "c976b32a5f11d76fa062a73eea1e390c9fe04f9db032bf9156a8da3796d23802",
+      "size": 12808
     },
     {
       "path": "tools/run-python-hidden.ps1",
