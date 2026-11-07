@@ -5,6 +5,7 @@ RULE_ID = "CBP-COV-001"
 
 import hashlib
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
@@ -75,7 +76,70 @@ def _group_stats(
     return passed, detail, missing_files
 
 
+
+
+def _lcov_files(text: str) -> dict[str, Any]:
+    """Parse LCOV into the internal per-file coverage shape."""
+    files: dict[str, Any] = {}
+    current = ""
+    statements: dict[str, int] = {}
+    for line in text.splitlines():
+        if line.startswith("SF:"):
+            current = _norm(line[3:].strip())
+            files.setdefault(current, {"summary": {}, "missing_lines": []})
+            statements[current] = 0
+        elif line.startswith("DA:") and current:
+            body = line[3:].split(",", 1)
+            if len(body) == 2 and body[0].isdigit():
+                statements[current] = statements.get(current, 0) + 1
+                if body[1].strip() == "0":
+                    files[current]["missing_lines"].append(int(body[0]))
+        elif line == "end_of_record" and current:
+            files[current]["summary"] = {"num_statements": statements.get(current, 0)}
+            current = ""
+    return files
+
+
+def _cobertura_files(text: str) -> dict[str, Any]:
+    """Parse Cobertura XML into the internal per-file coverage shape."""
+    root = ET.fromstring(text)
+    files: dict[str, Any] = {}
+    for node in root.iter():
+        if node.tag.rsplit("}", 1)[-1] != "class":
+            continue
+        name = node.attrib.get("filename", "")
+        if not name:
+            continue
+        missing: list[int] = []
+        statements = 0
+        for line in node:
+            if line.tag.rsplit("}", 1)[-1] != "lines":
+                continue
+            for entry in line:
+                if entry.tag.rsplit("}", 1)[-1] != "line":
+                    continue
+                statements += 1
+                if entry.attrib.get("hits", "0") == "0" and entry.attrib.get("number", "").isdigit():
+                    missing.append(int(entry.attrib["number"]))
+        files[_norm(name)] = {"summary": {"num_statements": statements}, "missing_lines": missing}
+    return files
+
+
+def _load_coverage(path: Path) -> dict[str, Any]:
+    """Read coverage.py JSON, LCOV, or Cobertura XML."""
+    suffix = path.suffix.casefold()
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if suffix == ".json":
+        return json.loads(text)
+    if suffix in {".lcov", ".info"} or text.startswith("TN:") or "SF:" in text:
+        return {"files": _lcov_files(text), "format": "lcov"}
+    if suffix == ".xml" or text.lstrip().startswith("<"):
+        return {"files": _cobertura_files(text), "format": "cobertura"}
+    raise ValueError(f"unsupported coverage format: {path.name}")
+
 def _source_hash_problem(root: Path, data: dict) -> str:
+    if data.get("format") in {"lcov", "cobertura"}:
+        return ""
     files = source_hash.measured_files(root, data)
     expected = data.get("source_files_hash")
     if not expected:
@@ -100,7 +164,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         actual = hashlib.sha256(coverage.read_bytes()).hexdigest()
         if not parts or parts[0].lower() != actual.lower():
             return False, "coverage signature mismatch"
-    data = json.loads(coverage.read_text(encoding="utf-8"))
+    try:
+        data = _load_coverage(coverage)
+    except (ValueError, ET.ParseError, json.JSONDecodeError) as exc:
+        return False, f"coverage file is unreadable: {exc}"
     allow = json.loads(allowlist.read_text(encoding="utf-8"))
     files = {_norm(str(key)): value for key, value in data["files"].items()}
 

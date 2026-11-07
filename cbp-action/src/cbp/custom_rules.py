@@ -91,6 +91,8 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         required_matcher = None
         if len(pattern) > MAX_PATTERN_CHARS:
             return False, f"custom rule {name} pattern exceeds {MAX_PATTERN_CHARS} characters"
+        if re.search(r"\([^)]*[+*][^)]*\)[+*{]", pattern):
+            return False, f"custom rule {name} contains a nested quantifier that can cause ReDoS"
         if required:
             if len(required) > MAX_PATTERN_CHARS:
                 return False, f"custom rule {name} required_pattern is too long"
