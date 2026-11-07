@@ -118,7 +118,7 @@ function Get-CyberButlerServiceSpecs {
     $webArgs = '--exe "pwsh.exe" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
 
     return @(
-        [pscustomobject]@{ name = 'Cyber-Butler Broker'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); kind = 'task'; principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
+        [pscustomobject]@{ name = 'Cyber-Butler Broker'; kind = 'service'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
         [pscustomobject]@{ name = 'Cyber-Butler WFP Guard'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "wfp_guard.py --watch --policy {2}" --hidden --wait --log "{3}"' -f $webPython, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'webui/data/network-policy.json'), (Join-Path $rootFull 'tools/logs/wfp-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 0 },
         [pscustomobject]@{ name = 'Cyber-Butler Web UI Services'; exe = $launcher; args = $webArgs; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8765 },
         [pscustomobject]@{ name = 'Cyber-Butler OTP Mailer'; exe = $webPythonw; args = 'otp_mailer.py'; workdir = (Join-Path $rootFull 'webui'); principal = 'desktop'; trigger = 'AtLogOn'; port = 8766 },
@@ -199,6 +199,23 @@ function Test-CyberButlerServices {
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
     $taskRows = New-Object System.Collections.Generic.List[object]
     foreach ($spec in $specs) {
+        if ([string]$spec.kind -eq 'service') {
+            $svc = Get-Service -Name $spec.name -ErrorAction SilentlyContinue
+            $taskRows.Add([pscustomobject][ordered]@{
+                name = $spec.name
+                exists = [bool]$svc
+                state = if ($svc) { [string]$svc.Status } else { $null }
+                principal = 'NT AUTHORITY\SYSTEM'
+                expected_principal = 'NT AUTHORITY\SYSTEM'
+                principal_ok = $true
+                port = $spec.port
+                action_execute = if ($svc) { 'native-service' } else { $null }
+                action_arguments = $null
+                action_workdir = $null
+                last_task_result = $null
+            })
+            continue
+        }
         $task = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
         $principal = $null
         if ($task) { try { $principal = [string]$task.Principal.UserId } catch { Write-Verbose 'optional operation failed' } }
@@ -248,6 +265,51 @@ function Test-CyberButlerServices {
     New-CyberButlerScheduledTask performs its documented CBS operation.
 .DESCRIPTION
     Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
+#>
+<#
+.SYNOPSIS
+    New-CyberButlerNativeService registers the SYSTEM broker as a real SCM service.
+.DESCRIPTION
+    Uses New-Service -ErrorAction Stop and start-broker.bat, which sets cwd and
+    PYTHONPATH explicitly. Registration or startup failures are thrown.
+#>
+function New-CyberButlerNativeService {
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$BatPath
+    )
+    if (-not (Get-Command New-Service -ErrorAction SilentlyContinue)) { throw 'New-Service is unavailable.' }
+    if (-not (Test-Path -LiteralPath $BatPath -PathType Leaf)) { throw ('Broker wrapper missing: ' + $BatPath) }
+    $cmd = Join-Path $env:SystemRoot 'System32\cmd.exe'
+    if (-not (Test-Path -LiteralPath $cmd)) { throw ('cmd.exe missing: ' + $cmd) }
+    $binary = '"' + $cmd + '" /c "' + $BatPath + '"'
+    $existing = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    if ($existing) {
+        try { Stop-Service -Name $Name -Force -ErrorAction Stop } catch {
+            Write-Host ('SERVICE warning stopping existing ' + $Name + ': ' + $_.Exception.Message)
+        }
+        $delete = & sc.exe delete $Name 2>&1
+        if ($LASTEXITCODE -ne 0) { throw ('sc.exe delete failed for ' + $Name + ': ' + ($delete -join ' ')) }
+        Start-Sleep -Seconds 1
+    }
+    try {
+        New-Service -Name $Name -BinaryPathName $binary -DisplayName $Name -Description 'Cyber-Butler Broker (SYSTEM)' -StartupType Automatic -ErrorAction Stop | Out-Null
+        Write-Host ('SERVICE registered native service ' + $Name)
+        Start-Service -Name $Name -ErrorAction Stop
+        Write-Host ('SERVICE started native service ' + $Name)
+    } catch {
+        $message = 'Native service registration/start failed for ' + $Name + ': ' + $_.Exception.Message
+        Write-Host $message
+        throw $message
+    }
+}
+
+<#
+.SYNOPSIS
+    New-CyberButlerScheduledTask registers a scheduled task for a desktop or
+    legacy service entry.
+.DESCRIPTION
+    Registration and Start failures are thrown with the task name and principal.
 #>
 function New-CyberButlerScheduledTask {
     param(
@@ -404,6 +466,12 @@ function Set-CyberButlerServiceTasks {
     $created = New-Object System.Collections.Generic.List[object]
     $taskBackups = @{}
     foreach ($spec in $specs) {
+        if ([string]$spec.kind -eq 'service') {
+            $batPath = Join-Path ([IO.Path]::GetFullPath($Root)) 'start-broker.bat'
+            New-CyberButlerNativeService -Name $spec.name -BatPath $batPath
+            $created.Add($spec.name)
+            continue
+        }
         $existing = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
         if ($existing) {
             if ($null -ne $Journal) {

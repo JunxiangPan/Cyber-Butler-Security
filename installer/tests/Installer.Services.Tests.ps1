@@ -16,7 +16,7 @@ Describe 'Installer services safety' {
         $mediumPrincipal = Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'desktop' -DesktopAccount $desktop
         $mediumPrincipal.user_id | Should Be $desktop
         $mediumPrincipal.logon_type | Should Be 'Interactive'
-        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).kind | Should Be 'task'
+        ($highSpecs | Where-Object { $_.name -eq 'Cyber-Butler Broker' }).kind | Should Be 'service'
         $threw = $false
         try { Get-CyberButlerTaskPrincipalSpec -PrincipalMode 'service' -ServiceAccount $service | Out-Null } catch { $threw = $true }
         $threw | Should Be $true

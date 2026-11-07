@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "1477885aee8d4c845d7164d5921c41288f621e30593d5e2f1456741bc9a02c5f",
+      "sha256": "ba0c24592a0adf673e880091984ab84278d4043f5a39fcf73cf0f85026331888",
       "size": 1077
     },
     {
@@ -679,8 +679,8 @@
     },
     {
       "path": "installer/lib/Installer.Core.ps1",
-      "sha256": "b5809e53e841dc0d04f4efe8bc429776acde99f79811628f1e75b2da4c427934",
-      "size": 29379
+      "sha256": "d928a2ab960660febaff076380c899a442a8c6588bba1fde6025611d35967052",
+      "size": 30076
     },
     {
       "path": "installer/lib/Installer.Diagnostics.ps1",
@@ -729,8 +729,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "1298ecfe899bc323bd6170c0f9620500e745f4155f0fb1c5276d3cc857c81453",
-      "size": 39429
+      "sha256": "55c756ca008e1e41a1392d5cf966d7d1a84cf5d9650f769f7b3cfa8158933586",
+      "size": 42591
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -869,8 +869,8 @@
     },
     {
       "path": "installer/tests/Installer.Services.Tests.ps1",
-      "sha256": "54425b8cd85f11e585219afc6b72652aade8f0fd0d0c488fb82b99b8248c5953",
-      "size": 10827
+      "sha256": "68769cdd700047a7a739b0cf40135e06ad6bc6da6f94fed0b5f46fc521194caa",
+      "size": 10830
     },
     {
       "path": "installer/tests/Installer.Tier.Tests.ps1",

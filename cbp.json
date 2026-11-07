@@ -104,6 +104,17 @@
       "message": "Journal status warning is not in the ValidateSet; use in_progress/completed/failed.",
       "mode": "enforce",
       "severity": "error"
+    },
+    {
+      "id": "CBP-CUSTOM-NO-SILENT-CATCH",
+      "name": "no_silent_catch",
+      "pattern": "(?s)catch\\s*\\{\\s*\\}",
+      "files": [
+        "installer/**/*.ps1"
+      ],
+      "message": "Empty catch silently swallows an exception. Log, rethrow, or use Write-Error.",
+      "mode": "enforce",
+      "severity": "error"
     }
   ]
 }

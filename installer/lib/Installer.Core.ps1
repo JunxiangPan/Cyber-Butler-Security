@@ -534,6 +534,15 @@ function Invoke-CyberButlerCoreDeploy {
             & $python @pipArgs *> $webPipLog
             if ($LASTEXITCODE -ne 0) { throw ('CBS portable Python dependency install failed; log: ' + $webPipLog) }
         }
+        $brokerBat = Join-Path $root 'start-broker.bat'
+        $brokerBatText = '@echo off' + [Environment]::NewLine +
+            'cd /d "' + $root + '"' + [Environment]::NewLine +
+            'set "PYTHONPATH=' + (Join-Path $root 'python\Lib\site-packages') + ';' + $root + '"' + [Environment]::NewLine +
+            '"' + $python + '" "' + (Join-Path $root 'tools/broker.py') + '" >> "' + (Join-Path $root 'broker-crash.log') + '" 2>&1' + [Environment]::NewLine
+        Set-Content -LiteralPath $brokerBat -Value $brokerBatText -Encoding ASCII
+        if (-not (Test-Path -LiteralPath $brokerBat)) {
+            throw 'HARD ASSERT FAILED: start-broker.bat was not created.'
+        }
         if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $root 'tools') 'broker.py'))) {
             throw 'HARD ASSERT FAILED: tools/broker.py was not copied into the install root.'
         }
