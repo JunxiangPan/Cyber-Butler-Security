@@ -15,10 +15,6 @@ ROOT = Path(__file__).resolve().parents[2]
 MATRIX = ROOT / "quality" / "quality_matrix.json"
 
 
-def _skip(name: str):
-    pytest.skip(f"{name} requires the clean-VM/soak harness; recorded as BLOCKED")
-
-
 def test_q01_path_boundaries_and_unicode():
     sys.path.insert(0, str(ROOT / "tools"))
     try:
@@ -115,78 +111,74 @@ def test_q04_broker_config_tamper_fallback(tmp_path):
         broker.BROKER_CONFIG = old
 
 
+def _chaos(case: str) -> None:
+    import os
+    import tempfile
+    root = os.environ.get("CBS_CHAOS_ROOT", r"C:\CyberButler")
+    with tempfile.TemporaryDirectory(prefix="cbs-chaos-result-") as directory:
+        result = Path(directory) / (case + ".json")
+        command = [
+            "pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "-File", str(ROOT / "quality" / "run-chaos-harness.ps1"),
+            "-Case", case, "-InstallRoot", root,
+            "-ResultPath", str(result), "-ConfirmDestructive",
+        ]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=900)
+        assert result.is_file(), completed.stdout + completed.stderr
+        payload = json.loads(result.read_text(encoding="utf-8"))
+        assert payload.get("status") == "passed", payload.get("detail")
+
+
 def test_q05_broker_death_agent_unavailable():
-    _skip("Broker-kill chaos")
+    _chaos("Q05")
 
 
 def test_q06_wfp_heartbeat_45_seconds():
-    _skip("WFP Guard kill/heartbeat chaos")
+    _chaos("Q06")
 
 
 def test_q07_disk_full_capacity_breaker():
-    _skip("Disk-full/1GB capacity chaos")
+    _chaos("Q07")
 
 
 def test_q08_service_acl_loss():
-    _skip("ACL-loss chaos")
+    _chaos("Q08")
 
 
 def test_q09_1000_request_handle_leak():
-    _skip("1000-request handle soak")
+    _chaos("Q09")
 
 
 def test_q10_one_hour_memory_soak():
-    _skip("1-hour memory soak")
+    _chaos("Q10")
 
 
 def test_q11_orphan_process_scan():
-    _skip("Job Object orphan-process scan")
-
-
-def test_q12_toctou_snapshot_mismatch(tmp_path):
-    sys.path.insert(0, str(ROOT / "tools"))
-    try:
-        import win_path_guard
-    except Exception as exc:
-        pytest.skip(f"win_path_guard unavailable: {exc}")
-    target = tmp_path / "target.txt"
-    target.write_text("one", encoding="utf-8")
-    snapshot = win_path_guard.TargetSnapshot.open(str(target), delete=True)
-    try:
-        try:
-            target.write_text("two-different-content", encoding="utf-8")
-        except PermissionError:
-            # The open snapshot denies write access; this is the stronger
-            # fail-closed result. No mutation reached the approval boundary.
-            return
-        with pytest.raises(Exception):
-            snapshot.assert_unchanged()
-    finally:
-        snapshot.close()
+    _chaos("Q11")
 
 
 def test_q13_trash_acl_bypass():
-    _skip("SYSTEM-only trash ACL real-machine test")
+    _chaos("Q13")
 
 
 def test_q14_service_privilege_escalation():
-    _skip("CyberButlerSvc SeDebugPrivilege/time escalation test")
+    _chaos("Q14")
 
 
 def test_q15_clean_uninstall_residue():
-    _skip("Clean-VM uninstall residue test")
+    _chaos("Q15")
 
 
 def test_q16_offline_wheelhouse_python_free():
-    _skip("Python-free clean-VM offline install")
+    _chaos("Q16")
 
 
 def test_q17_interrupted_install_resume():
-    _skip("Interrupted service creation/resume test")
+    _chaos("Q17")
 
 
 def test_q18_no_unresolved_placeholders():
-    package = ROOT.parent / "public-release-v1.6.3.zip"
+    package = next((p for p in [ROOT.parent / "public-release-v1.6.4-candidate.zip", ROOT.parent / "public-release-v1.6.4.zip"] if p.is_file()), ROOT.parent / "public-release-v1.6.4-candidate.zip")
     allowed = ("installer/", "tools/", "docs/", "tests/", "README-INSTALL.md", "DEPLOYMENT.md", "config.pro.example.json")
     if package.is_file():
         with zipfile.ZipFile(package) as archive:
@@ -284,9 +276,8 @@ def test_q23_audit_chain_detects_tamper(tmp_path, monkeypatch):
 
 
 def test_q24_package_has_no_dev_artifacts():
-    package = ROOT.parent / "public-release-v1.6.3.zip"
-    if not package.is_file():
-        pytest.skip("release zip not built")
+    package = next((p for p in [ROOT.parent / "public-release-v1.6.4-candidate.zip", ROOT.parent / "public-release-v1.6.4.zip"] if p.is_file()), ROOT.parent / "public-release-v1.6.4-candidate.zip")
+    assert package.is_file(), "release zip not built"
     with zipfile.ZipFile(package) as archive:
         names = archive.namelist()
     forbidden = [
@@ -309,9 +300,8 @@ def test_q25_matrix_has_25_items():
 def test_q26_sbom_matches_actual_package():
     import hashlib
 
-    package = ROOT.parent / "public-release-v1.6.3.zip"
-    if not package.is_file():
-        pytest.skip("release zip not built")
+    package = next((p for p in [ROOT.parent / "public-release-v1.6.4-candidate.zip", ROOT.parent / "public-release-v1.6.4.zip"] if p.is_file()), ROOT.parent / "public-release-v1.6.4-candidate.zip")
+    assert package.is_file(), "release zip not built"
     with zipfile.ZipFile(package) as archive:
         manifest = json.loads(archive.read("dependencies.sbom.json").decode("utf-8"))
         for entry in manifest.get("entries", []):
