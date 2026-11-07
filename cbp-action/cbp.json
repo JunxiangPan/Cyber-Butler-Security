@@ -114,5 +114,6 @@
     "README.md"
   ],
   "coverage_ratchet": "coverage-ratchet.json",
-  "rules_manifest": "rules/rules.sha256"
+  "rules_manifest": "rules/rules.sha256",
+  "rules_changelog_manifest": "rules/changelog.sha256"
 }

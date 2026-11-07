@@ -35,6 +35,7 @@ class GateConfig:
     custom_rules: tuple[dict, ...] = ()
     packs: tuple[dict, ...] = ()
     rules_manifest: Path | str = ""
+    rules_changelog_manifest: Path | str = ""
     required_artifacts: tuple[object, ...] = ()
     evidence_readers: dict = field(default_factory=dict)
     upgrade_script: str = ""

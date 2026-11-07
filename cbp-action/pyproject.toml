@@ -26,6 +26,9 @@ test = [
   "coverage>=7.6",
 ]
 
+[tool.setuptools.package-data]
+cbp = ["data/**/*"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

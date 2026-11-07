@@ -56,6 +56,14 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         expected = manifest.read_text(encoding="utf-8").strip().split()[0] if manifest.read_text(encoding="utf-8").strip() else ""
         if expected != digest:
             return False, f"custom=FAIL rules hash changed ({digest[:12]}); update RULES-CHANGELOG and rules/rules.sha256"
+    changelog_manifest = cfg.path(getattr(cfg, "rules_changelog_manifest", "") or "") if getattr(cfg, "rules_changelog_manifest", "") else None
+    if changelog_manifest is not None and changelog_manifest.is_file():
+        expected = changelog_manifest.read_text(encoding="utf-8").strip().split()[0] if changelog_manifest.read_text(encoding="utf-8").strip() else ""
+        changelog = cfg.path("docs/RULES-CHANGELOG.md")
+        if changelog.is_file():
+            actual = hashlib.sha256(changelog.read_bytes()).hexdigest()
+            if expected != actual:
+                return False, "custom=FAIL rules changelog changed; update rules/changelog.sha256"
     findings: list[str] = []
     enforced = False
     integrity = artifact_integrity.check(cfg)

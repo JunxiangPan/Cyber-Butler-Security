@@ -94,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-claims", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-custom", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-upgrade", type=lambda x: x.lower() == "true", default=None)
+    parser.add_argument("--diff", default="")
     args = parser.parse_args(argv)
     if args.verify_release:
         repository = args.repository or os.environ.get("GITHUB_REPOSITORY", "")
@@ -161,6 +162,19 @@ def main(argv: list[str] | None = None) -> int:
         if filtered != detail:
             passed = passed or not filtered.strip()
             detail = filtered or "inline-suppressed"
+        if args.diff and not passed:
+            changed = _changed_files(cfg.root, args.diff)
+            kept = []
+            for line in detail.splitlines():
+                match = __import__("re").match(r"^(?P<path>[^:]+):", line)
+                if match and match.group("path").replace("\\", "/") not in changed:
+                    continue
+                kept.append(line)
+            if detail and not kept:
+                passed = True
+                detail = "no findings on changed files"
+            else:
+                detail = chr(10).join(kept)
         gate_results.append((name, passed, detail))
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
         ok = ok and passed
