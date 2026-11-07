@@ -61,6 +61,7 @@ class GateConfig:
     baseline: Path | str = ""
     coverage_signature: Path | str = ""
     require_coverage_signature: bool = False
+    coverage_ratchet: Path | str = ""
 
     def path(self, value: Path | str) -> Path:
         """Resolve a configured path against the repository root."""
@@ -132,7 +133,7 @@ def load_config(root: Path, config_path: Path | None, overrides: dict[str, Any] 
     for key, value in data.items():
         if not hasattr(cfg, key):
             continue
-        if key in {"coverage_json", "coverage_allowlist", "dependency_lock", "install_command", "docs_manifest", "binary_artifacts", "package_zip", "claims_manifest", "claims_notes"} and value is not None:
+        if key in {"coverage_json", "coverage_allowlist", "coverage_signature", "coverage_ratchet", "dependency_lock", "install_command", "docs_manifest", "binary_artifacts", "package_zip", "claims_manifest", "claims_notes"} and value is not None:
             value = Path(value)
         setattr(cfg, key, value)
     return cfg

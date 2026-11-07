@@ -112,5 +112,6 @@
     "action.yml",
     "pyproject.toml",
     "README.md"
-  ]
+  ],
+  "coverage_ratchet": "coverage-ratchet.json"
 }

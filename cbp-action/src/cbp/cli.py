@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import baseline, binary_gate, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
+from . import baseline, binary_gate, suppression, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
 from .config import load_config
 
 
@@ -104,6 +104,10 @@ def main(argv: list[str] | None = None) -> int:
     gate_results = []
     for name, check in checks:
         passed, detail = check(cfg)
+        filtered = suppression.filter_text(cfg.root, detail)
+        if filtered != detail:
+            passed = passed or not filtered.strip()
+            detail = filtered or "inline-suppressed"
         gate_results.append((name, passed, detail))
         print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
         ok = ok and passed

@@ -5,6 +5,7 @@ RULE_ID = "CBP-COV-001"
 
 import hashlib
 import json
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -175,6 +176,13 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     if freshness:
         return False, freshness
     groups = getattr(cfg, "coverage_groups", ())
+    ratchet: dict[str, float] = {}
+    ratchet_path = cfg.path(getattr(cfg, "coverage_ratchet", "") or "")
+    if ratchet_path.is_file():
+        try:
+            ratchet = {str(k): float(v) for k, v in json.loads(ratchet_path.read_text(encoding="utf-8")).items()}
+        except (OSError, ValueError, TypeError) as exc:
+            return False, f"coverage ratchet is unreadable: {exc}"
     if groups:
         ok = True
         details: list[str] = []
@@ -183,6 +191,11 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
             if mode not in {"enforce", "warn"}:
                 return False, f"{group.get('name', 'unnamed')}: invalid mode {mode!r}"
             passed, detail, _missing = _group_stats(cfg, group, files, allow, data)
+            name = str(group.get("name", "unnamed"))
+            pct_match = re.search(r"=(\d+(?:\.\d+)?)%", detail)
+            if passed and name in ratchet and pct_match and float(pct_match.group(1)) < ratchet[name]:
+                passed = False
+                detail = f"{name}={pct_match.group(1)}% below ratchet {ratchet[name]:.2f}%"
             if passed:
                 details.append(detail)
             elif mode == "enforce":

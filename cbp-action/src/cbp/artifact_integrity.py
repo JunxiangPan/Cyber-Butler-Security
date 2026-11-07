@@ -123,7 +123,7 @@ def action_pin_findings(cfg: GateConfig) -> list[str]:
     findings: list[str] = []
     for path in list(cfg.root.rglob("*.yml")) + list(cfg.root.rglob("*.yaml")):
         rel = path.relative_to(cfg.root).as_posix()
-        if SKIP_PARTS & set(path.parts) or rel.endswith("usage.yml") or "/examples/" in rel or "/docs/" in rel:
+        if SKIP_PARTS & set(path.parts) or rel.endswith("usage.yml") or rel.startswith(("examples/", "docs/")) or "/examples/" in rel or "/docs/" in rel:
             continue
         for line_no, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
             match = ACTION_REF.search(line)
