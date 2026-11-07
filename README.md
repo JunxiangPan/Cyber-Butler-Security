@@ -1,6 +1,6 @@
 # Cyber-Butler Security (CBS)
 
-[![CBP](https://img.shields.io/badge/Secured_by-CBP_v0.1.4-blue)](https://github.com/marketplace/actions/cbp-coverage-and-build-policy)
+[![CBP](https://img.shields.io/badge/Secured_by-CBP_v0.1.6-blue)](https://github.com/marketplace/actions/cbp-coverage-and-build-policy)
 
 
 ## Release verification
