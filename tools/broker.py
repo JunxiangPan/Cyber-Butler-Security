@@ -538,7 +538,7 @@ def _start_audit_chain_mirror() -> None:
                     offset = handle.tell()
             except Exception as exc:
                 log(f"audit chain mirror failed: {exc}")
-                os._exit(70)
+                return
 
     threading.Thread(target=run, name="audit-chain", daemon=True).start()
 
@@ -1196,7 +1196,7 @@ def verify_code(code: str, request_id: str = "") -> str:
     code = code.strip().upper()
     if len(code) == 6 and code.isdigit():
         if pyotp.TOTP(secret()).verify(code, valid_window=1):
-            digest = hashlib.sha256((str(request_id) + "|" + code).encode("utf-8")).hexdigest()
+            digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
             now = time.time()
             with broker_state._replay_lock:
                 for old_digest, used_at in list(broker_state._used_totp.items()):
@@ -2846,6 +2846,11 @@ def main() -> None:
         log("broker startup refused: unrendered YOUR_* placeholder; run the installer or render the template first")
         raise SystemExit("Broker refuses to start: unrendered YOUR_* placeholder")
 
+    try:
+        audit_chain._key()
+    except Exception as exc:
+        log("broker startup refused: audit HMAC key unavailable: " + str(exc))
+        raise SystemExit("Broker refuses to start: audit HMAC key unavailable") from exc
     log("broker startup; checking loopback port ownership")
     port_guard.assert_broker_port(PORT)
     log("broker starting; installing job object")

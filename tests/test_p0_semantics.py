@@ -16,7 +16,7 @@ def test_execution_result_is_typed_and_unpackable() -> None:
     assert ok is False and message == "capacity"
 
 
-def test_totp_replay_is_scoped_to_request_id(monkeypatch) -> None:
+def test_totp_replay_is_global(monkeypatch) -> None:
     monkeypatch.setattr(broker, "secret", lambda: "test-secret")
     class FakeTotp:
         def __init__(self, secret: str) -> None:
@@ -28,7 +28,7 @@ def test_totp_replay_is_scoped_to_request_id(monkeypatch) -> None:
     broker.broker_state._used_totp.clear()
     assert broker.verify_code("123456", "request-a") == "totp"
     assert broker.verify_code("123456", "request-a") == "replay"
-    assert broker.verify_code("123456", "request-b") == "totp"
+    assert broker.verify_code("123456", "request-b") == "replay"
 
 
 def test_capacity_execution_maps_to_507(monkeypatch, tmp_path) -> None:
