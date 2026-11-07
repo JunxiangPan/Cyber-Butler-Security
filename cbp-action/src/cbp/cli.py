@@ -95,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--enable-custom", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--enable-upgrade", type=lambda x: x.lower() == "true", default=None)
     parser.add_argument("--diff", default="")
+    parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--github-annotations", action="store_true")
     args = parser.parse_args(argv)
     if args.verify_release:
         repository = args.repository or os.environ.get("GITHUB_REPOSITORY", "")
@@ -151,19 +153,18 @@ def main(argv: list[str] | None = None) -> int:
     ok = True
     gate_results = []
     skipped = 0
-    for name, check in checks:
+    changed = _changed_files(Path(args.root), args.diff) if args.diff else set()
+
+    def execute(item):
+        name, check = item
         if not _configured(name, cfg):
-            skipped += 1
-            gate_results.append((name, True, "SKIPPED (not configured)"))
-            print(f"{name}: SKIPPED (not configured)")
-            continue
+            return name, True, "SKIPPED (not configured)", True
         passed, detail = check(cfg)
         filtered = suppression.filter_text(cfg.root, detail)
         if filtered != detail:
             passed = passed or not filtered.strip()
             detail = filtered or "inline-suppressed"
         if args.diff and not passed:
-            changed = _changed_files(cfg.root, args.diff)
             kept = []
             for line in detail.splitlines():
                 match = __import__("re").match(r"^(?P<path>[^:]+):", line)
@@ -175,8 +176,23 @@ def main(argv: list[str] | None = None) -> int:
                 detail = "no findings on changed files"
             else:
                 detail = chr(10).join(kept)
+        return name, passed, detail, False
+
+    if args.jobs > 1:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+            results = list(pool.map(execute, checks))
+    else:
+        results = [execute(item) for item in checks]
+    for name, passed, detail, was_skipped in results:
+        skipped += 1 if was_skipped else 0
         gate_results.append((name, passed, detail))
-        print(f"{name}: {'PASS' if passed else 'FAIL'} {detail}")
+        print(f"{name}: {'SKIPPED (not configured)' if was_skipped else ('PASS' if passed else 'FAIL')} {'' if was_skipped else detail}")
+        if args.github_annotations and not passed:
+            for line in detail.splitlines():
+                match = __import__("re").match(r"^(?P<path>[^:]+):(?P<line>\d+):\s*(?P<message>.+)$", line)
+                if match:
+                    print(f"::error file={match.group('path')},line={match.group('line')}::{match.group('message')}")
         ok = ok and passed
     if not checks:
         ok = False
