@@ -2,6 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Windows.Forms;
@@ -15,7 +17,7 @@ using System.Windows.Forms;
 
 internal static class InstallerProgram
 {
-    private const string PwshMissingMessage = "CBS requires PowerShell 7. Please install it from Microsoft.";
+    private const string PwshMissingMessage = "CBS bundled PowerShell 7 could not start. Check crash.log or run START-INSTALLER.exe as administrator.";
 
     private static bool IsAdministrator()
     {
@@ -75,26 +77,62 @@ internal static class InstallerProgram
                   "A crash.log was written next to START-INSTALLER.exe.");
     }
 
-    private static string FindPwsh()
+    private static string EnsureBundledPowerShell(string baseDir)
     {
-        string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string[] candidates =
+        string pwshDir = Path.Combine(@"C:\CyberButler", "pwsh");
+        string pwsh = Path.Combine(pwshDir, "pwsh.exe");
+        if (File.Exists(pwsh))
         {
-            Path.Combine(programFiles, "PowerShell", "7", "pwsh.exe"),
-            Path.Combine(programFiles, "PowerShell", "7-preview", "pwsh.exe"),
-            Path.Combine(localAppData, "Microsoft", "WindowsApps", "pwsh.exe"),
-        };
-        foreach (string candidate in candidates)
-        {
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
+            return pwsh;
         }
-        // Final fallback: let CreateProcess search PATH. A missing executable is
-        // caught and converted into the friendly PowerShell 7 prompt below.
-        return "pwsh.exe";
+        string bundleDir = Path.Combine(baseDir, "installer", "pwsh");
+        string[] parts = Directory.Exists(bundleDir)
+            ? Directory.GetFiles(bundleDir, "PowerShell-*-win-x64.zip.part*")
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray()
+            : Array.Empty<string>();
+        string direct = Directory.Exists(bundleDir)
+            ? Directory.GetFiles(bundleDir, "PowerShell-*-win-x64.zip")
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault()
+            : null;
+        if (parts.Length == 0 && string.IsNullOrEmpty(direct))
+        {
+            throw new FileNotFoundException("Bundled PowerShell 7 archive is missing from installer/pwsh.");
+        }
+        string temp = Path.Combine(Path.GetTempPath(), "cbs-pwsh-" + Guid.NewGuid().ToString("N") + ".zip");
+        try
+        {
+            if (parts.Length > 0)
+            {
+                using (FileStream output = File.Create(temp))
+                {
+                    foreach (string part in parts)
+                    {
+                        using (FileStream input = File.OpenRead(part))
+                        {
+                            input.CopyTo(output);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                File.Copy(direct, temp, true);
+            }
+            Directory.CreateDirectory(pwshDir);
+            ZipFile.ExtractToDirectory(temp, pwshDir, true);
+        }
+        finally
+        {
+            try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+        }
+        if (!File.Exists(pwsh))
+        {
+            throw new FileNotFoundException("Bundled PowerShell extraction did not produce pwsh.exe.", pwsh);
+        }
+        Log("bundled PowerShell extracted to " + pwsh);
+        return pwsh;
     }
 
     private static int RelaunchAsAdministrator(string baseDir)
@@ -128,9 +166,8 @@ internal static class InstallerProgram
         }
     }
 
-    private static int RunGui(string gui, string baseDir)
+    private static int RunGui(string gui, string baseDir, string pwsh)
     {
-        string pwsh = FindPwsh();
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = pwsh;
         psi.Arguments = "-NoProfile -STA -ExecutionPolicy RemoteSigned -File \"" + gui + "\"";
@@ -140,7 +177,10 @@ internal static class InstallerProgram
         psi.WindowStyle = ProcessWindowStyle.Hidden;
         psi.RedirectStandardOutput = true;
         psi.RedirectStandardError = true;
-        AppendLog(baseDir, "starting PowerShell 7 (" + pwsh + ") gui=" + gui);
+        psi.EnvironmentVariables["CBS_PWSH"] = pwsh;
+        string oldPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+        psi.EnvironmentVariables["PATH"] = Path.GetDirectoryName(pwsh) + ";" + oldPath;
+        AppendLog(baseDir, "starting bundled PowerShell 7 (" + pwsh + ") gui=" + gui);
         Process child;
         try
         {
@@ -189,7 +229,7 @@ internal static class InstallerProgram
             {
                 return RelaunchAsAdministrator(baseDir);
             }
-            return RunGui(gui, baseDir);
+            return RunGui(gui, baseDir, EnsureBundledPowerShell(baseDir));
         }
         catch (Exception ex)
         {

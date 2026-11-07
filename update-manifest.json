@@ -54,8 +54,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "3f289d68c00a1f242a8951f36dc756eb390fa401cc02dff350f7712a7533309f",
-      "size": 3942
+      "sha256": "75f9263b476d4e5d99d358ace593fb7752efc35611fde285ccb7eea152b41c3f",
+      "size": 4016
     },
     {
       "path": "README_de.md",
@@ -109,8 +109,8 @@
     },
     {
       "path": "START-INSTALLER.exe",
-      "sha256": "4cb9765750ad8b6436d37018e4d7bf0687923c224a34f2b800109011c1c7e814",
-      "size": 67910649
+      "sha256": "1148c7c9c9dad79bba78a01b09518ea676a7017e51b4d1a1c37add8da82a9334",
+      "size": 67911580
     },
     {
       "path": "THREAT_MODEL.md",
@@ -134,8 +134,8 @@
     },
     {
       "path": "build/StartInstaller.cs",
-      "sha256": "8df82781e12d6b2be5bbb835092c26a1065197c6bad97862436fbc5c824ff2c7",
-      "size": 7492
+      "sha256": "7fc5d7b4b4c9f81880551ecd4bc15098594074ab471d7fd7e1d0cbd057db3568",
+      "size": 9346
     },
     {
       "path": "build/StartInstaller.csproj",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "982a71e87d539bd2638dab4fd3199bb244fb889efbb5734f035281c2a5bf8d89",
+      "sha256": "38cfb3235afcf1601c9b6f5aafdc5edec5faf8c55c097e5cd5c2f3e0d970551f",
       "size": 1077
     },
     {
@@ -394,8 +394,8 @@
     },
     {
       "path": "docs/WINDOWS_VM_ACCEPTANCE.md",
-      "sha256": "922c1856700f82cf2ab09b8c42b13d3f867cb0494f812c537aab450271bbf996",
-      "size": 2790
+      "sha256": "06689bf8aed9ebecc0f6a5d3cd75bd3ecba732ece0d8535b159f1a445719cf45",
+      "size": 2872
     },
     {
       "path": "docs/_data/clean-vm-expected.json",
@@ -729,8 +729,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "71a05fed20c9a2640d724eab41484ffc45c57e1c8ca39bd088be90ec94701a60",
-      "size": 43013
+      "sha256": "6954cbe85838fec82e34ab132d2f523b0f7f82127838a8658b04147ea036ad3f",
+      "size": 43077
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",
@@ -771,6 +771,16 @@
       "path": "installer/profiles/medium.json",
       "sha256": "b1c5a72372049f644a0a8c24dd7ba7378e0a0d156856063d8aa90943c867fd6a",
       "size": 558
+    },
+    {
+      "path": "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part1",
+      "sha256": "c51e8abd24782d832b640f38237a27f185d0b2c3270c0b7de4ffa19bcfba71d1",
+      "size": 62914560
+    },
+    {
+      "path": "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part2",
+      "sha256": "8ddb9be7883bb5d192f29dd6dac31bf45c3b8226e77c3be17f8dbc47e6ec766c",
+      "size": 48246923
     },
     {
       "path": "installer/python-embed/pip.pyz",

@@ -94,6 +94,7 @@ function Get-CyberButlerServiceSpecs {
 
     $rootFull = [IO.Path]::GetFullPath($Root)
     if (-not $DesktopAccount) { $DesktopAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name }
+    $pwsh = Join-Path $rootFull 'pwsh\pwsh.exe'
     $python = Join-Path $rootFull 'python\python.exe'
     $pythonw = $python
     $webPython = $python
@@ -111,11 +112,11 @@ function Get-CyberButlerServiceSpecs {
     # A visible console can appear when Task Scheduler starts python.exe.
     # Start python.exe through the hidden launcher; stdout/stderr are redirected
     # so AgentRuntime's startup logs and initial credentials are preserved.
-    $agentruntimeArgs = ('--exe "pwsh.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"run-python-hidden.ps1\" -Python \"{1}\" -Script \"main.py\" -WorkDir \"{2}\" -StdOut \"{3}\" -StdErr \"{4}\"" --hidden --wait --log "{5}"' -f (Join-Path $rootFull 'tools'), $python, (Join-Path $rootFull 'AgentRuntime'), $agentruntimeOutLog, $agentruntimeErrLog, $agentruntimeLog)
+    $agentruntimeArgs = ('--exe "' + $pwsh + '" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"run-python-hidden.ps1\" -Python \"{1}\" -Script \"main.py\" -WorkDir \"{2}\" -StdOut \"{3}\" -StdErr \"{4}\"" --hidden --wait --log "{5}"' -f (Join-Path $rootFull 'tools'), $python, (Join-Path $rootFull 'AgentRuntime'), $agentruntimeOutLog, $agentruntimeErrLog, $agentruntimeLog)
     # Launch the wrapper, not bare run.py: the wrapper starts both WebUI
     # (8765) and OTP Mailer (8766). The previous task never started 8766,
     # so WebUI login always failed with "verification mail failed".
-    $webArgs = '--exe "pwsh.exe" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
+    $webArgs = '--exe "' + $pwsh + '" --workdir "' + (Join-Path $rootFull 'webui') + '" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"start-services.ps1\"" --hidden --wait --log "' + $webLog + '"'
 
     return @(
         [pscustomobject]@{ name = 'Cyber-Butler Broker'; kind = 'service'; exe = $launcher; args = ('--exe "{0}" --workdir "{1}" --args "broker.py" --hidden --wait --log "{2}"' -f $python, (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/logs/broker-startup.log')); workdir = (Join-Path $rootFull 'tools'); principal = 'SYSTEM'; trigger = 'AtStartup'; port = 18090 },
@@ -125,7 +126,7 @@ function Get-CyberButlerServiceSpecs {
         [pscustomobject]@{
             name = 'Game Mode Startup'
             exe = $launcher
-            args = ('--exe "pwsh.exe" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/start-game-mode.ps1'))
+            args = ('--exe "' + $pwsh + '" --workdir "{0}" --args "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{1}\"" --hidden --wait' -f (Join-Path $rootFull 'tools'), (Join-Path $rootFull 'tools/start-game-mode.ps1'))
             workdir = (Join-Path $rootFull 'tools')
             principal = 'desktop'
             trigger = 'AtLogOn'

@@ -1,8 +1,8 @@
 {
   "schema": "cbp-binary-provenance/v1",
   "path": "START-INSTALLER.exe",
-  "sha256": "4CB9765750AD8B6436D37018E4D7BF0687923C224A34F2B800109011C1C7E814",
-  "size_bytes": 67910649,
+  "sha256": "1148C7C9C9DAD79BBA78A01B09518EA676A7017E51B4D1A1C37ADD8DA82A9334",
+  "size_bytes": 67911580,
   "build": {
     "tool": "dotnet publish",
     "sdk": "8.0.427",
@@ -13,5 +13,7 @@
     "compression": true,
     "project": "build/StartInstaller.csproj",
     "command": "dotnet publish build/StartInstaller.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true"
-  }
+  },
+  "binary_sha256": "1148C7C9C9DAD79BBA78A01B09518EA676A7017E51B4D1A1C37ADD8DA82A9334",
+  "binary_size": 67911580
 }

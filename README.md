@@ -7,7 +7,7 @@
 
 CBS release packages pass the Cyber-Butler-Pipeline (CBP) baseline gates, but this does not prove that the code is absolutely secure. CBP is a consistency check for common low-level errors and obvious fabrication; it cannot stop a privileged operator from bypassing the process or replace independent security review. CBP must also statically verify that installer scripts do not depend on host environment paths; a green CI run alone is not evidence that a SYSTEM service can find its interpreter or payload.
 
-CBS requires PowerShell 7+ (`pwsh`). Physical acceptance: [docs/WINDOWS_VM_ACCEPTANCE.md](docs/WINDOWS_VM_ACCEPTANCE.md). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
+CBS ships a portable PowerShell 7 runtime in the release package; no host PowerShell installation is required. Physical acceptance: [docs/WINDOWS_VM_ACCEPTANCE.md](docs/WINDOWS_VM_ACCEPTANCE.md). Windows PowerShell 5.1 is not supported for the installer or scheduled tasks.
 
 ## Status at a glance
 

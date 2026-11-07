@@ -5,19 +5,12 @@ This is the physical acceptance procedure for CBS 1.6.4. Do not replace it with 
 ## Prerequisites
 
 - Windows 10/11 x64, administrator account
-- PowerShell 7+ (`pwsh.exe`)
+- The signed release package (it contains portable PowerShell 7 and Python)
 - The signed release package ZIP
 - A phone with the CBS TOTP enrollment
 - A fresh nonce, at least 16 characters, with at least two character classes
 
-Install PowerShell 7 if needed:
-
-```powershell
-winget install --id Microsoft.PowerShell -e
-pwsh -NoProfile -Command "$PSVersionTable.PSVersion"
-```
-
-CBS does not support Windows PowerShell 5.1 for installation or acceptance.
+CBS ships its own PowerShell 7 under `C:\CyberButler\pwsh`; the host does not need a system PowerShell installation. The launcher extracts the bundled runtime before opening the GUI.
 
 ## Unblock the transferred package first
 

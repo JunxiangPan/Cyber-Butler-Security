@@ -16,7 +16,7 @@ TEXT_SUFFIXES = {".ps1", ".py", ".json", ".md"}
 BINARY_SUFFIXES = {
     ".exe", ".dll", ".whl", ".png", ".jpg", ".jpeg", ".gif", ".ico",
     ".pyc", ".pyd", ".pdb", ".zip", ".gz", ".ttf", ".woff", ".woff2",
-    ".db", ".graph", ".pdf", ".pyz",
+    ".db", ".graph", ".pdf", ".pyz", ".part1", ".part2", ".001", ".002",
 }
 SKIP_PARTS = {".git", ".venv", "__pycache__", "wheelhouse", "node_modules",
               "tmp-webui-tests", "tmp-webui-block1-final", "YOUR_PROJECT_PATH"}
