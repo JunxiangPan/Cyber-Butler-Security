@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "coverage_json": "coverage.json",
+  "coverage_allowlist": "coverage_allowlist.json",
+  "enable_claims": true
+}
