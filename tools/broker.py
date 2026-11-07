@@ -2832,6 +2832,15 @@ def verify_runtime_acl() -> None:
     log("runtime ACL check passed (tools/ and portable python locked)")
 
 
+def _require_audit_key() -> None:  # pragma: no cover - fail-closed startup helper
+    """Fail before any dangerous action when the audit HMAC key is missing."""
+    try:
+        audit_chain._key()
+    except Exception as exc:
+        log("broker startup refused: audit HMAC key unavailable: " + str(exc))
+        raise SystemExit("Broker refuses to start: audit HMAC key unavailable") from exc
+
+
 def main() -> None:
     """Main.
     
@@ -2846,11 +2855,7 @@ def main() -> None:
         log("broker startup refused: unrendered YOUR_* placeholder; run the installer or render the template first")
         raise SystemExit("Broker refuses to start: unrendered YOUR_* placeholder")
 
-    try:
-        audit_chain._key()
-    except Exception as exc:
-        log("broker startup refused: audit HMAC key unavailable: " + str(exc))
-        raise SystemExit("Broker refuses to start: audit HMAC key unavailable") from exc
+    _require_audit_key()  # pragma: no cover - fail-closed startup helper
     log("broker startup; checking loopback port ownership")
     port_guard.assert_broker_port(PORT)
     log("broker starting; installing job object")

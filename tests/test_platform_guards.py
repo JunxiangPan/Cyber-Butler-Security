@@ -31,3 +31,19 @@ def test_token_acl_failure_is_fail_closed(monkeypatch, tmp_path: Path) -> None:
         assert "ACL failed" in str(exc)
     else:
         raise AssertionError("token ACL failure must be fail-closed")
+
+
+
+def test_audit_key_guard_fails_closed(monkeypatch):
+    import broker
+    import audit_chain
+
+    monkeypatch.delenv("CBS_AUDIT_HMAC_KEY", raising=False)
+    monkeypatch.setenv("CBS_AUDIT_KEY_FILE", r"C:\does-not-exist\audit.key")
+    monkeypatch.setattr(audit_chain, "_KEY_CACHE", None)
+    try:
+        broker._require_audit_key()
+    except SystemExit as exc:
+        assert "audit HMAC key unavailable" in str(exc)
+    else:
+        raise AssertionError("missing audit key did not fail closed")
