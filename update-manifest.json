@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "ba0c24592a0adf673e880091984ab84278d4043f5a39fcf73cf0f85026331888",
+      "sha256": "982a71e87d539bd2638dab4fd3199bb244fb889efbb5734f035281c2a5bf8d89",
       "size": 1077
     },
     {
@@ -729,8 +729,8 @@
     },
     {
       "path": "installer/lib/Installer.Services.ps1",
-      "sha256": "55c756ca008e1e41a1392d5cf966d7d1a84cf5d9650f769f7b3cfa8158933586",
-      "size": 42591
+      "sha256": "71a05fed20c9a2640d724eab41484ffc45c57e1c8ca39bd088be90ec94701a60",
+      "size": 43013
     },
     {
       "path": "installer/lib/Installer.Tier.ps1",

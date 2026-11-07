@@ -283,6 +283,14 @@ function New-CyberButlerNativeService {
     $cmd = Join-Path $env:SystemRoot 'System32\cmd.exe'
     if (-not (Test-Path -LiteralPath $cmd)) { throw ('cmd.exe missing: ' + $cmd) }
     $binary = '"' + $cmd + '" /c "' + $BatPath + '"'
+    $oldTask = $null
+    if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
+        $oldTask = Get-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
+    }
+    if ($oldTask) {
+        try { Unregister-ScheduledTask -TaskName $Name -Confirm:$false -ErrorAction Stop | Out-Null }
+        catch { throw ('Failed to remove stale scheduled task ' + $Name + ': ' + $_.Exception.Message) }
+    }
     $existing = Get-Service -Name $Name -ErrorAction SilentlyContinue
     if ($existing) {
         try { Stop-Service -Name $Name -Force -ErrorAction Stop } catch {
