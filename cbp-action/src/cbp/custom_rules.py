@@ -116,14 +116,19 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
                 findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] input exceeds ReDoS budget")
                 count += 1
                 continue
-            if required_matcher is not None:
-                if required_matcher.search(text) is None:
-                    findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] {message} (required pattern missing)")
+            try:
+                if required_matcher is not None:
+                    if not regex_guard.exists(required, flags, text):
+                        findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] {message} (required pattern missing)")
+                        count += 1
+                    continue
+                for line in regex_guard.find_lines(expression, flags, text):
+                    findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line}: [{rule_id}] {message}")
                     count += 1
-                continue
-            for match in matcher.finditer(text):
-                line = text.count("\n", 0, match.start()) + 1
-                findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line}: [{rule_id}] {message}")
+                    if count >= limit:
+                        break
+            except regex_guard.RegexTimeout as exc:
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:1: [{rule_id}] {exc}")
                 count += 1
                 if count >= limit:
                     break

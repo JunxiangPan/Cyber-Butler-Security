@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA_VERSION = "0.1.7"
+SCHEMA_VERSION = "0.1.8"
 LEGACY_FIELDS = {
     "installer_core": "install_command",
     "broker_files": "target_files",
@@ -52,7 +52,7 @@ class GateConfig:
     enable_comments: bool = True
     enable_docs: bool = True
     enable_binary: bool = True
-    enable_claims: bool = False
+    enable_claims: bool = True
     enable_custom: bool = True
     enable_upgrade: bool = True
     claims_manifest: Path | None = None

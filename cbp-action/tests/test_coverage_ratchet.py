@@ -16,3 +16,28 @@ def test_ratchet_fails_below_floor(tmp_path: Path) -> None:
                      coverage_groups=({"name": "core", "files": ["src/a.py"], "threshold": 50},))
     passed, detail = run(cfg)
     assert passed is False and "below ratchet" in detail
+
+
+def _cfg(tmp_path: Path, coverage: Path, groups):
+    (tmp_path / "allow.json").write_text('{"files": {}}', encoding="utf-8")
+    return GateConfig(root=tmp_path, coverage_json=coverage,
+                      coverage_allowlist=tmp_path / "allow.json",
+                      coverage_groups=tuple(groups))
+
+
+def test_lcov_run_passes_group(tmp_path: Path) -> None:
+    cov = tmp_path / "coverage.lcov"
+    cov.write_text("TN:\nSF:src/a.py\nDA:1,1\nend_of_record\n", encoding="utf-8")
+    cfg = _cfg(tmp_path, cov, [{"name": "core", "files": ["src/a.py"], "threshold": 50}])
+    passed, detail = run(cfg)
+    assert passed is True and "core=100.00%" in detail
+
+
+def test_cobertura_run_passes_group(tmp_path: Path) -> None:
+    cov = tmp_path / "coverage.xml"
+    cov.write_text('<coverage><packages><package><classes><class filename="src/a.py">'
+                   '<lines><line number="1" hits="1"/></lines></class></classes></package></packages></coverage>',
+                   encoding="utf-8")
+    cfg = _cfg(tmp_path, cov, [{"name": "core", "files": ["src/a.py"], "threshold": 50}])
+    passed, detail = run(cfg)
+    assert passed is True and "core=100.00%" in detail

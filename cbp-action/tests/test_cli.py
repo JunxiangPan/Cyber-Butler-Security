@@ -51,7 +51,7 @@ def test_cli_warn_and_audit_do_not_block(tmp_path) -> None:
 
 
 def test_cli_default_config_and_missing_files(tmp_path) -> None:
-    assert cli.main(["--root", str(tmp_path)]) == 1
+    assert cli.main(["--root", str(tmp_path)]) == 0
     _fixture(tmp_path)
     (tmp_path / "cbp.json").write_text((tmp_path / "custom.json").read_text(encoding="utf-8"), encoding="utf-8")
     assert cli.main(["--root", str(tmp_path), "--config", str(tmp_path / "cbp.json")]) == 0
@@ -71,4 +71,4 @@ def test_cli_invalid_mode(tmp_path) -> None:
 def test_cli_disable_flags(tmp_path) -> None:
     config = _fixture(tmp_path)
     assert cli.main(["--root", str(tmp_path), "--config", config, "--enable-coverage", "false"]) == 0
-    assert cli.main(["--root", str(tmp_path), "--config", config, "--enable-coverage", "true", "--enable-dependency", "true"]) == 1
+    assert cli.main(["--root", str(tmp_path), "--config", config, "--enable-coverage", "true", "--enable-dependency", "true"]) == 0

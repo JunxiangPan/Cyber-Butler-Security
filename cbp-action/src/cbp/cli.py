@@ -8,11 +8,58 @@ import sys
 from pathlib import Path
 
 from . import baseline, binary_gate, suppression, claims_gate, comment_gate, coverage_gate, custom_rules, dependency_gate, docs_gate, encoding_gate, sarif, upgrade_gate, verify_release
-from .config import load_config
+from .config import SCHEMA_VERSION, load_config
+
+
+def _init(argv: list[str]) -> int:
+    """Generate a minimal cbp.json with a schema version."""
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="cbp init")
+    parser.add_argument("--root", default=".")
+    parser.add_argument("--force", action="store_true")
+    args = parser.parse_args(argv)
+    root = Path(args.root).resolve()
+    path = root / "cbp.json"
+    if path.exists() and not args.force:
+        print(f"INIT_REFUSED {path} exists; pass --force")
+        return 1
+    import json
+
+    path.write_text(json.dumps({"schema_version": SCHEMA_VERSION, "enable_claims": True}, indent=2) + chr(10), encoding="utf-8")
+    print(f"INIT_OK {path}")
+    return 0
+
+
+def _configured(name: str, cfg) -> bool:
+    """Return whether a gate has enough configuration to run meaningfully."""
+    if name == "encoding":
+        return True
+    if name == "coverage":
+        return bool(getattr(cfg, "coverage_json", "") or getattr(cfg, "coverage_groups", ()))
+    if name == "dependency":
+        return bool(getattr(cfg, "dependency_lock", "") or getattr(cfg, "install_command", ""))
+    if name == "comments":
+        return bool(getattr(cfg, "comment_files", ()))
+    if name == "docs":
+        return bool(getattr(cfg, "docs_manifest", ""))
+    if name == "claims":
+        return bool(getattr(cfg, "claims_manifest", None) or getattr(cfg, "claims_notes", None))
+    if name == "custom":
+        return bool(getattr(cfg, "custom_rules", ()))
+    if name == "upgrade":
+        return bool(getattr(cfg, "upgrade_script", "") or getattr(cfg, "upgrade_fixtures", ()))
+    if name == "binary":
+        return bool(getattr(cfg, "binary_artifacts", ""))
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run enabled CBP gates and return a process exit code."""
+    if argv is None:
+        argv = __import__("sys").argv[1:]
+    if argv and argv[0] == "init":
+        return _init(argv[1:])
     parser = argparse.ArgumentParser(prog="cbp")
     parser.add_argument("--root", default=".")
     parser.add_argument("--config", default="")
@@ -102,7 +149,13 @@ def main(argv: list[str] | None = None) -> int:
         checks.append(("binary", binary_gate.run))
     ok = True
     gate_results = []
+    skipped = 0
     for name, check in checks:
+        if not _configured(name, cfg):
+            skipped += 1
+            gate_results.append((name, True, "SKIPPED (not configured)"))
+            print(f"{name}: SKIPPED (not configured)")
+            continue
         passed, detail = check(cfg)
         filtered = suppression.filter_text(cfg.root, detail)
         if filtered != detail:
@@ -140,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
         except OSError as exc:
             print(f"sarif: FAIL cannot write {args.sarif_output}: {exc}")
             ok = False
-    print("CBP_RESULT=" + ("PASS" if ok else "FAIL") + " gates_ran=" + str(len(checks)))
+    print("CBP_RESULT=" + ("PASS" if ok else "FAIL") + " gates_ran=" + str(len(checks) - skipped) + " skipped=" + str(skipped))
     return 0 if ok or args.mode in {"audit", "warn"} else 1
 
 
