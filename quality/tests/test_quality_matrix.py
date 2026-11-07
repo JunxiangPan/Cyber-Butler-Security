@@ -114,6 +114,8 @@ def test_q04_broker_config_tamper_fallback(tmp_path):
 def _chaos(case: str) -> None:
     import os
     import tempfile
+    if os.environ.get("CBS_QUALITY_PROFILE") != "release":
+        pytest.skip("VM chaos harness runs only in the release profile")
     root = os.environ.get("CBS_CHAOS_ROOT", r"C:\CyberButler")
     with tempfile.TemporaryDirectory(prefix="cbs-chaos-result-") as directory:
         result = Path(directory) / (case + ".json")

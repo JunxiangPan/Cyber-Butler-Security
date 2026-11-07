@@ -97,8 +97,9 @@ try {
             $ws = Join-Path $root 'workspace'; New-Item -ItemType Directory -Path $ws -Force | Out-Null
             $big = Join-Path $ws 'chaos-1gb.bin'
             try {
-                & fsutil.exe file createnew $big 1073741824 | Out-Null
-                if ((Get-Item $big).Length -ne 1073741824) { throw '1GB file size mismatch' }
+                $oneGb = 1GB
+                & fsutil.exe file createnew $big $oneGb | Out-Null
+                if ((Get-Item $big).Length -ne $oneGb) { throw '1GB file size mismatch' }
                 $body = '{"action":"delete","target":"' + ($big -replace '\\','\\\\') + '","reason":"chaos capacity"}'
                 $status = 0
                 try { $status = [int](Invoke-Broker 'POST' '/request' $body).StatusCode } catch { if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode } }
@@ -141,7 +142,7 @@ try {
             $base = $proc.WorkingSet64; $start = Get-Date
             while (((Get-Date) - $start).TotalSeconds -lt 300) { try { $null = Invoke-Broker 'GET' '/pending' } catch { }; Start-Sleep -Milliseconds 250 }
             $proc.Refresh(); $growth = $proc.WorkingSet64 - $base
-            if ($growth -gt 104857600) { throw ('memory growth=' + $growth) }
+            if ($growth -gt (100MB)) { throw ('memory growth=' + $growth) }
             Write-Result 'passed' ('5-minute soak; growth=' + $growth)
         }
         'Q11' {

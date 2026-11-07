@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "803882292c2a66a399c0b7474d0bd79bf10b5a30ebbb78121fb2ea7a485826b5",
+      "sha256": "9f1bfebba7a738d8a3789474f679f349601caa077cca1290446a7fe3cca42593",
       "size": 1077
     },
     {
@@ -1666,6 +1666,11 @@
       "path": "tools/rewrite_readmes.py",
       "sha256": "53d6f095b843ee13cd6c5554d38cd47f3d6b72308e234f031255e7424b364e69",
       "size": 9945
+    },
+    {
+      "path": "tools/run-chaos-harness.ps1",
+      "sha256": "e70c5b8d32cc9199e3dce3cfd789bfdceca24bc381b5c34697e32ad642a22ef8",
+      "size": 11344
     },
     {
       "path": "tools/run-python-hidden.ps1",

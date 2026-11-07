@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import json
 import re
 import secrets
@@ -53,14 +54,16 @@ TEST_NAMES = {
 }
 
 
-def run_pytest() -> tuple[dict[str, str], str]:
+def run_pytest(profile: str) -> tuple[dict[str, str], str]:
     command = [
         sys.executable, "-m", "pytest", "-v", "--tb=no", "--no-header",
         TEST_FILE,
     ]
+    env = os.environ.copy()
+    env["CBS_QUALITY_PROFILE"] = profile
     try:
         completed = subprocess.run(
-            command, cwd=ROOT, capture_output=True, text=True, timeout=1800
+            command, cwd=ROOT, capture_output=True, text=True, timeout=1800, env=env
         )
     except FileNotFoundError:
         return {item: "blocked" for item in TEST_NAMES}, "pytest not found"
@@ -163,7 +166,7 @@ def main() -> int:
     args = parser.parse_args()
     nonce = args.nonce or secrets.token_hex(16)
     source = json.loads(ITEMS.read_text(encoding="utf-8"))
-    statuses, pytest_source = run_pytest()
+    statuses, pytest_source = run_pytest(args.profile)
     result = summarize(source["items"], statuses, args.profile)
     manifest = {
         "schema": "cbp-quality-manifest/v1",
