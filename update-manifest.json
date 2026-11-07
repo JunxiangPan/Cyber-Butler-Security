@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "215c0278a2afe6323da89e0bc166fab8cc2acf34ef8b4c26ad86c88aac6dc479",
+      "sha256": "087ef407f9b486974dcc80ba173696aa516c7f1a579114bc7305a56c30244ae4",
       "size": 1077
     },
     {
@@ -1459,8 +1459,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "cb2fe6b0bf361deb2951cbee83e22023ded3a5aba3e47f4651b42fb51532fb47",
-      "size": 112588
+      "sha256": "965fdab55688e9c9cb77940fb3ca63b622955a162fcd5ffaf5b3cc62bc56f56f",
+      "size": 112533
     },
     {
       "path": "tools/broker_config.py",

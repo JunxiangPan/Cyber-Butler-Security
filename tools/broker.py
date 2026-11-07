@@ -14,8 +14,7 @@ import sys as _cb_sys
 _cb_tools = _cb_os.path.dirname(_cb_os.path.abspath(__file__))
 _cb_root = _cb_os.path.dirname(_cb_tools)
 for _cb_path in (_cb_tools, _cb_root, _cb_os.path.join(_cb_root, "python", "Lib", "site-packages")):
-    if _cb_path and _cb_path not in _cb_sys.path:
-        _cb_sys.path.insert(0, _cb_path)
+    _cb_sys.path.insert(0, _cb_path)
 
 import base64
 import ctypes
