@@ -4,9 +4,9 @@ Status: DRAFT — not a signed release note yet.
 
 ## Quality status
 
-QUALITY_COUNTS: 12/26
+QUALITY_COUNTS: 14/26
 
-The CI profile passes 12 items. The remaining 14 items are VM-only chaos/soak
+The CI profile passes 14 items. The remaining 12 items are VM-only chaos/soak
 checks and package-artifact checks; they are not represented as passed by the
 CI profile.
 

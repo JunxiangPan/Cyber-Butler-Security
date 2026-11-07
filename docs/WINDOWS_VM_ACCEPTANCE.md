@@ -75,3 +75,4 @@ negative_path=True
 ```
 
 Then copy the proof into the release evidence directory, commit it, and run the release pipeline. Never hand-write or patch a proof.
+> CI does not prove the Q05-Q11/Q13-Q17 chaos/soak tests. Run the release profile harness in this VM and attach the real results before signing.

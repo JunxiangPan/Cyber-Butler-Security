@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import re
 import zipfile
 from pathlib import Path
 
@@ -16,8 +17,10 @@ BAD_NAMES = {"netstat", "netstat.exe", "powershell", "powershell.exe", "pwsh", "
 def artifact_findings(cfg: GateConfig) -> list[str]:
     """Verify configured artifacts inside an optional package ZIP."""
     required = getattr(cfg, "required_artifacts", ()) or ()
-    if not required or not getattr(cfg, "package_zip", None):
+    if not getattr(cfg, "package_zip", None):
         return []
+    if not required:
+        return ["package_zip is configured but required_artifacts is empty"]
     zip_path = Path(cfg.package_zip)
     if not zip_path.is_file():
         return [f"package zip missing: {zip_path}"]
@@ -47,6 +50,21 @@ def artifact_findings(cfg: GateConfig) -> list[str]:
 
 def _is_absolute_command(value: str) -> bool:
     return value.startswith(("\\", "/")) or (len(value) > 2 and value[1] == ":")
+
+
+PATH_ESCAPE = None  # line-based check below avoids regex escaping ambiguity
+
+
+def path_escape_findings(cfg: GateConfig) -> list[str]:
+    """Reject hard-coded Windows paths whose backslash becomes an escape."""
+    findings: list[str] = []
+    for path in list(cfg.root.rglob("*.py")) + list(cfg.root.rglob("*.ps1")):
+        if SKIP_PARTS & set(path.parts):
+            continue
+        for line_no, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            if "C:\\" in line and any(token in line for token in ("\t", "\n", "\r")):
+                findings.append(f"{path.relative_to(cfg.root).as_posix()}:{line_no}: ambiguous Windows path escape; use os.path.join or escaped slashes")
+    return findings
 
 
 def python_env_findings(cfg: GateConfig) -> list[str]:
@@ -100,4 +118,4 @@ def python_env_findings(cfg: GateConfig) -> list[str]:
 
 def check(cfg: GateConfig) -> list[str]:
     """Run both release-integrity checks."""
-    return artifact_findings(cfg) + python_env_findings(cfg)
+    return artifact_findings(cfg) + python_env_findings(cfg) + path_escape_findings(cfg)

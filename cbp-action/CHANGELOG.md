@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6 — 2026-11-07
+
+- Added ambiguous Windows-backslash path detection in .py/.ps1 files.
+- Made required_artifacts mandatory whenever package_zip is configured.
+- Documented that administrator/VM chaos tests are not proven by CI.
+- Kept lcov/cobertura, Action SHA pinning, and ReDoS work deferred to P1/P2.
+
 ## 0.1.5 — 2026-11-07
 
 - Added a built-in PowerShell AST syntax gate inside the custom gate.
