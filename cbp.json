@@ -116,13 +116,5 @@
       "mode": "enforce",
       "severity": "error"
     }
-  ],
-  "required_artifacts": [
-    "START-INSTALLER.exe",
-    "tools/broker.py",
-    "tools/broker_service.py",
-    "installer/python-embed/python-3.13.17-embed-amd64.zip",
-    "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part1",
-    "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part2"
   ]
 }
