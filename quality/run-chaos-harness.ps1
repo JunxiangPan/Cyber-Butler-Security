@@ -186,22 +186,20 @@ try {
             Write-Result 'passed' 'restricted token could not write protected install root'
         }
         'Q15' {
-            $u = Join-Path $root 'tools\uninstall-cyberbutler.ps1'
-            if (-not (Test-Path $u)) { Write-Result 'failed' 'uninstall helper missing' }
-            $backup = Join-Path $env:TEMP ('cbs-chaos-backup-' + [guid]::NewGuid().ToString('N'))
-            Copy-Item -LiteralPath $root -Destination $backup -Recurse -Force
+            $isolated = Join-Path $env:TEMP ('cbs-q15-' + [guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $isolated -Force | Out-Null
+            Copy-Item -Path (Join-Path $root '*') -Destination $isolated -Recurse -Force
+            $u = Join-Path $isolated 'tools\uninstall-cyberbutler.ps1'
+            if (-not (Test-Path $u)) { Remove-Item $isolated -Recurse -Force -ErrorAction SilentlyContinue; Write-Result 'failed' 'isolated uninstall helper missing' }
+            $state = Join-Path $env:TEMP ('cbs-q15-state-' + [guid]::NewGuid().ToString('N'))
             try {
-                & $u -InstallRoot $root -Confirm
-                if (Test-Path $root) { throw 'install root remains' }
-                if (Get-Service $serviceName -ErrorAction SilentlyContinue) { throw 'service remains' }
+                & $u -InstallRoot $isolated -ServiceName 'Cyber-Butler Broker Chaos' -StatePath $state -Confirm
+                if (Test-Path $isolated) { throw 'isolated install root remains' }
             } finally {
-                if (Test-Path $backup) {
-                    if (Test-Path $root) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
-                    Copy-Item -LiteralPath $backup -Destination $root -Recurse -Force -ErrorAction SilentlyContinue
-                    Remove-Item -LiteralPath $backup -Recurse -Force -ErrorAction SilentlyContinue
-                }
+                Remove-Item $isolated -Recurse -Force -ErrorAction SilentlyContinue
+                Remove-Item $state -Recurse -Force -ErrorAction SilentlyContinue
             }
-            Write-Result 'passed' 'uninstall removed files/service; tree restored for remaining cases'
+            Write-Result 'passed' 'isolated clone uninstalled; real install root untouched'
         }
         'Q16' {
             if (-not (Test-Path $python)) { Write-Result 'failed' 'portable Python missing' }
@@ -209,24 +207,34 @@ try {
             Write-Result 'passed' 'portable Python imports succeeded regardless of host Python'
         }
         'Q17' {
-            $scriptRoot = Split-Path -Parent $PSCommandPath
-            $installer = @(
-                (Join-Path (Split-Path -Parent $root) 'START-INSTALLER.exe'),
-                (Join-Path $scriptRoot '..\START-INSTALLER.exe'),
-                (Join-Path (Split-Path -Parent $PackageZip) 'START-INSTALLER.exe'),
-                (Join-Path $root 'START-INSTALLER.exe')
-            ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
-            if (-not $installer) { Write-Result 'failed' 'START-INSTALLER.exe not found beside install/package' }
-            $p = Start-Process -FilePath $installer -PassThru
-            Start-Sleep -Seconds 2
-            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 2
-            $again = Start-Process -FilePath $installer -PassThru
-            Start-Sleep -Seconds 3
-            $running = -not $again.HasExited
-            Stop-Process -Id $again.Id -Force -ErrorAction SilentlyContinue
-            if (-not $running) { throw 'installer did not restart after interruption' }
-            Write-Result 'passed' 'installer restarted after forced interruption'
+            $temp = Join-Path $env:TEMP ('cbs-q17-' + [guid]::NewGuid().ToString('N'))
+            try {
+                if ($PackageZip -and (Test-Path -LiteralPath $PackageZip)) {
+                    New-Item -ItemType Directory -Path $temp -Force | Out-Null
+                    Expand-Archive -LiteralPath $PackageZip -DestinationPath $temp -Force
+                    $installer = Join-Path $temp 'START-INSTALLER.exe'
+                } else {
+                    $scriptRoot = Split-Path -Parent $PSCommandPath
+                    $installer = @(
+                        (Join-Path (Split-Path -Parent $root) 'START-INSTALLER.exe'),
+                        (Join-Path $scriptRoot '..\START-INSTALLER.exe'),
+                        (Join-Path $root 'START-INSTALLER.exe')
+                    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+                }
+                if (-not $installer -or -not (Test-Path -LiteralPath $installer)) { throw 'START-INSTALLER.exe not found in package/root' }
+                $p = Start-Process -FilePath $installer -PassThru
+                Start-Sleep -Seconds 2
+                Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 2
+                $again = Start-Process -FilePath $installer -PassThru
+                Start-Sleep -Seconds 3
+                $running = -not $again.HasExited
+                Stop-Process -Id $again.Id -Force -ErrorAction SilentlyContinue
+                if (-not $running) { throw 'installer did not restart after interruption' }
+            } finally {
+                Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            Write-Result 'passed' 'installer restarted from an isolated package extraction'
         }
     }
 } catch { Write-Result 'failed' ($_.Exception.Message) }

@@ -5,11 +5,10 @@
 .DESCRIPTION
     Stops the native broker service, deletes it, and removes the install tree.
 #>
-param([string]$InstallRoot = 'C:\CyberButler', [switch]$Confirm)
+param([string]$InstallRoot = 'C:\CyberButler', [string]$ServiceName = 'Cyber-Butler Broker', [string]$StatePath = (Join-Path $env:ProgramData 'CyberButler'), [switch]$Confirm)
 $ErrorActionPreference = 'Stop'
 if (-not $Confirm) { throw 'Pass -Confirm to uninstall.' }
 $root = [IO.Path]::GetFullPath($InstallRoot)
-$serviceName = 'Cyber-Butler Broker'
 <#
 .SYNOPSIS
     Stop and delete the broker service.
@@ -23,6 +22,5 @@ function Remove-BrokerService {
 }
 Remove-BrokerService
 if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
-$state = Join-Path $env:ProgramData 'CyberButler'
-if (Test-Path -LiteralPath $state) { Remove-Item -LiteralPath $state -Recurse -Force -ErrorAction SilentlyContinue }
+if (Test-Path -LiteralPath $StatePath) { Remove-Item -LiteralPath $StatePath -Recurse -Force -ErrorAction SilentlyContinue }
 Write-Output 'UNINSTALL_OK'
