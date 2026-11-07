@@ -54,8 +54,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "e53ed19132238e403f9030ad991637b80dcd7cf37e52ef1de3a25789a6d628ae",
-      "size": 4260
+      "sha256": "e361886a8dff8d3930facb8878b57881805b921c441c093c48bb5f660042cc62",
+      "size": 4172
     },
     {
       "path": "README_de.md",
@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "06a0c5da4cb4dc32666a56beae91aef1a73d2bc6e4579b3b2891c1648e91c910",
+      "sha256": "5957ac4fc95b251a760f1ede3dc7b17025f11a57424c9f2f648ee55593398940",
       "size": 1077
     },
     {

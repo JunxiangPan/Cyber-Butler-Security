@@ -116,6 +116,13 @@ def _chaos(case: str) -> None:
     import tempfile
     if os.environ.get("CBS_QUALITY_PROFILE") != "release":
         pytest.skip("VM chaos harness runs only in the release profile")
+    evidence_dir = os.environ.get("CBS_CHAOS_RESULTS_DIR", "")
+    if evidence_dir:
+        evidence = Path(evidence_dir) / ("chaos-" + case + ".json")
+        assert evidence.is_file(), "missing VM chaos evidence: " + str(evidence)
+        payload = json.loads(evidence.read_text(encoding="utf-8"))
+        assert payload.get("status") == "passed", payload.get("detail")
+        return
     root = os.environ.get("CBS_CHAOS_ROOT", r"C:\CyberButler")
     with tempfile.TemporaryDirectory(prefix="cbs-chaos-result-") as directory:
         result = Path(directory) / (case + ".json")

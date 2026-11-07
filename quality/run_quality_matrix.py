@@ -54,13 +54,15 @@ TEST_NAMES = {
 }
 
 
-def run_pytest(profile: str) -> tuple[dict[str, str], str]:
+def run_pytest(profile: str, chaos_results_dir: str = "") -> tuple[dict[str, str], str]:
     command = [
         sys.executable, "-m", "pytest", "-v", "--tb=no", "--no-header",
         TEST_FILE,
     ]
     env = os.environ.copy()
     env["CBS_QUALITY_PROFILE"] = profile
+    if chaos_results_dir:
+        env["CBS_CHAOS_RESULTS_DIR"] = chaos_results_dir
     try:
         completed = subprocess.run(
             command, cwd=ROOT, capture_output=True, text=True, timeout=1800, env=env
@@ -163,10 +165,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--nonce", default="")
     parser.add_argument("--profile", choices=("ci", "release"), default="ci")
+    parser.add_argument("--chaos-results-dir", default="")
     args = parser.parse_args()
     nonce = args.nonce or secrets.token_hex(16)
     source = json.loads(ITEMS.read_text(encoding="utf-8"))
-    statuses, pytest_source = run_pytest(args.profile)
+    statuses, pytest_source = run_pytest(args.profile, args.chaos_results_dir)
     result = summarize(source["items"], statuses, args.profile)
     manifest = {
         "schema": "cbp-quality-manifest/v1",

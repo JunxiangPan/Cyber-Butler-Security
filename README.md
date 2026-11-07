@@ -76,6 +76,6 @@ Use GitHub Security Advisories: <https://github.com/JunxiangPan/Cyber-Butler-Sec
 
 ## Quality gates
 
-Cyber-Butler-Security uses [CBP](https://github.com/<YOUR_GITHUB_USER>/cbp-action) to enforce quality gates.
+Cyber-Butler-Security uses [CBP](https://github.com/JunxiangPan/cbp-action) to enforce quality gates.
 CBP is packaged from `cbp-action/` and consumed here as a pinned, hashed wheel.
 VM-only tests: this release contains destructive chaos/soak checks that require a real Administrator VM; a green CI run alone is not release evidence.
