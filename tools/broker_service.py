@@ -77,7 +77,7 @@ class CBSBrokerService(win32serviceutil.ServiceFramework):
             self._log("SERVICE_FATAL broker.py missing: " + str(broker))
             raise RuntimeError("broker.py missing: " + str(broker))
         env = os.environ.copy()
-        env["PYTHONPATH"] = str(root / "python" / "Lib" / "site-packages") + os.pathsep + str(root)
+        env["PYTHONPATH"] = os.pathsep.join([str(root), str(root / "tools"), str(root / "python" / "Lib" / "site-packages")])
         env["PYTHONUTF8"] = "1"
         env["PYTHONIOENCODING"] = "utf-8"
         env["PYTHONUNBUFFERED"] = "1"

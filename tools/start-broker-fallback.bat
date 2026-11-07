@@ -1,7 +1,7 @@
 @echo on
 setlocal
 cd /d "C:\CyberButler"
-set "PYTHONPATH=C:\CyberButler\python\Lib\site-packages;C:\CyberButler"
+set "PYTHONPATH=C:\CyberButler;C:\CyberButler/tools;C:\CyberButler\python\Lib\site-packages"
 if not exist "C:\CyberButler\python\python.exe" (
   echo FALLBACK ERROR: portable python missing
   pause

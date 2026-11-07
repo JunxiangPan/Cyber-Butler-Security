@@ -7,6 +7,16 @@ used for cross-account TOTP state, which avoids Windows ACL problems.
 
 from __future__ import annotations
 
+# SERVICE_SYS_PATH_GUARD: SYSTEM services may start with an empty or user-scoped
+# sys.path. Always resolve sibling modules from this file's tools directory.
+import os as _cb_os
+import sys as _cb_sys
+_cb_tools = _cb_os.path.dirname(_cb_os.path.abspath(__file__))
+_cb_root = _cb_os.path.dirname(_cb_tools)
+for _cb_path in (_cb_tools, _cb_root, _cb_os.path.join(_cb_root, "python", "Lib", "site-packages")):
+    if _cb_path and _cb_path not in _cb_sys.path:
+        _cb_sys.path.insert(0, _cb_path)
+
 import base64
 import ctypes
 import io
