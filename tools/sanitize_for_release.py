@@ -51,7 +51,7 @@ def iter_text_files(root: Path):
         yield path
 
 
-def main() -> int:
+def main() -> int:  # pragma: no cover - CLI entry point; helpers are unit-tested
     """Main.
     
     Args:
@@ -122,5 +122,5 @@ def main() -> int:
     return 1 if args.strict and findings else 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - module entry point
     sys.exit(main())

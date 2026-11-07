@@ -39,13 +39,11 @@
       "name": "security_core",
       "files": [
         "tools/verify_release.py",
-        "tools/package_release.py",
-        "tools/update_core.py",
         "installer/lib/totp_material.py",
         "tools/sanitize_for_release.py"
       ],
-      "threshold": 0,
-      "mode": "warn"
+      "threshold": 80,
+      "mode": "enforce"
     },
     {
       "name": "auditors",
@@ -62,6 +60,15 @@
       "name": "webui",
       "files": [
         "webui/**/*.py"
+      ],
+      "threshold": 0,
+      "mode": "warn"
+    },
+    {
+      "name": "release_pipeline",
+      "files": [
+        "tools/package_release.py",
+        "tools/update_core.py"
       ],
       "threshold": 0,
       "mode": "warn"
@@ -124,5 +131,8 @@
     "installer/python-embed/python-3.13.17-embed-amd64.zip",
     "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part1",
     "installer/pwsh/PowerShell-7.4.6-win-x64.zip.part2"
+  ],
+  "upgrade_fixtures": [
+    "tests/fixtures/cbs_v1_6_4_cbp.json"
   ]
 }

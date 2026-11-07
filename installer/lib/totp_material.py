@@ -53,7 +53,7 @@ def write_qr(secret: str, qr_path: Path, issuer: str, account: str) -> None:
         qr.make_image(fill_color="black", back_color="white").save(qr_file)
 
 
-def main() -> int:
+def main() -> int:  # pragma: no cover - CLI entry point; helpers are unit-tested
     """Main.
     
     Args:
@@ -134,5 +134,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - module entry point
     raise SystemExit(main())
