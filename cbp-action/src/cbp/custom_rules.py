@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
-from . import artifact_integrity, readers, powershell_syntax
+from . import artifact_integrity, readers, powershell_syntax, regex_guard
 
 RULE_ID = "CBP-CST-001"
 MAX_PATTERN_CHARS = 4096

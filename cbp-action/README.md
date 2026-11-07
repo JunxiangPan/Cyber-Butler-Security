@@ -371,6 +371,10 @@ the host product's `quality/`, `checks/`, or `tools/` directories.
 
 CI coverage may differ from local by ±0.5% due to platform-specific line
 coverage. The gate uses the CI value.
+## PyPI
+
+See `docs/PYPI_TRUSTED_PUBLISHING.md`; publishing uses GitHub OIDC and does not store a PyPI token.
+
 ## Prebuilt wheel
 
 The action installs the checked-in `dist/cbp_action-0.1.7-py3-none-any.whl`; it does not build from source or contact the package index.
