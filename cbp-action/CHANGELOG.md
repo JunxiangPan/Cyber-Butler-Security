@@ -5,6 +5,7 @@
 - Added a built-in PowerShell AST syntax gate inside the custom gate.
 - Added required-pattern support for CBP custom rules.
 - Rejects malformed .ps1 files before deployment.
+- Added required-artifact ZIP integrity, naked-subprocess, and Python PYTHONPATH checks.
 - Fixed CBS journal status binding by rejecting the invalid warning status.
 
 ## 0.1.4 — 2026-11-07

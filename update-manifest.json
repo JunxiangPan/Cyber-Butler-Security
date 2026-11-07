@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "d6fa75898c99010554f6e92e1607bdd358255b7a4ed9273ead71bdc06dff1ff0",
+      "sha256": "8e0dcfe809d2b4db7213a36982a030d6b8265fbcb7178eba220472ef0d5785c6",
       "size": 1077
     },
     {
@@ -619,13 +619,13 @@
     },
     {
       "path": "installer/CyberButler.Installer.GUI.ps1",
-      "sha256": "72cca1de3f0fb8ff5c837355fe05f68c79062462a0e1fec7616bcb0fc71e52cf",
-      "size": 143750
+      "sha256": "3c1ccec250e3c543d3af0b88022cea4f2f8677d108a582d8c913657b96021686",
+      "size": 143747
     },
     {
       "path": "installer/Install-CyberButler.ps1",
-      "sha256": "953044e6d77abe72b71cfdb59a6407b465f2f74943c87b3c27f434bb486f0607",
-      "size": 59150
+      "sha256": "7ac7cc1b65eead13113c4f7e63ca4a83a6c40432335b90e0535d393711b277c8",
+      "size": 59147
     },
     {
       "path": "installer/Migrate-EnableIsolation.ps1",
@@ -1384,8 +1384,8 @@
     },
     {
       "path": "tools/Run-Final-Acceptance.ps1",
-      "sha256": "20d1664094e8f91742e1733bd79d23b89e349ab78f3088b0af13ef2b080a9fa4",
-      "size": 17044
+      "sha256": "ef6ec32dc126fb595b03f57e9b01d0b0574b43993d38e2ef776079bac00dabeb",
+      "size": 17041
     },
     {
       "path": "tools/Run-ReleasePipeline.ps1",
@@ -1559,8 +1559,8 @@
     },
     {
       "path": "tools/harden_broker_runtime.ps1",
-      "sha256": "4f5d2953e7bf83858151509d8291ad8fce5c8b1bc39b8e47e3d2baf08d183e2a",
-      "size": 1355
+      "sha256": "6de09ea0488b4cfe100175f578dbbe0ec3e4a795827456db19eb691b2ee96c00",
+      "size": 1352
     },
     {
       "path": "tools/injection_audit.py",
@@ -1749,8 +1749,8 @@
     },
     {
       "path": "tools/verify_broker_acl.ps1",
-      "sha256": "0936f3382991dcad6fcf4bfdd2f798feba8932d3c9406767cd77f8778c647894",
-      "size": 3267
+      "sha256": "9df6c85560eebc30e3d5ed598e32f6584b26580310d8a82397a696c856fa3e27",
+      "size": 3264
     },
     {
       "path": "tools/verify_release.py",
@@ -1794,8 +1794,8 @@
     },
     {
       "path": "webui/app.py",
-      "sha256": "8d9dc7c11135a823b3c6583d6694385a4ab7217c89ff1a93f20ae8864b8a4592",
-      "size": 33691
+      "sha256": "15be2bf22c70e601035016098e4ddf071a76f27422f1240609fc774b9131275b",
+      "size": 33735
     },
     {
       "path": "webui/auth.py",
@@ -1824,8 +1824,8 @@
     },
     {
       "path": "webui/otp_mailer.py",
-      "sha256": "809cafbef221261038cdc6cc7709ec676e3827054acc2da0b1a5dbc606d754fd",
-      "size": 8161
+      "sha256": "fae0373bd36e37e272cafd4aefbe8452bbda9ddf38acc20bf106b6ab6c678dec",
+      "size": 8195
     },
     {
       "path": "webui/requirements.sbom.json",
@@ -1839,8 +1839,8 @@
     },
     {
       "path": "webui/run.py",
-      "sha256": "e94e30beae81542e55e1890a5c27609ab10b7ee9d7eb7341f79d552e0ecd773b",
-      "size": 464
+      "sha256": "728be368b3f2d00c4ac22c810c0b4dd3e6ae8a914bb09a0f078717db8aba3332",
+      "size": 721
     },
     {
       "path": "webui/services.py",

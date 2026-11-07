@@ -107,5 +107,10 @@
   "schema_version": "0.1.5",
   "upgrade_fixtures": [
     "tests/fixtures/cbp_v0.1.0.json"
+  ],
+  "required_artifacts": [
+    "action.yml",
+    "pyproject.toml",
+    "README.md"
   ]
 }

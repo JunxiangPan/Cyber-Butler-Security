@@ -43,7 +43,7 @@ def load_email_config(bridge: Path) -> dict:
         Function result, or None when no value is returned.
     """
     completed = subprocess.run(
-        ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
+        [str(bridge.parents[1] / "pwsh" / "pwsh.exe"), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bridge)],
         capture_output=True,
         text=True,
         timeout=20,

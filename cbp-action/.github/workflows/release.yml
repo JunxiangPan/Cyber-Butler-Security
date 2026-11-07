@@ -43,6 +43,10 @@ jobs:
       - name: Verify manifest hash, run id, commit, and notes
         run: |
           python tools/verify_manifest_artifact.py --manifest=artifact/quality-manifest.json --hash=artifact/quality-manifest.json.sha256 --notes=artifact/docs/RELEASE_NOTES.generated.md --run-id="${{ inputs.ci_run_id }}" --commit-sha="$(git rev-parse HEAD)"
+      - name: Required artifact integrity gate
+        if: inputs.package-zip != ''
+        run: |
+          python -m cbp.cli --root "$GITHUB_WORKSPACE" --package-zip "${{ inputs.package-zip }}" --mode enforce
       - name: Check Action metadata files
         run: |
           pwd

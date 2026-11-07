@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
-from . import readers, powershell_syntax
+from . import artifact_integrity, readers, powershell_syntax
 
 RULE_ID = "CBP-CST-001"
 SKIP_PARTS = {".git", ".venv", "venv", "__pycache__", "node_modules", "wheelhouse"}
@@ -36,6 +36,10 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     rules = getattr(cfg, "custom_rules", ()) or ()
     findings: list[str] = []
     enforced = False
+    integrity = artifact_integrity.check(cfg)
+    if integrity:
+        findings.extend(integrity)
+        enforced = True
     ps_ok, ps_detail = powershell_syntax.check(cfg.root)
     if not ps_ok:
         findings.append(ps_detail)
