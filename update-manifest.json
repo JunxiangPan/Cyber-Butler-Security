@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "26367dd99b5ccca5793d4cc7930dcd11e878211919857f110077f00a6c3da86c",
+      "sha256": "7e95a3d3cc2e696dd81fba95887451b0436b05b7a847b0051ac27e678d7934af",
       "size": 1077
     },
     {
@@ -1669,8 +1669,8 @@
     },
     {
       "path": "tools/run-chaos-harness.ps1",
-      "sha256": "c976b32a5f11d76fa062a73eea1e390c9fe04f9db032bf9156a8da3796d23802",
-      "size": 12808
+      "sha256": "06fabc00475b04fbeb50ce77e5428520120d2a5324c27565c128f20ac877b5bb",
+      "size": 13660
     },
     {
       "path": "tools/run-python-hidden.ps1",
@@ -1726,6 +1726,11 @@
       "path": "tools/start-game-mode.ps1",
       "sha256": "6b4a1371044135d8796012ce1485ddec8430123a410a63303c387074a1d06665",
       "size": 1920
+    },
+    {
+      "path": "tools/uninstall-cyberbutler.ps1",
+      "sha256": "b8ff20a3cab33f06ccc627be93e477cf143490d149ab319df4017b4a52d06778",
+      "size": 1079
     },
     {
       "path": "tools/update.ps1",
