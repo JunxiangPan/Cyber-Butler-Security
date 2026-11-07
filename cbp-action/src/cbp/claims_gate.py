@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
+from . import cel_gates
 
 TOKEN = re.compile(r"(?m)^QUALITY_COUNTS:\s*(\d+)/(\d+)\s*$")
 GATE_CLAIM = re.compile(r"\b(?:all|across|through)\s+([A-Za-z]+|\d+)\s+gates?\b", re.IGNORECASE)
@@ -50,7 +51,7 @@ def _body_problem(path: Path, expected: str, total: int) -> str:
     return ""
 
 
-def run(cfg: GateConfig) -> tuple[bool, str]:
+def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Match release-note quality claims to the machine manifest."""
     if not cfg.claims_manifest or not cfg.claims_notes:
         return False, "claims_manifest and claims_notes must be configured"
@@ -83,3 +84,9 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         if body_problem:
             return False, body_problem
     return True, f"claims={actual}"
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Run detection, then apply the CEL policy decision."""
+    passed, detail = _detect(cfg)
+    return cel_gates.apply("claims", passed, detail, cfg)

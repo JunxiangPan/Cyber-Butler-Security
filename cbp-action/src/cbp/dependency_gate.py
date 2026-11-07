@@ -6,6 +6,7 @@ RULE_ID = "CBP-DEP-001"
 import re
 
 from .config import GateConfig
+from . import cel_gates
 
 PIN = re.compile(r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?(?:===|==)\S+$")
 HASH = re.compile(r"^--hash=sha256:[0-9a-fA-F]{64}$")
@@ -59,7 +60,7 @@ def _installer_enforces(installer: str) -> tuple[bool, str]:
     return False, "installer's effective pip install command lacks --require-hashes"
 
 
-def run(cfg: GateConfig) -> tuple[bool, str]:
+def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Require a fully pinned, hashed lock and an effective hash-checking install."""
     lock = cfg.path(cfg.dependency_lock)
     installer = cfg.path(cfg.install_command)
@@ -74,3 +75,9 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     if not enforced:
         return False, problem
     return True, f"dependency={len(pins)} pinned with hashes"
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Run detection, then apply the CEL policy decision."""
+    passed, detail = _detect(cfg)
+    return cel_gates.apply("dependency", passed, detail, cfg)

@@ -8,6 +8,7 @@ import re
 import tokenize
 
 from .config import GateConfig
+from . import cel_gates
 from .baseline import filter_lines
 
 SLOP = re.compile(r"#\s*(This is|It is|This function|This method|This class)\b", re.IGNORECASE)
@@ -53,7 +54,7 @@ def _check(path, findings):
                     findings.append(f"{path.name}:{token.start[0]}: slop comment {token.string.strip()}")
 
 
-def run(cfg: GateConfig) -> tuple[bool, str]:
+def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Reject missing docstrings, argument mismatches, and slop comments."""
     findings: list[str] = []
     for relative in cfg.comment_files:
@@ -67,3 +68,9 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
     if findings:
         return False, "\n".join(findings[:80]) + f"\nfindings={len(findings)}"
     return True, f"comments={len(cfg.comment_files)} files (balanced against baseline)"
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Run detection, then apply the CEL policy decision."""
+    passed, detail = _detect(cfg)
+    return cel_gates.apply("comments", passed, detail, cfg)

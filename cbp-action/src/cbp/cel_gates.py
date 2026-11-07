@@ -18,3 +18,14 @@ def decide(gate: str, context: dict, overrides: dict | None = None) -> bool:
     if not expression:
         raise ValueError(f"no CEL policy configured for {gate}")
     return evaluate_context(str(expression), context)
+
+
+def apply(gate: str, passed: bool, detail: str, cfg) -> tuple[bool, str]:
+    """Apply the CEL policy to a gate's detection result."""
+    overrides = getattr(cfg, "cel_policies", {}) or {}
+    context = {"ok": bool(passed), "findings": [] if passed else [detail]}
+    try:
+        decided = decide(gate, context, overrides)
+    except Exception as exc:
+        return False, f"{gate}: CEL policy failed: {exc}"
+    return decided, detail

@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 from .config import GateConfig
-from . import artifact_integrity, cel_policy, packs as packs_module, readers, powershell_syntax, regex_guard
+from . import artifact_integrity, cel_gates, cel_policy, packs as packs_module, readers, powershell_syntax, regex_guard
 
 RULE_ID = "CBP-CST-001"
 MAX_PATTERN_CHARS = 4096
@@ -41,7 +41,7 @@ def rules_digest(rules, packs) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def run(cfg: GateConfig) -> tuple[bool, str]:
+def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Evaluate configured rules; warn by default, enforce on demand."""
     rules = list(getattr(cfg, "custom_rules", ()) or ())
     for packed in getattr(cfg, "packs", ()) or ():
@@ -189,3 +189,9 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         return (not enforced), prefix + " " + "\n".join(findings)
     return True, f"custom={len(rules)} rules"
 
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Run custom detection, then apply the CEL policy decision."""
+    passed, detail = _detect(cfg)
+    return cel_gates.apply("custom", passed, detail, cfg)

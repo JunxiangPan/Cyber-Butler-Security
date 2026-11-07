@@ -7,9 +7,10 @@ import hashlib
 import json
 
 from .config import GateConfig
+from . import cel_gates
 
 
-def run(cfg: GateConfig) -> tuple[bool, str]:
+def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Verify every incident postmortem against its recorded SHA256."""
     manifest = cfg.path(cfg.docs_manifest)
     if not manifest.is_file():
@@ -26,3 +27,9 @@ def run(cfg: GateConfig) -> tuple[bool, str]:
         if actual != digest:
             return False, f"{path} hash changed"
     return True, f"docs={len(entries)} files"
+
+
+def run(cfg: GateConfig) -> tuple[bool, str]:
+    """Run detection, then apply the CEL policy decision."""
+    passed, detail = _detect(cfg)
+    return cel_gates.apply("docs", passed, detail, cfg)
