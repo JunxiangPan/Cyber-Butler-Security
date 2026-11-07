@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "83b9bdfa49c4fb73d3f9a576bbc1159d561ea7eff0c3d6d0823e31311987fb60",
+      "sha256": "82fe4b1f76f3dace51d3479c867f642f57887d2d24bfa891fb97548760fc12bc",
       "size": 1077
     },
     {
@@ -1473,6 +1473,11 @@
       "size": 6714
     },
     {
+      "path": "tools/broker_service.py",
+      "sha256": "8087ae1b8fe77449d2e2d8c52f25b1c87fbf620a3fb77cc439de5ca41aa2b8ab",
+      "size": 4423
+    },
+    {
       "path": "tools/broker_state.py",
       "sha256": "2880fc78a129163e7fc30247d5b9a619f0d448d60f71977e6dc07b704cb31429",
       "size": 1089
@@ -1701,6 +1706,11 @@
       "path": "tools/sign_release.py",
       "sha256": "8f9502e669638e9d5751f2e7a74ca16d5c89edd6ac5e7e5a2b371c3e803b76b3",
       "size": 13821
+    },
+    {
+      "path": "tools/start-broker-fallback.bat",
+      "sha256": "9f49e66a6a12470171db28b89982cad695b4054cafdfec2eddd60afe5d116a0e",
+      "size": 506
     },
     {
       "path": "tools/start-dashboard.ps1",
