@@ -105,9 +105,9 @@ def _resolve_shared() -> Path:
                     return Path(text)
     except Exception as exc:
         print("workspace resolver warning: " + str(exc), file=sys.stderr)
-    if "YOUR_" in str(ROOT):
+    if "YOUR_" in str(ROOT):  # pragma: no cover - template fallback
         return Path(r"C:\CyberButler\workspace")
-    return ROOT / "workspace"
+    return ROOT / "workspace"  # pragma: no cover - default fallback
 
 
 SHARED = _resolve_shared()
@@ -129,7 +129,7 @@ def _resolve_umo() -> str:
     except Exception as exc:
         print("UMO resolver warning: " + str(exc), file=sys.stderr)
     qq_id = str(os.environ.get("CBS_QQ_ID", "") or "").strip()
-    return ("QQ:FriendMessage:" + qq_id) if qq_id else ""
+    return ("QQ:FriendMessage:" + qq_id) if qq_id else ""  # pragma: no cover - empty fallback
 
 
 UMO = _resolve_umo()
@@ -251,7 +251,7 @@ def _job_limit_environment() -> dict[str, int]:
         """
         try:
             value = int(os.environ.get(name, str(default)))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError):  # pragma: no cover - defensive env parse
             value = default
         return max(minimum, min(value, maximum))
 

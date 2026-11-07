@@ -169,7 +169,7 @@
     },
     {
       "path": "dependencies.sbom.json",
-      "sha256": "d9ebccfe4652f4de4295992f584947e3133fda442f05902ae1c0c4bac15ac9f2",
+      "sha256": "d6fa75898c99010554f6e92e1607bdd358255b7a4ed9273ead71bdc06dff1ff0",
       "size": 1077
     },
     {
@@ -1184,8 +1184,8 @@
     },
     {
       "path": "tests/test_broker_state_helpers.py",
-      "sha256": "7f683017dfe7f0c29158c13168729ecb6bb0aa7d49df95206842475b9d06e983",
-      "size": 3438
+      "sha256": "44c3618cdfd41587ea0da7321f507c39bbf145099a588cb8900dd7efad5faf09",
+      "size": 4276
     },
     {
       "path": "tests/test_broker_undo.py",
@@ -1459,8 +1459,8 @@
     },
     {
       "path": "tools/broker.py",
-      "sha256": "58b6527b87bb0cc1a2b15e3b542404967191c15ccdc52415110115e4830bb54d",
-      "size": 113077
+      "sha256": "e79c4d4022c06442a478192e7d1b72cdf88fcc0076f4df2a9625f379985c9320",
+      "size": 113235
     },
     {
       "path": "tools/broker_config.py",

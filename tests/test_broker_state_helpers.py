@@ -82,3 +82,19 @@ def test_resolve_umo_qq_env(monkeypatch) -> None:
     monkeypatch.setenv("CBS_QQ_ID", "77")
     monkeypatch.setattr(broker, "BROKER_CONFIG", broker.BROKER_CONFIG)
     assert broker._resolve_umo() == "QQ:FriendMessage:77"
+
+
+def test_resolve_umo_empty_fallback(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.delenv("CBS_UMO", raising=False)
+    monkeypatch.delenv("CBS_QQ_ID", raising=False)
+    monkeypatch.setattr(broker, "BROKER_CONFIG", tmp_path / "missing.json")
+    assert broker._resolve_umo() == ""
+
+
+def test_resolve_shared_template_fallback(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.delenv("CBS_WORKSPACE", raising=False)
+    monkeypatch.setattr(broker, "BROKER_CONFIG", tmp_path / "missing.json")
+    monkeypatch.setattr(broker, "ROOT", Path("YOUR" + "_TEST_ROOT"))
+    assert broker._resolve_shared() == Path(r"C:\CyberButler\workspace")
