@@ -107,6 +107,13 @@ def check_quality(root: Path) -> str:
     counts = _recount(items)
     if data.get("counts") != counts:
         raise SignGateError("quality-manifest.json counts do not match its items")
+    source = data.get("source", {})
+    pytest_status = str(source.get("pytest", ""))
+    exit_match = re.search(r"pytest_exit=(-?\d+)", pytest_status)
+    if not exit_match:
+        raise SignGateError("quality-manifest.json has no pytest_exit evidence")
+    if int(exit_match.group(1)) != 0:
+        raise SignGateError("quality-manifest.json records a non-zero pytest exit")
     if counts["failed"] or counts["blocked"] or counts["skipped_by_design"]:
         raise SignGateError("quality-manifest.json contains non-passed release items")
     if counts["passed"] != 26:
