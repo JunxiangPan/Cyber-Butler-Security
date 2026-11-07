@@ -37,6 +37,7 @@ class GateConfig:
     rules_manifest: Path | str = ""
     rules_changelog_manifest: Path | str = ""
     cel_policies: dict = field(default_factory=dict)
+    cache_file: Path | str = ""
     required_artifacts: tuple[object, ...] = ()
     evidence_readers: dict = field(default_factory=dict)
     upgrade_script: str = ""

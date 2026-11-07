@@ -41,6 +41,17 @@ def rules_digest(rules, packs) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+def _cache_key(cfg: GateConfig, rules) -> str:
+    digest = rules_digest(rules, getattr(cfg, "packs", ()) or ())
+    files = sorted(
+        (path.relative_to(cfg.root).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest())
+        for path in cfg.root.rglob("*")
+        if path.is_file() and not (set(path.parts) & SKIP_PARTS)
+        and path.name != ".cache.json"
+    )
+    return hashlib.sha256((digest + json.dumps(files)).encode("utf-8")).hexdigest()
+
+
 def _detect(cfg: GateConfig) -> tuple[bool, str]:
     """Evaluate configured rules; warn by default, enforce on demand."""
     rules = list(getattr(cfg, "custom_rules", ()) or ())
@@ -192,6 +203,20 @@ def _detect(cfg: GateConfig) -> tuple[bool, str]:
 
 
 def run(cfg: GateConfig) -> tuple[bool, str]:
-    """Run custom detection, then apply the CEL policy decision."""
+    """Run custom detection with optional content-addressed cache."""
+    cache_path = cfg.path(getattr(cfg, "cache_file", "") or "") if getattr(cfg, "cache_file", "") else None
+    rules = list(getattr(cfg, "custom_rules", ()) or ())
+    key = _cache_key(cfg, rules) if cache_path is not None else ""
+    if cache_path is not None and cache_path.is_file():
+        try:
+            cached = json.loads(cache_path.read_text(encoding="utf-8"))
+            if cached.get("key") == key:
+                return bool(cached["passed"]), str(cached["detail"])
+        except (OSError, ValueError, KeyError):
+            pass
     passed, detail = _detect(cfg)
-    return cel_gates.apply("custom", passed, detail, cfg)
+    passed, detail = cel_gates.apply("custom", passed, detail, cfg)
+    if cache_path is not None:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(json.dumps({"key": key, "passed": passed, "detail": detail}), encoding="utf-8")
+    return passed, detail
