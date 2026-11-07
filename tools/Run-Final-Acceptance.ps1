@@ -103,12 +103,29 @@ function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json 
         exit = [int]$parsed.exit
     }
 }
+<#
+.SYNOPSIS
+    Restart the native Cyber-Butler Broker service and wait for port 18090.
+.DESCRIPTION
+    Uses Stop-Service/Start-Service, never the retired scheduled task.
+#>
 function Restart-BrokerTask() {
-    $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
-    Stop-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
-    if ($listener) { Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue }
-    Start-Sleep -Seconds 3
-    Start-ScheduledTask -TaskName 'Cyber-Butler Broker'
+    $serviceName = 'Cyber-Butler Broker'
+    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($null -eq $service) {
+        Write-Warning ('native service not found: ' + $serviceName)
+        return $false
+    }
+    try {
+        if ($service.Status -ne 'Stopped') {
+            Stop-Service -Name $serviceName -Force -ErrorAction Stop
+            $service.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(30))
+        }
+        Start-Service -Name $serviceName -ErrorAction Stop
+    } catch {
+        Write-Warning ('service restart failed: ' + $_.Exception.Message)
+        return $false
+    }
     $deadline = (Get-Date).AddSeconds(30)
     while ((Get-Date) -lt $deadline) {
         if (Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue) { return $true }
