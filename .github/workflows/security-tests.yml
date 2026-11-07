@@ -61,10 +61,10 @@ jobs:
         run: python quality/audit_docs_history.py
       - name: CBP binary provenance audit
         run: python quality/audit_binary_provenance.py
-      - name: 25-item quality matrix (no fake PASS)
-        run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
       - name: CBP release-claims audit
         run: python quality/audit_release_claims.py --notes docs/releases/RELEASE_NOTES_v1.6.4.md
+      - name: 25-item quality matrix (no fake PASS)
+        run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
       - name: CBP coverage measurement and gate
         run: |
           python -m coverage run --branch -m pytest -q tests/

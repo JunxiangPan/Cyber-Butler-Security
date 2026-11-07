@@ -27,6 +27,8 @@ sha256: DA0169D1F609385EE690052A2D311CD2076F178775AA68BB6632D99C3B256F55
 
 ## Quality and VM evidence
 
+QUALITY_COUNTS: 26/26
+
 The signed quality manifest records:
 
 ```text
