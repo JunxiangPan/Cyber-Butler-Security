@@ -20,6 +20,7 @@ classifiers = [
 cbp = "cbp.cli:main"
 
 [project.optional-dependencies]
+policy = ["cel-python>=0.5.0"]
 test = [
   "pytest>=8.0",
   "coverage>=7.6",
