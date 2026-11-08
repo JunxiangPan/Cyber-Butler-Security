@@ -345,7 +345,7 @@ function Set-CyberButlerCorePlaceholders {
         [string]$OwnerQQ = ''
     )
     $desktop = [Environment]::GetFolderPath('Desktop')
-    $userPath = if ($desktop) { Split-Path -Parent $desktop } else { $env:USERPROFILE }
+    $userPath = if ($desktop) { Split-Path -Parent $desktop } elseif ($env:USERPROFILE) { $env:USERPROFILE } else { 'C:\Windows\System32\config\systemprofile' }
     $desktopName = if ($DesktopAccount) { $DesktopAccount } else { $env:USERNAME }
     $owner = if ($OwnerQQ) { $OwnerQQ } else { 'owner' }
     $values = [ordered]@{
