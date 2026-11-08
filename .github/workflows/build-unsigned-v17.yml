@@ -31,11 +31,15 @@ jobs:
         shell: pwsh
         env:
           PROOF_SOURCE: vm-proof-job/${{ github.run_id }}
+          TAG: ${{ inputs.tag }}
+          CHALLENGE: ${{ inputs.challenge }}
         run: |
+          if ($env:TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'invalid tag' }
+          $version = $env:TAG.TrimStart('v')
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-ReleasePipeline.ps1 `
             -Unsigned `
-            -Version '${{ inputs.tag }}'.TrimStart('v') `
-            -Challenge '${{ inputs.challenge }}' `
+            -Version $version `
+            -Challenge $env:CHALLENGE `
             -ProofPath (Resolve-Path 'vm-proof\ACCEPTANCE_PROOF.md').Path `
             -ProofSource $env:PROOF_SOURCE
       - name: Validate unsigned artifact
