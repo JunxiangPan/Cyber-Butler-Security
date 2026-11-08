@@ -42,7 +42,7 @@ jobs:
       - name: Install static analysis tools
         shell: pwsh
         run: |
-          python -m pip install --quiet mypy "pyright[nodejs]" vulture beautifulsoup4 httpx pytest
+          python -m pip install --quiet mypy "pyright[nodejs]" vulture beautifulsoup4 httpx pytest jinja2
           if (-not (Test-Path 'C:\PSSA\PSScriptAnalyzer.psd1')) {
             Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -ErrorAction SilentlyContinue
             Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber
