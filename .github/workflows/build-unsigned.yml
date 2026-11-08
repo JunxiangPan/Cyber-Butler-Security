@@ -51,6 +51,17 @@ jobs:
             New-Item -ItemType Directory -Path 'C:\PSSA' -Force | Out-Null
             Copy-Item -Path (Join-Path $module '*') -Destination 'C:\PSSA' -Recurse -Force
           }
+      - name: Install Pester 3.4 baseline
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'Pester34.zip'
+          $dst = 'C:\Pester34'
+          if (-not (Test-Path (Join-Path $dst 'Pester.psd1'))) {
+            Invoke-WebRequest -Uri 'https://www.powershellgallery.com/api/v2/package/Pester/3.4.0' -OutFile $zip -UseBasicParsing
+            New-Item -ItemType Directory -Path $dst -Force | Out-Null
+            Expand-Archive -LiteralPath $zip -DestinationPath $dst -Force
+          }
+          if (-not (Test-Path (Join-Path $dst 'Pester.psd1'))) { throw 'Pester 3.4 install failed' }
       - name: Build unsigned release artifact
         shell: pwsh
         env:
