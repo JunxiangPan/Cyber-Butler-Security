@@ -19,3 +19,13 @@ def test_signing_report_roundtrip_and_tamper(tmp_path: Path) -> None:
 
 def test_signing_report_missing_freeze_fails(tmp_path: Path) -> None:
     assert subprocess.run([sys.executable, str(TOOL), "--freeze", str(tmp_path / "missing"), "--create"], check=False).returncode == 2
+
+
+def test_signing_payload_uses_shared_jcs(tmp_path: Path) -> None:
+    from tools.jcs import payload_sha256
+    freeze = tmp_path / "pre-build-freeze.json"
+    report = tmp_path / "signing-report.json"
+    data = {"update-manifest.json": "a", "BUILD_REPORT.md": "b", "FINAL_QA_REPORT.md": "c", "ACCEPTANCE_PROOF.md": "d"}
+    freeze.write_text(json.dumps(data), encoding="utf-8")
+    subprocess.run([sys.executable, str(TOOL), "--freeze", str(freeze), "--report", str(report), "--create"], check=True)
+    assert json.loads(report.read_text(encoding="utf-8"))["payload_sha256"] == payload_sha256(data)

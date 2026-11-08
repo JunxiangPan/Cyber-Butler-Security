@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Create/verify the signing report without modifying BUILD_REPORT.md."""
 from __future__ import annotations
-import argparse, hashlib, json, sys
+import argparse, json, sys
 from datetime import datetime, timezone
 from pathlib import Path
+try:
+    from .jcs import payload_sha256
+except ImportError:
+    from jcs import payload_sha256
 
 def payload_hash(freeze: dict) -> str:
-    canonical = json.dumps(freeze, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return payload_sha256(freeze)
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -31,7 +34,11 @@ def main() -> int:
         report = {
             "stage": "signed",
             "signed_at": datetime.now(timezone.utc).isoformat(),
-            "signed_by": "release-signing environment",
+            "signed_by": {
+                "environment": "release-signing",
+                "run_id": str(__import__("os").environ.get("GITHUB_RUN_ID", "")),
+                "commit": str(__import__("os").environ.get("GITHUB_SHA", "")),
+            },
             "payload_sha256": expected,
         }
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

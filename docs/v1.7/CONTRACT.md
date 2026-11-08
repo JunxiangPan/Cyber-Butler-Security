@@ -473,3 +473,38 @@ be recomputed by the signing or publish phase.
 5. any mismatch exits `3` and blocks publish.
 
 A check that only compares file hashes is not zip-bundle verification.
+
+### Unsigned build semantics
+
+`Run-ReleasePipeline.ps1 -Unsigned` must:
+
+- run every quality, VM-evidence, proof, and packaging gate; skip only the
+  signature-existence check and RSA verification;
+- exit `0` with no signature;
+- write `Build Mode: unsigned` into `BUILD_REPORT.md`;
+- reject an existing `update-manifest.sig` with exit `3`
+  (`unsigned mode cannot have existing update-manifest.sig`);
+- never modify `BUILD_REPORT.md` after signing.
+
+`signing-report.json` records:
+
+```json
+{
+  "stage": "signed",
+  "signed_at": "...",
+  "signed_by": {
+    "environment": "release-signing",
+    "run_id": "<github run id>",
+    "commit": "<40-hex>"
+  },
+  "payload_sha256": "<JCS(freeze) sha256>"
+}
+```
+
+The human approver is taken from the GitHub Environment deployment record, not
+from this file. `pre-build-freeze.json` and `signing-report.json` must use the
+same shared JCS implementation (`tools/jcs.py`).
+
+The VM evidence gate is the external `ACCEPTANCE_PROOF.md`; it does not
+provision nested virtualization inside the runner. A Windows runner can run
+the pipeline only when that proof is attached.

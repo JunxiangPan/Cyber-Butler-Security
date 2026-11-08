@@ -19,6 +19,7 @@ param(
     [switch]$ApproveChangedPipeline,
     [switch]$Candidate,
     [switch]$Sign,
+    [switch]$Unsigned,
     [string]$InstallRoot = 'C:\CyberButler',
     [string]$VerifyReleaseTag = '',
     [string]$Repository = ''
@@ -26,6 +27,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+$sigPath = Join-Path $root 'update-manifest.sig'
+if ($Unsigned -and (Test-Path -LiteralPath $sigPath)) {
+    throw 'unsigned mode cannot have existing update-manifest.sig'
+}
 $pipeline = $PSCommandPath
 $selfHash = (Get-FileHash -LiteralPath $pipeline -Algorithm SHA256).Hash
 Write-Host ('PIPELINE_SHA256=' + $selfHash)
@@ -86,6 +91,7 @@ function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
 
 Add-Report '# BUILD_REPORT'
 Add-Report ('- Release Version: ' + $Version)
+Add-Report ('- Build Mode: ' + $(if ($Unsigned) { 'unsigned' } else { 'signed' }))
 Add-Report ''
 Add-Report ('- Current Commit: ' + $head)
 Add-Report ('- Build Time: ' + (Get-Date).ToUniversalTime().ToString('o'))
@@ -235,17 +241,20 @@ $reportText = Get-Content -LiteralPath $reportPath -Raw
 if ($reportText -notmatch ('- Current Commit: ' + [regex]::Escape($head))) { throw 'BUILD_REPORT.md is missing the current commit' }
 $reportHash = (Get-FileHash -LiteralPath $reportPath -Algorithm SHA256).Hash
 Write-Host ('[BUILD_MANIFEST] Zip_SHA256: ' + $zipHash + ' | Report_SHA256: ' + $reportHash)
-$sigPath = Join-Path $root 'update-manifest.sig'
-if (-not (Test-Path -LiteralPath $sigPath)) { throw 'cryptographic gate: update-manifest.sig is missing' }
-Run-Process 'verify RSA signature' 'python' @(
-    'tools/verify_release.py',
-    '--manifest', (Join-Path $root 'update-manifest.json'),
-    '--signature', $sigPath,
-    '--pubkey', (Join-Path $root 'tools/update_pubkey.pem'),
-    '--build-report', (Join-Path $root 'BUILD_REPORT.md'),
-    '--qa-report', (Join-Path $root 'FINAL_QA_REPORT.md'),
-    '--proof', (Join-Path $root 'ACCEPTANCE_PROOF.md')
-)
+if (-not $Unsigned) {
+    if (-not (Test-Path -LiteralPath $sigPath)) { throw 'cryptographic gate: update-manifest.sig is missing' }
+    Run-Process 'verify RSA signature' 'python' @(
+        'tools/verify_release.py',
+        '--manifest', (Join-Path $root 'update-manifest.json'),
+        '--signature', $sigPath,
+        '--pubkey', (Join-Path $root 'tools/update_pubkey.pem'),
+        '--build-report', (Join-Path $root 'BUILD_REPORT.md'),
+        '--qa-report', (Join-Path $root 'FINAL_QA_REPORT.md'),
+        '--proof', (Join-Path $root 'ACCEPTANCE_PROOF.md')
+    )
+} else {
+    Add-Report '- Build Mode: unsigned; signature verification skipped by request'
+}
 if ($Sign) {
     Write-Host 'Signing is intentionally a separate step after human review of BUILD_REPORT.md.'
 }
