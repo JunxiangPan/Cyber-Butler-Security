@@ -81,6 +81,7 @@ jobs:
           }
           $env:CBS_TEST_MODE = '1'
           $env:CBS_TEST_ROOT = 'C:/CyberButler'
+          $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
           Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript (TEST_MODE)"
           $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
           
