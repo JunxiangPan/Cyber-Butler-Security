@@ -3,7 +3,7 @@
 Frozen minimums for the v1.7 release train:
 
 ```text
-CBE  >= 1.7.0   (minor pin)
+CBE  >= 0.1.0   (first version released through CBE/CBP)
 CBP  >= 1.0.8   (minor pin)
 CBS  == 1.7.0
 CBM  == 0.x     (NOT_UPLOADED allowed)
