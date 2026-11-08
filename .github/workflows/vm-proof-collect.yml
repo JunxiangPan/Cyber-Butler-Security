@@ -1,0 +1,51 @@
+name: vm-proof-collect
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag whose commit the proof must match'
+        required: true
+        default: 'v1.6.6'
+      expected_commit:
+        description: 'Expected 40-char commit SHA'
+        required: true
+        default: '29a57d9a76676926e632cd7f69b02da562a79122'
+      proof_path:
+        description: 'Proof file path on the VM'
+        required: true
+        default: 'C:\ProgramData\CyberButler\ACCEPTANCE_PROOF.md'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  collect:
+    runs-on: [self-hosted, windows, x64, cbs-vm-proof]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+
+      - name: Validate proof and stage for upload
+        shell: pwsh
+        run: |
+          $proofPath = '${{ inputs.proof_path }}'
+          if (-not (Test-Path -LiteralPath $proofPath)) { throw 'proof file missing' }
+          $text = Get-Content -LiteralPath $proofPath -Raw
+          if ($text -notmatch 'Overall: PASS') { throw 'proof is not PASS' }
+          $sha = (git rev-parse HEAD).Trim()
+          if ($sha -ne '${{ inputs.expected_commit }}') { throw 'tag commit does not match expected_commit' }
+          if ($text -notmatch [regex]::Escape($sha)) { throw 'proof commit does not match tag commit' }
+          Copy-Item -LiteralPath $proofPath -Destination (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') -Force
+          Get-FileHash 'ACCEPTANCE_PROOF.md' -Algorithm SHA256 | Format-List | Out-String | Write-Host
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: vm-proof-${{ github.run_id }}
+          path: ACCEPTANCE_PROOF.md
+          if-no-files-found: error
