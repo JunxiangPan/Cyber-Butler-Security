@@ -4,9 +4,24 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import broker  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_broker_gate_state():
+    broker._pending = None
+    broker._verify_locked_until = 0.0
+    broker._global_failures = 0
+    broker._global_lock_until = 0.0
+    yield
+    broker._pending = None
+    broker._verify_locked_until = 0.0
+    broker._global_failures = 0
+    broker._global_lock_until = 0.0
 
 
 def test_directory_delete_is_rejected_400(tmp_path: Path) -> None:
@@ -75,7 +90,8 @@ def test_webui_can_read_broker_token_as_desktop_task() -> None:
     source = (ROOT / "installer" / "Install-CyberButler.ps1").read_text(encoding="utf-8-sig")
     assert "$tokenReaders" in source
     assert "$DesktopAccount" in source
-    assert '"${tokenReader}:(R)"' in source or "${tokenReader}:(R)" in source
+    assert "$tokenSids" in source
+    assert "'*' + $tokenSid + ':(R)'" in source
 
 
 def test_broker_source_forces_scoped_minutes_zero() -> None:

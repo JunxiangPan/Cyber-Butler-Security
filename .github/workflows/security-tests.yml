@@ -43,6 +43,8 @@ jobs:
           python-version: "3.12"
       - name: Install test dependencies
         run: python -m pip install -r requirements-dev.txt
+      - name: Quality and security redline tests
+        run: python -m pytest -q quality/tests
       - name: Packaging preflight (text / placeholders / dry-run / wheelhouse)
         run: python quality/preflight.py
       - name: UI sanity gate
