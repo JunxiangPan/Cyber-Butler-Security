@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_pipeline_rejects_dirty_or_unpushed_tree() -> None:
     text = (ROOT / "tools" / "Run-ReleasePipeline.ps1").read_text(encoding="utf-8-sig")
     assert "status --porcelain" in text
-    assert "origin/release/v1.6.3" in text
+    assert "origin/" in text
+    assert "'release/v' + $Version" in text
     assert "working tree is dirty" in text
 
 

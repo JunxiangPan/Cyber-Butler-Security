@@ -12,10 +12,13 @@ import pytest
 def test_kernel_acl_denies_write(tmp_path: Path) -> None:
     target = tmp_path / "sensitive"
     target.mkdir()
-    user = os.environ.get("USERNAME", "")
-    assert user
+    whoami = subprocess.check_output(
+        ["whoami", "/user", "/fo", "csv", "/nh"], text=True
+    ).strip()
+    sid = whoami.rsplit(",", 1)[-1].strip().strip('"')
+    assert sid.startswith("S-1-")
     subprocess.run(
-        ["icacls", str(target), "/deny", f"{user}:(W)"],
+        ["icacls", str(target), "/deny", f"*{sid}:(W)"],
         check=True,
         capture_output=True,
         text=True,
@@ -25,7 +28,7 @@ def test_kernel_acl_denies_write(tmp_path: Path) -> None:
             (target / "blocked.txt").write_text("x", encoding="utf-8")
     finally:
         subprocess.run(
-            ["icacls", str(target), "/remove:d", user],
+            ["icacls", str(target), "/remove:d", f"*{sid}"],
             check=False,
             capture_output=True,
             text=True,
