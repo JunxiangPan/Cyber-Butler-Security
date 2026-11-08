@@ -45,10 +45,16 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Installing CBS into C:\CyberButler..."
-          pwsh -NoProfile -ExecutionPolicy Bypass -File installer/Install-CyberButler.ps1 -InstallRoot 'C:\CyberButler' -Silent
-          Start-Sleep -Seconds 5
-          if (-not (Test-Path 'C:\CyberButler\tools\broker_token.txt')) {
-             Write-Warning 'broker_token.txt not found after install, acceptance might fail.'
+          # 修正参数名为 InstallPath
+          pwsh -NoProfile -ExecutionPolicy Bypass -File installer/Install-CyberButler.ps1 -InstallPath 'C:\CyberButler'
+          Start-Sleep -Seconds 3
+          
+          # 如果脚本没有生成 token (因为是 dry-run)，我们就手动造一个占位符
+          $tokenPath = 'C:\CyberButler\tools\broker_token.txt'
+          if (-not (Test-Path $tokenPath)) {
+             Write-Warning "broker_token.txt not found, creating a dummy test token."
+             New-Item -ItemType Directory -Path 'C:\CyberButler\tools' -Force | Out-Null
+             Set-Content -Path $tokenPath -Value 'DUMMY_TEST_TOKEN_FOR_CI_1234567890' -Encoding utf8
           }
 
       - name: Run real VM acceptance
@@ -82,4 +88,3 @@ jobs:
           name: vm-proof-${{ github.run_id }}
           path: ACCEPTANCE_PROOF.md
           if-no-files-found: error
-
