@@ -52,8 +52,7 @@ jobs:
             -Version $version `
             -Challenge $env:CHALLENGE `
             -ProofPath (Resolve-Path 'vm-proof\ACCEPTANCE_PROOF.md').Path `
-            -ProofSource ('vm-proof-job/' + $env:PROOF_RUN_ID) `
-            -Candidate
+            -ProofSource ('vm-proof-job/' + $env:PROOF_RUN_ID)
       - name: Verify unsigned artifact
         shell: pwsh
         run: |
