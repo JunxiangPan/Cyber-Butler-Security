@@ -28,11 +28,16 @@ The next contract work is v1.7.1; it is not frozen.
 
 **Hard rule:** a direct overwrite from v1.6.2 to v1.7.0 is forbidden.
 
-The only supported upgrade path is:
+The supported upgrade path is:
 
 ```text
-v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
+v1.6.2 -> v1.6.3 (decoupling) -> v1.6.4 (signing baseline)
+       -> v1.6.6 (current signed release) -> v1.7.0 (deep-water features)
 ```
+
+`v1.6.5` was never released and is not a bridge. Do not omit `v1.6.6` from
+upgrade documentation. The v1.7.0 minimum is proposed as `>= 1.6.6`; the final
+contract freeze must confirm it.
 
 ### v1.6.2 -> v1.6.3
 
@@ -55,12 +60,12 @@ v1.6.2  ->  v1.6.3 (decoupling)  ->  v1.7.0 (deep-water features)
 - The installer must block upgrades from v1.6.2 or earlier with this message:
 
 ```text
-Please upgrade to v1.6.3 first to complete the architecture decoupling,
-then upgrade to v1.7.0.
+Please upgrade through v1.6.3, v1.6.4, and v1.6.6 first;
+there is no direct v1.6.2 -> v1.7.0 path.
 ```
 
 - A v1.7.0 installer may proceed only when the installed VERSION is at least
-  `1.6.3`.
+  `1.6.6`.
 - The version gate is fail-closed: if the installed version cannot be read, the
   installer stops instead of guessing.
 
