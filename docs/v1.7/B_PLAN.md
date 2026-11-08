@@ -224,3 +224,20 @@ optimization.
 
 A failed job does not clean VM 2 automatically. The 24-hour quarantine is the
 backstop for an operator who is absent or misses the GitHub notification.
+
+## Mechanism status: v1.7.0 is documentation-only
+
+Do not read the quarantine text as an enforced workflow guard. The current
+implementation is:
+
+| Claim | v1.7.0 mechanism |
+| --- | --- |
+| 24h no-rollback -> VM 2 unavailable | none; operator discipline only |
+| block next vm-proof | none; `vm-proof.yml` has no `VM2_AVAILABLE` check |
+| `runner-health` detects non-baseline | not implemented; it runs inside VM 2 and cannot query Hyper-V snapshots |
+| notification on failure | GitHub default notifications only; no issue/webhook workflow |
+| baseline freshness <= 30 days | no automated check; manual confirmation only |
+
+A real host-side guard requires a host runner or a host API and is deferred to
+v1.7.1+. Until then, these are manual release-checklist items, not enforced
+invariants.
