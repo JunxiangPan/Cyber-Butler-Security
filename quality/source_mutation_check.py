@@ -25,7 +25,7 @@ MUTATIONS = (
         "tools/broker.py",
         'scoped_minutes = 0',
         'scoped_minutes = 30',
-        "quality/tests/test_security_redlines.py::test_verify_rejects_caller_supplied_scope",
+        "quality/tests/test_security_redlines.py::test_broker_source_forces_scoped_minutes_zero",
     ),
 )
 
