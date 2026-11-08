@@ -167,3 +167,25 @@ The raw nonce is present in the public `ACCEPTANCE_PROOF.md`, because
    Environment; only the resulting one-time nonce enters the proof.
 6. The nonce appears in the proof; masking logs with `::add-mask::` is
    necessary but not sufficient to make it secret.
+
+## Rollback trigger and baseline semantics
+
+The rollback step is not conditional on the job succeeding:
+
+- `success` -> rollback.
+- `failure` / `cancelled` -> rollback.
+- `in_progress` longer than 120 minutes -> treat as failure, cancel the run,
+  then roll back on the Hyper-V host.
+- If the operator is absent, VM 2 may remain dirty; the next run must start
+  with `-Restore` against the fixed baseline.
+
+`-Restore` restores the fixed baseline snapshot:
+
+```text
+cbs-acceptance-baseline
+```
+
+It does **not** restore "the state before the previous run". Updating the
+baseline is a separate maintenance operation outside the vm-proof flow.
+
+Passing both `-Restore` and `-Rollback` is invalid and exits `2`.
