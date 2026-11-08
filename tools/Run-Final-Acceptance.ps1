@@ -106,6 +106,12 @@ function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json 
         exit = [int]$parsed.exit
     }
 }
+<#
+.SYNOPSIS
+    Restart the broker scheduled task and wait until it is listening.
+.DESCRIPTION
+    Used after a negative TOTP test so the next request starts from a clean pending state.
+#>
 function Restart-BrokerTask() {
     if ($env:CBS_TEST_MODE -eq '1') {
         return (Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded
@@ -147,6 +153,12 @@ function Get-NewTotp([string]$id) {
     Wait 35 seconds, ask for the new phone code, and retry; never count the 429 as
     a capacity or positive-test failure.
 #>
+<#
+.SYNOPSIS
+    Return the current test TOTP when the test secret is explicitly enabled.
+.DESCRIPTION
+    Production runs leave both environment variables unset and use the supplied phone code.
+#>
 function Get-AcceptanceTotpCode {
     if ($env:CBS_ALLOW_TEST_TOTP_SECRET -ne '1' -or [string]::IsNullOrWhiteSpace($env:CBS_TEST_TOTP_SECRET)) {
         return $TotpCode
@@ -157,6 +169,12 @@ function Get-AcceptanceTotpCode {
     return (& $python -c "import pyotp; print(pyotp.TOTP('$secret').now())" | Out-String).Trim()
 }
 
+<#
+.SYNOPSIS
+    Verify one TOTP, retrying after the broker replay window.
+.DESCRIPTION
+    A 429 or replay rejection waits for a fresh code; it is not a gate failure.
+#>
 function Invoke-TotpVerifyWithRetry {
     param(
         [Parameter(Mandatory = $true)][string]$Id,

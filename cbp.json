@@ -104,6 +104,10 @@
     {
       "path": "tools/update_merge.ps1",
       "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/Run-ReleasePipeline.ps1",
+      "reason": "Windows PowerShell 5.1 parses CJK comments only with UTF-8 BOM"
     }
   ]
 }
