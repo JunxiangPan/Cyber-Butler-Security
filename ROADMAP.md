@@ -8,19 +8,21 @@ Canonical test coverage and known gaps: [docs/TEST_MATRIX.md](docs/TEST_MATRIX.m
 Minimum v2.0 interface contract and trust boundaries:
 [THREAT_MODEL.md](THREAT_MODEL.md).
 
-## Current release candidate — v1.6.3 RC
+## Current release — v1.6.6 shipped
 
-**Status:** v1.6.3 is a **Release Candidate**, not a final release. The current candidate is **unsigned**: FINAL_QA_REPORT is BLOCKED and ACCEPTANCE_PROOF.md and update-manifest.sig do not exist yet.
+**Status:** signed and published on 2026-11-09.
 
-- Candidate package: `public-release-v1.6.3.zip`
-- The package is **not signed** yet; no signature is claimed.
-- **Mandatory acceptance before publication:**
-  1. clean-VM, offline install with a real phone-authenticator TOTP approval;
-  2. WebUI two-stage delete undo + capacity-breaker test;
-  3. `tools/Test-TwoStageTrashACL.ps1` real ACL/SYSTEM/purge verification.
-- Do not mark the GitHub release as Latest until all three pass.
-- The current offline package still requires a system CPython 3.13. It is not
-  zero-dependency.
+- Release: https://github.com/JunxiangPan/Cyber-Butler-Security/releases/tag/v1.6.6
+- Product tag: `v1.6.6` at `29a57d9`
+- Signing tooling tag: `v1.6.6-sign` at `987943a`
+- Zip SHA256: `2c5e5e76d9a79d044b31f24372ed80be7a6ef6c46b91537662d0cd165a572470`
+
+**Known debt:** Q05–Q17 were not individually re-executed; they are marked passed
+under the release coverage policy, with the real VM acceptance proof as evidence.
+Broker coverage is 46% for v1.6.6. v1.7 must restore the full hard gate and must
+not reuse this coverage substitution as the default release method.
+
+The next contract work is v1.7.1; it is not frozen.
 
 ## Cross-version upgrade and migration policy
 

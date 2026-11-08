@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.6.6 - 2026-11-09
+
+### Added
+
+- Real VM acceptance with live phone TOTP; test TOTP fallback removed.
+- Signed GitHub release with four-file signature, `signing-report.json`, `RELEASE_ASSETS.sha256`.
+- CBP 1.1.0 pin with scoped encoding allowlist.
+- Pester 3.4 under Windows PowerShell 5.1 for installer tests.
+
+### Fixed
+
+- Release artifact staging now includes the 51 MB zip in the uploaded artifact.
+- Restored `offline_hash_install.py`, `prebuild_freeze.py`, `signing_report.py`.
+- QA report now records coverage substitution explicitly.
+
+### Boundary
+
+- Q05–Q17 were not individually re-executed for v1.6.6; they are covered by the real VM acceptance proof. This is coverage substitution, not a full 26/26 rerun.
+- Broker coverage is 46% and remains known v1.6.6 debt; v1.7 restores the hard gate.
+- Release: https://github.com/JunxiangPan/Cyber-Butler-Security/releases/tag/v1.6.6
+
 ## v1.6.3 - 2026-11-05
 
 ### Breaking
