@@ -44,12 +44,13 @@ jobs:
       - name: Ensure Python is installed
         shell: pwsh
         run: |
-          # 检查是否有 python 命令，没有就用 winget 装
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
           if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-            Write-Host "Python not found. Installing via winget..."
-            winget install --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements --silent
-            Start-Sleep -Seconds 10
-            # 刷新系统 PATH
+            Write-Host "Python not found. Downloading official installer..."
+            $url = "https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe"
+            $exe = "$env:TEMP\python-installer.exe"
+            Invoke-WebRequest -Uri $url -OutFile $exe
+            Start-Process -FilePath $exe -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
           }
           python --version
@@ -71,10 +72,7 @@ jobs:
         run: |
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
           Write-Host "::add-mask::$env:CBS_VM_TOTP"
-          
-          # 确保 python 在当前环境变量里
           $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-          
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
             -InstallRoot 'C:\CyberButler' `
             -ProofPath (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') `
