@@ -205,7 +205,8 @@ function New-CyberButlerTrackedDirectory {
     )
 
     $full = [IO.Path]::GetFullPath($Path)
-    if (-not (Test-InstallerPathWithin -Path $full -Root $AllowedRoot)) {
+    $rootFull = [IO.Path]::GetFullPath($AllowedRoot).TrimEnd('')
+    if ($full -ine $rootFull -and -not (Test-InstallerPathWithin -Path $full -Root $AllowedRoot)) {
         throw "Tracked directory escapes AllowedRoot: $full"
     }
     if (Test-Path -LiteralPath $full) { return $null }
