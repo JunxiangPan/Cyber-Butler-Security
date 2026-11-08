@@ -1,0 +1,58 @@
+name: build-unsigned-v17
+on:
+  workflow_dispatch:
+    inputs:
+      tag: {required: true}
+      challenge: {required: true}
+      vm_proof_artifact: {required: true}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build-unsigned:
+    runs-on: [self-hosted, windows, x64, cbs-vm-proof]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ${{ inputs.vm_proof_artifact }}
+          path: vm-proof
+      - name: Verify proof commit
+        shell: pwsh
+        run: |
+          $proof = Get-Content .\vm-proof\ACCEPTANCE_PROOF.md -Raw -Encoding UTF8
+          $sha = (git rev-parse HEAD).Trim()
+          if ($proof -notmatch ('Commit SHA: ' + $sha)) { throw 'proof commit mismatch' }
+          if ($proof -notmatch 'Overall: PASS') { throw 'proof not PASS' }
+      - name: Build unsigned with proof artifact
+        shell: pwsh
+        env:
+          PROOF_SOURCE: vm-proof-job/${{ github.run_id }}
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-ReleasePipeline.ps1 `
+            -Unsigned `
+            -Version '${{ inputs.tag }}'.TrimStart('v') `
+            -Challenge '${{ inputs.challenge }}' `
+            -ProofPath (Resolve-Path 'vm-proof\ACCEPTANCE_PROOF.md').Path `
+            -ProofSource $env:PROOF_SOURCE
+      - name: Validate unsigned artifact
+        shell: pwsh
+        run: |
+          if (Test-Path update-manifest.sig) { throw 'unsigned artifact has a signature' }
+          if (-not (Test-Path pre-build-freeze.json)) { throw 'freeze missing' }
+          if (-not (Select-String -Path BUILD_REPORT.md -Pattern 'Build Mode: unsigned')) { throw 'Build Mode missing' }
+          python tools/prebuild_freeze.py --root . --verify
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unsigned-artifact-${{ github.run_id }}
+          path: |
+            public-release-v*.zip
+            update-manifest.json
+            BUILD_REPORT.md
+            FINAL_QA_REPORT.md
+            ACCEPTANCE_PROOF.md
+            pre-build-freeze.json
+          if-no-files-found: error

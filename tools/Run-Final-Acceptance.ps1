@@ -21,6 +21,7 @@ param(
     [string]$Nonce = '',
     [string]$Challenge = '',
     [string]$PackageZip = '',
+    [string]$CommitSha = '',
     [switch]$SkipCapacity
 )
 
@@ -28,6 +29,8 @@ $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($ProofPath)) {
     $ProofPath = Join-Path (Get-Location) 'ACCEPTANCE_PROOF.md'
 }
+if ([string]::IsNullOrWhiteSpace($CommitSha)) { $CommitSha = $env:GITHUB_SHA }
+if ($CommitSha -and $CommitSha -notmatch '^[0-9a-fA-F]{40}$') { throw 'CommitSha must be 40 hex characters' }
 if ([string]::IsNullOrWhiteSpace($SharedRoot)) {
     $SharedRoot = Join-Path $InstallRoot 'workspace'
 }
@@ -164,6 +167,7 @@ Add-Proof ('# ACCEPTANCE_PROOF')
 Add-Proof ('')
 Add-Proof ('- Executed: ' + (Get-Date).ToUniversalTime().ToString('o'))
 Add-Proof ('- Host: ' + $env:COMPUTERNAME)
+Add-Proof ('- Commit SHA: ' + $CommitSha)
 Add-Proof ('- Nonce: ' + $Nonce)
 Add-Proof ('- Acceptance script SHA256 (start): ' + $scriptHashStart)
 $macs = @(Get-NetAdapter | Select-Object -ExpandProperty MacAddress)
