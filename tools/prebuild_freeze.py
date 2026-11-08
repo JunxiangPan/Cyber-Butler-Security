@@ -6,9 +6,11 @@ from pathlib import Path
 FILES = ("update-manifest.json", "BUILD_REPORT.md", "FINAL_QA_REPORT.md", "ACCEPTANCE_PROOF.md")
 
 def hashes(root: Path) -> dict[str, str]:
+    """Return SHA-256 hashes for the four frozen release files."""
     return {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in FILES}
 
 def main() -> int:
+    """Create or verify the two-phase build freeze anchor."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     parser.add_argument("--manifest", default="")
