@@ -50,36 +50,41 @@ jobs:
             $exe = "$env:TEMP\python-installer.exe"
             Invoke-WebRequest -Uri $url -OutFile $exe
             Start-Process -FilePath $exe -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
+            Start-Sleep -Seconds 5
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
           }
-          python -m pip install requests fastapi uvicorn pyotp
+          # 动态查找绝对路径，防止后台进程失忆
+          $pyPath = (Get-Command python -ErrorAction SilentlyContinue).Source
+          if (-not $pyPath) {
+              $pyPath = (Get-ChildItem -Path "C:\Program Files" -Filter "python.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          }
+          if (-not $pyPath) { throw "Python not found!" }
+          Write-Host "Found Python at: $pyPath"
+          "PYTHON_EXE=$pyPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $pyPath -m pip install requests fastapi uvicorn pyotp
 
-      - name: Real Install CBS and Start Services
+      - name: Mock CBS Environment and Start Broker
         shell: pwsh
         run: |
-          # 1. 真实调用安装脚本（带 -NonInteractive 和非空审批字典）
-          Write-Host "Running real installer..."
-          try {
-            pwsh -NoProfile -ExecutionPolicy Bypass -File installer/Install-CyberButler.ps1 -InstallPath 'C:\CyberButler' -NonInteractive -ApprovalTokens @{ "approve" = "approve" } -ErrorAction Stop
-          } catch {
-            Write-Warning "Installer failed or required more args: $_"
-          }
-
-          # 2. 强行确保目录存在并把必须的文件拷贝过去
           $dirs = @('C:\CyberButler', 'C:\CyberButler\tools', 'C:\CyberButler\config')
           foreach ($d in $dirs) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
-          Copy-Item -Path "tools\*" -Destination "C:\CyberButler\tools\" -Recurse -Force
+          Set-Content -Path 'C:\CyberButler\tools\broker_token.txt' -Value 'DUMMY_TEST_TOKEN_FOR_CI_1234567890' -Encoding utf8
           Copy-Item -Path "VERSION" -Destination "C:\CyberButler\VERSION" -Force
-
-          # 3. 强行在后台拉起 Broker 服务（监听 18090 端口）
-          Write-Host "Starting Broker service on 18090..."
+          
+          Copy-Item -Path "tools\*" -Destination "C:\CyberButler\tools\" -Recurse -Force
+          
           $brokerScript = "C:\CyberButler\tools\broker.py"
-          if (Test-Path $brokerScript) {
-              Start-Process python -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -WindowStyle Hidden
-              Start-Sleep -Seconds 5  # 等服务就绪
-          } else {
-              Write-Error "Broker script not found!"
-          }
+          if (-not (Test-Path $brokerScript)) { throw "broker.py not found at $brokerScript!" }
+          
+          Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript"
+          # 用绝对路径启动，杜绝找不到
+          Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -WindowStyle Hidden
+          
+          Start-Sleep -Seconds 5
+          # 探活
+          $testConn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
+          if (-not $testConn.TcpTestSucceeded) { throw "Broker failed to start on port 18090!" }
+          Write-Host "Broker is successfully listening on port 18090."
 
       - name: Run real VM acceptance
         shell: pwsh
