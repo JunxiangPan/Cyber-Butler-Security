@@ -133,3 +133,37 @@ or VM 1 must use WinRM/Invoke-Command to execute the script inside VM 2.
 `vm-snapshot-rollback.ps1` runs on the Hyper-V host (or a host-side runner),
 not inside the VM being snapshotted. It must run before and after
 `Run-Final-Acceptance.ps1`; VM 2 cannot snapshot itself.
+
+## VM snapshot coordination (v1.7.0 decision: option A)
+
+The v1.7.0 minimum uses human-driven snapshots on the Hyper-V host. It does
+not add a host runner or a WinRM path. B/C are v1.7.1+ optimizations.
+
+```text
+[HUMAN-REQUIRED] before vm-proof:
+  pwsh tools/vm-snapshot-rollback.ps1 -VMName cbs-acceptance-vm -Restore
+
+[DSH-AUTO] vm-proof.yml runs Run-Final-Acceptance.ps1 inside VM 2 and uploads
+           ACCEPTANCE_PROOF.md
+
+[HUMAN-REQUIRED] after vm-proof, whether PASS or FAIL:
+  pwsh tools/vm-snapshot-rollback.ps1 -VMName cbs-acceptance-vm -Rollback
+```
+
+The rollback is mandatory even when acceptance fails. Otherwise the next run
+starts from a drifted VM and is not reproducible.
+
+## Challenge / Nonce security boundary
+
+The raw nonce is present in the public `ACCEPTANCE_PROOF.md`, because
+`sign_release.py` binds the challenge into the signature payload. Therefore:
+
+1. Generate a fresh nonce for every release; never reuse one.
+2. The nonce must be a random string only; it must not encode a PAT, signing
+   key, password, or any secret prefix.
+3. It must not be a long-lived secret or derived from one in a reversible way.
+4. It is public data once the proof is uploaded.
+5. If a challenge-generation HMAC key is used, the key stays in the GitHub
+   Environment; only the resulting one-time nonce enters the proof.
+6. The nonce appears in the proof; masking logs with `::add-mask::` is
+   necessary but not sufficient to make it secret.
