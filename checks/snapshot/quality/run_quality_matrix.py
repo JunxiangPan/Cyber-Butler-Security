@@ -69,6 +69,8 @@ def run_pytest() -> dict[str, str]:
             output,
         )
         statuses[item] = match.group(1).lower() if match else "blocked"
+    if "FAILED" in output:
+        print(output[-6000:])
     if completed.returncode not in (0, 1) and not any(
         status == "passed" for status in statuses.values()
     ):
@@ -122,6 +124,7 @@ def main() -> int:
     REPORT.write_text("\n".join(lines), encoding="utf-8")
     print(f"wrote {REPORT}")
     print(f"overall={overall} passed={passed} failed={failed} blocked={blocked}")
+    print("STATUSES " + ",".join(f"{item_id}={status}" for item_id, _title, _kind, status in rows))
     return 0 if failed == 0 else 1
 
 

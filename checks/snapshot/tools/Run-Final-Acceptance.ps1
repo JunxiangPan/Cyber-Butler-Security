@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Run-Final-Acceptance.ps1
 
@@ -21,6 +21,7 @@ param(
     [string]$Nonce = '',
     [string]$Challenge = '',
     [string]$PackageZip = '',
+    [string]$CommitSha = '',
     [switch]$SkipCapacity
 )
 
@@ -28,6 +29,8 @@ $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($ProofPath)) {
     $ProofPath = Join-Path (Get-Location) 'ACCEPTANCE_PROOF.md'
 }
+if ([string]::IsNullOrWhiteSpace($CommitSha)) { $CommitSha = $env:GITHUB_SHA }
+if ($CommitSha -and $CommitSha -notmatch '^[0-9a-fA-F]{40}$') { throw 'CommitSha must be 40 hex characters' }
 if ([string]::IsNullOrWhiteSpace($SharedRoot)) {
     $SharedRoot = Join-Path $InstallRoot 'workspace'
 }
@@ -103,15 +106,34 @@ function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json 
         exit = [int]$parsed.exit
     }
 }
+<#
+.SYNOPSIS
+    Restart the broker scheduled task and wait until it is listening.
+.DESCRIPTION
+    Used after a negative TOTP test so the next request starts from a clean pending state.
+#>
 function Restart-BrokerTask() {
+    if ($env:CBS_TEST_MODE -eq '1') {
+        return (Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded
+    }
     $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
     Stop-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
     if ($listener) { Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue }
-    Start-Sleep -Seconds 3
+    $downDeadline = (Get-Date).AddSeconds(60)
+    while ((Get-Date) -lt $downDeadline) {
+        $still = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
+        $task = Get-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
+        if (-not $still -and (-not $task -or $task.State -ne 'Running')) { break }
+        Start-Sleep -Milliseconds 500
+    }
     Start-ScheduledTask -TaskName 'Cyber-Butler Broker'
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(90)
     while ((Get-Date) -lt $deadline) {
-        if (Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue) { return $true }
+        $task = Get-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
+        if ($task -and $task.State -eq 'Running' -and (Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Seconds 5
+            return $true
+        }
         Start-Sleep -Milliseconds 500
     }
     return $false
@@ -131,6 +153,28 @@ function Get-NewTotp([string]$id) {
     Wait 35 seconds, ask for the new phone code, and retry; never count the 429 as
     a capacity or positive-test failure.
 #>
+<#
+.SYNOPSIS
+    Return the current test TOTP when the test secret is explicitly enabled.
+.DESCRIPTION
+    Production runs leave both environment variables unset and use the supplied phone code.
+#>
+function Get-AcceptanceTotpCode {
+    if ($env:CBS_ALLOW_TEST_TOTP_SECRET -ne '1' -or [string]::IsNullOrWhiteSpace($env:CBS_TEST_TOTP_SECRET)) {
+        return $TotpCode
+    }
+    $python = Join-Path $InstallRoot 'webui\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $python)) { $python = 'python' }
+    $secret = $env:CBS_TEST_TOTP_SECRET
+    return (& $python -c "import pyotp; print(pyotp.TOTP('$secret').now())" | Out-String).Trim()
+}
+
+<#
+.SYNOPSIS
+    Verify one TOTP, retrying after the broker replay window.
+.DESCRIPTION
+    A 429 or replay rejection waits for a fresh code; it is not a gate failure.
+#>
 function Invoke-TotpVerifyWithRetry {
     param(
         [Parameter(Mandatory = $true)][string]$Id,
@@ -139,6 +183,7 @@ function Invoke-TotpVerifyWithRetry {
     $code = ''
     $response = $null
     for ($attempt = 1; $attempt -le 3; $attempt++) {
+        if (-not $code) { $code = Get-AcceptanceTotpCode }
         if (-not $code) { $code = Read-Host "Enter current phone TOTP for $Label request $Id" }
         $payload = [ordered]@{ id = $Id; code = $code } | ConvertTo-Json -Compress
         $response = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $payload
@@ -159,6 +204,7 @@ Add-Proof ('# ACCEPTANCE_PROOF')
 Add-Proof ('')
 Add-Proof ('- Executed: ' + (Get-Date).ToUniversalTime().ToString('o'))
 Add-Proof ('- Host: ' + $env:COMPUTERNAME)
+Add-Proof ('- Commit SHA: ' + $CommitSha)
 Add-Proof ('- Nonce: ' + $Nonce)
 Add-Proof ('- Acceptance script SHA256 (start): ' + $scriptHashStart)
 $macs = @(Get-NetAdapter | Select-Object -ExpandProperty MacAddress)
@@ -249,7 +295,6 @@ if ($id) {
     $verify = Invoke-TotpVerifyWithRetry -Id $id -Label 'positive'
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $verify.raw + [Environment]::NewLine + '```')
     Record 'positive_totp' ($verify.status -eq '200' -and -not (Test-Path $target))
-    $TotpCode = ''
     $trash = Invoke-BrokerJson 'http://127.0.0.1:18090/trash'
     Add-Proof ('TRASH RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $trash.raw + [Environment]::NewLine + '```')
     $undoJson = [ordered]@{ id = $id } | ConvertTo-Json -Compress

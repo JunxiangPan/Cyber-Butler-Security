@@ -127,7 +127,7 @@ def main() -> int:
     if problems:
         print("CODE_COMMENT_GATE_FAILED", file=sys.stderr)
         for item in problems[:300]:
-            print("  " + item, file=sys.stderr)
+            print("  " + str(item), file=sys.stderr)
         return 1
     print("CODE_COMMENT_GATE_OK")
     print(

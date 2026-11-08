@@ -21,7 +21,7 @@ PROOF = "ACCEPTANCE_PROOF.md"
 BUILD = "BUILD_REPORT.md"
 FIXED_HEADING = "## FIXED_THIS_ROUND"
 NOT_FIXED_HEADING = "## NOT_FIXED_THIS_ROUND"
-NONCE_RE = re.compile(r"^[A-Za-z0-9]{16,}$")
+NONCE_RE = re.compile(r"^[A-Za-z0-9._:-]{16,}$")
 CHALLENGE_RE = re.compile(r"^[A-Za-z0-9._:-]{8,}$")
 
 
