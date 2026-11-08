@@ -46,6 +46,7 @@ jobs:
         run: |
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
           Write-Host "::add-mask::$env:CBS_VM_TOTP"
+          Copy-Item -Path "VERSION" -Destination "C:\CyberButler\VERSION" -Force
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
             -InstallRoot 'C:\CyberButler' `
             -ProofPath (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') `
@@ -64,3 +65,4 @@ jobs:
           name: vm-proof-${{ github.run_id }}
           path: ACCEPTANCE_PROOF.md
           if-no-files-found: error
+
