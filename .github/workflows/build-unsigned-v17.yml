@@ -4,7 +4,7 @@ on:
     inputs:
       tag: {required: true}
       challenge: {required: true}
-      vm_proof_artifact: {required: true}
+      vm_proof_run_id: {required: true}
 permissions:
   contents: read
   actions: read
@@ -16,10 +16,18 @@ jobs:
         with:
           ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
+          clean: true
+          persist-credentials: false
+      - name: Require clean worktree
+        shell: pwsh
+        run: |
+          if (git status --porcelain) { throw 'working tree is dirty' }
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: ${{ inputs.vm_proof_artifact }}
+          name: vm-proof-${{ inputs.vm_proof_run_id }}
           path: vm-proof
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.vm_proof_run_id }}
       - name: Verify proof commit
         shell: pwsh
         run: |
@@ -30,7 +38,7 @@ jobs:
       - name: Build unsigned with proof artifact
         shell: pwsh
         env:
-          PROOF_SOURCE: vm-proof-job/${{ github.run_id }}
+          PROOF_SOURCE: vm-proof-job/${{ inputs.vm_proof_run_id }}
           TAG: ${{ inputs.tag }}
           CHALLENGE: ${{ inputs.challenge }}
         run: |

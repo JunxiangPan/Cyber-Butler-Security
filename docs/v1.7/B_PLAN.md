@@ -75,3 +75,61 @@ Artifact: `vm-proof-<run_id>`.
 2. Restore VM 1/VM 2 snapshot.
 3. Delete the failed workflow artifacts and any partial `ACCEPTANCE_PROOF.md`.
 4. Do not force-update a published tag; add ERRATUM and use a new version.
+
+## Confirmed execution boundaries
+
+### Cross-run proof
+
+`build-unsigned-v17.yml` is a separate workflow_dispatch. It requires:
+
+```text
+vm_proof_run_id
+```
+
+and downloads:
+
+```text
+vm-proof-<vm_proof_run_id>
+```
+
+`ProofSource` is `vm-proof-job/<vm_proof_run_id>`, not the build run id.
+
+### Self-hosted checkout hygiene
+
+Both `vm-proof.yml` and `build-unsigned-v17.yml` use:
+
+```yaml
+clean: true
+persist-credentials: false
+fetch-depth: 0
+```
+
+and run `git status --porcelain` before the pipeline. A dirty runner working
+tree stops the job.
+
+### Challenge handling
+
+The challenge is masked in logs:
+
+```powershell
+Write-Host "::add-mask::$env:CBS_CHALLENGE"
+```
+
+Current `Run-Final-Acceptance.ps1` writes `- Nonce: <challenge>` into
+`ACCEPTANCE_PROOF.md`; the signature gate requires that nonce. Therefore the
+challenge must be treated as a **non-secret build nonce** until proof redaction
+is implemented. Do not supply a reusable secret as `-Challenge`.
+
+### VM topology
+
+`Run-Final-Acceptance.ps1` operates on local `C:\CyberButler`, the local
+broker and the local phone TOTP. It must run **inside the acceptance VM
+(VM 2)**, not on VM 1.
+
+Therefore the self-hosted runner with labels
+`[self-hosted, windows, x64, cbs-vm-proof]` must be registered inside VM 2,
+or VM 1 must use WinRM/Invoke-Command to execute the script inside VM 2.
+
+`vm-snapshot-rollback.ps1` runs on the Hyper-V host (or a host-side runner),
+not inside the VM being snapshotted. It must run before and after
+`Run-Final-Acceptance.ps1`; VM 2 cannot snapshot itself.

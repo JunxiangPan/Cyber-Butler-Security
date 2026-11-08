@@ -21,6 +21,12 @@ jobs:
         with:
           ref: refs/tags/${{ inputs.tag || github.ref_name }}
           fetch-depth: 0
+          clean: true
+          persist-credentials: false
+      - name: Require clean worktree
+        shell: pwsh
+        run: |
+          if (git status --porcelain) { throw 'working tree is dirty' }
       - name: Record commit
         shell: pwsh
         run: |
@@ -31,14 +37,16 @@ jobs:
         shell: pwsh
         env:
           CBS_VM_TOTP: ${{ inputs.totp }}
+          CBS_CHALLENGE: ${{ inputs.challenge }}
         run: |
+          Write-Host "::add-mask::$env:CBS_CHALLENGE"
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
             -InstallRoot 'C:\CyberButler' `
             -ProofPath (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') `
-            -Nonce '${{ inputs.challenge }}' `
-            -Challenge '${{ inputs.challenge }}' `
-            -CommitSha '${{ env.PROOF_COMMIT }}' `
-            -TotpCode '${{ inputs.totp }}'
+            -Nonce $env:CBS_CHALLENGE `
+            -Challenge $env:CBS_CHALLENGE `
+            -CommitSha $env:PROOF_COMMIT `
+            -TotpCode $env:CBS_VM_TOTP
       - name: Verify proof contains commit
         shell: pwsh
         run: |
