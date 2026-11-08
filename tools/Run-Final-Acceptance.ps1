@@ -110,17 +110,24 @@ function Restart-BrokerTask() {
     if ($env:CBS_TEST_MODE -eq '1') {
         return (Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded
     }
-    if ((Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded) {
-        return $true
-    }
     $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
     Stop-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
     if ($listener) { Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue }
-    Start-Sleep -Seconds 3
+    $downDeadline = (Get-Date).AddSeconds(60)
+    while ((Get-Date) -lt $downDeadline) {
+        $still = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
+        $task = Get-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
+        if (-not $still -and (-not $task -or $task.State -ne 'Running')) { break }
+        Start-Sleep -Milliseconds 500
+    }
     Start-ScheduledTask -TaskName 'Cyber-Butler Broker'
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(90)
     while ((Get-Date) -lt $deadline) {
-        if (Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue) { return $true }
+        $task = Get-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
+        if ($task -and $task.State -eq 'Running' -and (Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Seconds 5
+            return $true
+        }
         Start-Sleep -Milliseconds 500
     }
     return $false
