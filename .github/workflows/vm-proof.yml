@@ -82,6 +82,7 @@ jobs:
           $env:CBS_TEST_MODE = '1'
           $env:CBS_TEST_ROOT = 'C:/CyberButler'
           $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
+          Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*broker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript (TEST_MODE)"
           $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
           
@@ -111,7 +112,9 @@ jobs:
           }
           $env:CBS_TEST_MODE = '1'
           $env:CBS_TEST_ROOT = 'C:/CyberButler'
+          $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
           $brokerScript = 'C:/CyberButler/tools/broker.py'
+          Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*broker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
           if (-not $conn.TcpTestSucceeded) {
             Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory 'C:/CyberButler' -RedirectStandardOutput 'C:/broker_out.log' -RedirectStandardError 'C:/broker_err.log' -WindowStyle Hidden | Out-Null
