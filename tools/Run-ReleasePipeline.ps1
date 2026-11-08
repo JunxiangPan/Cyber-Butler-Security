@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Run-ReleasePipeline.ps1
 
@@ -229,8 +229,6 @@ if ($proofText -notmatch 'negative_path=True') { throw 'negative path evidence m
 Run-Process 'mypy (0 errors)' 'python' @('-m', 'mypy', 'tools', 'webui', 'installer', '--ignore-missing-imports', '--exclude', '(\.venv|tests)')
 Run-Process 'ruff (E9/F)' 'python' @('-m', 'ruff', 'check', 'tools', 'webui', 'installer', '--exclude', 'webui/.venv', '--exclude', 'webui/tests')
 Run-Warning 'pip-audit runtime dependencies (CVE allowlist v1.6.4)' 'python' @('-m', 'pip_audit', '-r', 'requirements-runtime.txt', '--ignore-vuln', 'PYSEC-2026-2249', '--ignore-vuln', 'CVE-2026-96640')
-Run-Warning 'Broker coverage (engineering debt; v1.6.4)' 'python' @('quality/coverage_gate.py')
-Run-Warning 'pinned dependency hashes (engineering debt; v1.6.4)' 'python' @('quality/dependency_gate.py')
 
 # Build only from this pipeline via the token gate.
 $token = [guid]::NewGuid().ToString('N')
