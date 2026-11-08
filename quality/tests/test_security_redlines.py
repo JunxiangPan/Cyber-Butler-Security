@@ -76,3 +76,9 @@ def test_webui_can_read_broker_token_as_desktop_task() -> None:
     assert "$tokenReaders" in source
     assert "$DesktopAccount" in source
     assert '"${tokenReader}:(R)"' in source or "${tokenReader}:(R)" in source
+
+
+def test_broker_source_forces_scoped_minutes_zero() -> None:
+    """Caller-supplied scope must never become a broker-side value."""
+    source = Path(broker.__file__).read_text(encoding="utf-8")
+    assert "scoped_minutes = 0" in source
