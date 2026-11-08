@@ -407,3 +407,69 @@ signing_command: ""
 - `RELEASE_ASSETS.sha256` is generated after signing, so it covers the
   signature.
 - Publish consumes the signed artifact; it must not rebuild or re-sign.
+
+### CBS two-phase signing protocol
+
+The CBS pipeline has no signing window inside one run: it writes
+`update-manifest.json` and `BUILD_REPORT.md`, then immediately requires
+`update-manifest.sig`, which it does not create. A two-phase build is mandatory.
+
+#### Phase 1: build-unsigned
+
+- Runs on `windows-latest` with `pwsh`.
+- Runs all quality, VM, proof, and packaging gates.
+- Skips only the signature-existence and signature-verification steps.
+- Writes `Build Mode: unsigned` into `BUILD_REPORT.md`.
+- Writes the release ZIP, `update-manifest.json`, `BUILD_REPORT.md`,
+  `FINAL_QA_REPORT.md`, `ACCEPTANCE_PROOF.md`.
+- Immediately after the build, writes `pre-build-freeze.json`:
+
+```json
+{
+  "update-manifest.json": "<sha256>",
+  "BUILD_REPORT.md": "<sha256>",
+  "FINAL_QA_REPORT.md": "<sha256>",
+  "ACCEPTANCE_PROOF.md": "<sha256>"
+}
+```
+
+- Uploads the unsigned artifact including the freeze file.
+
+#### Phase 2: sign-artifact
+
+- Runs on `windows-latest` in `environment: release-signing`.
+- Requires manual approval.
+- Downloads the unsigned artifact; never rebuilds or regenerates any file.
+- Verifies `sha256sum -c pre-build-freeze.json`.
+- Refuses if `Build Mode` is not `unsigned`.
+- Signs the four-file payload with the protected key; writes
+  `update-manifest.sig`.
+- Uploads the signed artifact including the freeze file.
+
+#### Phase 3: verify-publish
+
+- Downloads the signed artifact; never rebuilds or re-signs.
+- Verifies `sha256sum -c pre-build-freeze.json`.
+- Enters `Build Mode: signed` in `BUILD_REPORT.md` (or records the transition
+  in a separate signed mode record; the signed artifact must not carry
+  `Build Mode: unsigned` as its final state).
+- Verifies the RSA signature with `tools/verify_release.py`.
+- Generates `RELEASE_ASSETS.sha256` covering ZIP, manifest, sig, and freeze.
+- Runs `--verify-release --artifact-type zip-bundle`.
+- Publishes only if all checks pass.
+
+`pre-build-freeze.json` is the only freeze anchor between phases. It must not
+be recomputed by the signing or publish phase.
+
+### zip-bundle verification
+
+`--verify-release --artifact-type zip-bundle` must verify all of:
+
+1. `RELEASE_ASSETS.sha256` covers ZIP, `update-manifest.json`,
+   `update-manifest.sig`, and `pre-build-freeze.json`;
+2. the RSA signature is valid;
+3. the four signed payload hashes equal `pre-build-freeze.json`;
+4. final `BUILD_REPORT.md` has the signed-mode handshake;
+5. any mismatch exits `3` and blocks publish.
+
+A check that only compares file hashes is not zip-bundle verification.
