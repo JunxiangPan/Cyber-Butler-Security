@@ -1,18 +1,22 @@
-name: vm-proof
+﻿name: vm-proof
+
 on:
   workflow_dispatch:
     inputs:
       tag:
+        description: 'CBS version tag (e.g. v1.6.5)'
         required: true
       challenge:
+        description: 'Acceptance challenge code'
         required: true
       totp:
+        description: 'Live 6-digit TOTP code'
         required: true
-  push:
-    tags: ["v*"]
+
 permissions:
   contents: read
   actions: read
+
 jobs:
   vm-proof:
     runs-on: [self-hosted, windows, x64, cbs-vm-proof]
@@ -20,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
           clean: true
           persist-credentials: false
@@ -41,6 +45,7 @@ jobs:
           CBS_CHALLENGE: ${{ inputs.challenge }}
         run: |
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
+          Write-Host "::add-mask::$env:CBS_VM_TOTP"
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
             -InstallRoot 'C:\CyberButler' `
             -ProofPath (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') `
