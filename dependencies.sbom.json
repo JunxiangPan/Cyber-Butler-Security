@@ -11,9 +11,12 @@
         "pywin32==310; sys_platform == \"win32\"",
         "mypy>=1.10",
         "ruff>=0.9",
-        "pip-audit>=2.7"
+        "pip-audit>=2.7",
+        "jinja2>=3.1",
+        "fastapi>=0.110",
+        "httpx>=0.27"
       ],
-      "sha256": "126d4af137d0d7a76c53362cc6abe6e8bcfea913ba93c8245195a69efbb187bb"
+      "sha256": "ed58f833e1a3d78a26cd8e49a7c588f955fc65e6321323e1970730faf93f995a"
     },
     {
       "path": "webui/requirements.txt",
@@ -31,6 +34,6 @@
       "sha256": "36a70d04016a1057b0bae188cb630ddf664403240e7485b7eedac63088fe34e0"
     }
   ],
-  "generated_at": "2026-11-05T17:01:08+00:00",
+  "generated_at": "2026-11-08T15:46:57+00:00",
   "schema": 2
 }
