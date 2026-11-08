@@ -26,7 +26,7 @@ from pathlib import Path
 import update_core
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md", "CHANGELOG.md", "PSScriptAnalyzerSettings.psd1", "vulture_whitelist.py", "requirements-runtime.txt", "ruff.toml", "tools/update_pubkey.pem"}
+PACKAGE_EXCLUDE = {".gitattributes", "update-manifest.sig", "pytest.ini", "FINAL_QA_REPORT.md", "BUILD_REPORT.md", "DOC_STATUS_REPORT.md", "CHANGELOG.md", "PSScriptAnalyzerSettings.psd1", "vulture_whitelist.py", "requirements-runtime.txt", "requirements-runtime.lock", "ruff.toml", "tools/update_pubkey.pem", "cbp.json", "ACCEPTANCE_PROOF.md"}
 PACKAGE_EXCLUDE_PREFIXES = ("overlay/", "plugins/", "installer/service/", ".pytest_cache/", "quality/", "checks/")
 FORBIDDEN_PAYLOAD_PREFIXES = ("agentruntime/", "auxruntime/")
 
@@ -138,12 +138,6 @@ def main() -> int:
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
-    proof_extra = ROOT / "ACCEPTANCE_PROOF.md"
-    if proof_extra.is_file() and not any(rel == "ACCEPTANCE_PROOF.md" for rel, _ in entries):
-        proof_data = proof_extra.read_bytes()
-        entries.append(("ACCEPTANCE_PROOF.md", proof_data))
-        if update_core.is_allowed_path("ACCEPTANCE_PROOF.md"):
-            manifest_files.append({"path": "ACCEPTANCE_PROOF.md", "size": len(proof_data), "sha256": hashlib.sha256(proof_data).hexdigest()})
     for required in ("tools/merge_vm_acceptance.py",):
         if not any(rel == required for rel, _ in entries):
             required_path = ROOT / required
