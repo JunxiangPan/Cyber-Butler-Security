@@ -239,9 +239,9 @@ function Get-CyberButlerPythonSnapshot {
         # while the per-user Python belongs to the interactive owner. Probe
         # every profile and the official registry InstallPath as well.
         try {
-            foreach ($profile in @(Get-ChildItem -LiteralPath (Join-Path $env:SystemDrive 'Users') -Directory -ErrorAction SilentlyContinue)) {
+            foreach ($userProfile in @(Get-ChildItem -LiteralPath (Join-Path $env:SystemDrive 'Users') -Directory -ErrorAction SilentlyContinue)) {
                 foreach ($version in @('Python313', 'Python312', 'Python311', 'Python310')) {
-                    $paths.Add((Join-Path $profile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
+                    $paths.Add((Join-Path $userProfile.FullName ('AppData\Local\Programs\Python\' + $version + '\python.exe')))
                 }
             }
         } catch { Write-Verbose 'optional operation failed' }
