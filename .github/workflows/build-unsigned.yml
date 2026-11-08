@@ -46,6 +46,7 @@ jobs:
           CHALLENGE: ${{ inputs.challenge }}
           PROOF_RUN_ID: ${{ inputs.proof_run_id }}
         run: |
+          $env:Path = 'C:\Program Files\Python312;' + $env:Path
           $version = $env:TAG.TrimStart('v')
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-ReleasePipeline.ps1 `
             -Unsigned `
