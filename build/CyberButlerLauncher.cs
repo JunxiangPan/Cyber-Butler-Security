@@ -12,8 +12,8 @@ using System.Management.Automation.Runspaces;
 [assembly: AssemblyDescription("Hidden/native launcher for Cyber-Butler services and installers")]
 [assembly: AssemblyCompany("Cyber-Butler")]
 [assembly: AssemblyProduct("Cyber-Butler Security")]
-[assembly: AssemblyFileVersion("1.6.3.0")]
-[assembly: AssemblyVersion("1.6.3.0")]
+[assembly: AssemblyFileVersion("1.6.6.0")]
+[assembly: AssemblyVersion("1.6.6.0")]
 
 internal static class Program
 {

@@ -8,8 +8,8 @@ using System.Security.Principal;
 [assembly: AssemblyDescription("Installer entry point (PowerShell fallback shell, no in-process PowerShell dependency)")]
 [assembly: AssemblyCompany("Cyber-Butler")]
 [assembly: AssemblyProduct("Cyber-Butler Security")]
-[assembly: AssemblyFileVersion("1.6.3.0")]
-[assembly: AssemblyVersion("1.6.3.0")]
+[assembly: AssemblyFileVersion("1.6.6.0")]
+[assembly: AssemblyVersion("1.6.6.0")]
 
 internal static class InstallerProgram
 {
