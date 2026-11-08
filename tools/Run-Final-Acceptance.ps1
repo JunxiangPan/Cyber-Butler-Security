@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 Run-Final-Acceptance.ps1
 
@@ -155,18 +155,15 @@ function Get-NewTotp([string]$id) {
 #>
 <#
 .SYNOPSIS
-    Return the current test TOTP when the test secret is explicitly enabled.
+    Return the operator-supplied live phone TOTP.
 .DESCRIPTION
-    Production runs leave both environment variables unset and use the supplied phone code.
+    No test-secret fallback is allowed in acceptance.
 #>
 function Get-AcceptanceTotpCode {
-    if ($env:CBS_ALLOW_TEST_TOTP_SECRET -ne '1' -or [string]::IsNullOrWhiteSpace($env:CBS_TEST_TOTP_SECRET)) {
-        return $TotpCode
+    if ([string]::IsNullOrWhiteSpace($TotpCode)) {
+        throw 'A live phone TOTP is required; no test secret fallback is allowed.'
     }
-    $python = Join-Path $InstallRoot 'webui\.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $python)) { $python = 'python' }
-    $secret = $env:CBS_TEST_TOTP_SECRET
-    return (& $python -c "import pyotp; print(pyotp.TOTP('$secret').now())" | Out-String).Trim()
+    return $TotpCode
 }
 
 <#

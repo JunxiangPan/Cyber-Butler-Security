@@ -9,6 +9,8 @@ The canonical security documentation is:
 
 AgentRuntime runs as the SCM service `CyberButlerAgentRuntime` under `CyberButlerSvc`; S4U scheduled tasks are retired. WFP is audit-only in v1.6.2-rc2.
 
+Production environments must never set `CBS_TEST_MODE=1`; that mode is reserved for local fixtures and disables production-only test-secret guards.
+
 ## Two-Stage Delayed Delete (两阶段延迟删除)
 
 A high-risk `delete` approved by TOTP is not destroyed immediately. The Broker moves it to `tools/broker/trash_staging/<request_id>/` and applies an ACL that grants only `NT AUTHORITY\SYSTEM:(F)`, with explicit deny ACEs for the desktop owner and `CyberButlerSvc`. The owner has a 10-minute undo window through the CBS WebUI, which calls the authenticated Broker undo API; Explorer and the agent are not supported restore paths. When the deadline expires, a SYSTEM-only watchdog overwrites the bytes with random data for up to three passes, flushes, and deletes the entry. The staging area is capped at 500 MB or 1000 entries; exceeding it fails closed and blocks further deletes. Overwrite-based purging is best-effort, not a physical-erasure guarantee on SSDs or snapshotted storage. The signing private key is never included in staging or backups.

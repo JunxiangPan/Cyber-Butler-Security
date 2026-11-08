@@ -108,6 +108,10 @@
     {
       "path": "tools/Run-ReleasePipeline.ps1",
       "reason": "Windows PowerShell 5.1 parses CJK comments only with UTF-8 BOM"
+    },
+    {
+      "path": "tools/Run-Final-Acceptance.ps1",
+      "reason": "Windows PowerShell 5.1 parses CJK strings only with UTF-8 BOM"
     }
   ]
 }
