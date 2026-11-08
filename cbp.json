@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.8",
+  "encoding_allowlist": [
+    {
+      "path": "checks/snapshot/installer/tests/Installer.Diagnostics.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "checks/snapshot/installer/tests/Installer.Main.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "checks/snapshot/installer/tests/Installer.Report.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "checks/snapshot/tools/Run-Final-Acceptance.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "checks/snapshot/tools/Run-ReleasePipeline.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/CyberButler.Installer.GUI.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/Install-CyberButler.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/lib/Installer.Core.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/lib/Installer.Diagnostics.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/lib/Installer.GuiRun.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/tests/Installer.Diagnostics.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/tests/Installer.Main.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "installer/tests/Installer.Report.Tests.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "quality/Invoke-CbsVmAcceptance.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "quality/installer_dry_run.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/Invoke-CbsVmAcceptance.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/boot-selfcheck.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/check_update.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/create_dashboard_shortcut.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/create_update_shortcut.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/cyber_butler_dashboard.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/dashboard_core.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/protect_shared_acl.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/secure_totp_vault.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/update_gui.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    },
+    {
+      "path": "tools/update_merge.ps1",
+      "reason": "Windows PowerShell 5.1 requires UTF-8 BOM for CJK literals"
+    }
+  ]
+}
