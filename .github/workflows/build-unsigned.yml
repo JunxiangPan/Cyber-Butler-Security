@@ -1,0 +1,74 @@
+name: build-unsigned
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag / version'
+        required: true
+      ref:
+        description: 'Branch to build (must match tag commit)'
+        required: true
+        default: release/v1.6.6
+      proof_run_id:
+        description: 'vm-proof run id that produced the proof artifact'
+        required: true
+      challenge:
+        description: 'Challenge bound into the proof'
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build:
+    runs-on: [self-hosted, windows, x64, cbs-vm-proof]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+      - name: Require clean worktree
+        shell: pwsh
+        run: |
+          if (git status --porcelain) { throw 'working tree is dirty' }
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: vm-proof-${{ inputs.proof_run_id }}
+          path: vm-proof
+          run-id: ${{ inputs.proof_run_id }}
+          github-token: ${{ github.token }}
+      - name: Build unsigned release artifact
+        shell: pwsh
+        env:
+          TAG: ${{ inputs.tag }}
+          CHALLENGE: ${{ inputs.challenge }}
+          PROOF_RUN_ID: ${{ inputs.proof_run_id }}
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-ReleasePipeline.ps1 `
+            -Unsigned `
+            -Version $version `
+            -Challenge $env:CHALLENGE `
+            -ProofPath (Resolve-Path 'vm-proof\ACCEPTANCE_PROOF.md').Path `
+            -ProofSource ('vm-proof-job/' + $env:PROOF_RUN_ID) `
+            -Candidate
+      - name: Verify unsigned artifact
+        shell: pwsh
+        run: |
+          if (Test-Path update-manifest.sig) { throw 'unsigned artifact has a signature' }
+          if (-not (Test-Path pre-build-freeze.json)) { throw 'pre-build-freeze.json missing' }
+          if (-not (Select-String -Path BUILD_REPORT.md -Pattern 'Build Mode: unsigned')) { throw 'Build Mode unsigned missing' }
+          python tools/prebuild_freeze.py --root . --verify
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unsigned-artifact-${{ github.run_id }}
+          path: |
+            public-release-v*.zip
+            update-manifest.json
+            BUILD_REPORT.md
+            FINAL_QA_REPORT.md
+            ACCEPTANCE_PROOF.md
+            pre-build-freeze.json
+          if-no-files-found: error
