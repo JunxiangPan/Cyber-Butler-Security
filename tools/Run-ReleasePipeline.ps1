@@ -207,9 +207,9 @@ Run-Process 'coverage json' 'python' @('-m', 'coverage', 'json', '-o', 'coverage
 Run-Process 'CBP coverage gate (allowlisted)' 'python' @('quality/coverage_gate.py')
 Run-Process 'CBP dependency hash gate' 'python' @('quality/dependency_gate.py')
 Run-Process 'CBP comment anti-slop gate' 'python' @('quality/audit_comments.py')
-Run-Process 'CBP shadow audit pass 1' 'python' @('-m', 'cbp.cli', '--root', $root)
-Run-Process 'CBP shadow audit pass 2' 'python' @('-m', 'cbp.cli', '--root', $root)
-Run-Process 'CBP shadow audit pass 3' 'python' @('-m', 'cbp.cli', '--root', $root)
+Run-Process 'CBP shadow audit pass 1 (audit mode; failures visible)' 'python' @('-m', 'cbp.cli', '--root', $root, '--mode', 'audit')
+Run-Process 'CBP shadow audit pass 2 (audit mode; failures visible)' 'python' @('-m', 'cbp.cli', '--root', $root, '--mode', 'audit')
+Run-Process 'CBP shadow audit pass 3 (audit mode; failures visible)' 'python' @('-m', 'cbp.cli', '--root', $root, '--mode', 'audit')
 Run-Process 'offline hash install' 'python' @('quality/offline_hash_install.py')
 Run-Step 'Pester' {
     Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
