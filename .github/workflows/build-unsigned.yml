@@ -77,9 +77,16 @@ jobs:
             -Challenge $env:CHALLENGE `
             -ProofPath (Resolve-Path 'vm-proof\ACCEPTANCE_PROOF.md').Path `
             -ProofSource ('vm-proof-job/' + $env:PROOF_RUN_ID)
+      - name: Stage unsigned package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem -Path (Split-Path -Parent $env:GITHUB_WORKSPACE) -Filter 'public-release-v*.zip' | Select-Object -First 1
+          if (-not $zip) { throw 'unsigned package zip missing' }
+          Copy-Item -LiteralPath $zip.FullName -Destination $env:GITHUB_WORKSPACE
       - name: Verify unsigned artifact
         shell: pwsh
         run: |
+          if (-not (Get-ChildItem -Filter 'public-release-v*.zip')) { throw 'unsigned package zip missing' }
           if (Test-Path update-manifest.sig) { throw 'unsigned artifact has a signature' }
           if (-not (Test-Path pre-build-freeze.json)) { throw 'pre-build-freeze.json missing' }
           if (-not (Select-String -Path BUILD_REPORT.md -Pattern 'Build Mode: unsigned')) { throw 'Build Mode unsigned missing' }
