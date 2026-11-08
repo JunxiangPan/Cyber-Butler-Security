@@ -211,11 +211,10 @@ Run-Process 'CBP shadow audit pass 1' 'python' @('-m', 'cbp.cli', '--root', $roo
 Run-Process 'CBP shadow audit pass 2' 'python' @('-m', 'cbp.cli', '--root', $root)
 Run-Process 'CBP shadow audit pass 3' 'python' @('-m', 'cbp.cli', '--root', $root)
 Run-Process 'offline hash install' 'python' @('quality/offline_hash_install.py')
-Run-Step 'Pester' {
-    $pesterPath = 'C:\Pester34\Pester.psd1'
-    if (Test-Path -LiteralPath $pesterPath) { Import-Module $pesterPath -Force -ErrorAction Stop } else { Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop }
-    $result = Invoke-Pester -Path (Join-Path $root 'installer/tests') -PassThru
-    if ($result.FailedCount -ne 0) { exit 1 }
+Run-Step 'Pester (Windows PowerShell 5.1 + Pester 3.4)' {
+    $ps51 = Join-Path $env:SystemRoot 'System32\WindowsPowerShell1.0\powershell.exe'
+    & $ps51 -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'quality/run_pester.ps1')
+    if ($LASTEXITCODE -ne 0) { throw ('Pester failed exit=' + $LASTEXITCODE) }
 }
 
 # Physical proof from the real VM acceptance run.
