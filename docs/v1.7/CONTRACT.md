@@ -340,3 +340,70 @@ This file is frozen for v1.7. Changes require:
 2. an entry in `docs/v1.7/CHANGELOG.md`,
 3. updates to all affected E2E matrices,
 4. no retroactive change to already published evidence.
+
+## 11. Build-once Profiles
+
+A package type is built by exactly one `build-once` invocation. The profile is
+data, not a hard-coded wheel template.
+
+```yaml
+build_command: string
+build_shell: bash | pwsh
+build_runner: ubuntu-latest | windows-latest
+artifact_glob: string
+artifact_type: wheel | zip-bundle
+publish_targets: github | pypi | both
+signing_command: string      # optional; runs in a separate sign-artifact job
+signing_runner: ubuntu-latest | windows-latest
+```
+
+`RELEASE_ASSETS.sha256` is the only release asset inventory format:
+
+```text
+<sha256>  <basename>
+<sha256>  <basename>
+```
+
+- The manifest lists every published asset except itself.
+- The verifier adds the manifest itself to the allowed set but does not
+  self-hash it.
+- The verifier accepts `--artifact-type wheel` or `--artifact-type zip-bundle`.
+  It may infer the type from the file suffix only if the caller omits the flag.
+
+### CBS profile
+
+```text
+build_command: pwsh tools/Run-ReleasePipeline.ps1 -Version <v> -Challenge <challenge>
+build_shell: pwsh
+build_runner: windows-latest
+artifact_glob: public-release-v*.zip update-manifest.json update-manifest.sig
+artifact_type: zip-bundle
+publish_targets: github
+signing_command: tools/sign_release.py ...   # separate sign-artifact job
+```
+
+The CBS pipeline is Windows-only because it calls `pwsh.exe`,
+`Get-NetAdapter`, Pester, and Windows file APIs. It does not sign the manifest:
+`-Sign` only prints a reminder. `update-manifest.sig` must be produced by the
+separate sign-artifact job before the asset manifest is generated.
+
+### CBE/CBP profile
+
+```text
+build_command: python -m build --wheel --sdist --outdir dist
+build_shell: bash
+build_runner: ubuntu-latest
+artifact_glob: dist/*.whl dist/*.tar.gz
+artifact_type: wheel
+publish_targets: both
+signing_command: ""
+```
+
+### Signing isolation
+
+- Build job has no private key.
+- Sign job runs only after build-once, consumes its artifact, and uses a
+  protected environment/secret.
+- `RELEASE_ASSETS.sha256` is generated after signing, so it covers the
+  signature.
+- Publish consumes the signed artifact; it must not rebuild or re-sign.
