@@ -113,6 +113,7 @@ jobs:
           $env:CBS_TEST_MODE = '1'
           $env:CBS_TEST_ROOT = 'C:/CyberButler'
           $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
+          $env:CBS_VM_TOTP = & $env:PYTHON_EXE -c "import pyotp; print(pyotp.TOTP('JBSWY3DPEHPK3PXP').now())"
           $brokerScript = 'C:/CyberButler/tools/broker.py'
           Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*broker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue

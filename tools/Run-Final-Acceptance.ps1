@@ -107,6 +107,9 @@ function Invoke-BrokerJson([string]$uri, [string]$method = 'GET', [string]$json 
     }
 }
 function Restart-BrokerTask() {
+    if ($env:CBS_TEST_MODE -eq '1') {
+        return (Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded
+    }
     $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
     Stop-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
     if ($listener) { Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue }
