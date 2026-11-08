@@ -70,7 +70,7 @@ jobs:
           if (-not (Test-Path $report)) { throw "installer report missing: $report" }
           $install = Get-Content $report -Raw -Encoding UTF8 | ConvertFrom-Json
           if ($install.status -ne 'success') { throw ('installer report is not success: ' + $install.status) }
-          if (-not (Get-Service -Name 'Cyber-Butler Broker' -ErrorAction SilentlyContinue)) { throw 'Cyber-Butler Broker service is missing' }
+          if (-not (Get-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue)) { throw 'Cyber-Butler Broker scheduled task is missing' }
 
       - name: Run real VM acceptance
         shell: pwsh
