@@ -110,6 +110,9 @@ function Restart-BrokerTask() {
     if ($env:CBS_TEST_MODE -eq '1') {
         return (Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded
     }
+    if ((Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue).TcpTestSucceeded) {
+        return $true
+    }
     $listener = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
     Stop-ScheduledTask -TaskName 'Cyber-Butler Broker' -ErrorAction SilentlyContinue
     if ($listener) { Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue }
@@ -256,7 +259,6 @@ if ($id) {
     $verify = Invoke-TotpVerifyWithRetry -Id $id -Label 'positive'
     Add-Proof ('VERIFY RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $verify.raw + [Environment]::NewLine + '```')
     Record 'positive_totp' ($verify.status -eq '200' -and -not (Test-Path $target))
-    $TotpCode = ''
     $trash = Invoke-BrokerJson 'http://127.0.0.1:18090/trash'
     Add-Proof ('TRASH RAW:' + [Environment]::NewLine + '```text' + [Environment]::NewLine + $trash.raw + [Environment]::NewLine + '```')
     $undoJson = [ordered]@{ id = $id } | ConvertTo-Json -Compress
