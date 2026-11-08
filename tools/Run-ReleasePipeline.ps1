@@ -21,12 +21,26 @@ param(
     [switch]$Sign,
     [switch]$Unsigned,
     [string]$InstallRoot = 'C:\CyberButler',
+    [string]$ProofPath = '',
+    [string]$ProofSource = '',
     [string]$VerifyReleaseTag = '',
     [string]$Repository = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+$proof = Join-Path $root 'ACCEPTANCE_PROOF.md'
+if ([string]::IsNullOrWhiteSpace($ProofSource)) { $ProofSource = 'repo-committed' }
+if (-not [string]::IsNullOrWhiteSpace($ProofPath)) {
+    if (-not (Test-Path -LiteralPath $ProofPath)) { throw ('proof artifact missing: ' + $ProofPath) }
+    Copy-Item -LiteralPath $ProofPath -Destination $proof -Force
+}
+if ($Unsigned -and $ProofSource -eq 'repo-committed') {
+    throw 'unsigned build must consume a vm-proof artifact, not a committed historical proof'
+}
+if ($Unsigned -and [string]::IsNullOrWhiteSpace($ProofPath)) {
+    throw 'unsigned build requires -ProofPath from the vm-proof artifact'
+}
 $sigPath = Join-Path $root 'update-manifest.sig'
 if ($Unsigned -and (Test-Path -LiteralPath $sigPath)) {
     throw 'unsigned mode cannot have existing update-manifest.sig'
@@ -92,6 +106,7 @@ function Run-Warning([string]$name, [string]$exe, [string[]]$arguments) {
 Add-Report '# BUILD_REPORT'
 Add-Report ('- Release Version: ' + $Version)
 Add-Report ('- Build Mode: ' + $(if ($Unsigned) { 'unsigned' } else { 'signed' }))
+Add-Report ('- proof_source: ' + $ProofSource)
 Add-Report ''
 Add-Report ('- Current Commit: ' + $head)
 Add-Report ('- Build Time: ' + (Get-Date).ToUniversalTime().ToString('o'))
@@ -241,6 +256,9 @@ $reportText = Get-Content -LiteralPath $reportPath -Raw
 if ($reportText -notmatch ('- Current Commit: ' + [regex]::Escape($head))) { throw 'BUILD_REPORT.md is missing the current commit' }
 $reportHash = (Get-FileHash -LiteralPath $reportPath -Algorithm SHA256).Hash
 Write-Host ('[BUILD_MANIFEST] Zip_SHA256: ' + $zipHash + ' | Report_SHA256: ' + $reportHash)
+if ($Unsigned) {
+    Run-Process 'freeze unsigned artifact' 'python' @('tools/prebuild_freeze.py', '--root', $root, '--create')
+}
 if (-not $Unsigned) {
     if (-not (Test-Path -LiteralPath $sigPath)) { throw 'cryptographic gate: update-manifest.sig is missing' }
     Run-Process 'verify RSA signature' 'python' @(

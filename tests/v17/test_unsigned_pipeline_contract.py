@@ -19,3 +19,14 @@ def test_unsigned_does_not_skip_quality_gates() -> None:
     for gate in ("quality/preflight.py", "quality/run_quality_matrix.py",
                  "ACCEPTANCE_PROOF.md", "tools/package_release.py"):
         assert gate in text
+
+
+def test_proof_source_and_freeze_order() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "$ProofPath" in text and "$ProofSource" in text
+    assert "proof_source" in text
+    assert "unsigned build requires -ProofPath" in text
+    report_pos = text.index("$reportHash = (Get-FileHash")
+    freeze_pos = text.index("freeze unsigned artifact")
+    sig_pos = text.index("if (-not $Unsigned)")
+    assert report_pos < freeze_pos < sig_pos
