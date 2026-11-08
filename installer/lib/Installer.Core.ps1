@@ -482,7 +482,10 @@ function Invoke-CyberButlerCoreDeploy {
                 $webConfig = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $webConfig.admin_email = $WebUIAdminEmail
                 $webConfig.project_root = $root
-                $webConfig.file_root = Join-Path ([Environment]::GetFolderPath('Desktop')) 'shared专用文件夹'
+                $desktopPath = [Environment]::GetFolderPath('Desktop')
+                if (-not $desktopPath) { $desktopPath = $env:USERPROFILE }
+                if (-not $desktopPath) { $desktopPath = 'C:\Windows\System32\config\systemprofile' }
+                $webConfig.file_root = Join-Path $desktopPath 'shared专用文件夹'
                 Write-InstallerJson -Path $webConfigPath -Value $webConfig
             }
         }
