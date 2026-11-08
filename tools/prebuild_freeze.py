@@ -11,11 +11,12 @@ def hashes(root: Path) -> dict[str, str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
+    parser.add_argument("--manifest", default="")
     parser.add_argument("--create", action="store_true")
     parser.add_argument("--verify", action="store_true")
     args = parser.parse_args()
     root = Path(args.root)
-    path = root / "pre-build-freeze.json"
+    path = Path(args.manifest) if args.manifest else root / "pre-build-freeze.json"
     if args.create:
         missing = [name for name in FILES if not (root / name).is_file()]
         if missing:
@@ -31,6 +32,9 @@ def main() -> int:
             print(f"FREEZE_INPUT_ERROR {exc}", file=sys.stderr)
             return 2
         actual = hashes(root)
+        if set(expected) != set(FILES):
+            print("FREEZE_UNEXPECTED_KEYS " + ",".join(sorted(set(expected) - set(FILES))), file=sys.stderr)
+            return 3
         if actual != expected:
             print("FREEZE_MISMATCH", file=sys.stderr)
             return 3
