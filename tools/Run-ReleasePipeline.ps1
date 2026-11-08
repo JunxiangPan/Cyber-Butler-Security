@@ -212,7 +212,7 @@ Run-Process 'CBP shadow audit pass 2' 'python' @('-m', 'cbp.cli', '--root', $roo
 Run-Process 'CBP shadow audit pass 3' 'python' @('-m', 'cbp.cli', '--root', $root)
 Run-Process 'offline hash install' 'python' @('quality/offline_hash_install.py')
 Run-Step 'Pester (Windows PowerShell 5.1 + Pester 3.4)' {
-    $ps51 = Join-Path $env:SystemRoot 'System32\WindowsPowerShell1.0\powershell.exe'
+    $ps51 = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     & $ps51 -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'quality/run_pester.ps1')
     if ($LASTEXITCODE -ne 0) { throw ('Pester failed exit=' + $LASTEXITCODE) }
 }
