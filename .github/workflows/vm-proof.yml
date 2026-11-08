@@ -1,4 +1,4 @@
-﻿name: vm-proof
+name: vm-proof
 
 on:
   workflow_dispatch:
@@ -59,7 +59,8 @@ jobs:
           }
           Write-Host "Found Python at: $pyPath"
           "PYTHON_EXE=$pyPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-          & $pyPath -m pip install requests fastapi uvicorn pyotp
+          # 补齐所有依赖
+          & $pyPath -m pip install requests fastapi uvicorn pyotp qrcode pillow cryptography
 
       - name: Mock CBS Environment and Start Broker
         shell: pwsh
@@ -69,7 +70,6 @@ jobs:
           Set-Content -Path 'C:\CyberButler\tools\broker_token.txt' -Value 'DUMMY_TEST_TOKEN_FOR_CI_1234567890' -Encoding utf8
           Copy-Item -Path "VERSION" -Destination "C:\CyberButler\VERSION" -Force
           
-          # 拷贝所有相关的配置文件和 tools 目录
           Copy-Item -Path "tools\*" -Destination "C:\CyberButler\tools\" -Recurse -Force
           if (Test-Path "config.json") { Copy-Item -Path "config.json" -Destination "C:\CyberButler\config.json" -Force }
           if (Test-Path "config.pro.example.json") { Copy-Item -Path "config.pro.example.json" -Destination "C:\CyberButler\config.json" -Force }
@@ -77,7 +77,6 @@ jobs:
           $brokerScript = "C:\CyberButler\tools\broker.py"
           
           Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript"
-          # 这次不再隐藏窗口，把标准输出和错误重定向到日志，防止死得不明不白
           $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
           
           Start-Sleep -Seconds 5
