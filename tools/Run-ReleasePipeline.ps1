@@ -47,9 +47,11 @@ $gitStatus = (& git -C $root status --porcelain 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw ('git status failed: ' + $gitStatus) }
 if ($gitStatus) { throw 'release discipline: working tree is dirty; commit before packaging' }
 $head = (& git -C $root rev-parse HEAD 2>&1 | Out-String).Trim()
-$upstream = (& git -C $root rev-parse origin/release/v1.6.3 2>&1 | Out-String).Trim()
-if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw 'release discipline: cannot resolve HEAD or origin/release/v1.6.3' }
-if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != origin/release/v1.6.3 ' + $upstream + '; push first') }
+$branchVersion = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
+$releaseBranch = 'origin/release/v' + $branchVersion
+$upstream = (& git -C $root rev-parse $releaseBranch 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or -not $head -or -not $upstream) { throw ('release discipline: cannot resolve HEAD or ' + $releaseBranch) }
+if ($head -ne $upstream) { throw ('release discipline: HEAD ' + $head + ' != ' + $releaseBranch + ' ' + $upstream + '; push first') }
 
 $report = New-Object System.Collections.Generic.List[string]
 function Add-Report([string]$text) { $report.Add($text); Write-Host $text }
@@ -147,7 +149,7 @@ if ($Candidate) {
         Remove-Item -LiteralPath $tokenPath -Force -ErrorAction SilentlyContinue
         Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
     }
-    $candidateZip = Join-Path (Split-Path -Parent $root) 'public-release-v1.6.3.zip'
+    $candidateZip = Join-Path (Split-Path -Parent $root) 'public-release-v$branchVersion.zip'
     if (-not (Test-Path -LiteralPath $candidateZip)) { throw 'candidate build did not create the zip' }
     $candidateHash = (Get-FileHash -LiteralPath $candidateZip -Algorithm SHA256).Hash
     Add-Report ('- Candidate Zip SHA256: ' + $candidateHash)
@@ -198,7 +200,7 @@ try {
     Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
 }
 
-$zip = Join-Path (Split-Path -Parent $root) 'public-release-v1.6.3.zip'
+$zip = Join-Path (Split-Path -Parent $root) 'public-release-v$branchVersion.zip'
 if (-not (Test-Path -LiteralPath $zip)) { throw 'package_release.py did not create the zip' }
 $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 Add-Report ''
