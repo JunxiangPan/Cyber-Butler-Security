@@ -213,7 +213,7 @@ Run-Process 'CBP shadow audit pass 3' 'python' @('-m', 'cbp.cli', '--root', $roo
 Run-Process 'offline hash install' 'python' @('quality/offline_hash_install.py')
 Run-Step 'Pester' {
     Import-Module Pester -MinimumVersion 3.4 -ErrorAction Stop
-    $result = Invoke-Pester -Script (Join-Path $root 'installer/tests') -PassThru
+    $result = Invoke-Pester -Path (Join-Path $root 'installer/tests') -PassThru
     if ($result.FailedCount -ne 0) { exit 1 }
 }
 
