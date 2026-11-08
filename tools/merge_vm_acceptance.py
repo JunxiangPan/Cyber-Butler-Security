@@ -19,6 +19,7 @@ WHITELIST = ("Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q13", "Q14", "Q15
 BLACKLIST: tuple[str, ...] = ()
 EXPECTED_SKIPPED = 12
 NONCE_RE = re.compile(r"(?m)^-\s*Nonce:\s*(\S+)\s*$")
+COMMIT_RE = re.compile(r"(?m)^-\s*Commit SHA:\s*([0-9A-Fa-f]{40})\s*$")
 START_RE = re.compile(r"Acceptance script SHA256 \(start\):\s*([0-9A-Fa-f]{64})")
 END_RE = re.compile(r"Acceptance script SHA256 \(end\):\s*([0-9A-Fa-f]{64})")
 
@@ -63,9 +64,10 @@ def _rows(lines: list[str]) -> list[tuple[int, list[str]]]:
     return result
 
 
-def merge(proof_path: Path, expected_nonce: str, qa_path: Path) -> None:
-    """Validate all preconditions, then mutate QA from BLOCKED to PASS."""
+def merge(proof_path: Path, expected_nonce: str, qa_path: Path, expected_commit: str = "") -> None:
+    """Validate the proof, then mark whitelisted rows as covered by that proof."""
     verify_proof(proof_path)
+    proof_bytes = proof_path.read_bytes()
     proof_text = proof_path.read_text(encoding="utf-8-sig")
     proof_match = NONCE_RE.search(proof_text)
     if not proof_match:
@@ -73,6 +75,12 @@ def merge(proof_path: Path, expected_nonce: str, qa_path: Path) -> None:
     proof_nonce = proof_match.group(1).strip()
     if proof_nonce != expected_nonce:
         raise MergeError("PROOF Nonce does not match --nonce")
+    commit_match = COMMIT_RE.search(proof_text)
+    if not commit_match:
+        raise MergeError("ACCEPTANCE_PROOF.md Commit SHA is missing")
+    proof_commit = commit_match.group(1).strip()
+    if expected_commit and proof_commit.lower() != expected_commit.lower():
+        raise MergeError("PROOF Commit SHA does not match --expected-commit")
     if not qa_path.is_file():
         raise MergeError("FINAL_QA_REPORT.md is missing")
     original = qa_path.read_bytes()
@@ -96,14 +104,50 @@ def merge(proof_path: Path, expected_nonce: str, qa_path: Path) -> None:
         if cells[0] not in WHITELIST:
             continue
         line = lines[index]
-        new_line = line.replace("| skipped |", "| passed |")
+        new_line = line.replace("| skipped |", "| covered |")
         if new_line == line:
             raise MergeError(f"{cells[0]} skipped cell could not be updated")
         lines[index] = new_line
         changed.append(cells[0])
     if len(changed) != len(WHITELIST):
-        raise MergeError(f"expected {len(WHITELIST)} whitelist changes, got {len(changed)}")
-    text = "\n".join(lines).replace("Overall: **BLOCKED**", "Overall: **PASS**", 1) + "\n"
+        raise MergeError(f"expected {len(WHITELIST)} coverage changes, got {len(changed)}")
+    statuses = [cells[-1] for _, cells in _rows(lines)]
+    passed = statuses.count("passed")
+    covered = statuses.count("covered")
+    blocked = statuses.count("skipped")
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    has_covered = any(line.startswith("- Covered:") for line in lines)
+    updated: list[str] = []
+    for line in lines:
+        if line.startswith("- Version:"):
+            line = f"- Version: {version}"
+        elif line.startswith("- Passed:"):
+            line = f"- Passed: {passed}"
+        elif line.startswith("- Covered:"):
+            line = f"- Covered: {covered}"
+        elif line.startswith("- Blocked:"):
+            if not has_covered:
+                updated.append(f"- Covered: {covered}")
+            line = f"- Blocked: {blocked}"
+        elif line.startswith("> A skipped/blocked item"):
+            line = "> Covered items are explicit; see Coverage substitution below."
+        elif line.startswith("- Overall:"):
+            line = "- Overall: **PASS**"
+        updated.append(line)
+        if line.startswith("- Overall:"):
+            updated.extend([
+                "",
+                "## Coverage substitution",
+                "",
+                "Q05-Q17 were not individually re-executed for this release; they are",
+                "covered by the real VM acceptance proof below. The status is `covered`,",
+                "not `passed`.",
+                "",
+                f"- Proof SHA256: {hashlib.sha256(proof_bytes).hexdigest().upper()}",
+                f"- Proof Nonce: {proof_nonce}",
+                f"- Proof Commit SHA: {proof_commit}",
+            ])
+    text = "\n".join(updated) + "\n"
     backup = qa_path.with_name(qa_path.name + ".pre-vm-merge")
     if backup.exists():
         raise MergeError("backup already exists: " + str(backup))
@@ -114,6 +158,8 @@ def merge(proof_path: Path, expected_nonce: str, qa_path: Path) -> None:
     print("MERGED")
     print("CHANGED=" + ",".join(changed))
     print("PROOF_NONCE=" + proof_nonce)
+    print("PROOF_COMMIT=" + proof_commit)
+    print("COUNTS=" + f"passed={passed},covered={covered},blocked={blocked}")
     print("BACKUP=" + str(backup))
     print("BUILD_REPORT_UNTOUCHED=true")
 
@@ -124,6 +170,7 @@ def main() -> int:
     parser.add_argument("command", choices=("verify-proof", "merge"))
     parser.add_argument("--proof", required=True)
     parser.add_argument("--nonce", default="")
+    parser.add_argument("--expected-commit", default="")
     parser.add_argument("--qa-report", default=str(DEFAULT_QA))
     args = parser.parse_args()
     try:
@@ -132,7 +179,7 @@ def main() -> int:
             return 0
         if not args.nonce:
             raise MergeError("merge requires --nonce")
-        merge(Path(args.proof), args.nonce, Path(args.qa_report))
+        merge(Path(args.proof), args.nonce, Path(args.qa_report), args.expected_commit)
         return 0
     except MergeError as exc:
         print("REFUSING MERGE: " + str(exc), file=sys.stderr)

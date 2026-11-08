@@ -186,7 +186,7 @@ def test_q17_interrupted_install_resume():
 
 
 def test_q18_no_unresolved_placeholders():
-    package = ROOT.parent / "public-release-v1.6.3.zip"
+    package = ROOT.parent / ("public-release-v" + (ROOT / "VERSION").read_text(encoding="utf-8").strip() + ".zip")
     allowed = ("installer/", "tools/", "docs/", "tests/", "README-INSTALL.md", "DEPLOYMENT.md", "config.pro.example.json")
     if package.is_file():
         with zipfile.ZipFile(package) as archive:
@@ -284,7 +284,7 @@ def test_q23_audit_chain_detects_tamper(tmp_path, monkeypatch):
 
 
 def test_q24_package_has_no_dev_artifacts():
-    package = ROOT.parent / "public-release-v1.6.3.zip"
+    package = ROOT.parent / ("public-release-v" + (ROOT / "VERSION").read_text(encoding="utf-8").strip() + ".zip")
     if not package.is_file():
         pytest.skip("release zip not built")
     with zipfile.ZipFile(package) as archive:
@@ -309,7 +309,7 @@ def test_q25_matrix_has_25_items():
 def test_q26_sbom_matches_actual_package():
     import hashlib
 
-    package = ROOT.parent / "public-release-v1.6.3.zip"
+    package = ROOT.parent / ("public-release-v" + (ROOT / "VERSION").read_text(encoding="utf-8").strip() + ".zip")
     if not package.is_file():
         pytest.skip("release zip not built")
     with zipfile.ZipFile(package) as archive:

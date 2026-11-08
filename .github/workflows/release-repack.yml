@@ -12,6 +12,9 @@ on:
       nonce:
         description: 'Acceptance proof nonce'
         required: true
+      expected_commit:
+        description: 'Expected signed build commit'
+        required: true
       tag:
         description: 'Release tag'
         required: true
@@ -27,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: refs/tags/${{ inputs.tag }}
+          ref: public-release
           fetch-depth: 0
           persist-credentials: false
 
@@ -36,6 +39,8 @@ jobs:
           name: ${{ inputs.unsigned_artifact_name }}
           path: unsigned
           run-id: ${{ inputs.unsigned_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
 
       - name: Stage unsigned files
         run: |
@@ -57,12 +62,12 @@ jobs:
 
       - name: Merge VM proof and refresh freeze
         run: |
-          sed -i '/^| Q24 /s/| skipped |$/| passed |/' FINAL_QA_REPORT.md
-          sed -i '/^| Q26 /s/| skipped |$/| passed |/' FINAL_QA_REPORT.md
-          python tools/merge_vm_acceptance.py merge --proof ACCEPTANCE_PROOF.md --nonce '${{ inputs.nonce }}' --qa-report FINAL_QA_REPORT.md
-          sed -i 's/- Version: 1.6.3/- Version: 1.6.6/' FINAL_QA_REPORT.md
-          sed -i 's/- Passed: 12/- Passed: 26/' FINAL_QA_REPORT.md
-          sed -i 's/- Blocked: 14/- Blocked: 0/' FINAL_QA_REPORT.md
+          python tools/repack_qa.py FINAL_QA_REPORT.md
+          python tools/merge_vm_acceptance.py merge \
+            --proof ACCEPTANCE_PROOF.md \
+            --nonce '${{ inputs.nonce }}' \
+            --expected-commit '${{ inputs.expected_commit }}' \
+            --qa-report FINAL_QA_REPORT.md
           python tools/prebuild_freeze.py --root . --create
           python tools/prebuild_freeze.py --root . --verify
 

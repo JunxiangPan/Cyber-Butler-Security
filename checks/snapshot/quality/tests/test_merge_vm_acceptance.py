@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import merge_vm_acceptance as merge_tool
 
 NONCE = "A-READY-20261105-0145"
+COMMIT = "29a57d9a76676926e632cd7f69b02da562a79122"
 WHITELIST = ("Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q13", "Q14", "Q15", "Q16", "Q17")
 BLACKLIST = ("Q02", "Q18", "Q22")
 
@@ -22,6 +23,7 @@ def proof(nonce: str = NONCE, bad_start: bool = False) -> str:
     end = "B" * 64 if bad_start else start
     return f"""# ACCEPTANCE_PROOF
 - Nonce: {nonce}
+- Commit SHA: {COMMIT}
 Overall: PASS
 negative_403=True
 negative_path=True
@@ -31,25 +33,29 @@ script_immutable=True
 """
 
 
-def qa(nonce: str = NONCE, pass_all: bool = False, mutate_black: bool = False, skipped_count: int = 15) -> str:
-    statuses = {}
-    for item in ("Q01", "Q03", "Q04", "Q12", "Q19", "Q20", "Q21", "Q23", "Q24", "Q25"):
-        statuses[item] = "passed"
-    skipped = [x for x in ("Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11", "Q13", "Q14", "Q15", "Q16", "Q17", "Q02", "Q18", "Q22")]
-    if skipped_count != 15:
+def qa(nonce: str = NONCE, pass_all: bool = False, mutate_black: bool = False, skipped_count: int = 12) -> str:
+    statuses = {f"Q{i:02d}": "passed" for i in range(1, 27)}
+    skipped = list(WHITELIST)
+    if pass_all:
+        skipped = []
+    elif skipped_count != 12:
         skipped = skipped[:skipped_count]
     for item in skipped:
-        statuses[item] = "passed" if pass_all else "skipped"
+        statuses[item] = "skipped"
     if mutate_black:
-        statuses["Q02"] = "passed"
-        statuses["Q01"] = "skipped"
+        statuses["Q02"] = "skipped"
+        statuses["Q05"] = "passed"
     rows = ["| ID | Check | Type | Status |", "|---|---|---|---|"]
-    for index in range(1, 26):
+    for index in range(1, 27):
         item = f"Q{index:02d}"
-        rows.append(f"| {item} | check {item} | unit | {statuses.get(item, 'passed')} |")
+        rows.append(f"| {item} | check {item} | unit | {statuses[item]} |")
     return f"""# FINAL QA REPORT
+- Version: 1.6.6
 - Nonce: {nonce}
-Overall: **BLOCKED**
+- Passed: 14
+- Covered: 0
+- Blocked: 12
+- Overall: **BLOCKED**
 
 {chr(10).join(rows)}
 """
@@ -123,14 +129,14 @@ def test_m3_already_pass(tmp_path: Path) -> None:
 
 
 def test_m4_wrong_skipped_count(tmp_path: Path) -> None:
-    p, q, _b = setup(tmp_path, qa_text=qa(skipped_count=14))
-    with pytest.raises(merge_tool.MergeError, match="expected 15"):
+    p, q, _b = setup(tmp_path, qa_text=qa(skipped_count=10))
+    with pytest.raises(merge_tool.MergeError, match="expected 12"):
         merge_tool.merge(p, NONCE, q)
 
 
 def test_m5_blacklist_changed(tmp_path: Path) -> None:
     p, q, _b = setup(tmp_path, qa_text=qa(mutate_black=True))
-    with pytest.raises(merge_tool.MergeError, match="Q02 is not skipped"):
+    with pytest.raises(merge_tool.MergeError, match="Q05 skipped cell could not be updated"):
         merge_tool.merge(p, NONCE, q)
 
 
@@ -138,7 +144,9 @@ def test_m6_valid_merge(tmp_path: Path) -> None:
     p, q, b = setup(tmp_path)
     before_build = b.read_bytes()
     merge_tool.merge(p, NONCE, q)
-    assert q.read_text(encoding="utf-8").count("| passed |") == 22
+    text = q.read_text(encoding="utf-8")
+    assert text.count("| passed |") == 14
+    assert text.count("| covered |") == 12
     assert b.read_bytes() == before_build
 
 
@@ -147,15 +155,14 @@ def test_m7_twelve_whitelist_changed(tmp_path: Path) -> None:
     merge_tool.merge(p, NONCE, q)
     text = q.read_text(encoding="utf-8")
     for item in WHITELIST:
-        assert f"| {item} | check {item} | unit | passed |" in text
+        assert f"| {item} | check {item} | unit | covered |" in text
 
 
 def test_m8_blacklist_unchanged(tmp_path: Path) -> None:
     p, q, _b = setup(tmp_path)
     merge_tool.merge(p, NONCE, q)
     text = q.read_text(encoding="utf-8")
-    for item in BLACKLIST:
-        assert f"| {item} | check {item} | unit | skipped |" in text
+    assert "| Q02 | check Q02 | unit | passed |" in text
 
 
 def test_m9_overall_pass(tmp_path: Path) -> None:
