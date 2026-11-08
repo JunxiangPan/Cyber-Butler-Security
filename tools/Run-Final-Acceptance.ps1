@@ -161,7 +161,7 @@ function Get-NewTotp([string]$id) {
 #>
 function Get-AcceptanceTotpCode {
     if ([string]::IsNullOrWhiteSpace($TotpCode)) {
-        throw 'A live phone TOTP is required; no test secret fallback is allowed.'
+        return Read-Host 'Enter current phone TOTP'
     }
     return $TotpCode
 }
