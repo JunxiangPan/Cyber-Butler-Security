@@ -1,0 +1,110 @@
+name: reusable-v17-release
+on:
+  workflow_call:
+    inputs:
+      tag: {type: string, required: true}
+      ci_run_id: {type: string, required: true}
+      main_ci_conclusion: {type: string, required: true}
+      mock_mode: {type: string, default: "pass"}
+    outputs:
+      gate_status: {value: "${{ jobs.cbp-gate.outputs.gate_status }}"}
+      publish_reached: {value: "${{ jobs.publish.outputs.publish_reached }}"}
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      precondition_status: ${{ steps.check.outputs.precondition_status }}
+    steps:
+      - id: check
+        env:
+          TAG: ${{ inputs.tag }}
+          MAIN_CI: ${{ inputs.main_ci_conclusion }}
+        run: |
+          case "$TAG" in (v[0-9]*.[0-9]*.[0-9]*) ;; (*) echo "PRECONDITION_FAIL tag" >&2; exit 2;; esac
+          if [ "$MAIN_CI" != "success" ]; then echo "PRECONDITION_FAIL main_ci" >&2; exit 2; fi
+          echo "precondition_status=PASS" >> "$GITHUB_OUTPUT"
+
+  cbe-gate:
+    needs: preflight
+    runs-on: ubuntu-latest
+    outputs:
+      gate_status: ${{ steps.report.outputs.gate_status }}
+      skip_ok: ${{ steps.report.outputs.skip_ok }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: run
+        env:
+          MOCK_MODE: ${{ inputs.mock_mode }}
+          CBE_REPORT: cbe-report.json
+          CBE_CLI: ${{ vars.CBE_CLI || 'python tests/v17/mock/cbe_cli.py' }}
+        run: $CBE_CLI
+      - id: report
+        env:
+          CBE_REPORT: cbe-report.json
+        run: |
+          set +e
+          OUTPUT=$(python tools/v17_gate_report.py --kind cbe --report "$CBE_REPORT")
+          CODE=$?
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep '^GATE_STATUS=' | cut -d= -f2 >> "$GITHUB_OUTPUT"
+          echo "skip_ok=$(echo "$OUTPUT" | grep -q 'SKIP_OVER=1' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          exit $CODE
+
+  build-once:
+    needs: cbe-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: python tools/v17_mock_build.py --out dist
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: v17-mock-artifact
+          path: dist/
+
+  cbp-gate:
+    needs: build-once
+    runs-on: ubuntu-latest
+    outputs:
+      gate_status: ${{ steps.report.outputs.gate_status }}
+      skip_ok: ${{ steps.report.outputs.skip_ok }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: v17-mock-artifact
+          path: dist
+      - id: run
+        env:
+          MOCK_MODE: ${{ inputs.mock_mode }}
+          CBP_REPORT: quality-manifest.json
+          CBP_CLI: ${{ vars.CBP_CLI || 'python tests/v17/mock/cbp_cli.py' }}
+        run: $CBP_CLI
+      - id: report
+        env:
+          CBP_REPORT: quality-manifest.json
+        run: |
+          set +e
+          OUTPUT=$(python tools/v17_gate_report.py --kind cbp --report "$CBP_REPORT")
+          CODE=$?
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep '^GATE_STATUS=' | cut -d= -f2 >> "$GITHUB_OUTPUT"
+          echo "skip_ok=$(echo "$OUTPUT" | grep -q 'SKIP_OVER=1' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          exit $CODE
+
+  publish:
+    needs: [preflight, cbe-gate, build-once, cbp-gate]
+    runs-on: ubuntu-latest
+    outputs:
+      publish_reached: ${{ steps.publish.outputs.publish_reached }}
+    if: >-
+      needs.preflight.outputs.precondition_status == 'PASS' &&
+      needs.cbe-gate.outputs.gate_status == 'PASS' &&
+      needs.cbp-gate.outputs.gate_status == 'PASS' &&
+      needs.cbp-gate.outputs.skip_ok == 'true'
+    steps:
+      - id: publish
+        run: |
+          echo "publish_reached=true" >> "$GITHUB_OUTPUT"
+          echo "PUBLISH_REACHED mock=true"
