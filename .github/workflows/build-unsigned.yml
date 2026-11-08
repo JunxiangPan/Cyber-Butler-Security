@@ -39,6 +39,18 @@ jobs:
           path: vm-proof
           run-id: ${{ inputs.proof_run_id }}
           github-token: ${{ github.token }}
+      - name: Install static analysis tools
+        shell: pwsh
+        run: |
+          python -m pip install --quiet mypy pyright vulture
+          if (-not (Test-Path 'C:\PSSA\PSScriptAnalyzer.psd1')) {
+            Install-PackageProvider -Name NuGet -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+            Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber
+            $module = (Get-Module -ListAvailable PSScriptAnalyzer | Select-Object -First 1).ModuleBase
+            if (-not $module) { throw 'PSScriptAnalyzer install did not produce a module' }
+            New-Item -ItemType Directory -Path 'C:\PSSA' -Force | Out-Null
+            Copy-Item -Path (Join-Path $module '*') -Destination 'C:\PSSA' -Recurse -Force
+          }
       - name: Build unsigned release artifact
         shell: pwsh
         env:
