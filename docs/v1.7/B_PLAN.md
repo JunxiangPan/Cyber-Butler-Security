@@ -189,3 +189,38 @@ It does **not** restore "the state before the previous run". Updating the
 baseline is a separate maintenance operation outside the vm-proof flow.
 
 Passing both `-Restore` and `-Rollback` is invalid and exits `2`.
+
+## Human-discipline residuals (v1.7.0)
+
+These are not enforced by `vm-proof.yml`; they are mandatory operator steps.
+
+### Baseline check before every vm-proof
+
+```text
+[HUMAN-REQUIRED]
+1. On the Hyper-V host, restore the fixed baseline:
+   pwsh tools/vm-snapshot-rollback.ps1 -VMName cbs-acceptance-vm -Restore
+2. Confirm the current VM 2 snapshot is exactly:
+   cbs-acceptance-baseline
+3. If VM 2 is not on that baseline, do not trigger vm-proof.
+```
+
+v1.7.0 relies on this documented check, not on a workflow guard. A host-side
+API check that fails the workflow on a non-baseline snapshot is a v1.7.1+
+optimization.
+
+### Rollback notification and quarantine
+
+```text
+[HUMAN-REQUIRED]
+- failure / cancelled / timeout at 120 minutes -> notify the operator.
+- The notification must say: cancel the run if still active, then run
+  -Rollback on the Hyper-V host.
+- If no rollback happens within 24 hours, mark VM 2 unavailable and block
+  the next vm-proof.
+- runner-health.yml may later add a host-side baseline check; it cannot check
+  Hyper-V snapshots from inside VM 2.
+```
+
+A failed job does not clean VM 2 automatically. The 24-hour quarantine is the
+backstop for an operator who is absent or misses the GitHub notification.
