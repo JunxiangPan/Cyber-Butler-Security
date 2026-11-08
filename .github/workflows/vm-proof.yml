@@ -65,7 +65,7 @@ jobs:
       - name: Mock CBS Environment and Start Broker
         shell: pwsh
         run: |
-          $dirs = @('C:\CyberButler', 'C:\CyberButler\tools', 'C:\CyberButler\config')
+          $dirs = @('C:/CyberButler', 'C:\CyberButler\tools', 'C:\CyberButler\config')
           foreach ($d in $dirs) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
           Set-Content -Path 'C:\CyberButler\tools\broker_token.txt' -Value 'DUMMY_TEST_TOKEN_FOR_CI_1234567890' -Encoding utf8
           Copy-Item -Path "VERSION" -Destination "C:\CyberButler\VERSION" -Force
@@ -80,7 +80,7 @@ jobs:
             $env:CBS_AUDIT_HMAC_KEY = (New-Guid).Guid.Replace('-', '') + (New-Guid).Guid.Replace('-', '')
           }
           $env:CBS_TEST_MODE = '1'
-          $env:CBS_TEST_ROOT = 'C:\CyberButler'
+          $env:CBS_TEST_ROOT = 'C:/CyberButler'
           Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript (TEST_MODE)"
           $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
           
@@ -105,9 +105,26 @@ jobs:
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
           Write-Host "::add-mask::$env:CBS_VM_TOTP"
           $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          if (-not $env:CBS_AUDIT_HMAC_KEY) {
+            $env:CBS_AUDIT_HMAC_KEY = (New-Guid).Guid.Replace('-', '') + (New-Guid).Guid.Replace('-', '')
+          }
+          $env:CBS_TEST_MODE = '1'
+          $env:CBS_TEST_ROOT = 'C:/CyberButler'
+          $brokerScript = 'C:/CyberButler/tools/broker.py'
+          $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
+          if (-not $conn.TcpTestSucceeded) {
+            Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory 'C:/CyberButler' -RedirectStandardOutput 'C:/broker_out.log' -RedirectStandardError 'C:/broker_err.log' -WindowStyle Hidden | Out-Null
+            Start-Sleep -Seconds 5
+            $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
+          }
+          if (-not $conn.TcpTestSucceeded) {
+            if (Test-Path 'C:/broker_out.log') { Get-Content 'C:/broker_out.log' }
+            if (Test-Path 'C:/broker_err.log') { Get-Content 'C:/broker_err.log' }
+            throw 'Broker is not listening on 18090 during acceptance step'
+          }
           
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
-            -InstallRoot 'C:\CyberButler' `
+            -InstallRoot 'C:/CyberButler' `
             -ProofPath (Join-Path $env:GITHUB_WORKSPACE 'ACCEPTANCE_PROOF.md') `
             -Nonce $env:CBS_CHALLENGE `
             -Challenge $env:CBS_CHALLENGE `
