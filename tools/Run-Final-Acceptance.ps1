@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Run-Final-Acceptance.ps1
 
@@ -224,6 +224,8 @@ foreach ($p in $processes) {
 Record 'process_evidence' ($processes.Count -ge 1)
 
 # 3. Negative test: wrong TOTP must be 403.
+# Clear any pending request left by an interrupted previous acceptance run.
+Restart-BrokerTask | Out-Null
 Add-Proof ''
 Add-Proof '## Negative test: wrong TOTP must be rejected'
 $negTarget = Join-Path $SharedRoot 'negative-totp.txt'
