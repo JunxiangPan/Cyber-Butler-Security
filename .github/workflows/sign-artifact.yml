@@ -1,0 +1,112 @@
+name: sign-artifact
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag'
+        required: true
+      artifact_run_id:
+        description: 'Run id that produced the unsigned artifact'
+        required: true
+      artifact_name:
+        description: 'Unsigned artifact name'
+        required: true
+      challenge:
+        description: 'Acceptance challenge bound into the proof'
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release-signing
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: .
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify freeze before signing
+        run: python tools/prebuild_freeze.py --root . --verify
+      - name: Sign four-file payload
+        env:
+          CBS_SIGNING_KEY: ${{ secrets.CBS_SIGNING_KEY }}
+          CHALLENGE: ${{ inputs.challenge }}
+        run: |
+          key="$RUNNER_TEMP/cbs-signing-key.pem"
+          umask 077
+          printf '%s' "$CBS_SIGNING_KEY" > "$key"
+          python tools/sign_release.py \
+            --manifest update-manifest.json \
+            --key "$key" \
+            --signature update-manifest.sig \
+            --expected-challenge "$CHALLENGE" \
+            --build-report BUILD_REPORT.md \
+            --qa-report FINAL_QA_REPORT.md \
+            --proof ACCEPTANCE_PROOF.md
+          rm -f "$key"
+      - name: Write signing report
+        run: python tools/signing_report.py --freeze pre-build-freeze.json --report signing-report.json --create
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-artifact-${{ github.run_id }}
+          path: |
+            public-release-v*.zip
+            update-manifest.json
+            update-manifest.sig
+            signing-report.json
+            pre-build-freeze.json
+            BUILD_REPORT.md
+            FINAL_QA_REPORT.md
+            ACCEPTANCE_PROOF.md
+          if-no-files-found: error
+  verify:
+    needs: sign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: signed-artifact-${{ github.run_id }}
+          path: .
+      - name: Verify freeze, signing report and RSA signature
+        run: |
+          python tools/prebuild_freeze.py --root . --verify
+          python tools/signing_report.py --freeze pre-build-freeze.json --report signing-report.json --verify
+          python tools/verify_release.py \
+            --manifest update-manifest.json \
+            --signature update-manifest.sig \
+            --build-report BUILD_REPORT.md \
+            --qa-report FINAL_QA_REPORT.md \
+            --proof ACCEPTANCE_PROOF.md
+      - name: Generate asset inventory
+        run: |
+          sha256sum public-release-v*.zip update-manifest.json update-manifest.sig pre-build-freeze.json > RELEASE_ASSETS.sha256
+          cat RELEASE_ASSETS.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-release-${{ github.run_id }}
+          path: |
+            public-release-v*.zip
+            update-manifest.json
+            update-manifest.sig
+            signing-report.json
+            pre-build-freeze.json
+            BUILD_REPORT.md
+            FINAL_QA_REPORT.md
+            ACCEPTANCE_PROOF.md
+            RELEASE_ASSETS.sha256
+          if-no-files-found: error
