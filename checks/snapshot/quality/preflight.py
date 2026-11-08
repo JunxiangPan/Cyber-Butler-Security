@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Three local gates run before packaging.
 
 1. Text hygiene + placeholder allowlist

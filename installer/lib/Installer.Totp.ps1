@@ -1,4 +1,4 @@
-﻿# TOTP material and vault lifecycle for the Cyber-Butler installer.
+# TOTP material and vault lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerTotpMaterialPaths {

@@ -1,4 +1,4 @@
-﻿#requires -RunAsAdministrator
+#requires -RunAsAdministrator
 param(
     [string]$InstallPath = 'C:\CyberButler',
     [string]$ConfigPath = ''

@@ -1,4 +1,4 @@
-﻿@{
+@{
     # Correctness/security rules retained for the release gate.
     Severity = @('Error', 'Warning')
     # Style/naming rules are explicitly excluded here, with reasons, instead

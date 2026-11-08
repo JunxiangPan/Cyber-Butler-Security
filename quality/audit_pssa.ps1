@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 Offline PSScriptAnalyzer gate. It uses the real module and reports every
 Error/Warning finding; style-only rules that are not correctness related are

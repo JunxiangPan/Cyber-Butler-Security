@@ -1,4 +1,4 @@
-﻿$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 Describe 'CBS release red lines' {
     It 'directory delete is rejected before snapshot' {

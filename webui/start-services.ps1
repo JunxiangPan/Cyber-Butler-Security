@@ -1,4 +1,4 @@
-﻿# Start the Cyber-Butler Web UI and OTP mailer idempotently.
+# Start the Cyber-Butler Web UI and OTP mailer idempotently.
 # Run as the interactive user at logon: the OTP mailer needs the user's
 # DPAPI-protected SMTP secret, which is not available to a SYSTEM task.
 $ErrorActionPreference = 'Stop'

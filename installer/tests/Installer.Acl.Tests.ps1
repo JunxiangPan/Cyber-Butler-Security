@@ -1,4 +1,4 @@
-﻿$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $root 'installer\lib\Installer.Core.ps1')
 
 Describe 'Broker token ACL checks' {

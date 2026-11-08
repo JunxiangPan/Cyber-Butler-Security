@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 # Cross-version upgrade gate for Cyber-Butler.
 
 function Get-CyberButlerVersionValue {

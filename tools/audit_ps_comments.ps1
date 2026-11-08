@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 AST-based PowerShell comment audit. No regex is used to decide whether a
 comment exists: tokens come from the PowerShell parser, and functions come

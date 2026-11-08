@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 $root = 'YOUR_PROJECT_PATH'
 $log = Join-Path $root 'tools\install_broker_task.log'
 Set-Content -LiteralPath $log -Value ('install broker ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8

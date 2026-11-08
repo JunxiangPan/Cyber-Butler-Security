@@ -1,4 +1,4 @@
-﻿# Bundled Python 3.13 bootstrap for the Cyber-Butler installer.
+# Bundled Python 3.13 bootstrap for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Get-CyberButlerPythonTargetPath {

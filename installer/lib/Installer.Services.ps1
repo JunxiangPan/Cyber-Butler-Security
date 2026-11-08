@@ -1,4 +1,4 @@
-﻿# Scheduled-task and service-health lifecycle for the installer.
+# Scheduled-task and service-health lifecycle for the installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
 function Resolve-CyberButlerTaskAccount {

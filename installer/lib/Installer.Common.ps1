@@ -1,4 +1,4 @@
-﻿# Shared constants and helpers for the Cyber-Butler installer.
+# Shared constants and helpers for the Cyber-Butler installer.
 # Dot-source this file before the other installer modules.
 
 $script:InstallerExitCodes = [ordered]@{

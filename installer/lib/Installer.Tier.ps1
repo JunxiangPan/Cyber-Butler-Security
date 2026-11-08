@@ -1,4 +1,4 @@
-﻿# Tier profile loading, validation, and plan rendering.
+# Tier profile loading, validation, and plan rendering.
 # Dot-source Installer.Common.ps1 before this file.
 
 <#

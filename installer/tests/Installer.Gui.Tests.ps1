@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $repoRoot = Split-Path -Parent $installerRoot
 $gui = Join-Path $installerRoot 'CyberButler.Installer.GUI.ps1'

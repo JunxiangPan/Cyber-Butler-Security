@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 <#
 .SYNOPSIS
   Windows acceptance probe for Two-Stage Delayed Delete ACL isolation.

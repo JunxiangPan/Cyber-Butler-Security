@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Continue'
 
 # The install root tools/ directory is read-only for the service account.
 # Runtime logs must never be written there; use the per-user local app data

@@ -1,4 +1,4 @@
-﻿# Recover a stale game-mode state if the monitor process was terminated.
+# Recover a stale game-mode state if the monitor process was terminated.
 # Intended to run every minute from Task Scheduler as the desktop user.
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

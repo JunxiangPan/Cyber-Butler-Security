@@ -1,4 +1,4 @@
-﻿# Install the 2-minute boot self-check as SYSTEM with startup + logon triggers.
+# Install the 2-minute boot self-check as SYSTEM with startup + logon triggers.
 $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot 'boot-selfcheck.ps1'
 $launcher = Join-Path $PSScriptRoot 'CyberButlerLauncher.exe'

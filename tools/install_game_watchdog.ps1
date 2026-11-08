@@ -1,4 +1,4 @@
-﻿# Install a per-user, one-minute watchdog for stale game-mode state.
+# Install a per-user, one-minute watchdog for stale game-mode state.
 # Run from an elevated PowerShell once per deployment.
 $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot 'game-mode-watchdog.ps1'

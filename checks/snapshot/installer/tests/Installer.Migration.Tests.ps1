@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $migrationScript = Join-Path $installerRoot 'Migrate-EnableIsolation.ps1'
 $psExe = Join-Path $PSHOME 'powershell.exe'

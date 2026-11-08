@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $exe = 'YOUR_PROJECT_PATH\tools\LibreHardwareMonitor\LibreHardwareMonitor.exe'
 $workdir = 'YOUR_PROJECT_PATH\tools\LibreHardwareMonitor'
 $marker = 'YOUR_PROJECT_PATH\tools\lhm_task_installed.txt'

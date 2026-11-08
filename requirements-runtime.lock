@@ -4,6 +4,10 @@
 #
 #    pip-compile --generate-hashes --output-file=requirements-runtime.lock requirements-runtime.txt
 #
+cbp-action==1.1.0 \
+    --hash=sha256:466c2b4deadb988b9af879e2522fb2f4fdf63821b996851682428e9e87263595 \
+    --hash=sha256:b0aea78736c4d83e5d1bf1f57bc72d23f7a17ec02673aadae7f72edb29540822
+    # via -r requirements-runtime.txt
 certifi==2026.10.23 \
     --hash=sha256:a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd \
     --hash=sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1
@@ -313,7 +317,3 @@ urllib3==2.8.0 \
     --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3 \
     --hash=sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63
     # via requests
-
-cbp-action==1.0.9 \
-    --hash=sha256:77c9c40cb29b2e02ed57925d1c186ca7fd7e87677627c0cb2b78eb1b37d00400 \
-    --hash=sha256:a9a969303e1d1f61c112ede3ad336e8f9dee6e2f5ec763a6cd501b7982755a4e

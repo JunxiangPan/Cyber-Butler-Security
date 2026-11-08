@@ -1,4 +1,4 @@
-﻿# Install report writer for the Cyber-Butler installer.
+# Install report writer for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 first.
 
 <#
