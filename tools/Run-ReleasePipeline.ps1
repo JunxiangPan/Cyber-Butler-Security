@@ -149,7 +149,7 @@ if ($Candidate) {
         Remove-Item -LiteralPath $tokenPath -Force -ErrorAction SilentlyContinue
         Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
     }
-    $candidateZip = Join-Path (Split-Path -Parent $root) 'public-release-v$branchVersion.zip'
+    $candidateZip = Join-Path (Split-Path -Parent $root) "public-release-v$branchVersion.zip"
     if (-not (Test-Path -LiteralPath $candidateZip)) { throw 'candidate build did not create the zip' }
     $candidateHash = (Get-FileHash -LiteralPath $candidateZip -Algorithm SHA256).Hash
     Add-Report ('- Candidate Zip SHA256: ' + $candidateHash)
@@ -200,7 +200,7 @@ try {
     Remove-Item Env:\CBS_RELEASE_PIPELINE_TOKEN -ErrorAction SilentlyContinue
 }
 
-$zip = Join-Path (Split-Path -Parent $root) 'public-release-v$branchVersion.zip'
+$zip = Join-Path (Split-Path -Parent $root) "public-release-v$branchVersion.zip"
 if (-not (Test-Path -LiteralPath $zip)) { throw 'package_release.py did not create the zip' }
 $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 Add-Report ''
