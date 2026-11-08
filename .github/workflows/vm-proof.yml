@@ -79,7 +79,9 @@ jobs:
           if (-not $env:CBS_AUDIT_HMAC_KEY) {
             $env:CBS_AUDIT_HMAC_KEY = (New-Guid).Guid.Replace('-', '') + (New-Guid).Guid.Replace('-', '')
           }
-          Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript"
+          $env:CBS_TEST_MODE = '1'
+          $env:CBS_TEST_ROOT = 'C:\CyberButler'
+          Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript (TEST_MODE)"
           $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
           
           Start-Sleep -Seconds 5
