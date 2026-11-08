@@ -62,41 +62,15 @@ jobs:
           # 补齐所有依赖
           & $pyPath -m pip install requests fastapi uvicorn pyotp qrcode pillow cryptography
 
-      - name: Mock CBS Environment and Start Broker
+      - name: Require real installed CBS
         shell: pwsh
         run: |
-          $dirs = @('C:/CyberButler', 'C:\CyberButler\tools', 'C:\CyberButler\config')
-          foreach ($d in $dirs) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
-          Set-Content -Path 'C:\CyberButler\tools\broker_token.txt' -Value 'DUMMY_TEST_TOKEN_FOR_CI_1234567890' -Encoding utf8
-          Copy-Item -Path "VERSION" -Destination "C:\CyberButler\VERSION" -Force
-          
-          Copy-Item -Path "tools\*" -Destination "C:\CyberButler\tools\" -Recurse -Force
-          if (Test-Path "config.json") { Copy-Item -Path "config.json" -Destination "C:\CyberButler\config.json" -Force }
-          if (Test-Path "config.pro.example.json") { Copy-Item -Path "config.pro.example.json" -Destination "C:\CyberButler\config.json" -Force }
-          
-          $brokerScript = "C:\CyberButler\tools\broker.py"
-          
-          if (-not $env:CBS_AUDIT_HMAC_KEY) {
-            $env:CBS_AUDIT_HMAC_KEY = (New-Guid).Guid.Replace('-', '') + (New-Guid).Guid.Replace('-', '')
-          }
-          $env:CBS_TEST_MODE = '1'
-          $env:CBS_TEST_ROOT = 'C:/CyberButler'
-          $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
-          Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*broker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-          Write-Host "Starting Broker with: $env:PYTHON_EXE $brokerScript (TEST_MODE)"
-          $proc = Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory "C:\CyberButler" -RedirectStandardOutput "C:\broker_out.log" -RedirectStandardError "C:\broker_err.log" -PassThru -WindowStyle Hidden
-          
-          Start-Sleep -Seconds 5
-          
-          $testConn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
-          if (-not $testConn.TcpTestSucceeded) { 
-              Write-Host "`n=== Broker STDOUT ===" -ForegroundColor Red
-              if (Test-Path "C:\broker_out.log") { Get-Content "C:\broker_out.log" }
-              Write-Host "`n=== Broker STDERR ===" -ForegroundColor Red
-              if (Test-Path "C:\broker_err.log") { Get-Content "C:\broker_err.log" }
-              throw "Broker failed to start on port 18090!"
-          }
-          Write-Host "Broker is successfully listening on port 18090."
+          if (-not (Test-Path 'C:\CyberButler\VERSION')) { throw 'CBS is not installed: C:\CyberButler\VERSION missing' }
+          $report = 'C:\ProgramData\CyberButler\installer-report\install-report.json'
+          if (-not (Test-Path $report)) { throw "installer report missing: $report" }
+          $install = Get-Content $report -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ($install.status -ne 'success') { throw ('installer report is not success: ' + $install.status) }
+          if (-not (Get-Service -Name 'Cyber-Butler Broker' -ErrorAction SilentlyContinue)) { throw 'Cyber-Butler Broker service is missing' }
 
       - name: Run real VM acceptance
         shell: pwsh
@@ -107,26 +81,6 @@ jobs:
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
           Write-Host "::add-mask::$env:CBS_VM_TOTP"
           $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-          if (-not $env:CBS_AUDIT_HMAC_KEY) {
-            $env:CBS_AUDIT_HMAC_KEY = (New-Guid).Guid.Replace('-', '') + (New-Guid).Guid.Replace('-', '')
-          }
-          $env:CBS_TEST_MODE = '1'
-          $env:CBS_TEST_ROOT = 'C:/CyberButler'
-          $env:CBS_TEST_TOTP_SECRET = 'JBSWY3DPEHPK3PXP'
-          $env:CBS_VM_TOTP = & $env:PYTHON_EXE -c "import pyotp; print(pyotp.TOTP('JBSWY3DPEHPK3PXP').now())"
-          $brokerScript = 'C:/CyberButler/tools/broker.py'
-          Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*broker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-          $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
-          if (-not $conn.TcpTestSucceeded) {
-            Start-Process -FilePath "$env:PYTHON_EXE" -ArgumentList "`"$brokerScript`"" -WorkingDirectory 'C:/CyberButler' -RedirectStandardOutput 'C:/broker_out.log' -RedirectStandardError 'C:/broker_err.log' -WindowStyle Hidden | Out-Null
-            Start-Sleep -Seconds 5
-            $conn = Test-NetConnection -ComputerName 127.0.0.1 -Port 18090 -WarningAction SilentlyContinue
-          }
-          if (-not $conn.TcpTestSucceeded) {
-            if (Test-Path 'C:/broker_out.log') { Get-Content 'C:/broker_out.log' }
-            if (Test-Path 'C:/broker_err.log') { Get-Content 'C:/broker_err.log' }
-            throw 'Broker is not listening on 18090 during acceptance step'
-          }
           
           pwsh -NoProfile -ExecutionPolicy Bypass -File tools/Run-Final-Acceptance.ps1 `
             -InstallRoot 'C:/CyberButler' `
