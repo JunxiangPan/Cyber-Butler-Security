@@ -1,0 +1,27 @@
+name: vm-ops
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'PowerShell script to run on the VM runner'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: [self-hosted, windows, x64, cbs-vm-proof]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          clean: true
+          persist-credentials: false
+      - name: Run requested script
+        shell: pwsh
+        env:
+          VM_OPS_SCRIPT: ${{ inputs.script }}
+        run: |
+          $path = Join-Path $env:RUNNER_TEMP 'vm-ops.ps1'
+          Set-Content -LiteralPath $path -Value $env:VM_OPS_SCRIPT -Encoding UTF8
+          pwsh -NoProfile -ExecutionPolicy Bypass -File $path
