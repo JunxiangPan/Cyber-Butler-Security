@@ -147,6 +147,16 @@ function Get-NewTotp([string]$id) {
     Wait 35 seconds, ask for the new phone code, and retry; never count the 429 as
     a capacity or positive-test failure.
 #>
+function Get-AcceptanceTotpCode {
+    if ($env:CBS_ALLOW_TEST_TOTP_SECRET -ne '1' -or [string]::IsNullOrWhiteSpace($env:CBS_TEST_TOTP_SECRET)) {
+        return $TotpCode
+    }
+    $python = Join-Path $InstallRoot 'webui\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $python)) { $python = 'python' }
+    $secret = $env:CBS_TEST_TOTP_SECRET
+    return (& $python -c "import pyotp; print(pyotp.TOTP('$secret').now())" | Out-String).Trim()
+}
+
 function Invoke-TotpVerifyWithRetry {
     param(
         [Parameter(Mandatory = $true)][string]$Id,
@@ -155,6 +165,7 @@ function Invoke-TotpVerifyWithRetry {
     $code = ''
     $response = $null
     for ($attempt = 1; $attempt -le 3; $attempt++) {
+        if (-not $code) { $code = Get-AcceptanceTotpCode }
         if (-not $code) { $code = Read-Host "Enter current phone TOTP for $Label request $Id" }
         $payload = [ordered]@{ id = $Id; code = $code } | ConvertTo-Json -Compress
         $response = Invoke-BrokerJson 'http://127.0.0.1:18090/verify' 'POST' $payload

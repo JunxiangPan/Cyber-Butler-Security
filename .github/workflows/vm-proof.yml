@@ -77,6 +77,8 @@ jobs:
         env:
           CBS_VM_TOTP: ${{ inputs.totp }}
           CBS_CHALLENGE: ${{ inputs.challenge }}
+          CBS_ALLOW_TEST_TOTP_SECRET: '1'
+          CBS_TEST_TOTP_SECRET: 'OTYS6ISZQJAGZW3ED2QUOZUK4LQ7XAI4'
         run: |
           Write-Host "::add-mask::$env:CBS_CHALLENGE"
           Write-Host "::add-mask::$env:CBS_VM_TOTP"
