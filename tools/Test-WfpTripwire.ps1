@@ -13,7 +13,7 @@ if (-not (Test-Path -LiteralPath $python)) { $python = 'python.exe' }
 
 Write-Host '1) Simulated malicious egress (TEST-NET-3, no route expected)...'
 try {
-    $null = Test-NetConnection -ComputerName 203.0.113.1 -Port 443 -InformationLevel Quiet -WarningAction SilentlyContinue
+    [void](Test-NetConnection -ComputerName 203.0.113.1 -Port 443 -InformationLevel Quiet -WarningAction SilentlyContinue)
 } catch { Write-Verbose 'optional operation failed' }
 Start-Sleep -Seconds 2
 

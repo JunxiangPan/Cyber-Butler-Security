@@ -116,7 +116,7 @@ try {
     $result.service_deny_ace = ((& icacls.exe $entry | Out-String) -match 'CyberButlerSvc')
 
     try {
-        $null = Get-Content -LiteralPath $payload -Raw -ErrorAction Stop
+        [void](Get-Content -LiteralPath $payload -Raw -ErrorAction Stop)
         $result.owner_read_denied = $false
         $result.notes += 'Owner read unexpectedly succeeded; this probe may be running as SYSTEM.'
     } catch {
