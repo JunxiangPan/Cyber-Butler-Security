@@ -9,7 +9,7 @@ Contract file: `docs/v1.7/CONTRACT.md`
 Contract SHA256 (candidate):
 
 ```text
-19b37fd4f2def25a6945bd59affae3128fe466cc0bfd1809d522ba8291b3c12b
+c1653cfe1adbc74d2523d2fa12c965ab761fce978061c8e55443eb8b6db3a7e5
 ```
 
 This hash is a review artifact. It is not a frozen contract, not a tag, and not
