@@ -1,0 +1,6 @@
+{
+  "status": "blocked",
+  "vm": "cbs-a1-clean",
+  "reason": "ELEVATION_REQUIRED: run from an elevated host PowerShell",
+  "timestamp": "2026-11-09T09:14:57.1947109Z"
+}

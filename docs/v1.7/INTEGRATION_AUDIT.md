@@ -86,6 +86,32 @@ P0-7 QA self-consistency       PARTIAL — report/body/sign tooling landed in co
 These are not claimed complete. They require the human gates and the remaining
 schedule; no deep-water code was added.
 
+## A1 automation status
+
+Added:
+
+```text
+quality/a1/provision_clean_vm.ps1
+quality/a1/run_a1.ps1
+quality/a1/teardown.ps1
+quality/a1/autounattend.xml
+quality/a1/README.md
+```
+
+`Get-VM` on the host lists `cbs-acceptance-vm` and `CBS-Test`; the approved ISO
+exists at the documented path.
+
+Provisioning was attempted and **blocked before creating a VM**:
+
+```text
+reason: ELEVATION_REQUIRED: run from an elevated host PowerShell
+evidence: quality/a1/artifacts/provision-blocked.json
+```
+
+The current DSH PowerShell is not elevated. No clean VM, no `a1-clean-base`
+snapshot, and no Q05–Q17 adapter exists. A1 is therefore **blocked**, not
+26/26 and not a pass.
+
 ## Human gates
 
 1. Approve/freeze v1.7.1 contract.
