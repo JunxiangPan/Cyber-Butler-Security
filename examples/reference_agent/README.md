@@ -10,7 +10,19 @@ then gives the Broker the TOTP code to execute the approved action.
 - `tools/broker_token.txt` readable by the agent's restricted account
 - A disposable file, not a repository or system path
 
-## Run
+## One-command demo
+
+From the repo root, with the Broker and WebUI running:
+
+```powershell
+pwsh -File examples/reference_agent/demo.ps1
+```
+
+It creates one disposable temp file, submits one delete request, waits for the
+human decision, and forwards a supplied TOTP only if `CBS_TOTP` is set. It
+never reads the TOTP secret.
+
+## Run directly
 
 ```bash
 python examples/reference_agent/agent.py C:\temp\cbs-demo.txt
