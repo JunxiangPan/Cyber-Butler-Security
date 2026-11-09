@@ -85,6 +85,20 @@ def test_inprocess_health_auth_and_request(http_broker) -> None:
     assert target.exists()
     replay = requests.post(base + "/verify", json={"id": challenge, "code": code}, headers=headers, timeout=5)
     assert replay.status_code in {404, 429}
+    third = requests.post(
+        base + "/request",
+        json={"action": "delete", "target": str(target), "approval_only": True},
+        headers=headers, timeout=5,
+    )
+    assert third.status_code == 200, third.text
+    denied = requests.post(base + "/deny", json={"id": third.json()["id"]}, headers=headers, timeout=5)
+    assert denied.status_code == 200 and denied.json()["denied"] is True
+    completed = requests.post(base + "/approval/complete", json={"id": third.json()["id"]}, headers=headers, timeout=5)
+    assert completed.status_code == 200 and completed.json()["ok"] is True
+    assert requests.post(base + "/deny", json={}, headers=headers, timeout=5).status_code == 400
+    assert requests.post(base + "/approval/complete", json={}, headers=headers, timeout=5).status_code == 400
+    assert requests.post(base + "/external-read", json={"kind": "web", "source": "test", "summary": "test"}, headers=headers, timeout=5).status_code in {200, 400}
+    assert requests.post(base + "/totp/recovery-reset", json={}, headers=headers, timeout=5).status_code in {400, 403}
     unknown = requests.get(base + "/api/request_approval/status", params={"id": "none"}, headers=headers, timeout=5)
     assert unknown.status_code == 404
     assert requests.get(base + "/unknown", headers=headers, timeout=5).status_code == 404

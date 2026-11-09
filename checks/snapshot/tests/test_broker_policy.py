@@ -504,3 +504,24 @@ def test_job_limit_helpers_smoke() -> None:
     assert isinstance(env, dict)
     assert isinstance(flags, int)
     assert isinstance(values, dict)
+
+
+def test_run_request_and_verify_error_branches(tmp_path) -> None:
+    status, body = broker.run_request({"action": "invalid", "target": "x"})
+    assert status == 400 and "action" in body["error"]
+    folder = tmp_path / "folder"
+    folder.mkdir()
+    status, body = broker.run_request({"action": "delete", "target": str(folder)})
+    assert status == 400 and "directory" in body["error"]
+    status, body = broker.run_verify({})
+    assert status == 404 and "pending" in body["error"]
+    status, body = broker.get_approval_status("")
+    assert status == 400 and "id" in body["error"]
+    status, body = broker.get_approval_status("missing")
+    assert status == 404
+
+
+def test_record_external_read_rejects_empty_summary() -> None:
+    status, body = broker.record_external_read({"kind": "web", "source": "", "summary": ""})
+    assert status in {200, 400}
+    assert isinstance(body, dict)
