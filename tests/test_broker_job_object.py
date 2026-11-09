@@ -2,8 +2,13 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import sys
+
+import pytest
 
 import broker
+
+pytestmark = pytest.mark.skipif(sys.platform != "win32", reason="Windows Job Object only")
 
 
 class _Function:
