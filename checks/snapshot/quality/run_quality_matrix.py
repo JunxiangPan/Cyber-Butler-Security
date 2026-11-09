@@ -92,7 +92,8 @@ def main() -> int:
     total = len(rows)
     passed = sum(1 for row in rows if row[3] == "passed")
     failed = sum(1 for row in rows if row[3] in {"failed", "error"})
-    blocked = total - passed - failed
+    covered = sum(1 for row in rows if row[3] == "covered")
+    blocked = total - passed - failed - covered
     overall = "PASS" if passed == total else ("FAIL" if failed else "BLOCKED")
     lines = [
         "# FINAL QA REPORT",
@@ -103,6 +104,7 @@ def main() -> int:
         f"- Matrix: {total} items",
         f"- Passed: {passed}",
         f"- Failed: {failed}",
+        f"- Covered: {covered}",
         f"- Blocked: {blocked}",
         f"- Overall: **{overall}**",
         "",
