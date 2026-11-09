@@ -51,8 +51,49 @@ A1-local QA may use a QA-only secret inside the QA VM only. It must not enter
 the release artifact or this repository. The final v1.7.0 proof must use a real
 phone TOTP supplied by the human.
 
+## Register the fixed elevated task
+
+The DSH process is not elevated. Run this once from an **elevated host
+PowerShell** as `PCVP\pjx20`:
+
+```powershell
+cd D:\qq苏瑾言大肥鱼\public-release
+.\quality\a1\Register-A1Task.ps1
+```
+
+It creates `CBS-A1-Elevated` with:
+
+```text
+RunLevel: Highest
+User: PCVP\pjx20
+Trigger: manual only
+Action: powershell.exe -NoProfile -ExecutionPolicy Bypass
+        -File <repo>\quality\a1\Run-A1Elevated.ps1
+Execution time limit: 4 hours
+Multiple instances: IgnoreNew
+```
+
+Do not register the task from the non-elevated DSH session; it will fail.
+
+## Trigger after registration
+
+```powershell
+schtasks /run /tn "CBS-A1-Elevated"
+```
+
+If that returns access denied:
+
+```powershell
+Start-ScheduledTask -TaskName "CBS-A1-Elevated"
+```
+
+If both fail, report the access-denied error; do not bypass elevation. The task
+runs only the fixed `Run-A1Elevated.ps1` and touches only `a1-*` VMs under
+`D:\HyperV\qa-clones`.
+
 ## Current status
 
-No clean VM was provisioned in this turn. No Q05–Q17 adapter exists yet, so
-the result is a `blocked` list, not 26/26. The scripts are the automation
-surface; adapters must be added and executed before A1 can be claimed.
+No clean VM was provisioned in this turn. The adapters are currently guarded
+scaffolds: they exit `3` with `ADAPTER_SCAFFOLD_ONLY` rather than fake a PASS.
+No Q05–Q17 pass is claimed.
+

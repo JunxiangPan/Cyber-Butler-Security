@@ -9,7 +9,7 @@ each disruptive item.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [string]$VMName = 'cbs-a1-clean',
+    [string]$VMName = 'a1-cbs-clean',
     [string]$BaseSnapshot = 'a1-clean-base',
     [string]$ArtifactZip = '',
     [string]$Nonce = 'a1-local',
@@ -64,7 +64,7 @@ foreach ($id in $items) {
             } -ArgumentList (Get-Content -Raw $adapter), $ArtifactZip, $Nonce, $ItemTimeoutMinutes -ErrorAction Stop
             $result | Out-File -FilePath $log -Encoding UTF8
             $code = $LASTEXITCODE
-            $status = if ($code -eq 0) { 'passed' } else { 'failed' }
+            $status = if ($code -eq 0) { 'passed' } elseif ($code -eq 3) { 'blocked' } else { 'failed' }
             Write-Result $id $status ('EXIT_' + $code) $log (Get-FileHash $log -Algorithm SHA256).Hash
         } catch {
             $_.Exception.Message | Out-File -FilePath $log -Encoding UTF8

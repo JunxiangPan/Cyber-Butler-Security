@@ -7,7 +7,7 @@ then creates the a1-clean-base checkpoint. Failure writes BLOCKED evidence.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]param(
     [string]$IsoPath = 'D:\iso\Windows11_Client_x64_zh-cn_26300_9457.iso',
-    [string]$VMName = 'cbs-a1-clean',
+    [string]$VMName = 'a1-cbs-clean',
     [string]$VhdDirectory = 'D:\HyperV\qa-clones',
     [string]$SwitchName = '',
     [int]$CpuCount = 4,

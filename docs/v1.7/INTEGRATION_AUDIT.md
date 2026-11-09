@@ -95,8 +95,16 @@ quality/a1/provision_clean_vm.ps1
 quality/a1/run_a1.ps1
 quality/a1/teardown.ps1
 quality/a1/autounattend.xml
+quality/a1/Register-A1Task.ps1
+quality/a1/Run-A1Elevated.ps1
+quality/a1/adapters/Q05.ps1 ... Q17.ps1
 quality/a1/README.md
 ```
+
+The adapters are guarded scaffolds: they exit `3` with
+`ADAPTER_SCAFFOLD_ONLY` rather than fake a pass. The elevated task is
+**registered only by a human** from an elevated host PowerShell; DSH must not
+and did not register it.
 
 `Get-VM` on the host lists `cbs-acceptance-vm` and `CBS-Test`; the approved ISO
 exists at the documented path.
