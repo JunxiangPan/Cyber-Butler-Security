@@ -38,11 +38,11 @@ def test_projected_rc2_cbp_manifest_shape_passes() -> None:
     projected = copy.deepcopy(LEGACY_CBP)
     projected["artifact_repository"] = {
         "repository": "JunxiangPan/cbp-action",
-        "run_id": "42600000000",
+        "run_id": "run-rc2",
         "artifact_name": "cbp-rc",
     }
     projected["ci_commit_sha"] = "a" * 40
-    projected["ci_run_id"] = "42600000000"
+    projected["ci_run_id"] = "run-rc2"
     projected["generated_at"] = "2026-11-09T00:00:00Z"
     projected["generated_by"] = "cbp-1.2.1-projection"
     validate(projected, QUALITY_SCHEMA)
