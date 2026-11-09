@@ -34,14 +34,41 @@ function Write-Blocked([string]$reason) {
 
 function New-IsoFile {
     param([string]$SourceDirectory, [string]$Destination)
+    if (-not ('CbsIsoStream' -as [type])) {
+        Add-Type -Language CSharp -TypeDefinition @'
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+public static class CbsIsoStream {
+  public static void Save(object comStream, string path) {
+    IStream stream = (IStream)comStream;
+    System.Runtime.InteropServices.ComTypes.STATSTG stat;
+    stream.Stat(out stat, 1);
+    long remaining = stat.cbSize;
+    using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write)) {
+      byte[] buffer = new byte[1024 * 1024];
+      while (remaining > 0) {
+        int want = (int)Math.Min(buffer.Length, remaining);
+        IntPtr read = Marshal.AllocHGlobal(sizeof(int));
+        int got;
+        try { stream.Read(buffer, want, read); got = Marshal.ReadInt32(read); }
+        finally { Marshal.FreeHGlobal(read); }
+        if (got <= 0) break;
+        fs.Write(buffer, 0, got);
+        remaining -= got;
+      }
+    }
+  }
+}
+'@
+    }
     $fsi = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
     $fsi.FileSystemsToCreate = 3
     $fsi.VolumeName = 'CBSA1'
     $fsi.Root.AddTree($SourceDirectory, $false)
     $image = $fsi.CreateResultImage()
-    $stream = $image.ImageStream
-    $stream.SaveToFile($Destination, 0)
-    [Runtime.InteropServices.Marshal]::ReleaseComObject($stream) | Out-Null
+    [CbsIsoStream]::Save($image.ImageStream, $Destination)
     [Runtime.InteropServices.Marshal]::ReleaseComObject($image) | Out-Null
     [Runtime.InteropServices.Marshal]::ReleaseComObject($fsi) | Out-Null
 }
@@ -91,6 +118,8 @@ try {
             Start-Sleep -Seconds 20
             $vm = Get-VM -Name $VMName
             if ($vm.Heartbeat -eq 'Ok') {
+                try { $answerDvd = Get-VMDvdDrive -VMName $VMName | Where-Object Path -eq $answerIso; if ($answerDvd) { Remove-VMDvdDrive -VMName $VMName -ControllerNumber $answerDvd.ControllerNumber -ControllerLocation $answerDvd.ControllerLocation } } catch {}
+                Remove-Item -Force $answerIso -ErrorAction SilentlyContinue
                 Checkpoint-VM -Name $VMName -SnapshotName 'a1-clean-base'
                 [ordered]@{ status = 'pass'; vm = $VMName; snapshot = 'a1-clean-base'; vhd = $vhdPath } |
                     ConvertTo-Json | Set-Content -Path (Join-Path $script:Evidence 'provision-result.json') -Encoding UTF8
@@ -104,5 +133,5 @@ try {
     Write-Blocked $_.Exception.Message
 } finally {
     Remove-Item -Recurse -Force $answerDir -ErrorAction SilentlyContinue
-    Remove-Item -Force $answerIso -ErrorAction SilentlyContinue
+    if (Test-Path $answerIso) { Remove-Item -Force $answerIso -ErrorAction SilentlyContinue }
 }

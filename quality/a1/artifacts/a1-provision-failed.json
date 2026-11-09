@@ -1,0 +1,7 @@
+{
+  "status": "blocked",
+  "vm": "a1-cbs-clean",
+  "reason": "UEFI boot loader failed for Windows 11 ISO; see a1-uefi-boot-failed.png",
+  "iso": "D:\\iso\\Windows11_Client_x64_zh-cn_26300_9457.iso",
+  "timestamp": "2026-11-09T10:48:06.040996+00:00"
+}
