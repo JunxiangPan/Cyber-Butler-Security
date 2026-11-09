@@ -101,25 +101,31 @@ quality/a1/adapters/Q05.ps1 ... Q17.ps1
 quality/a1/README.md
 ```
 
-The adapters are now real precondition-gated probes, not scaffold-only. The
-dry-run reports `A1_DRY_RUN=READY_TO_REGISTER failed=0`; this is only
-registration readiness, not an A1 execution result. The elevated task is
-**registered only by a human** from an elevated host PowerShell; DSH must not
-and did not register it.
+The adapters are precondition-gated probes, not scaffold-only. The elevated
+task was registered by a human and triggered; the VM reached UEFI boot but the
+Windows setup DVD failed with `The boot loader failed`.
 
-`Get-VM` on the host lists `cbs-acceptance-vm` and `CBS-Test`; the approved ISO
-exists at the documented path.
-
-Provisioning was attempted and **blocked before creating a VM**:
+Current state:
 
 ```text
-reason: ELEVATION_REQUIRED: run from an elevated host PowerShell
-evidence: quality/a1/artifacts/provision-blocked.json
+A1: A1_BLOCKED_INSTALL_MEDIA
+task: CBS-A1-Elevated triggered, LastTaskResult 267014
+a1-cbs-clean: removed; no a1-clean-base snapshot
+Q05-Q17: not executed
+26/26: not generated
 ```
 
-The current DSH PowerShell is not elevated. No clean VM, no `a1-clean-base`
-snapshot, and no Q05–Q17 adapter exists. A1 is therefore **blocked**, not
-26/26 and not a pass.
+Evidence:
+
+```text
+quality/a1/artifacts/a1-provision-failed-final.json
+quality/a1/artifacts/a1-uefi-boot-failed-final.png
+quality/a1/artifacts/boot-config.json
+quality/a1/artifacts/a1-media.json
+```
+
+The current ISO is not a verified UEFI-bootable install medium. A1 is blocked,
+not 26/26 and not a pass. No existing CBS VM is used as a clean baseline.
 
 ## Human gates
 
