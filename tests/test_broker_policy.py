@@ -525,3 +525,72 @@ def test_record_external_read_rejects_empty_summary() -> None:
     status, body = broker.record_external_read({"kind": "web", "source": "", "summary": ""})
     assert status in {200, 400}
     assert isinstance(body, dict)
+
+
+def test_ensure_token_creation_and_workspace_helpers(monkeypatch, tmp_path) -> None:
+    token = tmp_path / "token.txt"
+    monkeypatch.setattr(broker, "TOKEN_FILE", token)
+    monkeypatch.setattr(broker, "TEST_MODE", True)
+    value = broker.ensure_token()
+    assert value and token.read_text(encoding="utf-8") == value
+    assert broker.ensure_token() == value
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    assert broker._inside_any(shared / "child", (shared,)) is True
+    assert broker._allowed_target(shared / "child") is True
+
+
+def test_workspace_roots_and_text(monkeypatch, tmp_path) -> None:
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", ())
+    roots = broker._workspace_roots()
+    assert roots
+    assert isinstance(broker._workspace_text(str(shared / "a.txt")), bool)
+
+
+def test_request_auto_allowed_approval_only(monkeypatch, tmp_path) -> None:
+    tmp = tmp_path / "tmp"
+    tmp.mkdir()
+    monkeypatch.setattr(broker, "TMP_ROOTS", (tmp,))
+    monkeypatch.setattr(broker, "SHARED", tmp_path / "shared")
+    (tmp_path / "shared").mkdir()
+    target = tmp / "auto.txt"
+    status, body = broker.run_request({"action": "write_file", "target": str(target), "approval_only": True, "source": ""})
+    assert status in {200, 400, 409}
+    assert isinstance(body, dict)
+
+
+def test_request_policy_denials(monkeypatch, tmp_path) -> None:
+    status, body = broker.run_request({"action": "delete", "target": str(broker.ROOT / "package.json")})
+    assert status == 403 and "critical" in body["error"].lower()
+    status, body = broker.run_request({"action": "send", "target": ""})
+    assert status in {400, 403, 409}
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    target = outside / "x.txt"
+    target.write_text("x", encoding="utf-8")
+    status, body = broker.run_request({"action": "delete", "target": str(target)})
+    assert status in {200, 403}
+
+
+def test_rule_tampering_and_audit_protection(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "AUDIT", tmp_path / "audit.jsonl")
+    assert broker._rule_tampering_hit(str(broker.ROOT / "tools" / "broker.py")) is True
+    broker._audit_protection("TEST", "delete", "x", "reason")
+    assert (tmp_path / "audit.jsonl").exists()
+
+
+def test_locked_and_uninstalling_guards(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(broker, "_verify_locked_until", broker.time.monotonic() + 60)
+    status, body = broker.run_request({"action": "delete", "target": str(tmp_path / "x")})
+    assert status == 429
+    monkeypatch.setenv("CBS_IS_UNINSTALLING", "1")
+    status, body = broker.run_request({"action": "delete", "target": str(tmp_path / "x")})
+    assert status == 503
+    monkeypatch.delenv("CBS_IS_UNINSTALLING", raising=False)
+    monkeypatch.setattr(broker, "_verify_locked_until", 0.0)

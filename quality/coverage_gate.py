@@ -18,6 +18,10 @@ TESTS = (
     "tests/test_totp_replay.py",
     "tests/test_broker_manifest.py",
     "tests/test_broker_http_inprocess.py",
+    "tests/test_broker_state_machine.py",
+    "tests/test_broker_job_object.py",
+    "tests/test_broker_store_helpers.py",
+    "tests/test_broker_misc_helpers.py",
 )
 
 

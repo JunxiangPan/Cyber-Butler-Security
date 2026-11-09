@@ -99,6 +99,17 @@ def test_inprocess_health_auth_and_request(http_broker) -> None:
     assert requests.post(base + "/approval/complete", json={}, headers=headers, timeout=5).status_code == 400
     assert requests.post(base + "/external-read", json={"kind": "web", "source": "test", "summary": "test"}, headers=headers, timeout=5).status_code in {200, 400}
     assert requests.post(base + "/totp/recovery-reset", json={}, headers=headers, timeout=5).status_code in {400, 403}
+    broker._pending = None
+    alias = requests.post(
+        base + "/api/request_approval",
+        json={"action": "delete", "target": str(target)},
+        headers=headers, timeout=5,
+    )
+    assert alias.status_code == 200, alias.text
+    alias_denied = requests.post(base + "/deny", json={"id": alias.json()["id"]}, headers=headers, timeout=5)
+    assert alias_denied.status_code == 200
+    assert requests.post(base + "/verify", json={"id": "missing", "code": "123456"}, headers=headers, timeout=5).status_code == 404
+    assert requests.post(base + "/trash/undo", json={}, headers=headers, timeout=5).status_code in {400, 404}
     unknown = requests.get(base + "/api/request_approval/status", params={"id": "none"}, headers=headers, timeout=5)
     assert unknown.status_code == 404
     assert requests.get(base + "/unknown", headers=headers, timeout=5).status_code == 404
