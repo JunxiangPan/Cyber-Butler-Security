@@ -39,6 +39,7 @@ import port_guard
 import audit_chain
 import injection_audit
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
+from broker_state import _as_bool, _bypass_scope, _target_mode, _url_host_allowed
 
 try:
     import win32crypt  # Windows-only; tests inject a verifier.
@@ -947,38 +948,6 @@ def _allowed_target(path: Path) -> bool:
     return inside_shared(path) or _inside_any(path, TMP_ROOTS) or _inside_any(path, MEMORY_ROOTS)
 
 
-def _target_mode(action: str, target: str) -> str:
-    """Target mode.
-    
-    Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    if action == "write_file":
-        try:
-            return "create" if not Path(target).resolve(strict=False).exists() else "replace"
-        except (OSError, ValueError):
-            return "replace"
-    if action == "overwrite":
-        return "replace"
-    return action
-
-
-def _bypass_scope(action: str, target: str) -> str:
-    """Bypass scope.
-    
-    Args:
-        action: caller-supplied value.
-        target: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    path = Path(target).resolve(strict=False)
-    return f"{action}:{_target_mode(action, target)}:{str(path.parent.resolve(strict=False)).casefold()}"
 
 
 def _purge_bypass(now: float | None = None) -> None:
@@ -1128,19 +1097,6 @@ def _sha256_file(path: Path) -> str:
             digest.update(chunk)
     return digest.hexdigest()
 
-
-def _url_host_allowed(url: str) -> bool:
-    """SSRF gate: URL entries must target an explicitly allowed host."""
-    try:
-        from urllib.parse import urlparse
-        host = (urlparse(url).hostname or "").casefold()
-    except ValueError:
-        return False
-    if not host:
-        return False
-    allowed = os.environ.get("CBS_URL_ALLOWED_HOSTS", "")
-    hosts = {item.strip().casefold() for item in allowed.split(",") if item.strip()}
-    return host in hosts
 
 
 def _canonical_manifest(items) -> list[dict]:
@@ -1748,19 +1704,6 @@ def _audit_scoped(request: dict, result: str, root: str) -> None:
     except OSError as exc:
         log(f"audit write failed: {exc}")
 
-
-def _as_bool(value: object) -> bool:
-    """As bool.
-    
-    Args:
-        value: caller-supplied value.
-    
-    Returns:
-        Function result, or None when no value is returned.
-    """
-    if isinstance(value, bool):
-        return value
-    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _set_approval_state(

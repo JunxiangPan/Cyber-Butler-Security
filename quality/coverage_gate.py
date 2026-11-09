@@ -31,7 +31,7 @@ def main() -> int:
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
         report = subprocess.run(
-            [sys.executable, "-m", "coverage", "report", "--include=tools/broker.py"],
+            [sys.executable, "-m", "coverage", "report", "--include=tools/broker.py,tools/broker_state.py"],
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
     if run.returncode != 0:
