@@ -42,7 +42,7 @@ perform a real-machine Light acceptance. Those are manual release gates.
 
 | Security claim | Evidence | Status |
 |---|---|---|
-| ACL separation for High | `tests/test_acl_model.py`; `installer/tests/Installer.Acl.Tests.ps1`; High E2E | High verified; Light not |
+| ACL separation for High | `tests/test_acl_effective.py`; `installer/tests/Installer.Acl.Tests.ps1`; High E2E | High verified; Light not |
 | TOTP replay/brute-force limits | `tests/test_totp_replay.py`, `test_totp_bruteforce.py`, `test_broker_wrong_totp.py` | automated |
 | approval-only never executes | `tests/test_broker_policy.py`, `test_send_policy_contract.py` | automated |
 | SCOPED 30 is directory/time bound | `tests/test_broker_policy.py` | automated |

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyber-butler.local/schemas/broker/v1/request.schema.json",
+  "title": "CBS Broker approval request v1",
+  "type": "object",
+  "required": ["action", "target"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["delete", "overwrite", "write_file", "send"]
+    },
+    "target": {"type": "string", "minLength": 1},
+    "source": {"type": "string"},
+    "reason": {"type": "string"},
+    "approval_only": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

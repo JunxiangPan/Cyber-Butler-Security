@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyber-butler.local/schemas/broker/v1/approval-status.schema.json",
+  "title": "CBS Broker approval status v1",
+  "type": "object",
+  "required": ["ok", "status", "challenge_id", "approval_only"],
+  "properties": {
+    "ok": {"type": "boolean"},
+    "status": {"type": "string", "enum": ["pending", "approved", "denied", "expired", "unknown"]},
+    "challenge_id": {"type": "string", "minLength": 1},
+    "approval_only": {"type": "boolean"},
+    "scoped_token": {"type": "string"},
+    "scoped_expires_in": {"type": "integer", "minimum": 0},
+    "scoped_root": {"type": "string"},
+    "error": {"type": "string"}
+  },
+  "additionalProperties": false
+}

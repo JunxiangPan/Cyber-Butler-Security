@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyber-butler.local/schemas/broker/v1/verify.schema.json",
+  "title": "CBS Broker approval verification v1",
+  "type": "object",
+  "required": ["id", "code"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "code": {"type": "string", "pattern": "^[0-9]{6}$"}
+  },
+  "additionalProperties": false
+}

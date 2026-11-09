@@ -44,7 +44,7 @@ CBS's architecture is not a solo invention: it was shaped by the global open-sou
 
 ## Current release
 
-v1.6.3: AgentRuntime is a native SCM service `CyberButlerAgentRuntime` under `CyberButlerSvc`; 6185/18090/8765/8766/5099 are verified on the host. WFP remains audit-only, 6199 is a dynamic AgentProtocol adapter port, and Light installation passed on a real machine with reduced isolation. Canonical facts: [status-v1.6.2.json](docs/_data/status-v1.6.2.json).
+v1.6.6: signed release at https://github.com/JunxiangPan/Cyber-Butler-Security/releases/tag/v1.6.6. AgentRuntime is a native SCM service `CyberButlerAgentRuntime` under `CyberButlerSvc`; 6185/18090/8765/8766/5099 are verified on the host. WFP remains audit-only, 6199 is a dynamic AgentProtocol adapter port, and Light installation passed on a real machine with reduced isolation. Q05-Q17 are coverage-substituted, not rerun. Canonical status: [status-v1.6.4.json](docs/_data/status-v1.6.4.json).
 
 - [FAQ — why not?](docs/00-overview/why-not-faq.md)
 
