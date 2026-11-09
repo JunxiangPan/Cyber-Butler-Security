@@ -68,7 +68,7 @@ P0-1 reference agent/demo      PARTIAL — examples/reference_agent exists; one-
 P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients + 3 schemas + local conformance tests
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
 P0-4 coverage                  BLOCKED — BROKER_COVERAGE=47.00%, target >80%
-P0-5 installer signature       OPEN WAIVER — no certificate; see AUDIT_P0_5_WAIVER.md
+P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
 P0-7 QA self-consistency       PARTIAL — report/body/sign tooling landed in contract RC
 ```
