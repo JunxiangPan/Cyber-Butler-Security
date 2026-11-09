@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from jsonschema import ValidationError, validate
 
-from tools.body_hash import base_hash, base_bytes
+from tools.body_hash import canonical_body_bytes, canonical_body_hash
 
 ROOT = Path(__file__).resolve().parents[2]
 QUALITY_SCHEMA = json.loads((ROOT / "schemas" / "v1.7" / "quality-manifest.schema.json").read_text(encoding="utf-8"))
@@ -16,8 +16,8 @@ CBE_SCHEMA = json.loads((ROOT / "schemas" / "v1.7" / "cbe-report.schema.json").r
 FIXTURES = ROOT / "tests" / "v17" / "fixtures"
 REAL_CBE = json.loads((FIXTURES / "real-cbe-report.json").read_text(encoding="utf-8"))
 REAL_CBP_121 = json.loads((FIXTURES / "real-cbp-1.2.1-manifest.json").read_text(encoding="utf-8"))
-LEGACY_CBP = json.loads((FIXTURES / "legacy-cbp-1.2.0-manifest.json").read_text(encoding="utf-8"))
-LEGACY_BODY = (FIXTURES / "legacy-cbm-body.md").read_bytes()
+LEGACY_CBP = json.loads((FIXTURES / "real-cbp-1.2.0-manifest.json").read_text(encoding="utf-8"))
+LEGACY_BODY = (FIXTURES / "real-cbp-1.2.0-body.md").read_bytes()
 
 
 def test_real_cbe_report_passes_schema() -> None:
@@ -65,6 +65,7 @@ def test_artifact_repository_string_is_rejected() -> None:
 def test_ci_commit_sha_is_required() -> None:
     bad = copy.deepcopy(LEGACY_CBP)
     bad["artifact_repository"] = {"repository": "JunxiangPan/cbp-action", "run_id": "1", "artifact_name": "rc"}
+    bad.pop("ci_commit_sha", None)
     with pytest.raises(ValidationError):
         validate(bad, QUALITY_SCHEMA)
 
@@ -75,12 +76,12 @@ def test_not_uploaded_is_valid_but_not_pass() -> None:
     assert cbe["gate_status"] != "PASS" and cbp["gate_status"] != "PASS"
 
 
-def test_body_hash_binding_legacy_fails_and_marker_can_pass() -> None:
+def test_body_hash_binding_legacy_fails_and_canonical_passes() -> None:
     declared = LEGACY_CBP["release_body_hash"]
-    assert base_hash(LEGACY_BODY) != declared
-    body = b"base body line\n<!-- CBP-BODY-BASE-END -->\ntrailer\n"
-    assert base_bytes(body) == b"base body line\n"
-    manifest = copy.deepcopy(LEGACY_CBP)
-    manifest["release_body_hash"] = base_hash(body)
-    assert manifest["release_body_hash"] == base_hash(body)
-    assert base_hash(b"base body line X\n<!-- CBP-BODY-BASE-END -->\ntrailer\n") != manifest["release_body_hash"]
+    assert canonical_body_hash(LEGACY_BODY) != declared
+    body = b"\xef\xbb\xbfbase\r\nline\r\n\r\n"
+    assert canonical_body_bytes(body) == b"base\nline\n"
+    manifest = copy.deepcopy(REAL_CBP_121)
+    manifest["release_body_hash"] = canonical_body_hash(body)
+    assert manifest["release_body_hash"] == canonical_body_hash(body)
+    assert canonical_body_hash(b"base\nline X\n") != manifest["release_body_hash"]

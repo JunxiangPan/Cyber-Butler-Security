@@ -9,7 +9,7 @@ Contract file: `docs/v1.7/CONTRACT.md`
 Contract SHA256 (candidate):
 
 ```text
-029b4ba6964631b38a03da1e569bb6a6d0d56817a588e34afcc2827c0a1f3f81
+209d75b4c900f9a2d1ad8f5c377ac1b8a868cf3e4cd449970e61e3ff380c18f1
 ```
 
 This hash is a review artifact. It is not a frozen contract, not a tag, and not
@@ -20,7 +20,7 @@ a release. Do not let CBE/CBP/CBM/CBC pin to it until the human freeze step.
 - F2 blocking set (three structural checks + `gate: "blocking"` rules).
 - §5.1 report identity (`package_id` = subject, `producer_id` = producer).
 - §5.2 bare 64-character lowercase hashes; `sha256:` prefixes are input errors.
-- §5.3 body hash binding and CBP-BODY-001.
+- §5.3 body hash binding uses the CBP 1.2.1 canonical function and CBP-BODY-001.
 - `body_hash_scope: "base"`.
 - `artifact_repository` object coordinates.
 - `schema_version` is string `"1"`; `NOT_UPLOADED` is a valid gate status.
@@ -28,7 +28,8 @@ a release. Do not let CBE/CBP/CBM/CBC pin to it until the human freeze step.
 - CBM/CBC body fragments with `NOT_UPLOADED` + `EVIDENCE_ABSENT`.
 - Real JSON Schema validation with `jsonschema`.
 - `tests/v17/fixtures/real-cbe-report.json` passes.
-- `tests/v17/fixtures/legacy-cbp-1.2.0-manifest.json` is intentionally rejected.
+- `tests/v17/fixtures/real-cbp-1.2.1-manifest.json` is a real fixture and fails RC2 because its `artifact_repository` is a string.
+- `tests/v17/fixtures/real-cbp-1.2.0-manifest.json` is legacy and fails.
 - 92 v1.7 tests passing locally.
 
 ## Not done
