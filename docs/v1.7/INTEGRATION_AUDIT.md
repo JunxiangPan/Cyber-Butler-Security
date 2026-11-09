@@ -70,7 +70,7 @@ P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guar
 P0-4 coverage                  PARTIAL — 48.00%; target >80% still blocking
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
-P0-7 QA self-consistency       PARTIAL — report/body/sign tooling landed in contract RC
+P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_REPORT/signing-report still pending
 ```
 
 ## Not started / blocked
