@@ -7,7 +7,7 @@
     "schema_version", "package_id", "producer_id", "version", "gate_status",
     "applicable_gate_count", "skip_count", "skip_ratio",
     "blocking_skip", "gates", "artifact_hashes", "artifact_repository",
-    "release_body_hash", "body_hash_scope", "evidence_sha256"
+    "release_body_hash", "body_hash_scope", "evidence_sha256", "ci_commit_sha"
   ],
   "properties": {
     "schema_version": {"const": "1"},
@@ -19,7 +19,7 @@
     "version": {"type": "string", "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "gate_status": {
       "type": "string",
-      "enum": ["PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL"]
+      "enum": ["PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL", "NOT_UPLOADED"]
     },
     "applicable_gate_count": {"type": "integer", "minimum": 0},
     "skip_count": {"type": "integer", "minimum": 0},
@@ -54,7 +54,11 @@
     },
     "release_body_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "body_hash_scope": {"const": "base"},
-    "evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    "evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ci_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "ci_run_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "minLength": 1},
+    "generated_by": {"type": "string", "minLength": 1}
   },
   "additionalProperties": false
 }

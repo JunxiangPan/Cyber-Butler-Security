@@ -1,0 +1,66 @@
+{
+  "applicable_gate_count": 1,
+  "artifact_hashes": {
+    "cbm_attach-0.1.0-py3-none-any.whl": "748848f4d4cad3bba936d1980597e01d4e59cf1d06af57abd02a45fcc8f94bc8",
+    "cbm_attach-0.1.0.tar.gz": "e26fd27cf5611ba8d1c4be5f3fa6c28795bf7126a9629bc4e2c4bacb97497bbf"
+  },
+  "artifact_repository": "JunxiangPan/cbm",
+  "blocking_skip": false,
+  "body_hash_scope": "base",
+  "evidence_sha256": "ac59828d1c65b4e32eaa4414437b5e3a06df3482b6a210120a3f78099559eaee",
+  "gate_status": "FAIL",
+  "gates": [
+    {
+      "name": "claims",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "binary",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "encoding",
+      "reason": "audit/v1.2.0-rc/b5-probe-declared.stdout.txt: invalid UTF-8: 'utf-8' codec can't decode byte 0xcb in position 35: invalid continuation byte",
+      "status": "FAIL"
+    },
+    {
+      "name": "docs",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "custom",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "coverage",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "dependency",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "comments",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    },
+    {
+      "name": "upgrade",
+      "reason": "not configured",
+      "status": "SKIPPED"
+    }
+  ],
+  "package_id": "cbm",
+  "producer_id": "cbp",
+  "release_body_hash": "c9ae068d3d19a067962cbd9635897fb5c8d2aed1dd40f4853d1e16fa71a48281",
+  "schema_version": "1",
+  "skip_count": 0,
+  "skip_ratio": 0.0,
+  "version": "v0.1.0"
+}

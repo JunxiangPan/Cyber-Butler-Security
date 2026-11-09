@@ -1,12 +1,12 @@
 # v1.7 Version Pins
 
-Status: **v1.7.1 RC — not frozen**
+Status: **v1.7.1 RC2 — not frozen**
 
 Proposed minimums for the v1.7 release train:
 
 ```text
 CBE  >= 0.1.0   (first version released through CBE/CBP)
-CBP  >= 1.2.0   (body_hash_scope / artifact_repository)
+CBP  >= 1.2.2   (RC2 body hash / object repository / ci_commit_sha)
 CBS  == 1.7.0
 CBM  == 0.x     (NOT_UPLOADED allowed)
 CBC  == 0.x     (NOT_UPLOADED allowed)
