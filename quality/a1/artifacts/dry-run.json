@@ -1,0 +1,358 @@
+{
+  "status": "READY_TO_REGISTER",
+  "failed": 0,
+  "checks": [
+    {
+      "name": "Q05.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q05.ps1"
+    },
+    {
+      "name": "Q05.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q05.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q05.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q05.sha256",
+      "ok": true,
+      "detail": "0E164937B53C7B4A46E3AEE462730E3590041006043A2F6F19C51A051002005E"
+    },
+    {
+      "name": "Q06.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q06.ps1"
+    },
+    {
+      "name": "Q06.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q06.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q06.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q06.sha256",
+      "ok": true,
+      "detail": "DF4EB63BE28BB7B85C3968C908FF51330609C6731301484B6E8B64AE2AFE998F"
+    },
+    {
+      "name": "Q07.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q07.ps1"
+    },
+    {
+      "name": "Q07.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q07.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q07.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q07.sha256",
+      "ok": true,
+      "detail": "73A6B163495C6D3536E7C9D2638371C41467F7753F8A32EB93AE4093568E63D6"
+    },
+    {
+      "name": "Q08.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q08.ps1"
+    },
+    {
+      "name": "Q08.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q08.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q08.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q08.sha256",
+      "ok": true,
+      "detail": "EB2B93847F85312B113200323F3E41476D88A2300C341B71939036C4C2B0DD7C"
+    },
+    {
+      "name": "Q09.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q09.ps1"
+    },
+    {
+      "name": "Q09.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q09.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q09.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q09.sha256",
+      "ok": true,
+      "detail": "245CF34A66C0820902D069F5B238105EF4AD9BD0CE2C216D7AE7E25FBAC0273D"
+    },
+    {
+      "name": "Q10.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q10.ps1"
+    },
+    {
+      "name": "Q10.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q10.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q10.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q10.sha256",
+      "ok": true,
+      "detail": "EBE5ADA29795FA433AC3ADF8D491B2A0F54D4192BD62486DDC75B93EB48DFC59"
+    },
+    {
+      "name": "Q11.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q11.ps1"
+    },
+    {
+      "name": "Q11.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q11.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q11.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q11.sha256",
+      "ok": true,
+      "detail": "290DFA1657C6A48C0E137DDFE1A40649A1135301B02347EC197652F5341C2E04"
+    },
+    {
+      "name": "Q12.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q12.ps1"
+    },
+    {
+      "name": "Q12.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q12.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q12.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q12.sha256",
+      "ok": true,
+      "detail": "D9DA38E322FDCD66ABFAB5360B3AE11EB1277BFD10CF4FA4974C733FA92AF5A6"
+    },
+    {
+      "name": "Q13.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q13.ps1"
+    },
+    {
+      "name": "Q13.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q13.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q13.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q13.sha256",
+      "ok": true,
+      "detail": "2E821DD79D91CEEDF7F374A8DB1C5BAA327D9B870F16B69D01DE384D703394DB"
+    },
+    {
+      "name": "Q14.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q14.ps1"
+    },
+    {
+      "name": "Q14.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q14.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q14.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q14.sha256",
+      "ok": true,
+      "detail": "C9217BECCCC10A4C4CA35D82FACD6F136575C63A296B7D7F527D1277946D5DC9"
+    },
+    {
+      "name": "Q15.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q15.ps1"
+    },
+    {
+      "name": "Q15.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q15.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q15.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q15.sha256",
+      "ok": true,
+      "detail": "DC27A3F4FBB877CA3F4452B6852FBA72D20D5A54033548384CC72958479C2AA0"
+    },
+    {
+      "name": "Q16.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q16.ps1"
+    },
+    {
+      "name": "Q16.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q16.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q16.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q16.sha256",
+      "ok": true,
+      "detail": "A7748EF0E06523AE4577A0E37968513AB8C97D345E5467381EC02B7107F6083E"
+    },
+    {
+      "name": "Q17.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\adapters\\Q17.ps1"
+    },
+    {
+      "name": "Q17.no_scaffold",
+      "ok": true,
+      "detail": "no scaffold marker"
+    },
+    {
+      "name": "Q17.params",
+      "ok": true,
+      "detail": "required params"
+    },
+    {
+      "name": "Q17.blocked_exit",
+      "ok": true,
+      "detail": "blocked path uses exit 3"
+    },
+    {
+      "name": "Q17.sha256",
+      "ok": true,
+      "detail": "3F3526CECA74DA457ACFAD704F5D7577DE73612199070DFDD67CAB76909F35D6"
+    },
+    {
+      "name": "elevated_runner.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\Run-A1Elevated.ps1"
+    },
+    {
+      "name": "elevated_runner.fixed",
+      "ok": true,
+      "detail": "no generic command parameter"
+    },
+    {
+      "name": "elevated_runner.vm_scope",
+      "ok": true,
+      "detail": "only a1-* VMs"
+    },
+    {
+      "name": "register.exists",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\Register-A1Task.ps1"
+    },
+    {
+      "name": "evidence.writable",
+      "ok": true,
+      "detail": "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts"
+    }
+  ],
+  "timestamp": "2026-11-09T09:41:26.3909194Z",
+  "note": "This is a registration readiness check, not an A1 execution result."
+}

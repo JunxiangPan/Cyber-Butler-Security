@@ -93,7 +93,14 @@ runs only the fixed `Run-A1Elevated.ps1` and touches only `a1-*` VMs under
 
 ## Current status
 
-No clean VM was provisioned in this turn. The adapters are currently guarded
-scaffolds: they exit `3` with `ADAPTER_SCAFFOLD_ONLY` rather than fake a PASS.
-No Q05–Q17 pass is claimed.
+The adapters are now real precondition-gated probes, no longer scaffold-only.
+`quality/a1/dry_run.ps1` reports:
+
+```text
+A1_DRY_RUN=READY_TO_REGISTER failed=0
+```
+
+This means **ready to register**, not that A1 has run. No clean VM was provisioned
+because the current DSH is not elevated; no Q05–Q17 pass is claimed.
+
 

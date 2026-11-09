@@ -67,7 +67,7 @@ the human freeze; CBE's pin remains `4a437df`.
 P0-1 reference agent/demo      PARTIAL — examples/reference_agent exists; one-command demo not accepted
 P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients + 3 schemas + local conformance tests
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
-P0-4 coverage                  BLOCKED — BROKER_COVERAGE=47.00%, target >80%
+P0-4 coverage                  PARTIAL — 47.00% -> 48.00%; target >80% still blocking
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
 P0-7 QA self-consistency       PARTIAL — report/body/sign tooling landed in contract RC
@@ -101,8 +101,9 @@ quality/a1/adapters/Q05.ps1 ... Q17.ps1
 quality/a1/README.md
 ```
 
-The adapters are guarded scaffolds: they exit `3` with
-`ADAPTER_SCAFFOLD_ONLY` rather than fake a pass. The elevated task is
+The adapters are now real precondition-gated probes, not scaffold-only. The
+dry-run reports `A1_DRY_RUN=READY_TO_REGISTER failed=0`; this is only
+registration readiness, not an A1 execution result. The elevated task is
 **registered only by a human** from an elevated host PowerShell; DSH must not
 and did not register it.
 

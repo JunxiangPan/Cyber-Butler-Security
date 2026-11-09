@@ -450,3 +450,57 @@ def test_uipi_blocked_audit_event(monkeypatch, tmp_path) -> None:
     text = audit.read_text(encoding="utf-8")
     assert "UIPI_BLOCKED_GUI_INTERACTION" in text
     assert "test-gui-call" in text
+
+
+def test_helper_as_bool_and_url_host_allowlist(monkeypatch, tmp_path) -> None:
+    assert broker._as_bool(True) is True
+    assert broker._as_bool("yes") is True
+    assert broker._as_bool("off") is False
+    monkeypatch.setenv("CBS_URL_ALLOWED_HOSTS", "api.example.test, cdn.example.test")
+    assert broker._url_host_allowed("https://api.example.test/v1") is True
+    assert broker._url_host_allowed("https://evil.example.test/v1") is False
+    assert broker._url_host_allowed("not a url") is False
+
+
+def test_helper_sha256_and_path_summary(tmp_path) -> None:
+    target = tmp_path / "a.txt"
+    target.write_text("hello", encoding="utf-8")
+    assert broker._sha256_file(target) == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    text = broker._path_summary(str(target))
+    assert "file" in text and "5 bytes" in text
+    assert "missing" in broker._path_summary(str(tmp_path / "absent"))
+
+
+def test_helper_manifest_rejects_empty_and_inside_any(tmp_path) -> None:
+    try:
+        broker._canonical_manifest([])
+        raise AssertionError("empty manifest should be rejected")
+    except ValueError:
+        pass
+    assert broker._inside_any(tmp_path / "child", (tmp_path,)) is True
+    assert broker._inside_any(tmp_path.parent / "outside", (tmp_path,)) is False
+
+
+def test_bypass_and_scoped_token_lifecycle(monkeypatch, tmp_path) -> None:
+    target = tmp_path / "scoped.txt"
+    target.write_text("x", encoding="utf-8")
+    assert broker._target_mode("write_file", str(target)) == "replace"
+    assert broker._target_mode("overwrite", str(target)) == "replace"
+    assert broker._target_mode("delete", str(target)) == "delete"
+    bypass = broker._issue_bypass("delete", str(target), 30)
+    assert bypass and broker._consume_bypass(bypass["token"], "delete", str(target))
+    assert broker._consume_bypass(bypass["token"], "overwrite", str(target)) is None
+    monkeypatch.setattr(broker, "SHARED", tmp_path)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    scoped = broker._issue_scoped("delete", str(target), 1)
+    assert scoped and broker._consume_scoped(scoped["token"], "delete", str(target))
+    assert broker._consume_scoped("not-a-token", "delete", str(target)) is None
+    assert broker._consume_scoped(scoped["token"], "delete", str(tmp_path.parent / "outside.txt")) is None
+
+
+def test_job_limit_helpers_smoke() -> None:
+    env = broker._job_limit_environment()
+    flags, values = broker._job_limit_flags()
+    assert isinstance(env, dict)
+    assert isinstance(flags, int)
+    assert isinstance(values, dict)
