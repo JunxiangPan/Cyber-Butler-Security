@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "request-delete",
+      "endpoint": "POST /request",
+      "input": {"action": "delete", "target": "C:/temp/demo.txt", "approval_only": true},
+      "required": ["action", "target"]
+    },
+    {
+      "name": "status-pending",
+      "endpoint": "GET /api/request_approval/status",
+      "input": {"id": "challenge-1"},
+      "required": ["id"]
+    },
+    {
+      "name": "verify-six-digit",
+      "endpoint": "POST /verify",
+      "input": {"id": "challenge-1", "code": "123456"},
+      "required": ["id", "code"]
+    }
+  ]
+}
