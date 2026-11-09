@@ -55,7 +55,7 @@ overall score:
 | Quality tests not in CI | Windows-only CI step for `quality/tests` | quality tests 66 passed / 13 skipped locally |
 | Test isolation failure | Autouse broker gate-state reset in `test_security_redlines.py` | full suite passes |
 | Pinned-key test noise | `test_t19_all_four_files_verify` skipped with explicit trust-anchor reason | no fake PASS |
-| cryptography missing in CI | Added `cryptography>=42.0` to `requirements-dev.txt` | security-tests 42537971245 green |
+| cryptography missing in CI | Added `cryptography>=42.0` to `requirements-dev.txt` | security-tests run id masked; green |
 | privacy path | Source evaluation path sanitized | privacy scan OK |
 
 ## Not in this remediation

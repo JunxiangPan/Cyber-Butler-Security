@@ -12,10 +12,7 @@ on:
       totp:
         description: 'Live 6-digit TOTP code'
         required: true
-<<<<<<< HEAD
-=======
 
->>>>>>> 1493d86d082061762c1b49111b51285ad99811c1
 permissions:
   contents: read
   actions: read
