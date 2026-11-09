@@ -302,25 +302,29 @@ hexadecimal strings. An input carrying a `sha256:` prefix is an input error
 
 ### 5.3 Body hash binding
 
-`release_body_hash` is the SHA-256 of the exact bytes from the beginning of the
-Release body to immediately before the marker:
+`release_body_hash` is the SHA-256 of the canonical body defined by the single
+CBP function:
 
 ```text
-<!-- CBP-BODY-BASE-END -->
+decode UTF-8, dropping a leading BOM
+normalize CRLF and lone CR to LF
+strip all trailing newlines
+if the body is non-empty, append exactly one LF
+SHA-256 over the resulting UTF-8 bytes
 ```
+
+No other normalization is allowed at hash time. Other whitespace and all content
+are preserved.
 
 Rules:
 
-- The marker itself is not included.
-- If the marker is absent, the entire body is the base.
-- No CRLF/LF normalization, no `rstrip`, no BOM removal at hash time. The body
-  producer must fix those bytes before hashing.
-- `manifest.release_body_hash` must equal the actual base hash; this is blocking
-  rule CBP-BODY-001.
+- `manifest.release_body_hash` must equal the actual canonical body hash; this is
+  blocking rule CBP-BODY-001.
 - Generate body -> hash -> write manifest -> upload must happen in one job on the
   same bytes.
-
-CBP 1.2.0 is a known legacy mismatch (ERRATUM); do not rewrite its body in place.
+- CBP 1.2.0 is a known legacy mismatch (ERRATUM); do not rewrite its body in place.
+- CBP 1.2.1 uses this canonical function; CBP 1.2.2 must also emit the RC2
+  report shape.
 
 ### CBM/CBC body fragments
 

@@ -10,7 +10,7 @@ Status: **release candidate 2; not frozen.**
 - Quality manifest requires `ci_commit_sha` (40 lowercase hex) and accepts
   `ci_run_id`, `generated_at`, `generated_by`.
 - `NOT_UPLOADED` is valid in both report schemas and is never PASS.
-- §5.3 defines byte-exact body hash binding and blocking rule CBP-BODY-001.
+- §5.3 defines the CBP 1.2.1 canonical body transform and blocking rule CBP-BODY-001.
 - `jsonschema` replaces the hand-written required-key checker.
 - Real CBE report fixture passes; real CBP 1.2.1 manifest is included and fails
   because its `artifact_repository` is still a string. CBP 1.2.2 is required for

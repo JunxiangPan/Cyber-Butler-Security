@@ -21,7 +21,7 @@ def _valid_quality() -> dict:
             "repository": "owner/repo", "run_id": "123", "artifact_name": "build-once"
         },
         "release_body_hash": "b" * 64, "body_hash_scope": "base",
-        "evidence_sha256": "c" * 64,
+        "evidence_sha256": "c" * 64, "ci_commit_sha": "d" * 40,
     }
 
 
@@ -60,7 +60,7 @@ def test_gate_status_enum_is_frozen() -> None:
     for path in (QUALITY, CBE):
         schema = json.loads(path.read_text(encoding="utf-8"))
         assert set(schema["properties"]["gate_status"]["enum"]) == {
-            "PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL",
+            "PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL", "NOT_UPLOADED",
         }
 
 
@@ -89,13 +89,13 @@ def test_schema_version_is_frozen(value: object) -> None:
     assert not _check_required(CBE, cbe) or value != "1"
 
 
-@pytest.mark.parametrize("status", ["OK", "SKIP", "SKIPPED", "NOT_UPLOADED", ""])
+@pytest.mark.parametrize("status", ["OK", "SKIP", "SKIPPED", ""])
 def test_quality_gate_status_rejects_unknown(status: str) -> None:
     value = _valid_quality(); value["gate_status"] = status
     assert value["gate_status"] not in ("PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL")
 
 
-@pytest.mark.parametrize("status", ["OK", "SKIP", "SKIPPED", "NOT_UPLOADED", ""])
+@pytest.mark.parametrize("status", ["OK", "SKIP", "SKIPPED", ""])
 def test_cbe_gate_status_rejects_unknown(status: str) -> None:
     value = _valid_cbe(); value["gate_status"] = status
     assert value["gate_status"] not in ("PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL")
@@ -147,7 +147,7 @@ def test_schema_validator_rejects_each_field_and_enum() -> None:
     for field in qschema["required"]:
         value = _valid_quality(); value.pop(field)
         assert any(error.startswith("required:") for error in _validate(qschema, value))
-    for status in ("OK", "SKIP", "NOT_UPLOADED"):
+    for status in ("OK", "SKIP"):
         value = _valid_quality(); value["gate_status"] = status
         assert "enum" in _validate(qschema, value)
     value = _valid_quality(); value["gates"][0]["status"] = "SKIP"

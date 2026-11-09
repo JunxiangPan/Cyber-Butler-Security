@@ -5,20 +5,22 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-MARKER = b"<!-- CBP-BODY-BASE-END -->"
+
+def canonical_body_bytes(data: bytes) -> bytes:
+    """Apply the single CBP canonical body transform."""
+    text = data.decode("utf-8-sig")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.rstrip("\n")
+    if text:
+        text += "\n"
+    return text.encode("utf-8")
 
 
-def base_bytes(body: bytes) -> bytes:
-    """Return bytes before the marker, or the whole body when absent."""
-    index = body.find(MARKER)
-    return body if index < 0 else body[:index]
+def canonical_body_hash(data: bytes) -> str:
+    """Return the lowercase SHA-256 of the canonical body bytes."""
+    return hashlib.sha256(canonical_body_bytes(data)).hexdigest()
 
 
-def base_hash(body: bytes) -> str:
-    """Return the lowercase SHA-256 of the base bytes."""
-    return hashlib.sha256(base_bytes(body)).hexdigest()
-
-
-def file_hash(path: Path) -> str:
-    """Return the base hash of a body file's exact bytes."""
-    return base_hash(path.read_bytes())
+def canonical_body_hash_file(path: Path) -> str:
+    """Return the canonical hash of a body file's exact bytes."""
+    return canonical_body_hash(path.read_bytes())
