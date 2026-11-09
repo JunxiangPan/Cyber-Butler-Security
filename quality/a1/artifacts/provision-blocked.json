@@ -1,6 +1,7 @@
 {
   "status": "blocked",
-  "vm": "cbs-a1-clean",
-  "reason": "ELEVATION_REQUIRED: run from an elevated host PowerShell",
-  "timestamp": "2026-11-09T09:14:57.1947109Z"
+  "vm": "a1-cbs-clean",
+  "reason": "UEFI boot loader failed for the Windows 11 ISO; see a1-uefi-boot-failed.png",
+  "iso": "D:\\iso\\Windows11_Client_x64_zh-cn_26300_9457.iso",
+  "timestamp": "2026-11-09T10:48:06Z"
 }
