@@ -46,16 +46,17 @@ overall score:
 | P1-08 | Windows-only and AGPL limit adoption | Decide whether cross-platform Broker/SDK is a v2.0 goal; document license intent | CBS strategy | Explicit platform/license decision recorded; no accidental promise |
 | P1-09 | 27 releases / 69 tags in 11 days; 2 sign failures create noise | Reduce release cadence; preserve failed-run evidence; document release train | CBS release | One stable release line per train; failures linked from release notes |
 
-## Already fixed in the working tree (pending commit)
+## Already fixed and committed
 
-| Item | Change | Test |
+| Item | Change | Verification |
 |---|---|---|
 | Stale redline assertion | `test_webui_can_read_broker_token_as_desktop_task` now checks `$tokenSids` and `'*' + $tokenSid + ':(R)'` | quality tests pass |
-| WebUI tests not in CI | `pytest.ini` includes `tests` and `webui/tests` | local full suite 162 passed / 1 skipped |
+| WebUI tests not in CI | `pytest.ini` includes `tests` and `webui/tests` | local full suite 246 passed / 1 skipped |
 | Quality tests not in CI | Windows-only CI step for `quality/tests` | quality tests 66 passed / 13 skipped locally |
 | Test isolation failure | Autouse broker gate-state reset in `test_security_redlines.py` | full suite passes |
 | Pinned-key test noise | `test_t19_all_four_files_verify` skipped with explicit trust-anchor reason | no fake PASS |
-| cryptography missing in CI | Added `cryptography>=42.0` to `requirements-dev.txt` | CI collection will no longer fail |
+| cryptography missing in CI | Added `cryptography>=42.0` to `requirements-dev.txt` | security-tests 42537971245 green |
+| privacy path | Source evaluation path sanitized | privacy scan OK |
 
 ## Not in this remediation
 
