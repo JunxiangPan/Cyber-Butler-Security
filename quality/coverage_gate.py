@@ -17,6 +17,7 @@ TESTS = (
     "tests/test_critical_integrity.py",
     "tests/test_totp_replay.py",
     "tests/test_broker_manifest.py",
+    "tests/test_broker_http_inprocess.py",
 )
 
 
@@ -31,7 +32,7 @@ def main() -> int:
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
         report = subprocess.run(
-            [sys.executable, "-m", "coverage", "report", "--include=tools/broker.py,tools/broker_state.py"],
+            [sys.executable, "-m", "coverage", "report", "--include=tools/broker.py,tools/broker_state.py,tools/broker_store.py"],
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
     if run.returncode != 0:
