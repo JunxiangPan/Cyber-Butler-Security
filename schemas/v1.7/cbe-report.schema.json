@@ -20,7 +20,7 @@
     "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "gate_status": {
       "type": "string",
-      "enum": ["PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL"]
+      "enum": ["PASS", "FAIL", "SKIPPED_INFRA", "PRECONDITION_FAIL", "NOT_UPLOADED"]
     },
     "exit_code": {"type": "integer", "enum": [0, 2, 3, 4]},
     "applicable_count": {"type": "integer", "minimum": 0},

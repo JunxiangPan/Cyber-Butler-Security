@@ -1,5 +1,21 @@
 # v1.7 Contract Changelog
 
+## v1.7.1 RC2 — 2026-11-09
+
+Status: **release candidate 2; not frozen.**
+
+- `schema_version` is string `"1"`; integer is rejected.
+- `artifact_repository` is an object with `repository` / `run_id` /
+  `artifact_name`; string form is rejected.
+- Quality manifest requires `ci_commit_sha` (40 lowercase hex) and accepts
+  `ci_run_id`, `generated_at`, `generated_by`.
+- `NOT_UPLOADED` is valid in both report schemas and is never PASS.
+- §5.3 defines byte-exact body hash binding and blocking rule CBP-BODY-001.
+- `jsonschema` replaces the hand-written required-key checker.
+- Real CBE report fixture passes; real CBP 1.2.1 manifest is included and fails
+  because its `artifact_repository` is still a string. CBP 1.2.2 is required for
+  real CBP conformance.
+
 ## v1.7.1 RC — 2026-11-09
 
 Status: **release candidate; not frozen.**

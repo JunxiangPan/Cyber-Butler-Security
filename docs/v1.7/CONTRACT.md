@@ -199,10 +199,12 @@ artifact hashes match WHEEL_SHA256 / RELEASE_ASSETS.sha256
 tag commit == manifest.ci_commit_sha
 artifact_repository matches the build-once producer coordinates
 body_hash_scope == "base"
+manifest.release_body_hash == actual base body hash (CBP-BODY-001)
 ```
 
 `artifact_repository` must identify the same repository/run/artifact that produced
 the consumed build-once artifact. A missing or mismatched coordinate is exit `2`.
+The body hash is defined by §5.3; a mismatch is a blocking CBP-BODY-001 failure.
 
 `skip_ok` means:
 
@@ -297,6 +299,28 @@ the value. Schema fields (`rules_manifest_hash`, `evidence_sha256`,
 `release_body_hash`, `artifact_hashes.*`) are bare 64-character lowercase
 hexadecimal strings. An input carrying a `sha256:` prefix is an input error
 (exit `2`); a tool must not silently strip the prefix.
+
+### 5.3 Body hash binding
+
+`release_body_hash` is the SHA-256 of the exact bytes from the beginning of the
+Release body to immediately before the marker:
+
+```text
+<!-- CBP-BODY-BASE-END -->
+```
+
+Rules:
+
+- The marker itself is not included.
+- If the marker is absent, the entire body is the base.
+- No CRLF/LF normalization, no `rstrip`, no BOM removal at hash time. The body
+  producer must fix those bytes before hashing.
+- `manifest.release_body_hash` must equal the actual base hash; this is blocking
+  rule CBP-BODY-001.
+- Generate body -> hash -> write manifest -> upload must happen in one job on the
+  same bytes.
+
+CBP 1.2.0 is a known legacy mismatch (ERRATUM); do not rewrite its body in place.
 
 ### CBM/CBC body fragments
 
