@@ -6,6 +6,7 @@ directory. No Mock is used for the filesystem or RSA operation.
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import subprocess
 import sys
@@ -235,10 +236,11 @@ def _signed_release(tmp_path: Path) -> tuple[Path, Path, Path, Path, Path, Path,
 
 
 def _verify(tmp_path: Path, manifest: Path, signature: Path, pub: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
     return subprocess.run(
         [sys.executable, str(ROOT / "tools" / "verify_release.py"),
          "--manifest", str(manifest), "--signature", str(signature), "--pubkey", str(pub), *extra],
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
     )
 
 
