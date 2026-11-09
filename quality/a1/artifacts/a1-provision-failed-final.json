@@ -1,0 +1,37 @@
+{
+  "status": "A1_BLOCKED_INSTALL_MEDIA",
+  "vm": "a1-cbs-clean",
+  "generation": 2,
+  "reason": "Windows 11 ISO boot loader failed even with explicit Windows ISO as first DVD",
+  "dvd": [
+    {
+      "Path": "D:\\iso\\Windows11_Client_x64_zh-cn_26300_9457.iso",
+      "ControllerNumber": 0,
+      "ControllerLocation": 1
+    },
+    {
+      "Path": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-a1-answer-e0a3a6682af343d1877500108ee015ff.iso",
+      "ControllerNumber": 0,
+      "ControllerLocation": 2
+    }
+  ],
+  "boot_order": [
+    {
+      "type": 1,
+      "device": "DVD 驱动器 on SCSI controller number 0 at location 1"
+    },
+    {
+      "type": 1,
+      "device": "DVD 驱动器 on SCSI controller number 0 at location 2"
+    },
+    {
+      "type": 1,
+      "device": "硬盘驱动器 on SCSI controller number 0 at location 0"
+    }
+  ],
+  "task_last_result": 267014,
+  "snapshot": "none",
+  "q05_q17": "not executed",
+  "screenshot": "a1-uefi-boot-failed-final.png",
+  "timestamp": "2026-11-09T11:33:20.477682+00:00"
+}

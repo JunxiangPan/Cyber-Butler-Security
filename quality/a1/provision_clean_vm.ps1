@@ -109,8 +109,31 @@ try {
         Set-VMMemory -VMName $VMName -DynamicMemoryEnabled $true -MinimumBytes 4GB -MaximumBytes $MemoryBytes
         Add-VMDvdDrive -VMName $VMName -Path $IsoPath | Out-Null
         Add-VMDvdDrive -VMName $VMName -Path $answerIso | Out-Null
-        $dvd = Get-VMDvdDrive -VMName $VMName | Select-Object -First 1
-        Set-VMFirmware -VMName $VMName -FirstBootDevice $dvd
+        $winDvd = Get-VMDvdDrive -VMName $VMName | Where-Object { $_.Path -eq $IsoPath }
+        if (-not $winDvd) {
+            Write-Blocked 'WINDOWS_ISO_DVD_NOT_FOUND'
+            return
+        }
+        $answerDvd = Get-VMDvdDrive -VMName $VMName | Where-Object { $_.Path -eq $answerIso }
+        $disk = Get-VMHardDiskDrive -VMName $VMName | Select-Object -First 1
+        try {
+            if ($answerDvd -and $disk) {
+                Set-VMFirmware -VMName $VMName -BootOrder $winDvd, $answerDvd, $disk
+            } else {
+                Set-VMFirmware -VMName $VMName -FirstBootDevice $winDvd
+            }
+        } catch {
+            Set-VMFirmware -VMName $VMName -FirstBootDevice $winDvd
+        }
+        $bootConfig = [ordered]@{
+            vm = $VMName
+            generation = (Get-VM -Name $VMName).Generation
+            dvd = @(Get-VMDvdDrive -VMName $VMName | Select-Object Path, ControllerNumber, ControllerLocation)
+            boot_order = @((Get-VMFirmware -VMName $VMName).BootOrder | ForEach-Object {
+                [ordered]@{ type = $_.BootType; device = $_.Device.Name }
+            })
+        }
+        $bootConfig | ConvertTo-Json -Depth 6 | Set-Content -Path (Join-Path $script:Evidence 'boot-config.json') -Encoding UTF8
         Set-VM -Name $VMName -AutomaticCheckpointsEnabled $false
         Start-VM -Name $VMName
         $deadline = (Get-Date).AddMinutes($TimeoutMinutes)

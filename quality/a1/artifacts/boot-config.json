@@ -1,0 +1,30 @@
+﻿{
+    "vm":  "a1-cbs-clean",
+    "generation":  2,
+    "dvd":  [
+                {
+                    "Path":  "D:\\iso\\Windows11_Client_x64_zh-cn_26300_9457.iso",
+                    "ControllerNumber":  0,
+                    "ControllerLocation":  1
+                },
+                {
+                    "Path":  "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-a1-answer-e0a3a6682af343d1877500108ee015ff.iso",
+                    "ControllerNumber":  0,
+                    "ControllerLocation":  2
+                }
+            ],
+    "boot_order":  [
+                       {
+                           "type":  1,
+                           "device":  "DVD 驱动器 on SCSI controller number 0 at location 1"
+                       },
+                       {
+                           "type":  1,
+                           "device":  "DVD 驱动器 on SCSI controller number 0 at location 2"
+                       },
+                       {
+                           "type":  1,
+                           "device":  "硬盘驱动器 on SCSI controller number 0 at location 0"
+                       }
+                   ]
+}
