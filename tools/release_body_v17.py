@@ -61,9 +61,9 @@ def build(report: dict, wheel: Path, *, package: str = "cbs") -> str:
     for gate in report.get("gates", []):
         lines.append(f"- {gate.get('name')}: {gate.get('status')}")
     lines += ["", "## Infrastructure failures", ""]
-    lines += [f"- {item}" for item in infra] or ["- none"]
+    lines += [f"- {item}" for item in infra] or ["- No infrastructure failures recorded."]
     lines += ["", "## NOT_UPLOADED", ""]
-    lines += [f"- {item}" for item in not_uploaded] or ["- none"]
+    lines += [f"- {item}" for item in not_uploaded] or ["- No additional component records."]
     for component, item in _component_items(report).items():
         label = component.upper()
         gate_key = f"{component}_gate_status"

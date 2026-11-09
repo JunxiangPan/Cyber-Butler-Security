@@ -3,3 +3,4 @@ update-manifest.sig -text
 *.ps1 text eol=crlf
 *.py text eol=lf
 dependencies.sbom.json -text
+docs/v1.7/CONTRACT.md text eol=lf
