@@ -1,19 +1,23 @@
 # v1.7.1 Contract RC Status
 
-Status: **RC2 — NOT FROZEN**
+Status: **FROZEN**
 
-Branch: `contract/v1.7.1`
+Freeze date: `2026-11-09`
+
+Freeze baseline commit: `6835789`
+
+Tag: `contract-v1.7.1` (contract tag, not a product tag)
 
 Contract file: `docs/v1.7/CONTRACT.md`
 
-Contract SHA256 (candidate):
+Contract SHA256:
 
 ```text
 209d75b4c900f9a2d1ad8f5c377ac1b8a868cf3e4cd449970e61e3ff380c18f1
 ```
 
-This hash is a review artifact. It is not a frozen contract, not a tag, and not
-a release. Do not let CBE/CBP/CBM/CBC pin to it until the human freeze step.
+This hash is frozen. CONTRACT.md was not changed between RC2 and this freeze.
+Do not edit CONTRACT.md after this commit.
 
 ## Included in this RC2
 
@@ -28,17 +32,17 @@ a release. Do not let CBE/CBP/CBM/CBC pin to it until the human freeze step.
 - CBM/CBC body fragments with `NOT_UPLOADED` + `EVIDENCE_ABSENT`.
 - Real JSON Schema validation with `jsonschema`.
 - `tests/v17/fixtures/real-cbe-report.json` passes.
-- `tests/v17/fixtures/real-cbp-1.2.1-manifest.json` is a real fixture and fails RC2 because its `artifact_repository` is a string.
-- `tests/v17/fixtures/real-cbp-1.2.0-manifest.json` is legacy and fails.
+- CBE 0.1.0 real report passes RC2 schema (confirmed by CBE).
+- CBP 1.2.2 real manifest passes RC2 schema (confirmed by CBP); CBP 1.2.1 is
+  retained only as a legacy FAIL fixture.
+- CBP 1.2.0 is legacy and fails.
 - 92 v1.7 tests passing locally.
 
-## Not done
+## Post-freeze
 
-- No contract freeze.
-- No new tag.
-- No CBE/CBP/CBM/CBC repository edit.
-- No v1.7.0 product implementation.
-- **Real CBP 1.2.1 output is not RC2-conformant.** Its real fixture is included
-  and fails because `artifact_repository` is still a string. CBP 1.2.2 (or a
-  contract-approved migration) is required before real CBP conformance can be
-  claimed.
+- CONTRACT.md is immutable.
+- The tag `contract-v1.7.1` is immutable.
+- Published evidence is immutable.
+- CBE-08 remains **DRAFT** until CBE updates its contract guard to this hash.
+- No CBE/CBP/CBM/CBC repository edit was made by this freeze.
+- No v1.7.0 product tag, signature, or release was created.

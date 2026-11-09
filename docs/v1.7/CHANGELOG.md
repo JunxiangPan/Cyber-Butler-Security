@@ -1,8 +1,8 @@
 # v1.7 Contract Changelog
 
-## v1.7.1 RC2 — 2026-11-09
+## v1.7.1 RC2 — FROZEN 2026-11-09
 
-Status: **release candidate 2; not frozen.**
+Status: **FROZEN; CONTRACT.md semantics unchanged from RC2.**
 
 - `schema_version` is string `"1"`; integer is rejected.
 - `artifact_repository` is an object with `repository` / `run_id` /
