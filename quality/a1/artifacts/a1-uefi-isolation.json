@@ -1,0 +1,56 @@
+{
+  "status": "A1_BLOCKED_VM_BOOT",
+  "vm": "cbs-a1-clean",
+  "generation": 2,
+  "cpu": 2,
+  "memory_bytes": 4294967296,
+  "vhd": {
+    "size": 85899345920,
+    "file_size": 4194304,
+    "type": "Dynamic"
+  },
+  "vtpm": true,
+  "secure_boot": {
+    "on": false,
+    "template": "MicrosoftWindows",
+    "note": "On/template set attempts blocked after vTPM initialization"
+  },
+  "dvd": [
+    "Windows 11 Enterprise Evaluation ISO only"
+  ],
+  "tests": {
+    "secure_boot_off": {
+      "result": "FAIL",
+      "screenshot": "a1-secureboot-off.png"
+    },
+    "secure_boot_on_microsoftwindows": {
+      "result": "FAIL",
+      "screenshot": "a1-uefi-boot-failed-final.png"
+    },
+    "microsoftueficertificateauthority": {
+      "result": "NOT_TESTABLE",
+      "reason": "template change blocked after initialized vTPM"
+    },
+    "windows_iso_only": {
+      "result": "FAIL",
+      "screenshot": "a1-only-windows-iso.png"
+    },
+    "gen1_control": {
+      "result": "WINDOWS_SETUP_REACHED",
+      "note": "same ISO, Gen1; not A1 acceptance"
+    }
+  },
+  "signatures": {
+    "efi/boot/bootx64.efi": "Valid CN=Microsoft Windows",
+    "bootmgfw.efi": "Valid CN=Microsoft Windows",
+    "efi/Microsoft/boot/bootmgfw.efi": "MISSING (root bootmgfw.efi is present)"
+  },
+  "event": {
+    "id": 18603,
+    "message": "\u65e0\u6cd5\u542f\u52a8\u64cd\u4f5c\u7cfb\u7edf"
+  },
+  "boot_summary": "SCSI DVD (0,1) The boot loader failed; SCSI Disk no OS",
+  "install": false,
+  "checkpoint": false,
+  "q05_q17": false
+}
