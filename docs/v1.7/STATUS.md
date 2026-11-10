@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_LTSC_MEDIA** | 26H2 Gen2 UEFI fails (boot loader failed); LTSC 2024 Evaluation official page returns page-not-found on all tried URLs; no LTSC ISO; IoT LTSC not substituted without owner approval |
+| A1 clean-VM acceptance | **A1_BLOCKED_MEDIA_OPTIONS** | Option1 no 24H2 ISO; Option2 UUP 26100.9457 downloaded but ISO conversion blocked; Option3 no clean VHDX; no A1 install |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
