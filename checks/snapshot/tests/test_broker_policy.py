@@ -750,3 +750,25 @@ def test_verify_send_manifest_valid(monkeypatch, tmp_path) -> None:
     status, body = broker.run_verify({"id": "ps2"})
     assert status in {200, 409, 410, 429}
     broker._pending = None
+
+
+def test_alias_and_bypass_helpers(monkeypatch) -> None:
+    assert broker.run_request({"action": "send_file", "manifest": []})[0] == 409
+    broker._purge_bypass()
+    assert broker._consume_bypass("missing", "delete", "x") is None
+    assert isinstance(broker._target_mode("delete", "x"), str)
+    assert broker._as_bool("yes") is True and broker._as_bool("no") is False
+
+
+def test_invalid_bypass_falls_through(monkeypatch, tmp_path) -> None:
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    target = shared / "bypass.txt"
+    target.write_text("x", encoding="utf-8")
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", ())
+    monkeypatch.setattr(broker, "send_qq", lambda _text: True)
+    broker._pending = None
+    status, body = broker.run_request({"action": "delete", "target": str(target), "bypass_token": "invalid", "approval_only": True})
+    assert status in {200, 409}

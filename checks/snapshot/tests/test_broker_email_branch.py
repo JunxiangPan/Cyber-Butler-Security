@@ -137,3 +137,18 @@ def test_email_watch_poll_exception_then_timeout(monkeypatch, tmp_path: Path) ->
     monkeypatch.setattr(broker.time, "sleep", lambda _s: None)
     broker.email_watch("email-poll")
     assert broker._pending is None and sent
+
+
+def test_email_watch_challenge_mismatch_then_timeout(monkeypatch, tmp_path: Path) -> None:
+    broker._pending = {
+        "id": "email-mismatch", "channel": "email",
+        "deadline": broker.time.monotonic() + 0.2,
+        "challenge": "expected", "target": str(tmp_path / "x"), "action": "delete",
+    }
+    sent = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: ("qa@example.test", "wrong", "123456"))
+    monkeypatch.setattr(broker.email_approval, "sender_allowed", lambda *_a: True)
+    monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
+    broker.email_watch("email-mismatch")
+    assert broker._pending is None and sent

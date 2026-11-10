@@ -152,3 +152,11 @@ def test_inprocess_empty_pending_views(http_broker) -> None:
     assert requests.get(base + "/pending", headers=headers, timeout=5).json()["pending"] is False
     assert requests.get(base + "/pending/approval", headers=headers, timeout=5).json()["pending"] is False
     assert requests.get(base + "/trash", headers=headers, timeout=5).json()["items"] == []
+
+
+def test_inprocess_get_unknown_and_bad_verify(http_broker) -> None:
+    base, token, _shared = http_broker
+    headers = {"X-Broker-Token": token}
+    assert requests.get(base + "/nope", headers=headers, timeout=5).status_code == 404
+    assert requests.post(base + "/verify", json={}, headers=headers, timeout=5).status_code == 404
+    assert requests.post(base + "/deny", json={}, headers=headers, timeout=5).status_code == 400

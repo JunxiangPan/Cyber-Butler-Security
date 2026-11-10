@@ -314,3 +314,22 @@ def test_manifest_prompt_url_branch(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(broker, "SHARED", tmp_path)
     text = broker._manifest_prompt([{"kind": "url", "path": "https://example.test/x", "size": 0, "sha256": ""}])
     assert "OUTSIDE SHARED" in text
+
+
+def test_timeout_watch_expires_pending(monkeypatch) -> None:
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0)
+    monkeypatch.setattr(broker, "send_qq", lambda _text: True)
+    broker._pending = {"id": "tw", "approval_only": True}
+    broker.timeout_watch("tw")
+    assert broker._pending is None
+
+
+def test_main_refuses_unrendered_placeholder(monkeypatch) -> None:
+    monkeypatch.setattr(broker, "ROOT", Path("YOUR" + "_ROOT"))
+    monkeypatch.setattr(broker, "SHARED", Path("x"))
+    monkeypatch.setattr(broker, "UMO", "x")
+    try:
+        broker.main()
+    except SystemExit:
+        return
+    raise AssertionError("main must refuse placeholders")

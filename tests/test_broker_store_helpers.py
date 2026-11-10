@@ -31,3 +31,4 @@ def test_manifest_and_path_errors(tmp_path: Path) -> None:
     directory.mkdir()
     (directory / "x.txt").write_text("x", encoding="utf-8")
     assert "directory" in _path_summary(str(directory))
+
