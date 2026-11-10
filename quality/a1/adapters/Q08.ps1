@@ -33,9 +33,21 @@ function Broker([string]$method, [string]$path, [string]$json = '') {
     }
 }
 $link = Join-Path $env:TEMP ('cbs-a1-reparse-' + [Guid]::NewGuid().ToString('N'))
-New-Item -ItemType Junction -Path $link -Target 'C:\Windows' -ErrorAction Stop | Out-Null
+$linkCreated = $false
 try {
-    $r = Broker 'POST' '/request' ('{"action":"delete","target":"' + ($link -replace '\\','\\\\') + '"}')
+    & cmd.exe /c mklink /J "$link" "C:\Windows" 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $link)) {
+        Blocked 'JUNCTION_CREATE_FAILED'
+    }
+    $linkCreated = $true
+    $escaped = $link -replace '\\','\\\\'
+    $r = Broker 'POST' '/request' ('{"action":"delete","target":"' + $escaped + '"}')
     if ($r.status -eq 403 -or $r.error) { Pass 'REPARSE_REJECTED' }
     Blocked 'REPARSE_NOT_REJECTED'
-} finally { Remove-Item $link -Force -ErrorAction SilentlyContinue }
+} catch {
+    Blocked ('JUNCTION_TEST_EXCEPTION: ' + $_.Exception.Message)
+} finally {
+    if ($linkCreated -and (Test-Path -LiteralPath $link)) {
+        Remove-Item -LiteralPath $link -Force -Recurse -ErrorAction SilentlyContinue
+    }
+}
