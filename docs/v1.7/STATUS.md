@@ -39,6 +39,13 @@ Temporal replay is PASS only for its read-only audit timeline; source audit has 
 before/after hashes, so `hashes_available=false` is recorded rather than invented.
 IPC is **not** PASS; a codec is not a named-pipe transport.
 
+```text
+IPC_DEFER_FOR_V1.7.0
+  recommended, pending owner decision
+  remove IPC from the v1.7.0 blocking scope only with owner approval
+```
+
+
 ## v1.7.0 boundaries
 
 ```text

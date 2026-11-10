@@ -99,8 +99,8 @@ Optional MXC: OPTIONAL / DEFERRED
 A1 26/26: A1_BLOCKED_INSTALL_MEDIA
 ```
 
-No named-pipe transport or MXC implementation was added. A codec is not a
-transport; MXC is not marked PASS.
+IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is
+required to remove it from the blocking scope. MXC is not marked PASS.
 
 ## A1 automation status
 
