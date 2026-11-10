@@ -12,6 +12,11 @@ param()
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $artifactRoot = Join-Path $PSScriptRoot 'artifacts'
+$deployMarker = Join-Path $artifactRoot 'deploy-wim-request.json'
+if (Test-Path $deployMarker) {
+    & (Join-Path $PSScriptRoot 'deploy_wim_vhdx.ps1')
+    exit $LASTEXITCODE
+}
 $vmRoot = 'D:\HyperV\qa-clones'
 $vmName = 'a1-cbs-clean'
 $iso = 'D:\iso\Windows11_Client_x64_zh-cn_26300_9457.iso'

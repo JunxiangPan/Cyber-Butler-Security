@@ -1,0 +1,30 @@
+{
+  "status": "A1_BASE_READY_QA_BLOCKED",
+  "vm": "cbs-a1-clean",
+  "generation": 2,
+  "state": "Running",
+  "heartbeat": "OkApplicationsUnknown",
+  "vhd": "D:\\CB-Media\\Windows11\\cbs-a1-base.vhdx",
+  "vhd_bytes": 15875440640,
+  "vhd_type": "Dynamic",
+  "cpu": 2,
+  "memory_bytes": 4294967296,
+  "vtpm": true,
+  "secure_boot": "On",
+  "secure_boot_template": "MicrosoftWindows",
+  "install_method": "install.wim index 1 applied with DISM; bcdboot UEFI; no ISO boot",
+  "media_sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84",
+  "edition_id": "EnterpriseEval",
+  "windows_product_name": "Windows 10 Enterprise Evaluation (Get-ComputerInfo string)",
+  "build": "26300",
+  "desktop_watermark": "Windows 11 Enterprise Evaluation",
+  "desktop_screenshot": "a1-wim-desktop.png",
+  "checkpoint": "a1-clean-base",
+  "checkpoint_state": "Saved",
+  "qa": {
+    "Q05_Q17": "BLOCKED",
+    "reason": "C:\\CyberButler is not installed in the clean base; adapters require the product broker/token",
+    "Q13": "NOT_RUN"
+  },
+  "ipc": "BLOCKED \u2014 A1 QA not complete"
+}
