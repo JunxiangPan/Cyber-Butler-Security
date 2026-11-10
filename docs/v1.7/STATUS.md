@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_MEDIA_OPTIONS** | Option1 no 24H2 ISO; Option2 UUP 26100.9457 downloaded but ISO conversion blocked; Option3 no clean VHDX; no A1 install |
+| A1 clean-VM acceptance | **A1_BASE_READY_QA_BLOCKED** | install.wim index 1 applied to Gen2 VHDX without ISO boot; Windows desktop + a1-clean-base; Q05-Q17 blocked because C:\CyberButler is not installed |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
