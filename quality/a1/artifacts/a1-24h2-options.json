@@ -1,0 +1,28 @@
+{
+  "status": "A1_BLOCKED_MEDIA_OPTIONS",
+  "option1": {
+    "result": "OPTION1_UNAVAILABLE",
+    "reason": "no 24H2 Pro/Enterprise ISO in D:\\CB-Media, D:\\iso, D:\\HyperV, Downloads, Documents, E:",
+    "source": null
+  },
+  "option2": {
+    "result": "UUP_CONVERSION_BLOCKED",
+    "site": "https://uupdump.net/",
+    "build": "26100.9457",
+    "arch": "amd64",
+    "language": "zh-cn",
+    "edition": "Professional",
+    "uup_package_bytes": 4695,
+    "uup_set_bytes": 10074389908,
+    "iso_obtained": false,
+    "reason": "uup_download_windows.cmd conversion path stalled; no ISO produced",
+    "test_only": true
+  },
+  "option3": {
+    "result": "OPTION3_UNAVAILABLE",
+    "reason": "no clean 24H2 VHDX provided"
+  },
+  "third_party_iso": false,
+  "gen1_as_a1": false,
+  "a1": "A1_BLOCKED_MEDIA_OPTIONS"
+}
