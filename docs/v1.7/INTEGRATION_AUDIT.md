@@ -67,7 +67,7 @@ the human freeze; CBE's pin remains `4a437df`.
 P0-1 reference agent/demo      PARTIAL — one-command `examples/reference_agent/demo.ps1` landed; real Broker/UI acceptance pending
 P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients, 3 schemas, conformance corpus; external adapter pending
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
-P0-4 coverage                  DONE — 80.01% precise; CI gate wired
+P0-4 coverage                  DONE — 80.56% CI (80.98% local); precise gate in CI
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
 P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_REPORT/signing-report still pending
@@ -79,6 +79,9 @@ P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_
 417129f / 37fc312: packaging preflight failed on
   tests/test_broker_misc_helpers.py: unexpected YOUR-prefix placeholder
 aa7d09e: fixed by constructing the placeholder at runtime; follow-up CI green
+d609b6e / eaef464: coverage gate failed in CI because the quality job did not
+  install the coverage package; fixed by requirements-dev coverage>=7.0
+a143437: CI precise coverage 79.77%, below 80%; fixed by b0bb968, CI 80.56%
 ```
 
 
