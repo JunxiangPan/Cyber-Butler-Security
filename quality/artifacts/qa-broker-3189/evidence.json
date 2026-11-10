@@ -1,0 +1,31 @@
+{
+  "port": 3189,
+  "qa_only_secret": "not-written",
+  "request_http": 200,
+  "request_body": {
+    "ok": true,
+    "status": "requires_totp",
+    "id": "77d2360a6274",
+    "channel": "webui",
+    "challenge": "",
+    "action": "delete",
+    "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-qa-broker-d38na_88\\workspace\\qa-3189-delete.txt"
+  },
+  "verify_http": 200,
+  "verify_body": {
+    "ok": true,
+    "id": "77d2360a6274",
+    "result": "\u6587\u4ef6\u5df2\u79fb\u5165\u4e24\u9636\u6bb5\u6682\u5b58\u56de\u6536\u7ad9\uff0c10 \u5206\u949f\u5185\u53ef\u64a4\u56de\uff1a77d2360a6274",
+    "undo_available": true,
+    "trash_id": "77d2360a6274",
+    "undo_expires_at": "2026-11-10T02:28:38+00:00",
+    "undo_expires_epoch": 1794277718.6685903
+  },
+  "target_deleted": true,
+  "audit_path": "temp/tools/totp_broker_audit.jsonl",
+  "audit_bytes": 386,
+  "audit_sha256": "5852298a3a55e7e7af62891b3cdd6df1a62d4b342eda93cbea6696e11e70df97",
+  "audit_lines": 1,
+  "qa_token_file": "temp/tools/broker_token.txt",
+  "qa_secret": "QA-only; not written to evidence"
+}

@@ -1,0 +1,6 @@
+QA_BROKER_3189_OK
+request_http=200
+verify_http=200
+target_deleted=True
+audit_lines=1
+audit_sha256=5852298a3a55e7e7af62891b3cdd6df1a62d4b342eda93cbea6696e11e70df97
