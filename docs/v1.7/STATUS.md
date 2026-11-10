@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_VM_BOOT** | ISO PROVIDED/preflight passed; Gen2 UEFI shows "SCSI DVD (0,1) The boot loader failed"; screenshot a1-uefi-boot-failed-final.png; Gen1 control boots same ISO; no snapshot |
+| A1 clean-VM acceptance | **A1_BLOCKED_VM_BOOT** | ISO PROVIDED/preflight passed; Gen2 UEFI "boot loader failed" with SecureBoot Off and ISO-only; screenshots/evidence `a1-uefi-isolation.json`; Gen1 control boots; no snapshot |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
@@ -32,7 +32,7 @@ VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
 |---|---|---|---|
 | Temporal Replay | PASS (read-only) | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/temporal_replay.py`; Broker audit fixture/evidence; hashes unavailable by source |
 | Diff Boundary | PASS | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/diff_boundary.py` called before write_file/overwrite in `tools/broker.py`; fail-closed tests |
-| IPC / Named Pipe + Helper | BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | pywin32 present; CreateNamedPipe works; IPC VM not created because cbs-a1-clean Gen2 boot failed; no two-account ACL test |
+| IPC / Named Pipe + Helper | BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | pywin32 present; CreateNamedPipe works; no IPC VM because Gen2 UEFI boot failed; no two-account ACL test |
 | Optional MXC | OPTIONAL / DEFERRED | `docs/v1.7/DEEP_WATER_DESIGN.md` | owner decision: not part of v1.7.0 blocking scope |
 
 Temporal replay is PASS only for its read-only audit timeline; source audit has no
