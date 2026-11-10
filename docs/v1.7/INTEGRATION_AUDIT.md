@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; cbs-a1-clean boot failed; cbs-ipc-test not created; no two-account ACL test
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: A1_BASE_READY_QA_BLOCKED (WIM->VHDX Gen2 boot + checkpoint; Q05-Q17 blocked: product not installed)
+A1 26/26: A1_PRODUCT_INSTALLED_QA_PARTIAL (CBS installed; Q05 PASS; Q06/Q07 blocked; Q08-Q17 not run)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is
