@@ -772,3 +772,13 @@ def test_invalid_bypass_falls_through(monkeypatch, tmp_path) -> None:
     broker._pending = None
     status, body = broker.run_request({"action": "delete", "target": str(target), "bypass_token": "invalid", "approval_only": True})
     assert status in {200, 409}
+
+
+def test_external_read_failure_and_scoped_status(monkeypatch) -> None:
+    monkeypatch.setattr(broker.injection_audit, "record", lambda *_a, **_k: (_ for _ in ()).throw(ValueError("bad")))
+    assert broker.record_external_read({"kind": "web", "source": "x", "summary": "x"})[0] == 400
+    broker._approval_states.clear()
+    broker._set_approval_state("s1", "approved", True, {"token": "t", "expires_in": 60, "root": "r"})
+    status, body = broker.get_approval_status("s1")
+    assert status == 200 and body["status"] == "approved"
+    broker._approval_states.clear()
