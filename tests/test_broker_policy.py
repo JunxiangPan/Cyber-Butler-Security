@@ -617,3 +617,24 @@ def test_send_manifest_timeout_branch(monkeypatch, tmp_path) -> None:
     status, body = broker.run_request({"action": "send", "manifest": manifest})
     assert status in {200, 408}
     assert isinstance(body, dict)
+
+
+def test_send_manifest_with_target(monkeypatch, tmp_path) -> None:
+    import hashlib
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    target = shared / "send2.txt"
+    target.write_text("send", encoding="utf-8")
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    config = tmp_path / "broker_config.json"
+    config.write_text('{"approval_channel": "qq"}', encoding="utf-8")
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", ())
+    monkeypatch.setattr(broker, "BROKER_CONFIG", config)
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0)
+    monkeypatch.setattr(broker, "send_qq", lambda _text: True)
+    broker._pending = None
+    manifest = [{"kind": "file", "path": str(target), "sha256": digest, "size": 4}]
+    status, body = broker.run_request({"action": "send", "target": str(target), "manifest": manifest})
+    assert status in {200, 408}, body

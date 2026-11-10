@@ -94,3 +94,34 @@ def test_audit_and_email_result_helpers(monkeypatch, tmp_path: Path) -> None:
     broker._email_result({}, request, "ok")
     assert sent
 
+
+
+def test_audit_mirror_thread_smoke(monkeypatch, tmp_path: Path) -> None:
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    audit.write_text('{"event": "one"}\n', encoding="utf-8")
+    monkeypatch.setattr(broker.audit_chain, "append_event", lambda *_a, **_k: True)
+    broker._start_audit_chain_mirror()
+    broker.time.sleep(1.2)
+    assert True
+
+
+def test_runtime_acl_and_main_refusal(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.setattr(broker.os, "name", "nt")
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    checker = tmp_path / "tools" / "verify_broker_acl.ps1"
+    checker.parent.mkdir(parents=True)
+    checker.write_text("# checker", encoding="utf-8")
+    class Result:
+        returncode = 0
+        stdout = "Broker runtime ACL: OK"
+        stderr = ""
+    monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Result())
+    broker.verify_runtime_acl()
+    monkeypatch.setattr(broker, "ROOT", Path("YOUR_ROOT"))
+    try:
+        broker.main()
+    except SystemExit:
+        return
+    raise AssertionError("main must fail closed on placeholders")
