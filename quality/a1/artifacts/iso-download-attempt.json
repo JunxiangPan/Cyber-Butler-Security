@@ -1,0 +1,15 @@
+{
+  "status": "DOWNLOAD_BLOCKED",
+  "product": "Windows 11 Enterprise Evaluation",
+  "official_page": "https://www.microsoft.com/en-us/evalcenter/download-windows-11-enterprise",
+  "attempted_at": "2026-11-10T04:29:31+00:00",
+  "automated_fetch_http": 403,
+  "web_fetch_http": 200,
+  "direct_iso_url": null,
+  "reason": "Official page requires interactive registration and exposes no direct ISO URL to the automated session; HTTP 403 on curl. No third-party mirror used.",
+  "sha256": null,
+  "size": null,
+  "third_party_used": false,
+  "hyperv_admin": "Hyper-V Administrators group; New-VM probe succeeded and was removed",
+  "a1": "A1_BLOCKED_INSTALL_MEDIA"
+}
