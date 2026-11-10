@@ -125,3 +125,14 @@ def test_runtime_acl_and_main_refusal(monkeypatch, tmp_path: Path) -> None:
     except SystemExit:
         return
     raise AssertionError("main must fail closed on placeholders")
+
+
+def test_audit_mirror_failure_exit(monkeypatch, tmp_path: Path) -> None:
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    audit.write_text('{"event": "bad"}\n', encoding="utf-8")
+    monkeypatch.setattr(broker.audit_chain, "append_event", lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("chain")))
+    monkeypatch.setattr(broker.os, "_exit", lambda _code: None)
+    broker._start_audit_chain_mirror()
+    broker.time.sleep(1.2)
+    assert True

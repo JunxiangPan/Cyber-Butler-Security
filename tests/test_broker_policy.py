@@ -638,3 +638,41 @@ def test_send_manifest_with_target(monkeypatch, tmp_path) -> None:
     manifest = [{"kind": "file", "path": str(target), "sha256": digest, "size": 4}]
     status, body = broker.run_request({"action": "send", "target": str(target), "manifest": manifest})
     assert status in {200, 408}, body
+
+
+def test_send_failure_and_invalid_scoped(monkeypatch, tmp_path) -> None:
+    import hashlib
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    target = shared / "send3.txt"
+    target.write_text("send", encoding="utf-8")
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    config = tmp_path / "broker_config.json"
+    config.write_text('{"approval_channel": "qq"}', encoding="utf-8")
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", ())
+    monkeypatch.setattr(broker, "BROKER_CONFIG", config)
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0)
+    monkeypatch.setattr(broker, "send_qq", lambda _text: False)
+    broker._pending = None
+    manifest = [{"kind": "file", "path": str(target), "sha256": digest, "size": 4}]
+    status, body = broker.run_request({"action": "send", "target": str(target), "manifest": manifest})
+    assert status == 502, body
+    broker._pending = None
+    monkeypatch.setattr(broker, "send_qq", lambda _text: True)
+    status, body = broker.run_request({
+        "action": "delete", "target": str(target), "scoped_token": "invalid", "approval_only": True,
+    })
+    assert status == 200, body
+    assert body.get("scoped_invalid") is True
+
+
+def test_verify_rejects_email_expired_and_wrong_id(monkeypatch) -> None:
+    broker._pending = {"id": "p1", "channel": "email", "deadline": broker.time.monotonic() + 60}
+    assert broker.run_verify({"id": "p1"})[0] == 403
+    broker._pending = {"id": "p1", "channel": "webui", "deadline": broker.time.monotonic() - 1}
+    assert broker.run_verify({"id": "p1"})[0] == 410
+    broker._pending = {"id": "p1", "channel": "webui", "deadline": broker.time.monotonic() + 60}
+    assert broker.run_verify({"id": "other"})[0] == 404
+    broker._pending = None

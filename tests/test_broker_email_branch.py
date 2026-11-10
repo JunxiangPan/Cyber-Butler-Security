@@ -101,3 +101,39 @@ def test_email_watch_timeout_sends_notice(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
     broker.email_watch("email-timeout")
     assert broker._pending is None and sent
+
+
+def test_email_watch_invalid_sender_then_timeout(monkeypatch, tmp_path: Path) -> None:
+    broker._pending = {
+        "id": "email-sender",
+        "channel": "email",
+        "deadline": broker.time.monotonic() + 0.2,
+        "challenge": "c",
+        "target": str(tmp_path / "x"),
+        "action": "delete",
+    }
+    sent = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: ("evil@example.test", "c", "123456"))
+    monkeypatch.setattr(broker.email_approval, "sender_allowed", lambda *_a: False)
+    monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
+    broker.email_watch("email-sender")
+    assert broker._pending is None and sent
+
+
+def test_email_watch_poll_exception_then_timeout(monkeypatch, tmp_path: Path) -> None:
+    broker._pending = {
+        "id": "email-poll",
+        "channel": "email",
+        "deadline": broker.time.monotonic() + 0.2,
+        "challenge": "c",
+        "target": str(tmp_path / "x"),
+        "action": "delete",
+    }
+    sent = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: (_ for _ in ()).throw(RuntimeError("imap")))
+    monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
+    monkeypatch.setattr(broker.time, "sleep", lambda _s: None)
+    broker.email_watch("email-poll")
+    assert broker._pending is None and sent
