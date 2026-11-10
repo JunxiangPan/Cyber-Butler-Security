@@ -15,5 +15,8 @@
   "timestamp": "2026-11-10T16:26:38.5258090Z",
   "agentruntime_service": false,
   "agentruntime_package_present": false,
-  "clean_pre_light_checkpoint": false
+  "clean_pre_light_checkpoint": false,
+  "totp_helper": "PASS in temp with C:\\CyberButler\\webui\\.venv python",
+  "totp_failure_cause": "existing Light TOTP/vault on upgrade; a1-clean-base is post-Light, no pre-Light clean checkpoint",
+  "clean_high_install": false
 }
