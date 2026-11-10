@@ -676,3 +676,77 @@ def test_verify_rejects_email_expired_and_wrong_id(monkeypatch) -> None:
     broker._pending = {"id": "p1", "channel": "webui", "deadline": broker.time.monotonic() + 60}
     assert broker.run_verify({"id": "other"})[0] == 404
     broker._pending = None
+
+
+def test_verify_invalid_attempts_replay_and_manifest(monkeypatch) -> None:
+    broker._global_failures = 0
+    broker._global_lock_until = 0.0
+    broker._verify_locked_until = 0.0
+    broker._pending = {"id": "p", "channel": "webui", "deadline": broker.time.monotonic() + 60, "action": "delete", "target": "x"}
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "")
+    statuses = [broker.run_verify({"id": "p"})[0] for _ in range(5)]
+    assert statuses[0] == 403 and statuses[-1] == 429
+    broker._verify_locked_until = 0.0
+    broker._global_lock_until = 0.0
+    broker._global_failures = 0
+    broker._pending = {"id": "p2", "channel": "webui", "deadline": broker.time.monotonic() + 60, "action": "delete", "target": "x"}
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "replay")
+    assert broker.run_verify({"id": "p2"})[0] == 429
+    broker._verify_locked_until = 0.0
+    broker._global_lock_until = 0.0
+    broker._global_failures = 0
+    broker._pending = {"id": "p3", "channel": "webui", "deadline": broker.time.monotonic() + 60, "action": "send", "target": "x", "manifest": None}
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    assert broker.run_verify({"id": "p3"})[0] == 409
+    broker._pending = None
+    broker._global_failures = 0
+    broker._verify_locked_until = 0.0
+
+
+def test_send_manifest_rejections(monkeypatch, tmp_path) -> None:
+    broker._pending = None
+    broker._verify_locked_until = 0.0
+    broker._global_lock_until = 0.0
+    status, body = broker.run_request({"action": "send", "manifest": []})
+    assert status == 409
+    status, body = broker.run_request({"action": "send", "manifest": "bad"})
+    assert status == 409
+    status, body = broker.run_request({"action": "send", "manifest": [{"kind": "url", "path": "https://evil.invalid/x"}]})
+    assert status == 409
+
+
+def test_remaining_error_entrypoints(monkeypatch) -> None:
+    assert broker.undo_trash_request({})[0] == 400
+    assert broker.undo_trash_request({"id": "missing"})[0] == 404
+    assert broker.run_request({"action": "send", "target": "x", "approval_only": True})[0] == 400
+    assert broker.run_approval_request({"action": "invalid", "target": "x"})[0] == 400
+
+
+def test_verify_send_manifest_invalid(monkeypatch) -> None:
+    broker._verify_locked_until = 0.0
+    broker._global_lock_until = 0.0
+    broker._global_failures = 0
+    broker._pending = {"id": "ps", "channel": "webui", "deadline": broker.time.monotonic() + 60, "action": "send", "target": "x", "manifest": []}
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    status, body = broker.run_verify({"id": "ps"})
+    assert status == 409
+    broker._pending = None
+
+
+def test_verify_send_manifest_valid(monkeypatch, tmp_path) -> None:
+    import hashlib
+    target = tmp_path / "send.txt"
+    target.write_text("x", encoding="utf-8")
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    broker._verify_locked_until = 0.0
+    broker._global_lock_until = 0.0
+    broker._global_failures = 0
+    broker._pending = {
+        "id": "ps2", "channel": "webui", "deadline": broker.time.monotonic() + 60,
+        "action": "send", "target": str(target),
+        "manifest": [{"kind": "file", "path": str(target), "sha256": digest, "size": 1}],
+    }
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    status, body = broker.run_verify({"id": "ps2"})
+    assert status in {200, 409, 410, 429}
+    broker._pending = None

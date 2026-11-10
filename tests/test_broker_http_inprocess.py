@@ -114,3 +114,18 @@ def test_inprocess_health_auth_and_request(http_broker) -> None:
     assert unknown.status_code == 404
     assert requests.get(base + "/unknown", headers=headers, timeout=5).status_code == 404
     assert requests.post(base + "/request", data="{", headers=headers, timeout=5).status_code == 400
+
+
+def test_inprocess_totp_bind_and_post_404(http_broker, monkeypatch) -> None:
+    base, token, _shared = http_broker
+    monkeypatch.setattr(broker, "totp_binding_payload", lambda: {"ok": True})
+    headers = {"X-Broker-Token": token}
+    assert requests.get(base + "/totp/bind", headers=headers, timeout=5).status_code == 200
+    assert requests.post(base + "/unknown", headers=headers, timeout=5).status_code == 400
+
+
+def test_inprocess_handler_500(http_broker, monkeypatch) -> None:
+    base, token, _shared = http_broker
+    monkeypatch.setattr(broker, "record_external_read", lambda _payload: (_ for _ in ()).throw(RuntimeError("boom")))
+    response = requests.post(base + "/external-read", json={"kind": "web", "source": "x", "summary": "x"}, headers={"X-Broker-Token": token}, timeout=5)
+    assert response.status_code == 500

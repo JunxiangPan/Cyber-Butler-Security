@@ -136,3 +136,144 @@ def test_audit_mirror_failure_exit(monkeypatch, tmp_path: Path) -> None:
     broker._start_audit_chain_mirror()
     broker.time.sleep(1.2)
     assert True
+
+
+def test_main_startup_path(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    monkeypatch.setattr(broker, "SHARED", tmp_path / "shared")
+    monkeypatch.setattr(broker, "UMO", str(tmp_path))
+    monkeypatch.setattr(broker.port_guard, "assert_broker_port", lambda _port: None)
+    monkeypatch.setattr(broker, "initialize_job_object", lambda: True)
+    monkeypatch.setattr(broker, "verify_runtime_acl", lambda: None)
+    monkeypatch.setattr(broker, "ensure_token", lambda: "token")
+    monkeypatch.setattr(broker, "_start_audit_chain_mirror", lambda: None)
+    monkeypatch.setattr(broker.quarantine, "start_sweeper", lambda: None)
+    class Server:
+        def __init__(self, *_a, **_k): pass
+        def serve_forever(self): return None
+    monkeypatch.setattr(broker, "ThreadingHTTPServer", Server)
+    monkeypatch.setattr(broker, "close_job_object", lambda: None)
+    broker.main()
+
+
+def test_reset_totp_with_recovery(monkeypatch, tmp_path: Path) -> None:
+    vault = tmp_path / "vault"
+    monkeypatch.setattr(broker, "TOTP_VAULT", vault)
+    monkeypatch.setattr(broker, "SECRET_FILE", vault / "secret.dpapi")
+    monkeypatch.setattr(broker, "RECOVERY_FILE", vault / "recovery.json")
+    monkeypatch.setattr(broker, "verify_code", lambda _code: "recovery")
+    class Crypt:
+        @staticmethod
+        def CryptProtectData(*_a, **_k): return b"encrypted"
+    monkeypatch.setattr(broker, "win32crypt", Crypt)
+    monkeypatch.setattr(broker, "totp_binding_payload", lambda: {})
+    status, body = broker.reset_totp_with_recovery("RECOVERY1")
+    assert status == 200 and len(body["recovery_codes"]) == 3
+
+
+def test_reset_totp_rejections(monkeypatch) -> None:
+    monkeypatch.setattr(broker, "verify_code", lambda _code: "")
+    assert broker.reset_totp_with_recovery("X")[0] == 403
+    monkeypatch.setattr(broker, "verify_code", lambda _code: "recovery")
+    monkeypatch.setattr(broker, "win32crypt", None)
+    assert broker.reset_totp_with_recovery("X")[0] == 503
+
+
+def test_runtime_acl_missing_checker(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.setattr(broker.os, "name", "nt")
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    try:
+        broker.verify_runtime_acl()
+    except SystemExit:
+        return
+    raise AssertionError("missing ACL checker must fail closed")
+
+
+def test_runtime_acl_failure_branches(monkeypatch, tmp_path: Path) -> None:
+    checker = tmp_path / "tools" / "verify_broker_acl.ps1"
+    checker.parent.mkdir(parents=True)
+    checker.write_text("# checker", encoding="utf-8")
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.setattr(broker.os, "name", "nt")
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    class Bad:
+        returncode = 1
+        stdout = ""
+        stderr = "denied"
+    monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Bad())
+    try:
+        broker.verify_runtime_acl()
+    except SystemExit:
+        pass
+    class Empty:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+    monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Empty())
+    try:
+        broker.verify_runtime_acl()
+    except SystemExit:
+        pass
+    monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: (_ for _ in ()).throw(OSError("no powershell")))
+    try:
+        broker.verify_runtime_acl()
+    except SystemExit:
+        return
+    raise AssertionError("ACL failure must fail closed")
+
+
+def test_main_acl_refusal_path(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    monkeypatch.setattr(broker, "SHARED", tmp_path)
+    monkeypatch.setattr(broker, "UMO", str(tmp_path))
+    monkeypatch.setattr(broker.port_guard, "assert_broker_port", lambda _p: None)
+    monkeypatch.setattr(broker, "initialize_job_object", lambda: True)
+    monkeypatch.setattr(broker, "verify_runtime_acl", lambda: (_ for _ in ()).throw(SystemExit("acl")))
+    try:
+        broker.main()
+    except SystemExit:
+        return
+    raise AssertionError("main must propagate ACL refusal")
+
+
+def test_totp_binding_payload_and_qr(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "secret", lambda: "JBSWY3DPEHPK3PXP")
+    payload = broker.totp_binding_payload()
+    assert payload["ok"] is True and "otpauth://" in payload["otpauth_uri"]
+    qr = broker._totp_qr(payload["otpauth_uri"])
+    assert qr
+
+
+def test_job_limit_environment_bounds(monkeypatch) -> None:
+    monkeypatch.setenv("CBS_BROKER_JOB_MEMORY_MB", "not-a-number")
+    monkeypatch.setenv("CBS_BROKER_PROCESS_MEMORY_MB", "1")
+    monkeypatch.setenv("CBS_BROKER_JOB_CPU_SECONDS", "999999")
+    limits = broker._job_limit_environment()
+    assert 64 <= limits["memory_mb"] <= 262144
+    assert 32 <= limits["process_memory_mb"] <= 262144
+    assert 30 <= limits["cpu_seconds"] <= 86400
+
+
+def test_uninstall_marker_and_non_windows_acl(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("CBS_IS_UNINSTALLING", raising=False)
+    monkeypatch.setenv("ProgramData", str(tmp_path))
+    (tmp_path / "CyberButler").mkdir()
+    (tmp_path / "CyberButler" / "uninstalling.marker").write_text("1", encoding="utf-8")
+    assert broker._is_uninstalling() is True
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.setattr(broker.os, "name", "posix")
+    broker.verify_runtime_acl()
+
+
+def test_ensure_token_acl_branch(monkeypatch, tmp_path: Path) -> None:
+    token = tmp_path / "token.txt"
+    monkeypatch.setattr(broker, "TOKEN_FILE", token)
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    class Result:
+        returncode = 0
+        stdout = "SYSTEM:"
+        stderr = ""
+    monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Result())
+    value = broker.ensure_token()
+    assert value and token.exists()
