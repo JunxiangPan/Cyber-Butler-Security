@@ -1,0 +1,16 @@
+{
+  "adapter": "openai-function-tools",
+  "version": "1.0.0",
+  "cases": [
+    "request-delete",
+    "status-pending",
+    "verify-six-digit"
+  ],
+  "port": 3191,
+  "request_http": 200,
+  "status_http": 200,
+  "verify_http": 200,
+  "target_deleted": true,
+  "audit_lines": 2,
+  "qa_only_secret": "not-written"
+}

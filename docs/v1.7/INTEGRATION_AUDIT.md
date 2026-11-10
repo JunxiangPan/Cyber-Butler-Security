@@ -65,7 +65,7 @@ the human freeze; CBE's pin remains `4a437df`.
 
 ```text
 P0-1 reference agent/demo      PASS — isolated QA Broker :3189, QA token/TOTP, request/verify/audit; evidence quality/artifacts/qa-broker-3189
-P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients, 3 schemas, conformance corpus; external adapter pending
+P0-2 SDK/schema/conformance    PASS — OpenAI function-tool adapter 1.0.0; request/status/verify 200; evidence sdk/conformance/adapter-run.json
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
 P0-4 coverage                  DONE — 85.16% CI (85.58% local); 80% CI gate retained
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
