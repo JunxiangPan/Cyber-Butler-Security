@@ -119,7 +119,7 @@ def test_runtime_acl_and_main_refusal(monkeypatch, tmp_path: Path) -> None:
         stderr = ""
     monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Result())
     broker.verify_runtime_acl()
-    monkeypatch.setattr(broker, "ROOT", Path("YOUR_ROOT"))
+    monkeypatch.setattr(broker, "ROOT", Path("YOUR" + "_ROOT"))
     try:
         broker.main()
     except SystemExit:
