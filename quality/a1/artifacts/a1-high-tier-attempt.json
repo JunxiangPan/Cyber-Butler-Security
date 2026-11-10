@@ -11,6 +11,9 @@
     "REPORT C:\\ProgramData\\CyberButler\\installer-report\\install-report.json",
     "MANUAL C:\\ProgramData\\CyberButler\\installer\\state\\20261111-002556-873a7f\\manual-recovery.txt"
   ],
-  "reason": "High upgrade failed at TOTP material generation; no CyberButlerAgentRuntime service",
-  "timestamp": "2026-11-10T16:26:38.5258090Z"
+  "reason": "TOTP material generation failed; High was an upgrade because a1-clean-base already contains Light; no AgentRuntime package is present in release zip",
+  "timestamp": "2026-11-10T16:26:38.5258090Z",
+  "agentruntime_service": false,
+  "agentruntime_package_present": false,
+  "clean_pre_light_checkpoint": false
 }
