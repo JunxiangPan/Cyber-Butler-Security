@@ -67,11 +67,20 @@ the human freeze; CBE's pin remains `4a437df`.
 P0-1 reference agent/demo      PARTIAL — one-command `examples/reference_agent/demo.ps1` landed; real Broker/UI acceptance pending
 P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients, 3 schemas, conformance corpus; external adapter pending
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
-P0-4 coverage                  PARTIAL — 71.00%; target >80% still blocking
+P0-4 coverage                  PARTIAL — 75.00%; target >80% still blocking
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
 P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_REPORT/signing-report still pending
 ```
+
+## CI failure record
+
+```text
+417129f / 37fc312: packaging preflight failed on
+  tests/test_broker_misc_helpers.py: unexpected YOUR_ placeholder
+aa7d09e: fixed by constructing the placeholder at runtime; 42730899425 green
+```
+
 
 ## Not started / blocked
 
