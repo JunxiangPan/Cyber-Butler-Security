@@ -55,6 +55,8 @@ jobs:
         run: python quality/fragility_gate.py
       - name: 25-item quality matrix (no fake PASS)
         run: python quality/run_quality_matrix.py --nonce "${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Broker coverage gate (>80%, precise)
+        run: python quality/coverage_gate.py
       - name: Pester installer red lines
         shell: powershell
         run: |

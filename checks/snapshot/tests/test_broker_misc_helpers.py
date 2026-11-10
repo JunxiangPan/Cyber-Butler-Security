@@ -277,3 +277,40 @@ def test_ensure_token_acl_branch(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(broker.subprocess, "run", lambda *_a, **_k: Result())
     value = broker.ensure_token()
     assert value and token.exists()
+
+
+def test_audit_mirror_malformed_line(monkeypatch, tmp_path: Path) -> None:
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    audit.write_text("{not-json}\n", encoding="utf-8")
+    broker._start_audit_chain_mirror()
+    broker.time.sleep(1.2)
+    assert True
+
+
+def test_main_close_failure(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    monkeypatch.setattr(broker, "SHARED", tmp_path)
+    monkeypatch.setattr(broker, "UMO", str(tmp_path))
+    monkeypatch.setattr(broker.port_guard, "assert_broker_port", lambda _p: None)
+    monkeypatch.setattr(broker, "initialize_job_object", lambda: True)
+    monkeypatch.setattr(broker, "verify_runtime_acl", lambda: None)
+    monkeypatch.setattr(broker, "ensure_token", lambda: "token")
+    monkeypatch.setattr(broker, "_start_audit_chain_mirror", lambda: None)
+    monkeypatch.setattr(broker.quarantine, "start_sweeper", lambda: None)
+    class Server:
+        def __init__(self, *_a, **_k): pass
+        def serve_forever(self): return None
+    monkeypatch.setattr(broker, "ThreadingHTTPServer", Server)
+    monkeypatch.setattr(broker, "close_job_object", lambda: (_ for _ in ()).throw(RuntimeError("close")))
+    try:
+        broker.main()
+    except RuntimeError:
+        return
+    raise AssertionError("close failure must propagate")
+
+
+def test_manifest_prompt_url_branch(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "SHARED", tmp_path)
+    text = broker._manifest_prompt([{"kind": "url", "path": "https://example.test/x", "size": 0, "sha256": ""}])
+    assert "OUTSIDE SHARED" in text

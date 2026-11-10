@@ -2,8 +2,8 @@
 """CBP coverage gate: critical Broker paths must stay above 80 percent."""
 from __future__ import annotations
 
+import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -37,22 +37,28 @@ def main() -> int:
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
         report = subprocess.run(
-            [sys.executable, "-m", "coverage", "report", "--include=tools/broker.py,tools/broker_state.py,tools/broker_store.py"],
+            [sys.executable, "-m", "coverage", "json", "-o", str(Path(temp) / "coverage.json"),
+             "--include=tools/broker.py,tools/broker_state.py,tools/broker_store.py"],
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
+        json_text = (Path(temp) / "coverage.json").read_text(encoding="utf-8") if report.returncode == 0 else ""
     if run.returncode != 0:
         print(run.stdout + run.stderr, file=sys.stderr)
         print("COVERAGE_FAILED: tests did not pass", file=sys.stderr)
         return 1
-    match = re.search(r"TOTAL\s+\d+\s+\d+\s+(\d+(?:\.\d+)?)%", report.stdout)
-    if not match:
+    if report.returncode != 0:
         print(report.stdout + report.stderr, file=sys.stderr)
         print("COVERAGE_FAILED: no report", file=sys.stderr)
         return 1
-    percent = float(match.group(1))
+    try:
+        data = json.loads(json_text)
+        percent = float(data["totals"]["percent_covered"])
+    except (ValueError, KeyError) as exc:
+        print(f"COVERAGE_FAILED: unreadable report: {exc}", file=sys.stderr)
+        return 1
     print(f"BROKER_COVERAGE={percent:.2f}")
     if percent <= 80.0:
-        print("COVERAGE_FAILED: Broker coverage must be > 80%", file=sys.stderr)
+        print("COVERAGE_FAILED: Broker coverage must be > 80% (precise)", file=sys.stderr)
         return 1
     print("COVERAGE_OK")
     return 0

@@ -129,3 +129,26 @@ def test_inprocess_handler_500(http_broker, monkeypatch) -> None:
     monkeypatch.setattr(broker, "record_external_read", lambda _payload: (_ for _ in ()).throw(RuntimeError("boom")))
     response = requests.post(base + "/external-read", json={"kind": "web", "source": "x", "summary": "x"}, headers={"X-Broker-Token": token}, timeout=5)
     assert response.status_code == 500
+
+
+def test_inprocess_duplicate_pending_409(http_broker) -> None:
+    base, token, shared = http_broker
+    headers = {"X-Broker-Token": token}
+    broker._last_request_at = 0.0
+    broker._request_buckets.clear()
+    target = shared / "dup.txt"
+    target.write_text("x", encoding="utf-8")
+    first = requests.post(base + "/request", json={"action": "delete", "target": str(target), "approval_only": True}, headers=headers, timeout=5)
+    broker._request_buckets.clear()
+    assert first.status_code == 200, first.text
+    second = requests.post(base + "/request", json={"action": "delete", "target": str(target), "approval_only": True}, headers=headers, timeout=5)
+    assert second.status_code == 409
+    requests.post(base + "/deny", json={"id": first.json()["id"]}, headers=headers, timeout=5)
+
+
+def test_inprocess_empty_pending_views(http_broker) -> None:
+    base, token, _shared = http_broker
+    headers = {"X-Broker-Token": token}
+    assert requests.get(base + "/pending", headers=headers, timeout=5).json()["pending"] is False
+    assert requests.get(base + "/pending/approval", headers=headers, timeout=5).json()["pending"] is False
+    assert requests.get(base + "/trash", headers=headers, timeout=5).json()["items"] == []
