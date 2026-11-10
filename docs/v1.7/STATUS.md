@@ -32,7 +32,7 @@ VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
 |---|---|---|---|
 | Temporal Replay | PASS (read-only) | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/temporal_replay.py`; Broker audit fixture/evidence; hashes unavailable by source |
 | Diff Boundary | PASS | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/diff_boundary.py` called before write_file/overwrite in `tools/broker.py`; fail-closed tests |
-| IPC / Named Pipe + Helper | BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | frame codec exists; named-pipe ACL/lifecycle not testable: no pywin32/multi-account ACL host |
+| IPC / Named Pipe + Helper | BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | pywin32 present; CreateNamedPipe works; client connect timed out; no multi-account ACL host; transport not validated |
 | Optional MXC | OPTIONAL / DEFERRED | `docs/v1.7/DEEP_WATER_DESIGN.md` | owner decision: not part of v1.7.0 blocking scope |
 
 Temporal replay is PASS only for its read-only audit timeline; source audit has no

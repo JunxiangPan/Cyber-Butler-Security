@@ -93,7 +93,7 @@ Temporal Replay: PASS (read-only)
 Diff Boundary: PASS
   tools/diff_boundary.py called before write_file/overwrite; fail-closed
 IPC / Named Pipe + Helper: BLOCKED
-  frame codec only; pywin32/multi-account ACL host unavailable
+  pywin32 present; CreateNamedPipe works; client connect timed out; no multi-account ACL host
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
 A1 26/26: A1_BLOCKED_INSTALL_MEDIA

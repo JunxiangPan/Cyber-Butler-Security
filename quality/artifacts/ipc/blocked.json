@@ -1,7 +1,12 @@
 {
   "transport": "windows_named_pipe",
   "status": "BLOCKED",
-  "reason": "pywin32 win32pipe/win32security unavailable in this environment; named-pipe ACL requires a multi-account Windows test",
+  "pywin32": "available in E:/anaconda and .venv-dev-ipc",
+  "create_named_pipe": "verified",
+  "normal_client_connect": "failed/timed out in non-interactive session",
+  "acl_unauthorized": "not testable: no multi-account Windows ACL host",
+  "tests": "tests/v17/test_ipc_pipe.py skipped by default; explicit run not green",
   "codec": "tools/ipc_helper.py",
-  "not_transport": true
+  "transport_code": "tools/ipc_pipe.py",
+  "not_pass": true
 }

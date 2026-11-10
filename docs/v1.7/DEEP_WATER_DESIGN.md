@@ -93,6 +93,7 @@ design.
 - Temporal Replay: read-only audit timeline implemented; tests/evidence; no audit rewrite.
 - Diff Boundary: `tools/diff_boundary.py` is called before write_file/overwrite in
   `tools/broker.py`; fail-closed; negative tests.
-- IPC: frame codec only; named-pipe transport is BLOCKED because this environment
-  lacks `pywin32`/`win32pipe` and a multi-account Windows ACL test. It is not PASS.
+- IPC: frame codec + `tools/ipc_pipe.py` transport code. BLOCKED because the client
+  connect timed out in this non-interactive session and there is no multi-account
+  Windows ACL test host. It is not PASS.
 - MXC: optional/deferred; not part of the v1.7.0 blocking scope.
