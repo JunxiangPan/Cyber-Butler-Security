@@ -85,21 +85,22 @@ a143437: CI precise coverage 79.77%, below 80%; fixed by b0bb968, CI 80.56%
 ```
 
 
-## Deep water / not complete
+## Deep water
 
 ```text
-Temporal Replay: IMPLEMENTED / PARTIAL
-  tools/temporal_replay.py; read-only timeline; not wired to Broker audit
-Diff Boundary: IMPLEMENTED / PARTIAL
-  tools/diff_boundary.py; negative tests; not wired pre-write
-IPC / Named Pipe + Helper: PARTIAL / BLOCKED
-  tools/ipc_helper.py frame codec only; pipe ACL/lifecycle not implemented
-Optional MXC: OPTIONAL / NOT STARTED
-A1 26/26: blocked (Hyper-V snapshot + clean baseline + real TOTP)
+Temporal Replay: PASS (read-only)
+  tools/temporal_replay.py; Broker audit fixture/evidence; no audit rewrite
+Diff Boundary: PASS
+  tools/diff_boundary.py called before write_file/overwrite; fail-closed
+IPC / Named Pipe + Helper: BLOCKED
+  frame codec only; pywin32/multi-account ACL host unavailable
+Optional MXC: OPTIONAL / DEFERRED
+  owner decision: not part of v1.7.0 blocking scope
+A1 26/26: A1_BLOCKED_INSTALL_MEDIA
 ```
 
-These are not claimed complete. No named-pipe transport or MXC implementation was
-added, and no deep-water item is PASS.
+No named-pipe transport or MXC implementation was added. A codec is not a
+transport; MXC is not marked PASS.
 
 ## A1 automation status
 

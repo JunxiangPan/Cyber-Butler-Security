@@ -30,13 +30,14 @@ VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
 
 | Item | Status | Design | Implementation |
 |---|---|---|---|
-| Temporal Replay | IMPLEMENTED / PARTIAL | `docs/v1.7/DEEP_WATER_DESIGN.md` | read-only `tools/temporal_replay.py`; tests/evidence; not wired to Broker audit |
-| Diff Boundary | IMPLEMENTED / PARTIAL | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/diff_boundary.py`; negative tests; not wired pre-write |
-| IPC / Named Pipe + Helper | PARTIAL / BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | bounded frame codec `tools/ipc_helper.py`; named-pipe ACL/lifecycle not implemented |
-| Optional MXC | OPTIONAL / NOT STARTED | `docs/v1.7/DEEP_WATER_DESIGN.md` | optional; must not block v1.7.0 |
+| Temporal Replay | PASS (read-only) | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/temporal_replay.py`; Broker audit fixture/evidence; hashes unavailable by source |
+| Diff Boundary | PASS | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/diff_boundary.py` called before write_file/overwrite in `tools/broker.py`; fail-closed tests |
+| IPC / Named Pipe + Helper | BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | frame codec exists; named-pipe ACL/lifecycle not testable: no pywin32/multi-account ACL host |
+| Optional MXC | OPTIONAL / DEFERRED | `docs/v1.7/DEEP_WATER_DESIGN.md` | owner decision: not part of v1.7.0 blocking scope |
 
-No deep-water item is PASS. A design file is not an implementation, and a codec
-is not a named-pipe transport.
+Temporal replay is PASS only for its read-only audit timeline; source audit has no
+before/after hashes, so `hashes_available=false` is recorded rather than invented.
+IPC is **not** PASS; a codec is not a named-pipe transport.
 
 ## v1.7.0 boundaries
 

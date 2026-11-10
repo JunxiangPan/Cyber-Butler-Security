@@ -1,0 +1,7 @@
+{
+  "transport": "windows_named_pipe",
+  "status": "BLOCKED",
+  "reason": "pywin32 win32pipe/win32security unavailable in this environment; named-pipe ACL requires a multi-account Windows test",
+  "codec": "tools/ipc_helper.py",
+  "not_transport": true
+}
