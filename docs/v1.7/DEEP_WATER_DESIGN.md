@@ -93,8 +93,7 @@ design.
 - Temporal Replay: read-only audit timeline implemented; tests/evidence; no audit rewrite.
 - Diff Boundary: `tools/diff_boundary.py` is called before write_file/overwrite in
   `tools/broker.py`; fail-closed; negative tests.
-- IPC: frame codec + `tools/ipc_pipe.py` transport code. BLOCKED because the client
-  connect timed out in this non-interactive session, the official Evaluation ISO
-  download is BLOCKED, and there is no multi-account Windows ACL test VM. It is
-  not PASS.
+- IPC: frame codec + `tools/ipc_pipe.py` transport code. ISO is PROVIDED, but the
+  cbs-a1-clean Gen2 UEFI boot failed (event 18603); cbs-ipc-test was not created.
+  No two-account ACL test. It is not PASS.
 - MXC: optional/deferred; not part of the v1.7.0 blocking scope.

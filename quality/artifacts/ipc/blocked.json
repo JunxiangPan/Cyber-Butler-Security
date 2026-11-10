@@ -8,5 +8,10 @@
   "tests": "tests/v17/test_ipc_pipe.py skipped by default; explicit run not green",
   "codec": "tools/ipc_helper.py",
   "transport_code": "tools/ipc_pipe.py",
-  "not_pass": true
+  "not_pass": true,
+  "iso": "PROVIDED",
+  "vm": "cbs-a1-clean boot failed (event 18603); cbs-ipc-test not created",
+  "accounts": "not created",
+  "authorization_test": "not run",
+  "reason": "Hyper-V Gen2 UEFI boot of the supplied Evaluation ISO failed; no IPC test VM"
 }

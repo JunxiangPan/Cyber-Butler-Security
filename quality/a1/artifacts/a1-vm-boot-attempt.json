@@ -1,0 +1,13 @@
+{
+  "status": "A1_BLOCKED_VM_BOOT",
+  "vm": "cbs-a1-clean",
+  "state": 3,
+  "generation": 2,
+  "secure_boot": 1,
+  "heartbeat": null,
+  "vhd_bytes": 4194304,
+  "event_id": 18603,
+  "event_time": "2026-11-10T13:07:08.0772270+08:00",
+  "event_message": "“cbs-a1-clean”无法启动操作系统。(虚拟机 ID D5FD82CE-B0E3-4CC6-9A2D-530E6B06C0E2)",
+  "media_sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84"
+}
