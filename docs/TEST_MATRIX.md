@@ -63,6 +63,17 @@ perform a real-machine Light acceptance. Those are manual release gates.
 | AppContainer sandbox | **none** | **not implemented; do not claim** |
 | MXC policy export | **none** | backlog, not implemented |
 
+## 3a. v1.7.0 Wave 1 evidence
+
+| Item | Evidence | Status |
+|---|---|---|
+| P0-1 QA Broker :3189 | `quality/qa_broker_3189.py`; `quality/artifacts/qa-broker-3189` | PASS (QA TOTP) |
+| P0-2 external adapter | `sdk/adapters/broker_tools.py`; `sdk/conformance/run_adapter.py` | PASS |
+| P0-4 coverage | `quality/coverage_gate.py`; CI 85.16% | PASS |
+| P0-7 Q24/Q26 | package `public-release-v1.6.6.zip`; 2 passed | PASS |
+| A1 | UEFI boot failed; no clean VM/snapshot | BLOCKED_INSTALL_MEDIA |
+| Temporal Replay / Diff Boundary / IPC / MXC | see [v1.7 status](v1.7/STATUS.md) | design / not PASS |
+
 ## 4. Required release gates
 
 ```text

@@ -69,7 +69,7 @@ P0-2 SDK/schema/conformance    PASS — OpenAI function-tool adapter 1.0.0; requ
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
 P0-4 coverage                  DONE — 85.16% CI (85.58% local); 80% CI gate retained
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
-P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
+P0-6 docs sync                 PASS — docs/v1.7/STATUS.md; README/TEST_MATRIX/AUDIT linked
 P0-7 QA self-consistency       PASS — Q24/Q26 post-package 2 passed; signing fields; BUILD_REPORT addendum
 ```
 

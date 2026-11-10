@@ -7,6 +7,12 @@ CBS release packages pass the Cyber-Butler-Pipeline (CBP) baseline gates, but th
 
 ## Status at a glance
 
+### v1.7.0 Wave 1
+
+See [docs/v1.7/STATUS.md](docs/v1.7/STATUS.md). P0-1, P0-2, P0-3, P0-4,
+P0-6 and P0-7 are complete; A1 remains `A1_BLOCKED_INSTALL_MEDIA`. Deep-water
+items are design/in-progress, not PASS.
+
 | Component | Status | Note |
 |---|---|---|
 | SCM service, SQLite read/write, Job Object | ✅ | |
