@@ -30,12 +30,13 @@ VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
 
 | Item | Status | Design | Implementation |
 |---|---|---|---|
-| Temporal Replay | DESIGN / IN PROGRESS | `docs/v1.7/DEEP_WATER_DESIGN.md` | not complete |
-| Diff Boundary | DESIGN / IN PROGRESS | `docs/v1.7/DEEP_WATER_DESIGN.md` | not complete |
-| IPC / Named Pipe + Helper | DESIGN ONLY | `docs/v1.7/DEEP_WATER_DESIGN.md` | blocked |
+| Temporal Replay | IMPLEMENTED / PARTIAL | `docs/v1.7/DEEP_WATER_DESIGN.md` | read-only `tools/temporal_replay.py`; tests/evidence; not wired to Broker audit |
+| Diff Boundary | IMPLEMENTED / PARTIAL | `docs/v1.7/DEEP_WATER_DESIGN.md` | `tools/diff_boundary.py`; negative tests; not wired pre-write |
+| IPC / Named Pipe + Helper | PARTIAL / BLOCKED | `docs/v1.7/DEEP_WATER_DESIGN.md` | bounded frame codec `tools/ipc_helper.py`; named-pipe ACL/lifecycle not implemented |
 | Optional MXC | OPTIONAL / NOT STARTED | `docs/v1.7/DEEP_WATER_DESIGN.md` | optional; must not block v1.7.0 |
 
-No deep-water item is PASS. A design file is not an implementation.
+No deep-water item is PASS. A design file is not an implementation, and a codec
+is not a named-pipe transport.
 
 ## v1.7.0 boundaries
 
