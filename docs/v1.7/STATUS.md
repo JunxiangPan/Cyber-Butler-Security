@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_VM_BOOT** | ISO PROVIDED and preflight passed; cbs-a1-clean Gen2 boot failed (event 18603); no snapshot; Q05-Q17 not run |
+| A1 clean-VM acceptance | **A1_BLOCKED_VM_BOOT** | ISO PROVIDED/preflight passed; Gen2 UEFI shows "SCSI DVD (0,1) The boot loader failed"; screenshot a1-uefi-boot-failed-final.png; Gen1 control boots same ISO; no snapshot |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.

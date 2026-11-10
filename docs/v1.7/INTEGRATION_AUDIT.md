@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; cbs-a1-clean boot failed; cbs-ipc-test not created; no two-account ACL test
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: A1_BLOCKED_VM_BOOT (ISO PROVIDED/preflight passed; Gen2 boot event 18603)
+A1 26/26: A1_BLOCKED_VM_BOOT (ISO PROVIDED/preflight passed; Gen2 "boot loader failed"; screenshot; Gen1 control boots)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is

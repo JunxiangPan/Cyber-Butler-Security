@@ -8,6 +8,11 @@
   "vhd_bytes": 4194304,
   "event_id": 18603,
   "event_time": "2026-11-10T13:07:08.0772270+08:00",
-  "event_message": "“cbs-a1-clean”无法启动操作系统。(虚拟机 ID D5FD82CE-B0E3-4CC6-9A2D-530E6B06C0E2)",
-  "media_sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84"
+  "event_message": "\u201ccbs-a1-clean\u201d\u65e0\u6cd5\u542f\u52a8\u64cd\u4f5c\u7cfb\u7edf\u3002(\u865a\u62df\u673a ID D5FD82CE-B0E3-4CC6-9A2D-530E6B06C0E2)",
+  "media_sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84",
+  "boot_summary": "SCSI DVD (0,1): The boot loader failed; SCSI DVD (0,2): boot loader did not load OS; SCSI Disk (0,0): no OS",
+  "screenshot": "a1-uefi-boot-failed-final.png",
+  "gen1_control": "Same official ISO boots to Windows Setup on a Gen1 probe (a1-probe screenshot), so media is bootable; Gen2 UEFI fails.",
+  "gen2_minimal_probe": "cbs-uefi-probe: same failure with Secure Boot off, vTPM absent, 2 vCPU / 4GB.",
+  "vtpm": "enabled on cbs-a1-clean but boot fails; disabled test also failed"
 }
