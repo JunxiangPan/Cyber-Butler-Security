@@ -84,3 +84,63 @@ def replay_summary(events: Iterable[dict]) -> dict:
         "actors": sorted({item.actor for item in timeline}),
         "timeline": [asdict(item) for item in timeline],
     }
+
+
+def timeline_from_audit(lines: Iterable[str]) -> list[dict]:
+    """Map Broker audit JSONL to a read-only timeline.
+
+    Broker audit records do not carry before/after content hashes, so the
+    result records ``hash_status: "unavailable"`` rather than inventing them.
+    The original audit text is never rewritten.
+    """
+    result: list[dict] = []
+    seen: set[str] = set()
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            raw = __import__("json").loads(line)
+        except ValueError as exc:
+            raise ValueError("audit line is not JSON") from exc
+        if not isinstance(raw, dict):
+            raise ValueError("audit line must be an object")
+        for field in ("at", "id", "action", "target", "ok"):
+            if field not in raw:
+                raise ValueError(f"audit line missing {field}")
+        event_id = str(raw["id"]).strip()
+        if not event_id:
+            raise ValueError("audit id is empty")
+        if event_id in seen:
+            raise ValueError("duplicate audit id")
+        seen.add(event_id)
+        result.append({
+            "event_id": event_id,
+            "at": str(raw["at"]),
+            "actor": "broker",
+            "request_id": event_id,
+            "action": str(raw["action"]),
+            "target": str(raw["target"]),
+            "ok": bool(raw["ok"]),
+            "before_sha256": "",
+            "after_sha256": "",
+            "hash_status": "unavailable",
+            "scope": "",
+        })
+    if not result:
+        raise ValueError("audit contains no events")
+    return result
+
+
+def replay_from_audit_file(path: str) -> dict:
+    """Read a Broker audit file and return timeline evidence; never writes it."""
+    from pathlib import Path
+    text = Path(path).read_text(encoding="utf-8")
+    timeline = timeline_from_audit(text.splitlines())
+    return {
+        "source_sha256": __import__("hashlib").sha256(text.encode("utf-8")).hexdigest(),
+        "events": len(timeline),
+        "timeline": timeline,
+        "replay_result": "READ_ONLY_TIMELINE",
+        "hashes_available": False,
+    }

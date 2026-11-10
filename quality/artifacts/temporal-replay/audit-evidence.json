@@ -1,0 +1,21 @@
+{
+  "source_sha256": "5852298a3a55e7e7af62891b3cdd6df1a62d4b342eda93cbea6696e11e70df97",
+  "events": 1,
+  "timeline": [
+    {
+      "event_id": "77d2360a6274",
+      "at": "2026-11-10T10:18:38",
+      "actor": "broker",
+      "request_id": "77d2360a6274",
+      "action": "delete",
+      "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-qa-broker-d38na_88\\workspace\\qa-3189-delete.txt",
+      "ok": true,
+      "before_sha256": "",
+      "after_sha256": "",
+      "hash_status": "unavailable",
+      "scope": ""
+    }
+  ],
+  "replay_result": "READ_ONLY_TIMELINE",
+  "hashes_available": false
+}

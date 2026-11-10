@@ -56,3 +56,24 @@ def test_replay_is_read_only(monkeypatch, tmp_path) -> None:
     before = hashlib.sha256(sentinel.read_bytes()).hexdigest()
     replay_summary([event()])
     assert hashlib.sha256(sentinel.read_bytes()).hexdigest() == before
+
+
+def test_audit_timeline_reads_real_qa_broker_line() -> None:
+    from pathlib import Path
+    from tools.temporal_replay import replay_from_audit_file
+    path = Path(__file__).parent / "fixtures" / "qa-broker-audit.jsonl"
+    before = path.read_bytes()
+    summary = replay_from_audit_file(str(path))
+    assert summary["events"] == 1
+    assert summary["timeline"][0]["action"] == "delete"
+    assert summary["hashes_available"] is False
+    assert path.read_bytes() == before
+
+
+def test_audit_timeline_duplicate_and_missing_rejected() -> None:
+    from tools.temporal_replay import timeline_from_audit
+    line = '{"at":"2026-11-10T00:00:00","id":"a","action":"delete","target":"x","ok":true}'
+    with pytest.raises(ValueError):
+        timeline_from_audit([line, line])
+    with pytest.raises(ValueError):
+        timeline_from_audit(['{"at":"x"}'])

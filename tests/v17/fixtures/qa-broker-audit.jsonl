@@ -1,0 +1,1 @@
+{"at": "2026-11-10T10:18:38", "id": "77d2360a6274", "action": "delete", "target": "C:\\Users\\pjx20\\AppData\\Local\\Temp\\cbs-qa-broker-d38na_88\\workspace\\qa-3189-delete.txt", "ok": true, "result": "文件已移入两阶段暂存回收站，10 分钟内可撤回：77d2360a6274", "code_type": "totp", "bypass_issued": false, "bypass_ttl": 0, "scoped_issued": false, "scoped_ttl": 0}
