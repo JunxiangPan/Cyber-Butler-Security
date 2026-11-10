@@ -77,8 +77,8 @@ P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_
 
 ```text
 417129f / 37fc312: packaging preflight failed on
-  tests/test_broker_misc_helpers.py: unexpected YOUR_ placeholder
-aa7d09e: fixed by constructing the placeholder at runtime; 42730899425 green
+  tests/test_broker_misc_helpers.py: unexpected YOUR-prefix placeholder
+aa7d09e: fixed by constructing the placeholder at runtime; follow-up CI green
 ```
 
 
