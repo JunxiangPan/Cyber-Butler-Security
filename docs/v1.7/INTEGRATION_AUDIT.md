@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; CreateNamedPipe works; client connect timed out; no multi-account ACL host
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: A1_BLOCKED_INSTALL_MEDIA
+A1 26/26: A1_BLOCKED_INSTALL_MEDIA (official Evaluation ISO download BLOCKED)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is

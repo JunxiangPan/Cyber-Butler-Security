@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_INSTALL_MEDIA** | UEFI boot failed; no clean VM/snapshot; Q05-Q17 not run |
+| A1 clean-VM acceptance | **A1_BLOCKED_INSTALL_MEDIA** | official Evaluation ISO download BLOCKED (interactive registration/403); no clean VM/snapshot; Q05-Q17 not run |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
