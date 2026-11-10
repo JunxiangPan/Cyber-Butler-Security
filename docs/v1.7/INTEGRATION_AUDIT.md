@@ -64,13 +64,13 @@ the human freeze; CBE's pin remains `4a437df`.
 ## P0 status
 
 ```text
-P0-1 reference agent/demo      PARTIAL — one-command `examples/reference_agent/demo.ps1` landed; real Broker/UI acceptance pending
+P0-1 reference agent/demo      PASS — isolated QA Broker :3189, QA token/TOTP, request/verify/audit; evidence quality/artifacts/qa-broker-3189
 P0-2 SDK/schema/conformance    PARTIAL — Python/TS clients, 3 schemas, conformance corpus; external adapter pending
 P0-3 CI completeness           DONE — webui/quality CI, redline, conflict guard
 P0-4 coverage                  DONE — 85.16% CI (85.58% local); 80% CI gate retained
 P0-5 installer signature       DEFERRED — v1.7.x unsigned waiver; v2.0 Authenticode gate
 P0-6 docs sync                 PARTIAL — README/TEST_MATRIX updated; full status page pending
-P0-7 QA self-consistency       PARTIAL — Covered counter added; Q24/Q26/BUILD_REPORT/signing-report still pending
+P0-7 QA self-consistency       PASS — Q24/Q26 post-package 2 passed; signing fields; BUILD_REPORT addendum
 ```
 
 ## CI failure record

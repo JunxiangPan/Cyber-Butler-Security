@@ -29,3 +29,14 @@ def test_signing_payload_uses_shared_jcs(tmp_path: Path) -> None:
     freeze.write_text(json.dumps(data), encoding="utf-8")
     subprocess.run([sys.executable, str(TOOL), "--freeze", str(freeze), "--report", str(report), "--create"], check=True)
     assert json.loads(report.read_text(encoding="utf-8"))["payload_sha256"] == payload_sha256(data)
+
+
+def test_signing_report_has_key_algorithm_tag(tmp_path: Path) -> None:
+    freeze = tmp_path / "pre-build-freeze.json"
+    report = tmp_path / "signing-report.json"
+    freeze.write_text(json.dumps({"update-manifest.json": "a"}), encoding="utf-8")
+    subprocess.run([sys.executable, str(TOOL), "--freeze", str(freeze), "--report", str(report), "--create"], check=True)
+    data = json.loads(report.read_text(encoding="utf-8"))
+    assert data["key_id"] == "local-release-key"
+    assert data["algorithm"] == "RS256"
+    assert data["tag"] == "unsigned-qa"

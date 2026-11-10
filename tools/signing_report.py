@@ -18,6 +18,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--freeze", default="pre-build-freeze.json")
     parser.add_argument("--report", default="signing-report.json")
+    parser.add_argument("--key-id", default="local-release-key")
+    parser.add_argument("--algorithm", default="RS256")
+    parser.add_argument("--tag", default="unsigned-qa")
     parser.add_argument("--create", action="store_true")
     parser.add_argument("--verify", action="store_true")
     args = parser.parse_args()
@@ -42,6 +45,9 @@ def main() -> int:
                 "commit": str(__import__("os").environ.get("GITHUB_SHA", "")),
             },
             "payload_sha256": expected,
+            "key_id": str(args.key_id),
+            "algorithm": str(args.algorithm),
+            "tag": str(args.tag),
         }
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print("SIGNING_REPORT_CREATED", report_path)
@@ -54,6 +60,9 @@ def main() -> int:
             return 2
         if report.get("stage") != "signed" or report.get("payload_sha256") != expected:
             print("SIGNING_REPORT_MISMATCH", file=sys.stderr)
+            return 3
+        if not all(isinstance(report.get(key), str) and report.get(key) for key in ("key_id", "algorithm", "tag")):
+            print("SIGNING_REPORT_MISMATCH missing key_id/algorithm/tag", file=sys.stderr)
             return 3
         print("SIGNING_REPORT_OK")
         return 0

@@ -181,3 +181,28 @@ EXIT_CODE=0
 - Candidate Zip SHA256: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
 - Package Hash: 2CAA60B88FE9E65B2F8B818D967D91593A4B1491CBD0EA15E0013AF15327ACA8
 PROOF_SHA256: 0D41DA3D92865D139807FEBBFDEDE80021CF6768B529C1D6B42023050697E560
+
+## v1.7 QA self-consistency addendum (2026-11-10)
+
+```text
+Q24/Q26 post-package:
+  command: python -m pytest -q quality/tests/test_quality_matrix.py::test_q24_package_has_no_dev_artifacts quality/tests/test_quality_matrix.py::test_q26_sbom_matches_actual_package
+  result: 2 passed
+  package: ..\public-release-v1.6.6.zip (51359667 bytes)
+
+FIXED:
+  tools/broker_state.py: 70 lines, 4 helpers extracted
+  tools/broker_store.py: 115 lines, 4 helpers extracted
+  quality/run_quality_matrix.py: Covered count emitted
+  tools/signing_report.py: key_id / algorithm / tag fields
+  tests/v17/test_signing_report.py: 4 tests pass
+
+NOT_FIXED:
+  http_server.py / auth.py / approval.py / executor.py: not extracted (4 modules)
+  handler 400/409/500 edge paths: partial
+  email_watch residual branches: partial
+
+Covered count:
+  total = passed + failed + covered + blocked
+  current matrix Covered = 0 (no covered rows)
+```
