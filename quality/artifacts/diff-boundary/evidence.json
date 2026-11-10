@@ -1,0 +1,10 @@
+{
+  "positive": [
+    true,
+    "within boundary"
+  ],
+  "negative": [
+    false,
+    "path escapes boundary root"
+  ]
+}
