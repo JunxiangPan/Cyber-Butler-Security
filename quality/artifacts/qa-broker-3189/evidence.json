@@ -19,7 +19,7 @@
     "undo_available": true,
     "trash_id": "77d2360a6274",
     "undo_expires_at": "2026-11-10T02:28:38+00:00",
-    "undo_expires_epoch": 1794277718.6685903
+    "undo_expires_epoch": "[redacted]"
   },
   "target_deleted": true,
   "audit_path": "temp/tools/totp_broker_audit.jsonl",
