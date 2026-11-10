@@ -1,0 +1,19 @@
+{
+  "status": "LTSC_DOWNLOAD_BLOCKED",
+  "requested_edition": "Windows 11 Enterprise LTSC 2024 Evaluation",
+  "official_urls_tried": [
+    "https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise-ltsc",
+    "https://www.microsoft.com/en-us/evalcenter/download-windows-11-enterprise-ltsc",
+    "https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise-ltsc-2024",
+    "https://www.microsoft.com/en-us/evalcenter/download-windows-11-enterprise-ltsc-2024"
+  ],
+  "result": "HTTP 200 but page cannot be found on all four URLs",
+  "official_iot_ltsc_page": "https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-iot-enterprise-ltsc",
+  "iot_note": "IoT Enterprise LTSC is a different edition; not substituted without owner approval",
+  "attempted_at": "2026-11-10T11:20:25+00:00",
+  "size": null,
+  "sha256": null,
+  "iso_obtained": false,
+  "third_party_used": false,
+  "a1": "A1_BLOCKED_LTSC_MEDIA"
+}
