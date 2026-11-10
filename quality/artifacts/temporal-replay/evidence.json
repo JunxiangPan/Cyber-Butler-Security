@@ -1,0 +1,25 @@
+{
+  "events": 1,
+  "actions": [
+    "write"
+  ],
+  "targets": [
+    "C:/workspace/a.txt"
+  ],
+  "actors": [
+    "agent"
+  ],
+  "timeline": [
+    {
+      "event_id": "e1",
+      "at": "2026-11-10T00:00:00+00:00",
+      "actor": "agent",
+      "request_id": "r1",
+      "action": "write",
+      "target": "C:/workspace/a.txt",
+      "before_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "after_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "scope": "C:/workspace"
+    }
+  ]
+}
