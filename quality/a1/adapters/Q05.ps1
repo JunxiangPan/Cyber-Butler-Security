@@ -15,8 +15,22 @@ $token = (Get-Content (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Tr
 $base = 'http://127.0.0.1:18090'
 function Broker([string]$method, [string]$path, [string]$json = '') {
     $headers = @{ 'X-Broker-Token' = $token }
-    if ($json) { return Invoke-RestMethod -Method $method -Uri ($base + $path) -Headers $headers -ContentType 'application/json' -Body $json -TimeoutSec 20 -SkipHttpErrorCheck }
-    return Invoke-RestMethod -Method $method -Uri ($base + $path) -Headers $headers -TimeoutSec 20 -SkipHttpErrorCheck
+    try {
+        $params = @{ UseBasicParsing = $true; Method = $method; Uri = ($base + $path); Headers = $headers; TimeoutSec = 20 }
+        if ($json) { $params.ContentType = 'application/json'; $params.Body = $json }
+        $response = Invoke-WebRequest @params
+        $obj = if ($response.Content) { $response.Content | ConvertFrom-Json } else { [pscustomobject]@{} }
+        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
+        return $obj
+    } catch [System.Net.WebException] {
+        $response = $_.Exception.Response
+        if ($null -eq $response) { return [pscustomobject]@{ status = 0; error = 'connection failed' } }
+        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+        try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $obj = if ($body) { $body | ConvertFrom-Json } else { [pscustomobject]@{} }
+        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
+        return $obj
+    }
 }
 $proc = Get-Process -Name 'python' -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*CyberButler*' } | Select-Object -First 1
 if (-not $proc) { Blocked 'BROKER_PROCESS_NOT_FOUND' }

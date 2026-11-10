@@ -1,0 +1,106 @@
+﻿[
+    {
+        "id":  "Q05",
+        "status":  "passed",
+        "reason":  "PASS",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q05.log",
+        "log_sha256":  "EB14528B4E2499F989D52C0A5191058A193CE4F1AB106C61CB7A7C9B3B1D4C67",
+        "timestamp":  "2026-11-10T16:11:32.8013453Z"
+    },
+    {
+        "id":  "Q06",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q06.log",
+        "log_sha256":  "6735D5A0359DD8B660047A4D585CD0FDC91A87E4EF7E5656A8D3349258306A38",
+        "timestamp":  "2026-11-10T16:11:46.8832188Z"
+    },
+    {
+        "id":  "Q07",
+        "status":  "passed",
+        "reason":  "PASS",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q07.log",
+        "log_sha256":  "44CE388AA1EB418E417A5F766BB5432B129C9C7D8053FB48382A0B5F9449AEC0",
+        "timestamp":  "2026-11-10T16:11:57.5859625Z"
+    },
+    {
+        "id":  "Q08",
+        "status":  "failed",
+        "reason":  "EXCEPTION",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q08.log",
+        "log_sha256":  "CD496C9BB50A1F6EE41177D7556E5E6DBEE9B739DD2E0C1F445A07A7122D4D13",
+        "timestamp":  "2026-11-10T16:12:09.8558772Z"
+    },
+    {
+        "id":  "Q09",
+        "status":  "failed",
+        "reason":  "EXCEPTION",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q09.log",
+        "log_sha256":  "9A4F235C84D2E70ED806358F03F3A61B0ABB18F4D70ED5C11BC7D284C57DD5B8",
+        "timestamp":  "2026-11-10T16:12:25.9313493Z"
+    },
+    {
+        "id":  "Q10",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q10.log",
+        "log_sha256":  "43C2202AF4E47333A14609E1B7C95474F1D4F39F2B6331927883D217B0AA050E",
+        "timestamp":  "2026-11-10T16:12:40.6364631Z"
+    },
+    {
+        "id":  "Q11",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q11.log",
+        "log_sha256":  "5F5CEA05373BD5E950FDBB808DC55220BA0ED6591A111774DBFEC16D2654AFBE",
+        "timestamp":  "2026-11-10T16:12:56.9018973Z"
+    },
+    {
+        "id":  "Q12",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q12.log",
+        "log_sha256":  "0F1645ECB9C7B3D00D609433E3C410BA0EDA045F5590157CC80781E5C6B71798",
+        "timestamp":  "2026-11-10T16:13:09.0839408Z"
+    },
+    {
+        "id":  "Q13",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q13.log",
+        "log_sha256":  "C97C03DDE8AB37F8C5D1169D494DBD7A30569A67347DC97C53785CF43C42F381",
+        "timestamp":  "2026-11-10T16:13:29.5995310Z"
+    },
+    {
+        "id":  "Q14",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q14.log",
+        "log_sha256":  "6735D5A0359DD8B660047A4D585CD0FDC91A87E4EF7E5656A8D3349258306A38",
+        "timestamp":  "2026-11-10T16:13:41.6816102Z"
+    },
+    {
+        "id":  "Q15",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q15.log",
+        "log_sha256":  "37E98201E675087ABD2C9E4DA808C20D65CE4FDDE46DB65B51F1A9D6AE07552C",
+        "timestamp":  "2026-11-10T16:14:00.7430029Z"
+    },
+    {
+        "id":  "Q16",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q16.log",
+        "log_sha256":  "D3CB4B5AF97E0AC83BDC1DA9973841B31E668AB84C4EFA0C63410AFAB5B969DA",
+        "timestamp":  "2026-11-10T16:14:12.8372312Z"
+    },
+    {
+        "id":  "Q17",
+        "status":  "blocked",
+        "reason":  "BLOCKED",
+        "log":  "D:\\qq苏瑾言大肥鱼\\public-release\\quality\\a1\\artifacts\\20261110T161120Z\\Q17.log",
+        "log_sha256":  "8579DDE0AD6F3AF5AC4FB5C02184663ED9F2069F396B620B89A72A7524F2621C",
+        "timestamp":  "2026-11-10T16:14:27.2516975Z"
+    }
+]

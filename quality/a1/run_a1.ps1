@@ -64,9 +64,11 @@ foreach ($id in $items) {
                 exit $LASTEXITCODE
             } -ArgumentList (Get-Content -Raw $adapter), $artifactArg, $Nonce, $ItemTimeoutMinutes -ErrorAction Stop
             $result | Out-File -FilePath $log -Encoding UTF8
-            $code = $LASTEXITCODE
-            $status = if ($code -eq 0) { 'passed' } elseif ($code -eq 3) { 'blocked' } else { 'failed' }
-            Write-Result $id $status ('EXIT_' + $code) $log (Get-FileHash $log -Algorithm SHA256).Hash
+            $text = ($result | Out-String)
+            if ($text -match 'PASS:') { $status = 'passed'; $reason = 'PASS' }
+            elseif ($text -match 'BLOCKED:') { $status = 'blocked'; $reason = 'BLOCKED' }
+            else { $status = 'failed'; $reason = 'NO_PASS_OR_BLOCKED_MARKER' }
+            Write-Result $id $status $reason $log (Get-FileHash $log -Algorithm SHA256).Hash
         } catch {
             $_.Exception.Message | Out-File -FilePath $log -Encoding UTF8
             Write-Result $id 'failed' 'EXCEPTION' $log (Get-FileHash $log -Algorithm SHA256).Hash
