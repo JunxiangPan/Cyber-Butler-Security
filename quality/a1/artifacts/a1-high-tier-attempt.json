@@ -1,0 +1,16 @@
+{
+  "status": "BLOCKED_HIGH_TIER",
+  "tier": "High",
+  "install_path": "C:\\CyberButler",
+  "service_found": false,
+  "service": null,
+  "tail": [
+    "CORE skipped",
+    "ACCOUNT setup required: exists=False reason=account-missing",
+    "FAILED totp: TOTP material generation failed: Traceback (most recent call last):",
+    "REPORT C:\\ProgramData\\CyberButler\\installer-report\\install-report.json",
+    "MANUAL C:\\ProgramData\\CyberButler\\installer\\state\\20261111-002556-873a7f\\manual-recovery.txt"
+  ],
+  "reason": "High upgrade failed at TOTP material generation; no CyberButlerAgentRuntime service",
+  "timestamp": "2026-11-10T16:26:38.5258090Z"
+}
