@@ -1,18 +1,28 @@
 {
-  "status": "NOT_PROVIDED",
-  "a1": "A1_BLOCKED_INSTALL_MEDIA",
-  "sha256": null,
-  "media_type": null,
-  "path": null,
+  "status": "PROVIDED",
+  "media_type": "iso",
+  "path": "D:\\CB-Media\\Windows11\\26300.9457.260913-1737.26h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+  "sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84",
+  "size": 8548628480,
+  "edition": "Windows 11 Enterprise Evaluation",
+  "edition_id": "EnterpriseEval",
+  "build": "26300.9457.260913-1737.26h2",
+  "language": "zh-CN",
+  "arch": "x64",
   "iso_preflight": {
-    "efi_boot_bootx64": false,
-    "sources_boot_wim": false,
-    "bootmgr_efi": false
+    "efi_boot_bootx64": true,
+    "sources_boot_wim": true,
+    "bootmgr_efi": true,
+    "sources_install_wim": true,
+    "install_wim_bytes": 7585822780
   },
-  "vhd_preflight": {
-    "no_cyberbutler": null,
-    "no_cbs_service": null,
-    "no_python_runtime": null
+  "wim": {
+    "images": 1,
+    "index": 1,
+    "name": "Windows 11 Enterprise Evaluation",
+    "edition_id": "EnterpriseEval",
+    "method": "7z WIM XML metadata",
+    "elevated_dism": "BLOCKED: Get-WindowsImage requires elevation"
   },
-  "note": "No verified UEFI-bootable ISO or clean Windows VHDX is available. Do not use cbs-acceptance-vm or CBS-Test."
+  "note": "Official Evaluation media supplied by owner; no third-party mirror. Do not use cbs-acceptance-vm or CBS-Test as clean baseline."
 }
