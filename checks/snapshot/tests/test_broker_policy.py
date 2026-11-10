@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import sys
+
 from pathlib import Path
 
 import broker
+import pytest
 
 
 def setup_function() -> None:
@@ -668,6 +671,7 @@ def test_send_failure_and_invalid_scoped(monkeypatch, tmp_path) -> None:
     assert body.get("scoped_invalid") is True
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="global pending timeout thread")
 def test_verify_rejects_email_expired_and_wrong_id(monkeypatch) -> None:
     broker._pending = {"id": "p1", "channel": "email", "deadline": broker.time.monotonic() + 60}
     assert broker.run_verify({"id": "p1"})[0] == 403
