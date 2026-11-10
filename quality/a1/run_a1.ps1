@@ -39,6 +39,7 @@ if (-not $snapshot) {
 $passwordFile = Join-Path 'D:\HyperV\qa-clones' ($VMName + '-admin.txt')
 if (-not (Test-Path $passwordFile)) { throw 'A1_BLOCKED: admin password evidence file missing' }
 $password = (Get-Content $passwordFile -Raw).Trim()
+$artifactArg = if ($ArtifactZip) { $ArtifactZip } else { 'none' }
 $secure = ConvertTo-SecureString $password -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential('cbsadmin', $secure)
 
@@ -61,7 +62,7 @@ foreach ($id in $items) {
                 Set-Content -Path $path -Value $adapterText -Encoding UTF8
                 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $path -ArtifactZip $artifactZip -Nonce $nonce -TimeoutMinutes $timeout
                 exit $LASTEXITCODE
-            } -ArgumentList (Get-Content -Raw $adapter), $ArtifactZip, $Nonce, $ItemTimeoutMinutes -ErrorAction Stop
+            } -ArgumentList (Get-Content -Raw $adapter), $artifactArg, $Nonce, $ItemTimeoutMinutes -ErrorAction Stop
             $result | Out-File -FilePath $log -Encoding UTF8
             $code = $LASTEXITCODE
             $status = if ($code -eq 0) { 'passed' } elseif ($code -eq 3) { 'blocked' } else { 'failed' }

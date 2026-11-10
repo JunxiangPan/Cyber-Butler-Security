@@ -12,6 +12,11 @@ param()
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $artifactRoot = Join-Path $PSScriptRoot 'artifacts'
+$runMarker = Join-Path $artifactRoot 'run-a1-request.json'
+if (Test-Path $runMarker) {
+    & (Join-Path $PSScriptRoot 'run_a1.ps1') -VMName 'cbs-a1-clean' -BaseSnapshot 'a1-clean-base' -ArtifactZip '' -Nonce ('a1-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')) -OutputRoot $artifactRoot
+    exit $LASTEXITCODE
+}
 $deployMarker = Join-Path $artifactRoot 'deploy-wim-request.json'
 if (Test-Path $deployMarker) {
     & (Join-Path $PSScriptRoot 'deploy_wim_vhdx.ps1')

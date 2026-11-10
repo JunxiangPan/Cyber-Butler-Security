@@ -1,5 +1,5 @@
 {
-  "status": "A1_BASE_READY_QA_BLOCKED",
+  "status": "A1_PRODUCT_INSTALLED_QA_PARTIAL",
   "vm": "cbs-a1-clean",
   "generation": 2,
   "state": "Running",
@@ -22,9 +22,15 @@
   "checkpoint": "a1-clean-base",
   "checkpoint_state": "Saved",
   "qa": {
-    "Q05_Q17": "BLOCKED",
-    "reason": "C:\\CyberButler is not installed in the clean base; adapters require the product broker/token",
-    "Q13": "NOT_RUN"
+    "Q05": "PASS",
+    "Q06": "BLOCKED SERVICE_NOT_FOUND",
+    "Q07": "FAILED missing Invoke-RestMethod -SkipHttpErrorCheck (Windows PowerShell 5.1)",
+    "Q08_Q17": "NOT_RUN",
+    "Q13": "NOT_RUN \u2014 TOTP not requested",
+    "26/26": "NOT_GENERATED"
   },
-  "ipc": "BLOCKED \u2014 A1 QA not complete"
+  "ipc": "BLOCKED \u2014 A1 QA not complete",
+  "cbs_installed": true,
+  "cbs_path": "C:\\CyberButler",
+  "installer": "Tier Light, INSTALLER_OK"
 }
