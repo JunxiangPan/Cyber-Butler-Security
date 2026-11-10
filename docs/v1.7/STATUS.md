@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | install.wim->Gen2 VHDX; CBS Tier Light INSTALLER_OK; Q05 PASS; Q07 PASS; Q06 BLOCKED (no AgentRuntime service); Q08-Q17 not run; no 26/26 |
+| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | install.wim->Gen2 VHDX; CBS Tier Light INSTALLER_OK; Q05/Q07 PASS; Q06 BLOCKED; Q08/Q09 FAILED; Q10-Q17 BLOCKED; no 26/26 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
