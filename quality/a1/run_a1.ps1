@@ -18,7 +18,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$items = @('Q05','Q06','Q07','Q08','Q09','Q10','Q11','Q13','Q14','Q15','Q16','Q17')
+$items = @('Q05','Q06','Q07','Q08','Q09','Q10','Q11','Q12','Q13','Q14','Q15','Q16','Q17')
 $adapterRoot = Join-Path $PSScriptRoot 'adapters'
 if (-not $OutputRoot) { $OutputRoot = Join-Path $PSScriptRoot 'artifacts' }
 New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
