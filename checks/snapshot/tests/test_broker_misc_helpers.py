@@ -79,3 +79,18 @@ def test_resolve_helpers(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setenv("CBS_WORKSPACE", str(tmp_path))
     assert broker._resolve_shared() == tmp_path
     assert isinstance(broker._resolve_umo(), str)
+
+
+def test_audit_and_email_result_helpers(monkeypatch, tmp_path: Path) -> None:
+    audit = tmp_path / "audit.jsonl"
+    monkeypatch.setattr(broker, "AUDIT", audit)
+    request = {"id": "r", "action": "delete", "target": "x", "challenge": "c"}
+    broker._audit_auto(request, True, "ok")
+    broker._audit_scoped(request, "ok", str(tmp_path))
+    broker._audit_bypass(request, "ok", "scope")
+    assert len(audit.read_text(encoding="utf-8").splitlines()) == 3
+    sent = []
+    monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
+    broker._email_result({}, request, "ok")
+    assert sent
+

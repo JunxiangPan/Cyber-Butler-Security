@@ -22,6 +22,7 @@ TESTS = (
     "tests/test_broker_job_object.py",
     "tests/test_broker_store_helpers.py",
     "tests/test_broker_misc_helpers.py",
+    "tests/test_broker_email_branch.py",
 )
 
 

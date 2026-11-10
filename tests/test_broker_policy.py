@@ -594,3 +594,26 @@ def test_locked_and_uninstalling_guards(monkeypatch, tmp_path) -> None:
     assert status == 503
     monkeypatch.delenv("CBS_IS_UNINSTALLING", raising=False)
     monkeypatch.setattr(broker, "_verify_locked_until", 0.0)
+
+
+
+def test_send_manifest_timeout_branch(monkeypatch, tmp_path) -> None:
+    import hashlib
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    target = shared / "send.txt"
+    target.write_text("send", encoding="utf-8")
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    config = tmp_path / "broker_config.json"
+    config.write_text('{"approval_channel": "qq"}', encoding="utf-8")
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "MEMORY_ROOTS", ())
+    monkeypatch.setattr(broker, "BROKER_CONFIG", config)
+    monkeypatch.setattr(broker, "TIMEOUT_SECONDS", 0)
+    monkeypatch.setattr(broker, "send_qq", lambda _text: True)
+    broker._pending = None
+    manifest = [{"kind": "file", "path": str(target), "sha256": digest, "size": 4}]
+    status, body = broker.run_request({"action": "send", "manifest": manifest})
+    assert status in {200, 408}
+    assert isinstance(body, dict)
