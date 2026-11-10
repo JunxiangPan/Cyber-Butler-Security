@@ -13,11 +13,20 @@ if (-not (Test-Path $InstallRoot)) { Blocked 'QA_VM_NOT_PROVISIONED' }
 if (-not (Test-Path (Join-Path $InstallRoot 'tools\broker_token.txt'))) { Blocked 'BROKER_TOKEN_MISSING' }
 $token = (Get-Content (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Trim()
 $base = 'http://127.0.0.1:18090'
-function Broker([string]$method, [string]$path, [string]$json = '') {
+function BrokerPost([string]$path, [string]$json) {
     $headers = @{ 'X-Broker-Token' = $token }
-    if ($json) { return Invoke-RestMethod -Method $method -Uri ($base + $path) -Headers $headers -ContentType 'application/json' -Body $json -TimeoutSec 20 -SkipHttpErrorCheck }
-    return Invoke-RestMethod -Method $method -Uri ($base + $path) -Headers $headers -TimeoutSec 20 -SkipHttpErrorCheck
+    try {
+        $response = Invoke-WebRequest -UseBasicParsing -Method POST -Uri ($base + $path) `
+            -Headers $headers -ContentType 'application/json' -Body $json -TimeoutSec 20
+        return [pscustomobject]@{ status = [int]$response.StatusCode; body = $response.Content }
+    } catch [System.Net.WebException] {
+        $response = $_.Exception.Response
+        if ($null -eq $response) { return [pscustomobject]@{ status = 0; body = '' } }
+        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+        try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        return [pscustomobject]@{ status = [int]$response.StatusCode; body = $body }
+    }
 }
-$r = Broker 'POST' '/request' '{"action":"delete","target":"C:\\Windows\\System32\\drivers\\etc\\hosts"}'
-if ($r.status -eq 403 -or $r.error) { Pass 'PATH_ESCAPE_REJECTED' }
-Blocked 'PATH_ESCAPE_NOT_REJECTED'
+$r = BrokerPost '/request' '{"action":"delete","target":"C:\\Windows\\System32\\drivers\\etc\\hosts"}'
+if ($r.status -eq 403 -or $r.status -eq 400) { Pass 'PATH_ESCAPE_REJECTED' }
+Blocked ('PATH_ESCAPE_NOT_REJECTED HTTP=' + [string]$r.status)

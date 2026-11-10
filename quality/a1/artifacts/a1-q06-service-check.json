@@ -1,0 +1,40 @@
+{
+  "services": [],
+  "tasks": [
+    {
+      "TaskName": "Cyber-Butler Broker",
+      "State": {
+        "value": 4,
+        "Value": "Running"
+      },
+      "User": "SYSTEM"
+    },
+    {
+      "TaskName": "Cyber-Butler OTP Mailer",
+      "State": {
+        "value": 4,
+        "Value": "Running"
+      },
+      "User": "cbsadmin"
+    },
+    {
+      "TaskName": "Cyber-Butler Web UI Services",
+      "State": {
+        "value": 4,
+        "Value": "Running"
+      },
+      "User": "cbsadmin"
+    },
+    {
+      "TaskName": "Cyber-Butler WFP Guard",
+      "State": {
+        "value": 3,
+        "Value": "Ready"
+      },
+      "User": "SYSTEM"
+    }
+  ],
+  "PSComputerName": "cbs-a1-clean",
+  "RunspaceId": "04a4525f-4586-46e1-9339-addf350bcf22",
+  "PSShowComputerName": true
+}

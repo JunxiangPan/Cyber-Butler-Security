@@ -23,10 +23,10 @@
   "checkpoint_state": "Saved",
   "qa": {
     "Q05": "PASS",
-    "Q06": "BLOCKED SERVICE_NOT_FOUND",
-    "Q07": "FAILED missing Invoke-RestMethod -SkipHttpErrorCheck (Windows PowerShell 5.1)",
+    "Q06": "BLOCKED SERVICE_NOT_FOUND; Light installed scheduled tasks, no CyberButlerAgentRuntime service",
+    "Q07": "PASS PATH_ESCAPE_REJECTED (PowerShell 5.1 compatible)",
     "Q08_Q17": "NOT_RUN",
-    "Q13": "NOT_RUN \u2014 TOTP not requested",
+    "Q13": "NOT_RUN; TOTP not requested",
     "26/26": "NOT_GENERATED"
   },
   "ipc": "BLOCKED \u2014 A1 QA not complete",
