@@ -167,3 +167,57 @@ def test_email_watch_invalid_totp_then_timeout(monkeypatch, tmp_path: Path) -> N
     monkeypatch.setattr(broker.email_approval, "send_email", lambda *a, **k: sent.append(a))
     broker.email_watch("email-bad")
     assert broker._pending is None
+
+
+def test_email_watch_target_changed(monkeypatch, tmp_path: Path) -> None:
+    broker._pending = {
+        "id": "email-changed", "channel": "email", "deadline": broker.time.monotonic() + 60,
+        "challenge": "c", "target": str(tmp_path / "x"), "target_summary": "old",
+        "action": "delete", "_snapshot": None, "_source_snapshot": None,
+    }
+    results = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: ("qa@example.test", "c", "123456"))
+    monkeypatch.setattr(broker.email_approval, "sender_allowed", lambda *_a: True)
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    monkeypatch.setattr(broker, "_assert_snapshots_current", lambda _r: None)
+    monkeypatch.setattr(broker, "_email_result", lambda _c, _r, result: results.append(result))
+    broker.email_watch("email-changed")
+    assert broker._pending is None and results
+
+
+def test_email_watch_source_changed(monkeypatch, tmp_path: Path) -> None:
+    target = tmp_path / "target.txt"; target.write_text("t", encoding="utf-8")
+    source = tmp_path / "source.txt"; source.write_text("s", encoding="utf-8")
+    broker._pending = {
+        "id": "email-source", "channel": "email", "deadline": broker.time.monotonic() + 60,
+        "challenge": "c", "target": str(target), "target_summary": broker._path_summary(str(target)),
+        "action": "overwrite", "source": str(source), "source_summary": "old",
+        "_snapshot": None, "_source_snapshot": None,
+    }
+    results = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: ("qa@example.test", "c", "123456"))
+    monkeypatch.setattr(broker.email_approval, "sender_allowed", lambda *_a: True)
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    monkeypatch.setattr(broker, "_assert_snapshots_current", lambda _r: None)
+    monkeypatch.setattr(broker, "_email_result", lambda _c, _r, result: results.append(result))
+    broker.email_watch("email-source")
+    assert broker._pending is None and results
+
+
+def test_email_watch_target_guard_error(monkeypatch, tmp_path: Path) -> None:
+    broker._pending = {
+        "id": "email-guard", "channel": "email", "deadline": broker.time.monotonic() + 60,
+        "challenge": "c", "target": str(tmp_path / "x"), "action": "delete",
+        "_snapshot": None, "_source_snapshot": None,
+    }
+    results = []
+    monkeypatch.setattr(broker.email_approval, "load_config", lambda: {"allowed_sender": "qa@example.test"})
+    monkeypatch.setattr(broker.email_approval, "poll_once", lambda *_a: ("qa@example.test", "c", "123456"))
+    monkeypatch.setattr(broker.email_approval, "sender_allowed", lambda *_a: True)
+    monkeypatch.setattr(broker, "verify_code", lambda _c: "totp")
+    monkeypatch.setattr(broker, "_assert_snapshots_current", lambda _r: (_ for _ in ()).throw(broker.TargetGuardError("changed")))
+    monkeypatch.setattr(broker, "_email_result", lambda _c, _r, result: results.append(result))
+    broker.email_watch("email-guard")
+    assert broker._pending is None and results

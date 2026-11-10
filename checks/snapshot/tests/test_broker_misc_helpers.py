@@ -333,3 +333,136 @@ def test_main_refuses_unrendered_placeholder(monkeypatch) -> None:
     except SystemExit:
         return
     raise AssertionError("main must refuse placeholders")
+
+
+def test_execute_write_overwrite_and_delete_without_snapshots(monkeypatch, tmp_path: Path) -> None:
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "QUARANTINE", tmp_path / "trash")
+    monkeypatch.setattr(broker, "STAGING", tmp_path / "staging")
+    target = shared / "write.txt"
+    ok, _ = broker.execute({"id": "w", "action": "write_file", "target": str(target), "content": "abc", "mode": "replace"})
+    assert ok and target.read_text(encoding="utf-8") == "abc"
+    source = shared / "source.txt"
+    source.write_text("new", encoding="utf-8")
+    overwrite = shared / "over.txt"
+    overwrite.write_text("old", encoding="utf-8")
+    ok, _ = broker.execute({"id": "o", "action": "overwrite", "target": str(overwrite), "source": str(source)})
+    assert ok and overwrite.read_text(encoding="utf-8") == "new"
+    delete = shared / "delete.txt"
+    delete.write_text("x", encoding="utf-8")
+    ok, _ = broker.execute({"id": "d", "action": "delete", "target": str(delete)})
+    assert ok and not delete.exists()
+    ok, _ = broker.execute({"id": "u", "action": "unknown", "target": str(target)})
+    assert ok is False
+
+
+def test_execute_write_validation_branches(monkeypatch, tmp_path: Path) -> None:
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "QUARANTINE", tmp_path / "trash")
+    monkeypatch.setattr(broker, "STAGING", tmp_path / "staging")
+    assert broker.execute({"id": "c", "action": "write_file", "target": str(shared / "new.txt"), "content": "x", "mode": "create"})[0] is True
+    assert broker.execute({"id": "n", "action": "write_file", "target": str(shared / "bad.txt"), "content": None})[0] is False
+    assert broker.execute({"id": "b", "action": "write_file", "target": str(shared / "big.txt"), "content": "x" * (256 * 1024 + 1)})[0] is False
+    outside = tmp_path / "outside.txt"
+    outside.write_text("x", encoding="utf-8")
+    assert broker.execute({"id": "o", "action": "overwrite", "target": str(shared / "dest.txt"), "source": str(outside)})[0] is False
+
+
+def test_send_qq_platform_fallback(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    monkeypatch.setattr(broker, "UMO", "qq:owner")
+    (tmp_path / ".agentruntime_token").write_text("t", encoding="utf-8")
+    class Resp:
+        ok = True
+    calls = []
+    monkeypatch.setattr(broker.requests, "post", lambda *a, **k: calls.append(1) or Resp())
+    assert broker.send_qq("hello") is True
+    class Bad:
+        ok = False
+    monkeypatch.setattr(broker.requests, "post", lambda *a, **k: Bad())
+    assert broker.send_qq("hello") is False
+
+
+class _Snap:
+    is_directory = False
+    def __init__(self, path): self.path = path; self.identity = (0, 0, 0, 0); self.sha256 = ""
+    def read_bytes(self, limit=0): return self.path.read_bytes()
+    def rewrite(self, data): self.path.write_bytes(data)
+    def close(self): return None
+    def assert_unchanged(self): return None
+
+
+def test_execute_snapshot_write_paths(monkeypatch, tmp_path: Path) -> None:
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "QUARANTINE", tmp_path / "trash")
+    monkeypatch.setattr(broker, "STAGING", tmp_path / "staging")
+    target = shared / "snap.txt"; target.write_text("old", encoding="utf-8")
+    source = shared / "src.txt"; source.write_text("new", encoding="utf-8")
+    ok, _ = broker.execute({"id": "o", "action": "overwrite", "target": str(target), "source": str(source), "_snapshot": _Snap(target), "_source_snapshot": _Snap(source)})
+    assert ok and target.read_text(encoding="utf-8") == "new"
+    ok, _ = broker.execute({"id": "w", "action": "write_file", "target": str(target), "content": "third", "mode": "replace", "_snapshot": _Snap(target)})
+    assert ok and target.read_text(encoding="utf-8") == "third"
+    ok, _ = broker.execute({"id": "c", "action": "write_file", "target": str(target), "content": "x", "mode": "create", "_snapshot": _Snap(target)})
+    assert ok is False
+
+
+def test_execute_delete_with_snapshot(monkeypatch, tmp_path: Path) -> None:
+    shared = tmp_path / "shared"; shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    monkeypatch.setattr(broker, "QUARANTINE", tmp_path / "trash")
+    monkeypatch.setattr(broker, "STAGING", tmp_path / "staging")
+    target = shared / "snapdel.txt"; target.write_text("x", encoding="utf-8")
+    snap = _Snap(target)
+    ok, _ = broker.execute({"id": "d2", "action": "delete", "target": str(target), "_snapshot": snap})
+    assert isinstance(ok, bool)
+
+
+def test_path_summary_unresolved() -> None:
+    assert "unresolved" in broker._path_summary("\0")
+
+
+def test_as_bool_defaults() -> None:
+    assert broker._as_bool("maybe") is False
+    assert isinstance(broker._target_mode("delete", "x"), str)
+
+
+def test_state_invalid_inputs() -> None:
+    from tools.broker_state import _target_mode, _url_host_allowed
+    assert _url_host_allowed("http://[bad") is False
+    assert _target_mode("write_file", "\0") == "replace"
+
+
+def test_send_qq_exception_and_empty_manifest(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(broker, "ROOT", tmp_path)
+    monkeypatch.setattr(broker, "UMO", "qq:owner")
+    (tmp_path / ".agentruntime_token").write_text("t", encoding="utf-8")
+    monkeypatch.setattr(broker.requests, "post", lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("offline")))
+    assert broker.send_qq("x") is False
+    assert "manifest" in broker._manifest_prompt([]).lower()
+
+
+def test_secret_test_mode(monkeypatch) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", True)
+    monkeypatch.setenv("CBS_TEST_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    assert broker.secret() == "JBSWY3DPEHPK3PXP"
+
+
+
+def test_secret_unavailable(monkeypatch) -> None:
+    monkeypatch.setattr(broker, "TEST_MODE", False)
+    monkeypatch.setattr(broker, "win32crypt", None)
+    try:
+        broker.secret()
+    except RuntimeError:
+        return
+    raise AssertionError("missing DPAPI must fail")
