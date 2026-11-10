@@ -466,3 +466,17 @@ def test_secret_unavailable(monkeypatch) -> None:
     except RuntimeError:
         return
     raise AssertionError("missing DPAPI must fail")
+
+
+def test_execute_calls_diff_boundary_before_write(monkeypatch, tmp_path: Path) -> None:
+    shared = tmp_path / "shared"; shared.mkdir()
+    monkeypatch.setattr(broker, "SHARED", shared)
+    monkeypatch.setattr(broker, "TMP_ROOTS", ())
+    calls = []
+    def deny(_boundary, _changes):
+        calls.append(1)
+        return False, "outside"
+    monkeypatch.setattr(broker, "check_diff", deny)
+    ok, result = broker.execute({"id": "d", "action": "write_file", "target": str(shared / "x"), "content": "x"})
+    assert ok is False and "diff boundary" in result
+    assert calls == [1]

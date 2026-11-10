@@ -41,6 +41,7 @@ import injection_audit
 from win_path_guard import TargetGuardError, TargetSnapshot, create_exclusive
 from broker_state import _as_bool, _bypass_scope, _target_mode, _url_host_allowed
 from broker_store import _canonical_manifest, _manifest_equal, _path_summary, _sha256_file
+from diff_boundary import DiffBoundary, check_diff
 
 try:
     import win32crypt  # Windows-only; tests inject a verifier.
@@ -1206,6 +1207,23 @@ def execute(request: dict) -> tuple[bool, str]:
 
         if not target or not _allowed_target(target):
             return False, "目标不在允许的 Broker 路径内，拒绝执行。"
+
+        if action in {"overwrite", "write_file"}:
+            source = Path(str(request.get("source", "")))
+            if action == "overwrite" and source.is_file():
+                change_size = source.stat().st_size
+            else:
+                change_size = len(str(request.get("content", "")).encode("utf-8"))
+            boundary = DiffBoundary(
+                root=str(target.parent), max_files=1, max_bytes=50 * 1024 * 1024,
+                allow_create=True, allow_delete=False,
+            )
+            within, reason = check_diff(boundary, [{
+                "kind": "modify" if target.exists() else "create",
+                "path": str(target), "size": change_size,
+            }])
+            if not within:
+                return False, "diff boundary rejected: " + reason
 
         if action == "delete":
             if snapshot is not None and not snapshot.is_directory:

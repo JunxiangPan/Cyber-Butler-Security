@@ -1,0 +1,15 @@
+{
+  "pre_write_gate": true,
+  "boundary": {
+    "root": "C:/workspace",
+    "max_files": 1
+  },
+  "positive": [
+    true,
+    "within boundary"
+  ],
+  "negative": [
+    false,
+    "path escapes boundary root"
+  ]
+}
