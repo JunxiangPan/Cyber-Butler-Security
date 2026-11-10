@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_VM_BOOT** | ISO PROVIDED/preflight passed; Gen2 UEFI "boot loader failed" with SecureBoot Off and ISO-only; screenshots/evidence `a1-uefi-isolation.json`; Gen1 control boots; no snapshot |
+| A1 clean-VM acceptance | **A1_BLOCKED_LTSC_MEDIA** | 26H2 Gen2 UEFI fails (boot loader failed); LTSC 2024 Evaluation official page returns page-not-found on all tried URLs; no LTSC ISO; IoT LTSC not substituted without owner approval |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
