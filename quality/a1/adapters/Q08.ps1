@@ -42,7 +42,7 @@ try {
     $linkCreated = $true
     $escaped = $link -replace '\\','\\\\'
     $r = Broker 'POST' '/request' ('{"action":"delete","target":"' + $escaped + '"}')
-    if ($r.status -eq 403 -or $r.error) { Pass 'REPARSE_REJECTED' }
+    if ($r.status -eq 403 -or $r.status -eq 400) { Pass ('REPARSE_REJECTED_HTTP_' + [string]$r.status) }
     Blocked 'REPARSE_NOT_REJECTED'
 } catch {
     Blocked ('JUNCTION_TEST_EXCEPTION: ' + $_.Exception.Message)
