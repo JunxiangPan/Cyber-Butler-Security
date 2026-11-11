@@ -10,9 +10,9 @@ compatibility or a completed gate.
 |---|---|
 | Project | CBS — CBS release repository |
 | Status | `PENDING_CBF_0.1.0` |
-| Surfaces | `git`, `api`, `local-ai` |
+| CBF scan surfaces | `git`, installation package, test fixtures, release zip |
 | Planned gate | `cbf gate --surface git` |
-| Planned CI job | `cbf-privacy-gate` (name reserved in this document; no workflow in Phase 0) |
+| Planned CI job | `cbf-privacy-gate` (manual fail-closed placeholder exists) |
 | Evidence format | `cbf-evidence/v1` |
 
 ## Current state
@@ -20,8 +20,9 @@ compatibility or a completed gate.
 - CBF is **not installed** by this project and is not a runtime dependency.
 - No `cbf.policy.json` is pinned yet; Phase 1 adds it after CBF 0.1.0rc1.
 - No pre-push hook runs CBF yet.
-- The `cbf-privacy-gate` job name is reserved in this document only; no
-  workflow file is added in Phase 0, and no CBF PASS exists.
+- A manual-only `.github/workflows/cbf-privacy-gate.yml` reserves the job
+  name; it exits 1 with `CBF_PENDING_0.1.0`, reports no PASS, and is not wired
+  to push, PR, Release, or PyPI.
 - Historical releases/tags made before CBF 0.1.0 must not be described as CBF
   PASS.
 
@@ -37,10 +38,17 @@ compatibility or a completed gate.
 
 ## Project-specific boundary
 
-- CBF scans the CBS repository/package/release assets only; it does not enter the CBS runtime.
-- A1 26/26 acceptance is unchanged by CBF.
-- GitHub push / Release / zip assets must pass CBF before publication once Phase 1 is active.
-- CBF is not a CBS runtime dependency.
+- CBF scans only the CBS repository, installation package, test fixtures, and
+  release zip assets.
+- CBF does **not** enter the CBS runtime, does not wrap Broker/WebUI, and is
+  not a runtime dependency.
+- A1 26/26 acceptance is unchanged by CBF; CBF cannot change A1 results.
+- CBS must not commit or package real QQ numbers, email addresses, TOTP
+  secrets, SMTP auth codes, broker tokens, or DPAPI vault material. Tests use
+  placeholders/fakes only.
+- GitHub push / Release / zip publication must run `cbf gate --surface git`
+  after CBF 0.1.0rc1 is available; no CBF PASS means no upload.
+- No owner waiver is implied by Phase 0.
 
 CBF remains an independent project: CLI + JSON + CI integration, not code
 coupling. This project can build and test without CBF installed, but upload and
