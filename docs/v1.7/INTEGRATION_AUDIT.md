@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; cbs-a1-clean boot failed; cbs-ipc-test not created; no two-account ACL test
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: A1_PRODUCT_INSTALLED_QA_PARTIAL (High upgrade BLOCKED_HIGH_TIER; Q05/Q07/Q08/Q09 PASS; Q06 BLOCKED; Q10-Q17 BLOCKED)
+A1 26/26: A1_PRODUCT_INSTALLED_QA_PARTIAL (High BLOCKED_HIGH_TIER (AgentRuntime package missing + account detection); Q05/Q07/Q08/Q09 PASS; Q06 BLOCKED; Q10-Q17 BLOCKED)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is
