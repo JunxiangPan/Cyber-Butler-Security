@@ -101,3 +101,5 @@ provide a restricted-token/AppContainer sandbox or syscall mediation. See
 `tests/test_test_matrix.py` checks that this page still contains the Light
 real-machine row and the AppContainer non-claim. It does not turn documentation
 into a security test; it only prevents accidentally deleting the disclosure.
+
+| Feature resolver v1.7 | Preset/dependency/channel/floor tests | 12 PASS |

@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "version": "1.7.0",
+  "generated_for": "Cyber-Butler installer feature model",
+  "features": [
+    {
+      "id": "core",
+      "label": "CBS core",
+      "required": true,
+      "group": "core",
+      "requires": [],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": true, "Light": true },
+      "securityFloor": true
+    },
+    {
+      "id": "broker",
+      "label": "Broker (18090)",
+      "required": true,
+      "group": "core",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": true, "Light": true },
+      "securityFloor": true
+    },
+    {
+      "id": "audit",
+      "label": "Audit log",
+      "required": true,
+      "group": "core",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": true, "Light": true },
+      "securityFloor": true
+    },
+    {
+      "id": "approval.totp",
+      "label": "TOTP authenticator",
+      "required": true,
+      "group": "approval",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": true, "Light": true },
+      "securityFloor": true
+    },
+    {
+      "id": "approval.qq",
+      "label": "QQ approval channel",
+      "required": false,
+      "group": "approval",
+      "requires": ["core", "broker"],
+      "excludes": ["approval.email"],
+      "fields": [
+        { "name": "OwnerQQ", "label": "Owner QQ", "required": true, "secret": false }
+      ],
+      "defaultByTier": { "High": true, "Medium": true, "Light": true },
+      "securityFloor": true
+    },
+    {
+      "id": "approval.email",
+      "label": "Email approval channel",
+      "required": false,
+      "group": "approval",
+      "requires": ["otp_mailer", "core"],
+      "excludes": ["approval.qq"],
+      "fields": [
+        { "name": "WebUIAdminEmail", "label": "WebUI admin email", "required": true, "secret": false },
+        { "name": "SmtpHost", "label": "SMTP host", "required": true, "secret": false },
+        { "name": "SmtpPort", "label": "SMTP port", "required": true, "secret": false },
+        { "name": "SmtpUser", "label": "SMTP user", "required": true, "secret": false },
+        { "name": "SmtpAuthCode", "label": "SMTP auth code", "required": true, "secret": true }
+      ],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": true
+    },
+    {
+      "id": "webui",
+      "label": "WebUI (8765)",
+      "required": false,
+      "group": "surface",
+      "requires": ["broker"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": true, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "otp_mailer",
+      "label": "OTP mailer (8766)",
+      "required": false,
+      "group": "surface",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "wfp_guard",
+      "label": "WFP guard",
+      "required": false,
+      "group": "defense",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": true, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "auxruntime",
+      "label": "AuxRuntime application",
+      "required": false,
+      "group": "integration",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "personal_plugins",
+      "label": "Personal plugins",
+      "required": false,
+      "group": "integration",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "local_model",
+      "label": "Local model",
+      "required": false,
+      "group": "integration",
+      "requires": ["core"],
+      "excludes": [],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "tailscale",
+      "label": "Tailscale binding",
+      "required": false,
+      "group": "network",
+      "requires": ["webui"],
+      "excludes": ["lan_bind"],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    },
+    {
+      "id": "lan_bind",
+      "label": "LAN binding",
+      "required": false,
+      "group": "network",
+      "requires": ["webui"],
+      "excludes": ["tailscale"],
+      "fields": [],
+      "defaultByTier": { "High": false, "Medium": false, "Light": false },
+      "securityFloor": false
+    }
+  ],
+  "presets": {
+    "Light": ["core", "broker", "audit", "approval.totp", "approval.qq"],
+    "Medium": ["core", "broker", "audit", "approval.totp", "approval.qq", "webui"],
+    "High": ["core", "broker", "audit", "approval.totp", "approval.qq", "webui", "wfp_guard"]
+  },
+  "minimum": ["core", "broker", "audit", "approval.totp", "approval.channel"],
+  "approvalChannels": [
+    { "id": "approval.qq", "label": "QQ", "apiValue": "QQ" },
+    { "id": "approval.email", "label": "Email", "apiValue": "Email" }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿# Cyber-Butler v1.6.3 visual installer front-end.
+# Cyber-Butler v1.6.3 visual installer front-end.
 # The actual privileged installation still runs in a visible elevated console so
 # approval tokens and TOTP enrollment remain explicit, auditable user actions.
 
@@ -1518,6 +1518,7 @@ function Invoke-GuiPreflight {
         Write-GuiLog ('preflight: ' + $installPath)
         . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
         . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
+        . (Join-Path $installerRoot 'lib\Installer.Features.ps1')
         . (Join-Path $installerRoot 'lib\Installer.Preflight.ps1')
         $result = Get-CyberButlerPreflight -InstallPath $installPath
         $json = $result | ConvertTo-Json -Depth 6

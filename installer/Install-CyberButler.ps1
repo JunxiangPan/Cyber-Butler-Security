@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
   Cyber-Butler v1.6.3 installer.
@@ -11,6 +11,11 @@
 param(
     [ValidateSet('High', 'Medium', 'Light')]
     [string]$Tier = 'Medium',
+
+    [string[]]$FeatureIds = @(),
+    [ValidateSet('QQ', 'Email', '')]
+    [string]$ApprovalChannel = '',
+    [switch]$AcceptBelowMinimum,
 
     [string]$EnableIsolation = '',
 
@@ -117,6 +122,7 @@ $installerRoot = $PSScriptRoot
 . (Join-Path $installerRoot 'lib\Installer.Services.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Diagnostics.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Report.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Features.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Core.ps1')
 . (Join-Path $installerRoot 'lib\Installer.Python.ps1')
 
@@ -315,6 +321,22 @@ $resolution = Resolve-CyberButlerTier `
 if ($resolution.Errors.Count -gt 0) {
     Write-Output $resolution.PlanText
     exit (Get-InstallerExitCode -Name ValidationFailed)
+}
+
+$featureResolution = Resolve-CyberButlerFeatures `
+    -Tier $Tier `
+    -FeatureIds $FeatureIds `
+    -ApprovalChannel $ApprovalChannel `
+    -AcceptBelowMinimum:$AcceptBelowMinimum `
+    -Fields @{ OwnerQQ = $OwnerQQ; WebUIAdminEmail = $WebUIAdminEmail; SmtpHost = $SmtpHost; SmtpPort = [string]$SmtpPort; SmtpUser = $SmtpUser; SmtpAuthCode = [string]$SmtpSecret } `
+    -ManifestPath (Join-Path $installerRoot 'features.v1.json')
+if ($featureResolution.Errors.Count -gt 0) {
+    Write-Output ('FEATURE_ERRORS: ' + ($featureResolution.Errors -join '; '))
+    exit (Get-InstallerExitCode -Name ValidationFailed)
+}
+$script:CyberButlerFeatureResolution = $featureResolution
+if ($featureResolution.SecurityFloorWaived) {
+    Write-InstallerLine ('SecurityFloorWaived: ' + ($featureResolution.SecurityFloor.missing -join ', ')) -Level WARNING
 }
 
 if ([string]::IsNullOrWhiteSpace($AgentRuntimeAccount)) {

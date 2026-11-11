@@ -44,6 +44,12 @@ function New-CyberButlerReportModel {
         tier = $Tier
         effective_tier = $EffectiveTier
         isolation = [bool]$Isolation
+        selected_features = if ($script:CyberButlerFeatureResolution) { @($script:CyberButlerFeatureResolution.SelectedFeatures) } else { @() }
+        required_features = if ($script:CyberButlerFeatureResolution) { @($script:CyberButlerFeatureResolution.RequiredFeatures) } else { @() }
+        approval_channel = if ($script:CyberButlerFeatureResolution) { [string]$script:CyberButlerFeatureResolution.ApprovalChannel } else { '' }
+        security_floor = if ($script:CyberButlerFeatureResolution) { $script:CyberButlerFeatureResolution.SecurityFloor } else { $null }
+        security_floor_waived = if ($script:CyberButlerFeatureResolution) { [bool]$script:CyberButlerFeatureResolution.SecurityFloorWaived } else { $false }
+        feature_tier_label = if ($script:CyberButlerFeatureResolution) { [string]$script:CyberButlerFeatureResolution.TierLabel } else { $Tier }
         message = $Message
         diagnostics = $Diagnostics
         steps = $stepRows.ToArray()
@@ -74,6 +80,11 @@ function Format-CyberButlerReportMarkdown {
     $lines.Add(('- Tier: {0}' -f $Report.tier))
     $lines.Add(('- Effective: {0}' -f $Report.effective_tier))
     $lines.Add(('- Isolation: {0}' -f $Report.isolation))
+    if ($Report.feature_tier_label) { $lines.Add(('- Feature profile: {0}' -f $Report.feature_tier_label)) }
+    if ($Report.selected_features) { $lines.Add(('- Selected features: {0}' -f (@($Report.selected_features) -join ', '))) }
+    if ($Report.required_features) { $lines.Add(('- Required features: {0}' -f (@($Report.required_features) -join ', '))) }
+    if ($Report.approval_channel) { $lines.Add(('- Approval channel: {0}' -f $Report.approval_channel)) }
+    $lines.Add(('- Security floor waived: {0}' -f $Report.security_floor_waived))
     if ($Report.journal_path) { $lines.Add(('- Journal: {0}' -f $Report.journal_path)) }
     if ($Report.message) { $lines.Add(('- Message: {0}' -f $Report.message)) }
     $lines.Add('')

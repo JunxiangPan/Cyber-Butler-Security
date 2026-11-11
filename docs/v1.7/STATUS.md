@@ -60,3 +60,5 @@ v1.6.6 tag/release/assets untouched
 
 v1.7.0 RC is not claimed until the deep-water items required for the release
 are either implemented with evidence or explicitly deferred by the owner.
+
+| v1.7 feature model | **PARTIAL** | manifest + resolver + backend params/report + 12 resolver tests PASS; GUI dynamic features and feature-gated install flow NOT complete |
