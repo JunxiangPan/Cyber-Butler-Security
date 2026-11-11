@@ -39,6 +39,7 @@ function Resolve-CyberButlerFeatures {
     $warnings = New-Object System.Collections.Generic.List[string]
     $allIds = @($manifest.features | ForEach-Object { $_.id })
     $isCustom = @($FeatureIds).Count -gt 0
+    $explicitChannel = -not [string]::IsNullOrWhiteSpace($ApprovalChannel)
 
     if ($isCustom) {
         $selected = New-Object System.Collections.Generic.List[string]
@@ -123,7 +124,11 @@ function Resolve-CyberButlerFeatures {
             if ($requiredFields -notcontains $name) { $requiredFields.Add($name) }
             $value = [string]($Fields[$name])
             if ($field.required -and [string]::IsNullOrWhiteSpace($value)) {
-                $errors.Add(('Missing required field {0} for feature {1}.' -f $name, $id))
+                if ($isCustom -or $explicitChannel) {
+                    $errors.Add(('Missing required field {0} for feature {1}.' -f $name, $id))
+                } else {
+                    $warnings.Add(('LEGACY_TIER_FIELD_PENDING {0} for {1}' -f $name, $id))
+                }
             }
             if ($value) { $fieldValues[$name] = $value }
         }
