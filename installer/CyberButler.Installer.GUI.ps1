@@ -1519,6 +1519,7 @@ function Invoke-GuiPreflight {
         . (Join-Path $installerRoot 'lib\Installer.Common.ps1')
         . (Join-Path $installerRoot 'lib\Installer.Tier.ps1')
         . (Join-Path $installerRoot 'lib\Installer.Features.ps1')
+        . (Join-Path $installerRoot 'lib\Installer.FeatureDialog.ps1')
         . (Join-Path $installerRoot 'lib\Installer.Preflight.ps1')
         $result = Get-CyberButlerPreflight -InstallPath $installPath
         $json = $result | ConvertTo-Json -Depth 6
@@ -1600,22 +1601,30 @@ $startButton.Add_Click({
                 Write-GuiLog ((Get-UiText 'DefenderExclusionFailed') + $_.Exception.Message)
             }
         }
-        $adminEmailValue = ([string]$webUIEmailBox.Text).Trim()
-        $smtpAuthValue = [string]$smtpAuthBox.Password
-        $emailPattern = '^[^@\s]+@[^@\s]+\.[^@\s]+$'
-        if ($adminEmailValue -notmatch $emailPattern) {
-            [System.Windows.MessageBox]::Show('请输入合法的管理员邮箱（例如 admin@example.com）。Email TOTP 审批需要该邮箱。', (Get-UiText 'Title')) | Out-Null
-            return
-        }
-        if ([string]::IsNullOrWhiteSpace($smtpAuthValue)) {
-            [System.Windows.MessageBox]::Show('请输入 SMTP 授权码；没有它 WebUI 邮件 OTP 和 TOTP 邮件审批无法工作。', (Get-UiText 'Title')) | Out-Null
-            return
-        }
-        $smtpHostValue = ([string]$smtpHostBox.Text).Trim()
+        $featureChoice = Show-CyberButlerFeatureDialog -Tier $tierValue `
+            -OwnerQQ ([string]$ownerQQBox.Text) -WebUIAdminEmail ([string]$webUIEmailBox.Text) `
+            -SmtpHost ([string]$smtpHostBox.Text) -SmtpPort ([string]$smtpPortBox.Text) `
+            -SmtpUser '' -SmtpAuth ([string]$smtpAuthBox.Password)
+        if ($null -eq $featureChoice) { return }
+        $ownerQQValue = [string]$featureChoice.Fields['OwnerQQ']
+        $adminEmailValue = [string]$featureChoice.Fields['WebUIAdminEmail']
+        $smtpAuthValue = [string]$featureChoice.Fields['SmtpAuthCode']
+        $smtpHostValue = [string]$featureChoice.Fields['SmtpHost']
         $smtpPortValue = 0
-        if ([string]::IsNullOrWhiteSpace($smtpHostValue) -or -not [int]::TryParse(([string]$smtpPortBox.Text).Trim(), [ref]$smtpPortValue) -or $smtpPortValue -lt 1 -or $smtpPortValue -gt 65535) {
-            [System.Windows.MessageBox]::Show('请输入合法的 SMTP 主机和端口（例如 smtp.163.com / 465）。', (Get-UiText 'Title')) | Out-Null
-            return
+        if ($featureChoice.ApprovalChannel -eq 'Email') {
+            $emailPattern = '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+            if ($adminEmailValue -notmatch $emailPattern) {
+                [System.Windows.MessageBox]::Show('请输入合法的管理员邮箱（例如 admin@example.com）。Email 审批需要该邮箱。', (Get-UiText 'Title')) | Out-Null
+                return
+            }
+            if ([string]::IsNullOrWhiteSpace($smtpAuthValue)) {
+                [System.Windows.MessageBox]::Show('请输入 SMTP 授权码。', (Get-UiText 'Title')) | Out-Null
+                return
+            }
+            if ([string]::IsNullOrWhiteSpace($smtpHostValue) -or -not [int]::TryParse(([string]$featureChoice.Fields['SmtpPort']), [ref]$smtpPortValue) -or $smtpPortValue -lt 1 -or $smtpPortValue -gt 65535) {
+                [System.Windows.MessageBox]::Show('请输入合法的 SMTP 主机和端口。', (Get-UiText 'Title')) | Out-Null
+                return
+            }
         }
 
         Set-GuiBusy $true
@@ -1628,7 +1637,8 @@ $startButton.Add_Click({
         $installProgress.Value = 2
         Start-CyberButlerGuiInstall `
             -Window $window -InstallerPath $installerPath -InstallPath $installPath `
-            -Tier $tierValue -DesktopAccount $(try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name }) -OwnerQQ ([string]$ownerQQBox.Text) -WebUIBind $bindValue `
+            -Tier $tierValue -DesktopAccount $(try { [string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop).UserName } catch { [Security.Principal.WindowsIdentity]::GetCurrent().Name }) -OwnerQQ $ownerQQValue -WebUIBind $bindValue `
+            -FeatureIds $featureChoice.FeatureIds -ApprovalChannel $featureChoice.ApprovalChannel -AcceptBelowMinimum:([bool]$featureChoice.AcceptBelowMinimum) `
             -PersonalPluginsPath ([string]$personalPluginsBox.Text) `
             -ApiKeyFile ([string]$apiKeyFileBox.Text) `
             -WebUIAdminEmail ([string]$webUIEmailBox.Text) `

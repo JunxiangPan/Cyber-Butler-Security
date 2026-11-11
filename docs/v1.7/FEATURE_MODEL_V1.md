@@ -21,7 +21,8 @@
 
 ## Not yet complete
 
-- GUI does not yet render the dynamic feature checkbox list / lock icons / conditional fields / Custom warning dialog. It only dot-sources the shared resolver.
+- Feature dialog now renders dynamic checkboxes, tier presets, disabled required items, QQ/Email conditional fields, Custom label and below-minimum waiver confirmation.
+- The main WPF form still shows email/SMTP fields; the feature dialog is the authoritative selection. Installer component branching is still tier-based.
 - Installer execution still runs the existing tier pipeline; feature-specific component branches (WebUI/Mailer/WFP/AuxRuntime) are not yet fully gated by the resolved feature set.
 - WebUI login identity is not yet decoupled in the GUI; email/SMTP fields remain visible.
 

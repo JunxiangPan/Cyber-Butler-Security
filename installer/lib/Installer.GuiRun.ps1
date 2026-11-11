@@ -1,4 +1,4 @@
-﻿# GUI orchestration helpers for the Cyber-Butler installer.
+# GUI orchestration helpers for the Cyber-Butler installer.
 # Keep the privileged install in a hidden child process and surface only the
 # approval/TOTP steps through the WPF window.
 
@@ -435,6 +435,9 @@ function Start-CyberButlerGuiInstall {
         [Parameter(Mandatory = $true)][string]$InstallerPath,
         [Parameter(Mandatory = $true)][string]$InstallPath,
         [Parameter(Mandatory = $true)][string]$Tier,
+        [string[]]$FeatureIds = @(),
+        [string]$ApprovalChannel = '',
+        [switch]$AcceptBelowMinimum,
         [string]$DesktopAccount = '',
         [string]$OwnerQQ = '',
         [string]$WebUIBind = 'Loopback',
@@ -477,13 +480,15 @@ function Start-CyberButlerGuiInstall {
 
     $launchArgs = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $InstallerPath,
-        '-Tier', $Tier, '-InstallPath', $InstallPath, '-WebUIBind', $WebUIBind,
-        '-DesktopAccount', $desktopAccountValue,
+        '-Tier', $Tier, '-InstallPath', $InstallPath, '-WebUIBind', $WebUIBind,        '-DesktopAccount', $desktopAccountValue,
         '-NonInteractive', '-GuiMode', '-GuiSignalDirectory', $signalDir,
         '-TestConfigPath', $configPath,
         '-JournalRoot', 'C:\ProgramData\CyberButler\installer\state',
         '-ReportDirectory', (Join-Path $env:ProgramData 'CyberButler\installer-report')
     )
+    if (@($FeatureIds).Count -gt 0) { $launchArgs += @('-FeatureIds', (@($FeatureIds) -join ',')) }
+    if (-not [string]::IsNullOrWhiteSpace($ApprovalChannel)) { $launchArgs += @('-ApprovalChannel', $ApprovalChannel) }
+    if ($AcceptBelowMinimum) { $launchArgs += @('-AcceptBelowMinimum') }
     if (-not [string]::IsNullOrWhiteSpace($OwnerQQ)) { $launchArgs += @('-OwnerQQ', $OwnerQQ) }
     if (-not [string]::IsNullOrWhiteSpace($PersonalPluginsPath)) { $launchArgs += @('-PersonalPluginsPath', $PersonalPluginsPath) }
     if (-not [string]::IsNullOrWhiteSpace($WebUIAdminEmail)) { $launchArgs += @('-WebUIAdminEmail', $WebUIAdminEmail) }
