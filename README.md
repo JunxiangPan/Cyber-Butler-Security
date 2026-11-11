@@ -80,7 +80,8 @@ Use GitHub Security Advisories: <https://github.com/JunxiangPan/Cyber-Butler-Sec
 
 **CBF is not integrated yet.** Status: `PENDING_CBF_0.1.0`; there is **no CBF
 PASS** for this project or its releases. The `cbf-privacy-gate` CI job name is
-reserved as a name only; no workflow file is added in Phase 0. No
+reserved by a manual-only, fail-closed workflow; it is not wired to push/PR and
+never reports PASS. No
 `continue-on-error` / `if: false` bypass exists. See [`docs/CBF_ADOPTION.md`](docs/CBF_ADOPTION.md).
 
 Once CBF 0.1.0rc1 is available, this project must pin a CBF policy and run
