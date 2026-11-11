@@ -62,3 +62,5 @@ v1.7.0 RC is not claimed until the deep-water items required for the release
 are either implemented with evidence or explicitly deferred by the owner.
 
 | v1.7 feature model | **COMPLETE (code)** | manifest + resolver + GUI dialog + file-level payload gating + task gating; 14 resolver/payload tests PASS; CI green |
+
+| CBF adoption | **PENDING_CBF_0.1.0** | Phase 0 docs only; no CBF PASS; no runtime dependency; placeholder CI job fails closed on manual run |
