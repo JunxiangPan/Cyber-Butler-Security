@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
   Cyber-Butler v1.6.3 installer.
@@ -870,8 +870,8 @@ if (-not $failure -and ($GuiMode -or [string]::IsNullOrWhiteSpace($TestConfigPat
     $auditKey = Join-Path $InstallPath 'tools/audit_hmac.dpapi'
     if (-not (Test-Path -LiteralPath $auditKey)) {
         $keyBytes = New-Object byte[] 32
-        $protected = [Security.Cryptography.ProtectedData]::Protect($keyBytes, $null, [Security.Cryptography.DataProtectionScope]::LocalMachine)
         [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
+        $protected = [Security.Cryptography.ProtectedData]::Protect($keyBytes, $null, [Security.Cryptography.DataProtectionScope]::LocalMachine)
         [IO.File]::WriteAllBytes($auditKey, $protected)
         & icacls.exe $auditKey /inheritance:r /grant:r '*S-1-5-18:(R)' '*S-1-5-32-544:(F)' | Out-Null
     }
