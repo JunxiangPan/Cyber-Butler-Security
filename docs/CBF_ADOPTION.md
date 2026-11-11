@@ -12,7 +12,7 @@ compatibility or a completed gate.
 | Status | `PENDING_CBF_0.1.0` |
 | Surfaces | `git`, `api`, `local-ai` |
 | Planned gate | `cbf gate --surface git` |
-| Planned CI job | `cbf-privacy-gate` (reserved, **not active** in Phase 0) |
+| Planned CI job | `cbf-privacy-gate` (manual fail-closed placeholder in Phase 0) |
 | Evidence format | `cbf-evidence/v1` |
 
 ## Current state
@@ -20,9 +20,9 @@ compatibility or a completed gate.
 - CBF is **not installed** by this project and is not a runtime dependency.
 - No `cbf.policy.json` is pinned yet; Phase 1 adds it after CBF 0.1.0rc1.
 - No pre-push hook runs CBF yet.
-- The CI job name `cbf-privacy-gate` is reserved but intentionally absent from
-  active CI until Phase 1. It is not an `if: false` or `continue-on-error`
-  placeholder.
+- A manual-only `.github/workflows/cbf-privacy-gate.yml` reserves the job name;
+  it exits 1 with `CBF_PENDING_0.1.0`, is not wired to push/PR, and never
+  reports PASS. It uses neither `if: false` nor `continue-on-error`.
 - Historical releases/tags made before CBF 0.1.0 must not be described as CBF
   PASS.
 
