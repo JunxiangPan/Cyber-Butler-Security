@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Light CBS installed; High BLOCKED_HIGH_TIER (AgentRuntime package missing + local-user-management-unavailable); Q05/Q07/Q08/Q09 PASS; Q06 BLOCKED; Q10-Q17 BLOCKED; no 26/26 |
+| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Light CBS installed; High BLOCKED_AGENTRUNTIME_PACKAGE (account module fixed; package absent; no CyberButlerAgentRuntime service); Q05/Q07/Q08/Q09 PASS; Q06 BLOCKED; Q10-Q17 BLOCKED; no 26/26 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
