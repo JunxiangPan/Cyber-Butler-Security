@@ -21,5 +21,9 @@
   "clean_high_install": false,
   "clean_attempt": "removed C:\\CyberButler + ProgramData; pre-created CyberButlerSvc; High with -UseExistingServiceAccount",
   "failure": "ACCOUNT setup required: exists=False reason=local-user-management-unavailable; FAILED accounts",
-  "totp_reached": false
+  "totp_reached": false,
+  "release_package_contains_agentruntime": false,
+  "agentruntime_package_provided": false,
+  "high_service": "CyberButlerAgentRuntime NOT FOUND",
+  "blocker": "AgentRuntime package absent; High installer also fails local-user-management-unavailable; no a1-high-base"
 }
