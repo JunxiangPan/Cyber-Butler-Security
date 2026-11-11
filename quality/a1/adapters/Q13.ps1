@@ -32,10 +32,14 @@ function Broker([string]$method, [string]$path, [string]$json = '') {
         return $obj
     }
 }
-$req = Broker 'POST' '/request' '{"action":"delete","target":"C:\\cbs-a1\\q13.txt"}'
+$target = Join-Path $InstallRoot 'workspace\q13.txt'
+New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+Set-Content -LiteralPath $target -Value 'q13' -Encoding ASCII
+$body = @{ action = 'delete'; target = $target } | ConvertTo-Json -Compress
+$req = Broker 'POST' '/request' $body
 if (-not $req.id) { Blocked 'Q13_REQUEST_NOT_CREATED' }
 $code = $env:CBS_A1_TOTP
-if (-not $code) { Blocked 'Q13_TOTP_NOT_SUPPLIED' }
+if (-not $code) { Blocked ('Q13_TOTP_NOT_SUPPLIED REQUEST=' + $req.id) }
 $first = Broker 'POST' '/verify' ('{"id":"' + $req.id + '","code":"' + $code + '"}')
 $second = Broker 'POST' '/verify' ('{"id":"' + $req.id + '","code":"' + $code + '"}')
 if ($second.status -eq 429 -or $second.status -eq 403) { Pass 'TOTP_REPLAY_REJECTED' }

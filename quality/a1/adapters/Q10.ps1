@@ -20,14 +20,18 @@ function Broker([string]$method, [string]$path, [string]$json = '') {
         if ($json) { $params.ContentType = 'application/json'; $params.Body = $json }
         $response = Invoke-WebRequest @params
         $obj = if ($response.Content) { $response.Content | ConvertFrom-Json } else { [pscustomobject]@{} }
+        $bodyStatus = if ($obj.PSObject.Properties['status']) { [string]$obj.status } else { '' }
+        $obj | Add-Member -NotePropertyName body_status -NotePropertyValue $bodyStatus -Force
         $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
         return $obj
     } catch [System.Net.WebException] {
         $response = $_.Exception.Response
-        if ($null -eq $response) { return [pscustomobject]@{ status = 0; error = 'connection failed' } }
+        if ($null -eq $response) { return [pscustomobject]@{ status = 0; body_status = ''; error = 'connection failed' } }
         $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
         try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
         $obj = if ($body) { $body | ConvertFrom-Json } else { [pscustomobject]@{} }
+        $bodyStatus = if ($obj.PSObject.Properties['status']) { [string]$obj.status } else { '' }
+        $obj | Add-Member -NotePropertyName body_status -NotePropertyValue $bodyStatus -Force
         $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
         return $obj
     }
@@ -35,7 +39,7 @@ function Broker([string]$method, [string]$path, [string]$json = '') {
 $end = (Get-Date).AddMinutes(60)
 if ($TimeoutMinutes -lt 60) { Blocked 'SOAK_TIMEOUT_TOO_SHORT' }
 while ((Get-Date) -lt $end) {
-    try { $r = Broker 'GET' '/health'; if ($r.status -ne 'ok') { Blocked 'SOAK_HEALTH_FAILED' } } catch { Blocked 'SOAK_BROKER_DOWN' }
+    try { $r = Broker 'GET' '/health'; if ($r.status -ne 200 -or $r.body_status -ne 'ok') { Blocked ('SOAK_HEALTH_FAILED HTTP=' + [string]$r.status + ' BODY=' + [string]$r.body_status) } } catch { Blocked 'SOAK_BROKER_DOWN' }
     Start-Sleep -Seconds 60
 }
 Pass 'ONE_HOUR_SOAK_STABLE'
