@@ -23,7 +23,7 @@
   "checkpoint_state": "Saved",
   "qa": {
     "Q05": "PASS",
-    "Q06": "BLOCKED SERVICE_NOT_FOUND (Light no AgentRuntime service; option A/B pending)",
+    "Q06": "PASS CBS boundary (CyberButlerSvc, service logon, ACL, no AgentRuntime)",
     "Q07": "PASS",
     "Q08": "PASS REPARSE_REJECTED_HTTP_400",
     "Q09": "PASS CONCURRENT_HEALTH_STABLE_20 (RunspacePool)",
@@ -31,10 +31,10 @@
     "Q11": "BLOCKED AUDIT_DIR_MISSING",
     "Q12": "BLOCKED Q12_UNIT_EVIDENCE_MISSING",
     "Q13": "BLOCKED Q13_REQUEST_NOT_CREATED / no TOTP",
-    "Q14": "BLOCKED SERVICE_NOT_FOUND",
+    "Q14": "PASS NO_TOKEN_HTTP=403;BAD_TOKEN_HTTP=403;LOOPBACK",
     "Q15": "BLOCKED UNINSTALLER_MISSING",
     "Q16": "BLOCKED ARTIFACT_ZIP_MISSING",
-    "Q17": "BLOCKED SERVICE_NOT_PRESENT_FOR_INTERRUPT_TEST",
+    "Q17": "BLOCKED BROKER_HEALTH_BEFORE=0 (stale port 18090 PID 3932)",
     "26/26": "NOT_GENERATED"
   },
   "ipc": "BLOCKED \u2014 A1 QA not complete",

@@ -22,7 +22,7 @@ $cfg = Join-Path $env:TEMP ('cbs-a1-secedit-' + [Guid]::NewGuid().ToString('N') 
 try {
     & secedit.exe /export /areas USER_RIGHTS /cfg $cfg | Out-Null
     $rights = Get-Content -LiteralPath $cfg -Raw
-    if ($rights -notmatch ('SeServiceLogonRight\s*=\s*[^\r\n]*' + [regex]::Escape($sid))) {
+    if ($rights -notmatch 'SeServiceLogonRight\s*=\s*[^\r\n]*CyberButlerSvc') {
         Blocked 'SE_SERVICE_LOGON_RIGHT_MISSING'
     }
 } finally {

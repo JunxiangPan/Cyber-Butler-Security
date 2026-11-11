@@ -20,6 +20,11 @@ $auditDir = Join-Path $InstallRoot 'tools\logs'
 if (-not (Test-Path $auditDir)) { Blocked 'AUDIT_DIR_MISSING' }
 Stop-ScheduledTask -TaskName $taskName -ErrorAction Stop
 Start-Sleep -Seconds 3
+$owners = @(Get-NetTCPConnection -State Listen -LocalPort 18090 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique)
+foreach ($ownerPid in $owners) {
+    if ($ownerPid -gt 0) { Stop-Process -Id $ownerPid -Force -ErrorAction SilentlyContinue }
+}
+Start-Sleep -Seconds 2
 $during = & $health
 Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
 $after = 0

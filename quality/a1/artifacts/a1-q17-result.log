@@ -1,0 +1,2 @@
+BLOCKED:BROKER_HEALTH_BEFORE=0 (stale port 18090 PID 3932; broker restart refused)
+EXIT=3
