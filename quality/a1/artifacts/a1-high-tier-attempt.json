@@ -18,5 +18,8 @@
   "clean_pre_light_checkpoint": false,
   "totp_helper": "PASS in temp with C:\\CyberButler\\webui\\.venv python",
   "totp_failure_cause": "existing Light TOTP/vault on upgrade; a1-clean-base is post-Light, no pre-Light clean checkpoint",
-  "clean_high_install": false
+  "clean_high_install": false,
+  "clean_attempt": "removed C:\\CyberButler + ProgramData; pre-created CyberButlerSvc; High with -UseExistingServiceAccount",
+  "failure": "ACCOUNT setup required: exists=False reason=local-user-management-unavailable; FAILED accounts",
+  "totp_reached": false
 }
