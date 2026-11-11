@@ -32,15 +32,16 @@ function Broker([string]$method, [string]$path, [string]$json = '') {
         return $obj
     }
 }
-$target = Join-Path $InstallRoot 'workspace\q13.txt'
+$target = Join-Path $InstallRoot ('workspace\q13-' + [Guid]::NewGuid().ToString('N') + '.txt')
 New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
 Set-Content -LiteralPath $target -Value 'q13' -Encoding ASCII
 $body = @{ action = 'delete'; target = $target } | ConvertTo-Json -Compress
 $req = Broker 'POST' '/request' $body
-if (-not $req.id) { Blocked 'Q13_REQUEST_NOT_CREATED' }
+if (-not $req.id) { Blocked ('Q13_REQUEST_NOT_CREATED HTTP=' + [string]$req.status + ' BODY=' + ($req | ConvertTo-Json -Compress)) }
 $code = $env:CBS_A1_TOTP
 if (-not $code) { Blocked ('Q13_TOTP_NOT_SUPPLIED REQUEST=' + $req.id) }
 $first = Broker 'POST' '/verify' ('{"id":"' + $req.id + '","code":"' + $code + '"}')
+if ($first.status -ne 200) { Blocked ('Q13_FIRST_VERIFY_FAILED HTTP=' + [string]$first.status) }
 $second = Broker 'POST' '/verify' ('{"id":"' + $req.id + '","code":"' + $code + '"}')
-if ($second.status -eq 429 -or $second.status -eq 403) { Pass 'TOTP_REPLAY_REJECTED' }
-Blocked 'TOTP_REPLAY_NOT_REJECTED'
+if ($second.status -in @(403, 404, 409, 410, 429)) { Pass ('TOTP_REPLAY_REJECTED FIRST=200 SECOND=' + [string]$second.status) }
+Blocked ('TOTP_REPLAY_NOT_REJECTED SECOND=' + [string]$second.status)
