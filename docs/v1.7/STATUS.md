@@ -64,3 +64,5 @@ are either implemented with evidence or explicitly deferred by the owner.
 | v1.7 feature model | **COMPLETE (code)** | manifest + resolver + GUI dialog + file-level payload gating + task gating; 14 resolver/payload tests PASS; CI green |
 
 | CBF adoption | **PENDING_CBF_0.1.0** | Phase 0 docs-only; scans repo/package/fixtures/release zip only; no runtime dependency; no workflow yet; no CBF PASS |
+
+| A1 Q15 | **IMPLEMENTED, NOT YET RUN** | installer/Uninstall-CyberButler.ps1 added; uninstall test pending Q10 completion and A1 checkpoint restore |
