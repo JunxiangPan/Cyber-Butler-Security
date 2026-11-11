@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Light CBS installed; High BLOCKED_AGENTRUNTIME_PACKAGE (account module fixed; package absent; no CyberButlerAgentRuntime service); Q05/Q07/Q08/Q09 PASS; Q05-Q09/Q11/Q12/Q14/Q17 PASS; Q10 soak running; Q13/Q15/Q16 BLOCKED; A1 9/13; no 26/26 |
+| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Q05-Q09/Q11/Q12/Q14/Q17 PASS; Q10 soak running; Q13/Q15/Q16 BLOCKED; A1 9/13; no 26/26 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
@@ -61,4 +61,4 @@ v1.6.6 tag/release/assets untouched
 v1.7.0 RC is not claimed until the deep-water items required for the release
 are either implemented with evidence or explicitly deferred by the owner.
 
-| v1.7 feature model | **PARTIAL** | manifest + resolver + backend params/report + 12 resolver tests PASS; GUI dynamic features and feature-gated install flow NOT complete |
+| v1.7 feature model | **COMPLETE (code)** | manifest + resolver + GUI dialog + file-level payload gating + task gating; 14 resolver/payload tests PASS; CI green |
