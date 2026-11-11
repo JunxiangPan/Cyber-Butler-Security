@@ -1,6 +1,8 @@
 # Local service-account lifecycle for the Cyber-Butler installer.
 # Dot-source Installer.Common.ps1 and Installer.Journal.ps1 first.
 
+Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction SilentlyContinue
+
 if (-not ('CyberButler.LsaRights' -as [type])) {
     Add-Type -Path (Join-Path $PSScriptRoot 'CyberButlerLsaRights.cs')
 }

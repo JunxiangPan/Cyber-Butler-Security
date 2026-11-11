@@ -1,5 +1,5 @@
 {
-  "status": "BLOCKED_HIGH_TIER",
+  "status": "BLOCKED_AGENTRUNTIME_PACKAGE",
   "tier": "High",
   "install_path": "C:\\CyberButler",
   "service_found": false,
@@ -25,5 +25,8 @@
   "release_package_contains_agentruntime": false,
   "agentruntime_package_provided": false,
   "high_service": "CyberButlerAgentRuntime NOT FOUND",
-  "blocker": "AgentRuntime package absent; High installer also fails local-user-management-unavailable; no a1-high-base"
+  "blocker": "release zip has no AgentRuntime package; CyberButlerAgentRuntime service not created",
+  "account_fix": "Import-Module Microsoft.PowerShell.LocalAccounts added to Installer.Accounts.ps1",
+  "account_fix_result": "High reached TOTP and service-registration stage",
+  "a1_high_base": false
 }
