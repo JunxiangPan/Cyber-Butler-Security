@@ -1,4 +1,4 @@
-# Cyber-Butler v1.6.3 visual installer front-end.
+﻿# Cyber-Butler v1.6.3 visual installer front-end.
 # The actual privileged installation still runs in a visible elevated console so
 # approval tokens and TOTP enrollment remain explicit, auditable user actions.
 
