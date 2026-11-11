@@ -1,4 +1,4 @@
-# A1 Q06: service account boundary
+# A1 Q06: CBS service-account boundary (owner-approved redefinition; AgentRuntime external)
 # Exit 0 only for a real PASS; exit 3 for blocked or failed prerequisites.
 param(
     [string]$ArtifactZip = '',
@@ -10,29 +10,29 @@ $InstallRoot = 'C:\CyberButler'
 function Blocked([string]$reason) { Write-Output ('BLOCKED:' + $reason); exit 3 }
 function Pass([string]$reason) { Write-Output ('PASS:' + $reason); exit 0 }
 if (-not (Test-Path $InstallRoot)) { Blocked 'QA_VM_NOT_PROVISIONED' }
-if (-not (Test-Path (Join-Path $InstallRoot 'tools\broker_token.txt'))) { Blocked 'BROKER_TOKEN_MISSING' }
-$token = (Get-Content (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Trim()
-$base = 'http://127.0.0.1:18090'
-function Broker([string]$method, [string]$path, [string]$json = '') {
-    $headers = @{ 'X-Broker-Token' = $token }
-    try {
-        $params = @{ UseBasicParsing = $true; Method = $method; Uri = ($base + $path); Headers = $headers; TimeoutSec = 20 }
-        if ($json) { $params.ContentType = 'application/json'; $params.Body = $json }
-        $response = Invoke-WebRequest @params
-        $obj = if ($response.Content) { $response.Content | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
-    } catch [System.Net.WebException] {
-        $response = $_.Exception.Response
-        if ($null -eq $response) { return [pscustomobject]@{ status = 0; error = 'connection failed' } }
-        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
-        try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
-        $obj = if ($body) { $body | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
+Import-Module Microsoft.PowerShell.LocalAccounts -ErrorAction SilentlyContinue
+$user = Get-LocalUser -Name 'CyberButlerSvc' -ErrorAction SilentlyContinue
+if (-not $user) { Blocked 'CYBERBUTLERSVC_MISSING' }
+if (-not $user.Enabled) { Blocked 'CYBERBUTLERSVC_DISABLED' }
+$sid = [string]$user.SID.Value
+$admins = @(Get-LocalGroupMember -SID 'S-1-5-32-544' -ErrorAction SilentlyContinue)
+$inAdmins = @($admins | Where-Object { [string]$_.SID.Value -eq $sid }).Count -gt 0
+if ($inAdmins) { Blocked 'CYBERBUTLERSVC_IS_ADMIN' }
+$cfg = Join-Path $env:TEMP ('cbs-a1-secedit-' + [Guid]::NewGuid().ToString('N') + '.inf')
+try {
+    & secedit.exe /export /areas USER_RIGHTS /cfg $cfg | Out-Null
+    $rights = Get-Content -LiteralPath $cfg -Raw
+    if ($rights -notmatch ('SeServiceLogonRight\s*=\s*[^\r\n]*' + [regex]::Escape($sid))) {
+        Blocked 'SE_SERVICE_LOGON_RIGHT_MISSING'
     }
+} finally {
+    if (Test-Path -LiteralPath $cfg) { Remove-Item -LiteralPath $cfg -Force -ErrorAction SilentlyContinue }
 }
-$svc = Get-CimInstance Win32_Service -Filter "Name='CyberButlerAgentRuntime'" -ErrorAction SilentlyContinue
-if (-not $svc) { Blocked 'SERVICE_NOT_FOUND' }
-if ($svc.StartName -notmatch 'CyberButlerSvc|cyberbutler') { Blocked ('SERVICE_ACCOUNT=' + $svc.StartName) }
-Pass 'SERVICE_ACCOUNT_DEDICATED'
+$acl = Get-Acl -LiteralPath $InstallRoot
+$serviceAce = @($acl.Access | Where-Object {
+    try { [string]$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid } catch { $false }
+})
+if ($serviceAce.Count -eq 0) { Blocked 'CBS_DATA_ACL_MISSING_SERVICE_ACE' }
+$agentService = Get-Service -Name 'CyberButlerAgentRuntime' -ErrorAction SilentlyContinue
+if ($agentService) { Blocked 'CBS_HOLDS_AGENTRUNTIME_IDENTITY' }
+Pass ('SID=' + $sid + ';ACL_ACES=' + $serviceAce.Count + ';SERVICE_LOGON=YES;AGENTRUNTIME=EXTERNAL')

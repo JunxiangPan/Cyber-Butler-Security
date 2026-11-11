@@ -1,4 +1,4 @@
-# A1 Q17: interrupted install state
+# A1 Q17: CBS Broker task interrupt/recovery (owner-approved redefinition)
 # Exit 0 only for a real PASS; exit 3 for blocked or failed prerequisites.
 param(
     [string]$ArtifactZip = '',
@@ -10,28 +10,29 @@ $InstallRoot = 'C:\CyberButler'
 function Blocked([string]$reason) { Write-Output ('BLOCKED:' + $reason); exit 3 }
 function Pass([string]$reason) { Write-Output ('PASS:' + $reason); exit 0 }
 if (-not (Test-Path $InstallRoot)) { Blocked 'QA_VM_NOT_PROVISIONED' }
-if (-not (Test-Path (Join-Path $InstallRoot 'tools\broker_token.txt'))) { Blocked 'BROKER_TOKEN_MISSING' }
-$token = (Get-Content (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Trim()
-$base = 'http://127.0.0.1:18090'
-function Broker([string]$method, [string]$path, [string]$json = '') {
-    $headers = @{ 'X-Broker-Token' = $token }
-    try {
-        $params = @{ UseBasicParsing = $true; Method = $method; Uri = ($base + $path); Headers = $headers; TimeoutSec = 20 }
-        if ($json) { $params.ContentType = 'application/json'; $params.Body = $json }
-        $response = Invoke-WebRequest @params
-        $obj = if ($response.Content) { $response.Content | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
-    } catch [System.Net.WebException] {
-        $response = $_.Exception.Response
-        if ($null -eq $response) { return [pscustomobject]@{ status = 0; error = 'connection failed' } }
-        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
-        try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
-        $obj = if ($body) { $body | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
-    }
+$taskName = 'Cyber-Butler Broker'
+$task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+if (-not $task) { Blocked 'BROKER_TASK_MISSING' }
+$health = { try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:18090/health' -TimeoutSec 5; return [int]$r.StatusCode } catch { return 0 } }
+$before = & $health
+if ($before -ne 200) { Blocked ('BROKER_HEALTH_BEFORE=' + $before) }
+$auditDir = Join-Path $InstallRoot 'tools\logs'
+if (-not (Test-Path $auditDir)) { Blocked 'AUDIT_DIR_MISSING' }
+Stop-ScheduledTask -TaskName $taskName -ErrorAction Stop
+Start-Sleep -Seconds 3
+$during = & $health
+Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+$after = 0
+for ($i = 0; $i -lt 30; $i++) {
+    Start-Sleep -Seconds 2
+    $after = & $health
+    if ($after -eq 200) { break }
 }
-$svc = Get-Service CyberButlerAgentRuntime -ErrorAction SilentlyContinue
-if (-not $svc) { Blocked 'SERVICE_NOT_PRESENT_FOR_INTERRUPT_TEST' }
-Pass 'SERVICE_PRESENT_FOR_INTERRUPT_TEST'
+if ($after -ne 200) { Blocked ('BROKER_HEALTH_AFTER=' + $after) }
+$tasks = @(Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName })
+if ($tasks.Count -ne 1) { Blocked ('BROKER_TASK_COUNT=' + $tasks.Count) }
+$agentService = Get-Service -Name 'CyberButlerAgentRuntime' -ErrorAction SilentlyContinue
+if ($agentService) { Blocked 'CBS_HOLDS_AGENTRUNTIME_SERVICE' }
+$latest = Get-ChildItem $auditDir -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if (-not $latest) { Blocked 'AUDIT_LOG_EMPTY' }
+Pass ('BEFORE=' + $before + ';DURING=' + $during + ';AFTER=' + $after + ';TASK_COUNT=' + $tasks.Count + ';AUDIT=' + $latest.Name)

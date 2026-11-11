@@ -71,7 +71,7 @@ perform a real-machine Light acceptance. Those are manual release gates.
 | P0-2 external adapter | `sdk/adapters/broker_tools.py`; `sdk/conformance/run_adapter.py` | PASS |
 | P0-4 coverage | `quality/coverage_gate.py`; CI 85.16% | PASS |
 | P0-7 Q24/Q26 | package `public-release-v1.6.6.zip`; 2 passed | PASS |
-| A1 | UEFI boot failed; no clean VM/snapshot | BLOCKED_INSTALL_MEDIA |
+| A1 | Gen2 VHDX boot + CBS High/partial; Q06/Q14/Q17 redefined 2026-11-11 (AgentRuntime external; CBS boundary) | PARTIAL |
 | Temporal Replay / Diff Boundary / IPC / MXC | see [v1.7 status](v1.7/STATUS.md) | design / not PASS |
 
 ## 4. Required release gates
