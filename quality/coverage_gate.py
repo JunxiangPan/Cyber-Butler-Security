@@ -32,7 +32,7 @@ def main() -> int:
         env = dict(os.environ)
         env["COVERAGE_FILE"] = str(data)
         run = subprocess.run(
-            [sys.executable, "-m", "coverage", "run", "--source=.", "-m", "pytest", "-q", *TESTS,
+            [sys.executable, "-m", "coverage", "run", "--source=.", "-m", "pytest", "-q", "--tb=short", "-rf", "--durations=10", *TESTS,
              "--basetemp", str(Path(temp) / "pytest"), "-p", "no:cacheprovider"],
             cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env,
         )
