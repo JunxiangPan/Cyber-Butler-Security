@@ -175,6 +175,7 @@ function Test-CyberButlerServices {
         [string]$ServiceAccount = 'CyberButlerSvc',
         [string]$DesktopAccount = '',
         [bool]$Isolation = $false,
+        [string[]]$Features = @(),
         $Handlers = @{}
     )
 
@@ -197,6 +198,18 @@ function Test-CyberButlerServices {
     }
 
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
+    if (@($Features).Count -gt 0) {
+        $specs = @($specs | Where-Object {
+            switch ($_.name) {
+                'Cyber-Butler Broker' { $Features -contains 'broker' }
+                'Cyber-Butler WFP Guard' { $Features -contains 'wfp_guard' }
+                'Cyber-Butler Web UI Services' { $Features -contains 'webui' }
+                'Cyber-Butler OTP Mailer' { $Features -contains 'otp_mailer' }
+                'Game Mode Startup' { $Features -contains 'webui' }
+                default { $false }
+            }
+        })
+    }
     $taskRows = New-Object System.Collections.Generic.List[object]
     foreach ($spec in $specs) {
         $task = Get-ScheduledTask -TaskName $spec.name -ErrorAction SilentlyContinue
@@ -363,6 +376,7 @@ function Set-CyberButlerServiceTasks {
         [string]$DesktopAccount = '',
         [string]$ServiceAccountPassword = '',
         [bool]$Isolation = $false,
+        [string[]]$Features = @(),
         [string]$JournalStep = 'services',
         $Journal = $null,
         $Handlers = @{}
@@ -375,6 +389,18 @@ function Set-CyberButlerServiceTasks {
     }
 
     $specs = Get-CyberButlerServiceSpecs -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation
+    if (@($Features).Count -gt 0) {
+        $specs = @($specs | Where-Object {
+            switch ($_.name) {
+                'Cyber-Butler Broker' { $Features -contains 'broker' }
+                'Cyber-Butler WFP Guard' { $Features -contains 'wfp_guard' }
+                'Cyber-Butler Web UI Services' { $Features -contains 'webui' }
+                'Cyber-Butler OTP Mailer' { $Features -contains 'otp_mailer' }
+                'Game Mode Startup' { $Features -contains 'webui' }
+                default { $false }
+            }
+        })
+    }
     if (@($specs | Where-Object { $_.principal -eq 'service' }).Count -gt 0) {
         # Task Scheduler must be reachable before registering a service task.
         # Restart-Service on a protected Schedule service produced a misleading
@@ -672,6 +698,7 @@ function Invoke-CyberButlerServices {
         [string]$DesktopAccount = '',
         [string]$ServiceAccountPassword = '',
         [bool]$Isolation = $false,
+        [string[]]$Features = @(),
         [string]$JournalStep = 'services',
         $Journal = $null,
         [string]$Approval = '',
@@ -682,7 +709,7 @@ function Invoke-CyberButlerServices {
         $Handlers = @{}
     )
 
-    $test = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Handlers $Handlers
+    $test = Test-CyberButlerServices -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -Isolation $Isolation -Features $Features -Handlers $Handlers
     $base = [ordered]@{ module = 'services'; step = $JournalStep; root = $Root; test = $test; changed = $false }
     if ($test.satisfied) {
         $base.status = 'skipped'
@@ -724,7 +751,7 @@ function Invoke-CyberButlerServices {
     $serviceAssertion = $null
     $diagnosticsPath = $null
     try {
-        $applied = Set-CyberButlerServiceTasks -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -ServiceAccountPassword $ServiceAccountPassword -Isolation $Isolation -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
+        $applied = Set-CyberButlerServiceTasks -Root $Root -ServiceAccount $ServiceAccount -DesktopAccount $DesktopAccount -ServiceAccountPassword $ServiceAccountPassword -Isolation $Isolation -Features $Features -Journal $Journal -JournalStep $JournalStep -Handlers $Handlers
         $createdTasks = @($applied.created)
         $startedPids = @($applied.started_process_ids | Where-Object { $_ })
         if ($applied.task_backups) { $taskBackups = $applied.task_backups }

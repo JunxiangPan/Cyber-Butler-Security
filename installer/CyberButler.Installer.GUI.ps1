@@ -125,7 +125,7 @@ $xaml = @'
             <ComboBoxItem Content="LAN" Tag="LAN"/>
           </ComboBox>
 
-          <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
+          <Border x:Name="EmailPanel" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
                   Background="#0B182B" BorderBrush="#1D4ED8" BorderThickness="1"
                   CornerRadius="8" Padding="14" Margin="0,16,0,4">
             <Grid>
@@ -261,6 +261,7 @@ $window = [System.Windows.Markup.XamlReader]::Load($reader)
 $installPathBox = $window.FindName('InstallPathBox')
 $tierBox = $window.FindName('TierBox')
 $ownerQQBox = $window.FindName('OwnerQQBox')
+$emailPanel = $window.FindName('EmailPanel')
 $bindBox = $window.FindName('BindBox')
 $personalPluginsBox = $window.FindName('PersonalPluginsBox')
 $apiKeyFileBox = $window.FindName('ApiKeyFileBox')
@@ -1606,6 +1607,13 @@ $startButton.Add_Click({
             -SmtpHost ([string]$smtpHostBox.Text) -SmtpPort ([string]$smtpPortBox.Text) `
             -SmtpUser '' -SmtpAuth ([string]$smtpAuthBox.Password)
         if ($null -eq $featureChoice) { return }
+        if ($featureChoice.ApprovalChannel -eq 'Email') {
+            if ($emailPanel) { $emailPanel.Visibility = 'Visible' }
+            if ($ownerQQBox) { $ownerQQBox.IsEnabled = $false }
+        } else {
+            if ($emailPanel) { $emailPanel.Visibility = 'Collapsed' }
+            if ($ownerQQBox) { $ownerQQBox.IsEnabled = $true }
+        }
         $ownerQQValue = [string]$featureChoice.Fields['OwnerQQ']
         $adminEmailValue = [string]$featureChoice.Fields['WebUIAdminEmail']
         $smtpAuthValue = [string]$featureChoice.Fields['SmtpAuthCode']
