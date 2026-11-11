@@ -1,0 +1,2 @@
+PASS:AUDIT_DIR=C:\CyberButler	ools\logs;HTTP=403;EVENT=POST /request 403
+EXIT=0

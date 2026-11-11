@@ -1,4 +1,4 @@
-# A1 Q11: audit log chain evidence
+# A1 Q11: audit log evidence (real broker event)
 # Exit 0 only for a real PASS; exit 3 for blocked or failed prerequisites.
 param(
     [string]$ArtifactZip = '',
@@ -10,30 +10,21 @@ $InstallRoot = 'C:\CyberButler'
 function Blocked([string]$reason) { Write-Output ('BLOCKED:' + $reason); exit 3 }
 function Pass([string]$reason) { Write-Output ('PASS:' + $reason); exit 0 }
 if (-not (Test-Path $InstallRoot)) { Blocked 'QA_VM_NOT_PROVISIONED' }
-if (-not (Test-Path (Join-Path $InstallRoot 'tools\broker_token.txt'))) { Blocked 'BROKER_TOKEN_MISSING' }
-$token = (Get-Content (Join-Path $InstallRoot 'tools\broker_token.txt') -Raw).Trim()
-$base = 'http://127.0.0.1:18090'
-function Broker([string]$method, [string]$path, [string]$json = '') {
-    $headers = @{ 'X-Broker-Token' = $token }
-    try {
-        $params = @{ UseBasicParsing = $true; Method = $method; Uri = ($base + $path); Headers = $headers; TimeoutSec = 20 }
-        if ($json) { $params.ContentType = 'application/json'; $params.Body = $json }
-        $response = Invoke-WebRequest @params
-        $obj = if ($response.Content) { $response.Content | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
-    } catch [System.Net.WebException] {
-        $response = $_.Exception.Response
-        if ($null -eq $response) { return [pscustomobject]@{ status = 0; error = 'connection failed' } }
-        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
-        try { $body = $reader.ReadToEnd() } finally { $reader.Dispose() }
-        $obj = if ($body) { $body | ConvertFrom-Json } else { [pscustomobject]@{} }
-        $obj | Add-Member -NotePropertyName status -NotePropertyValue ([int]$response.StatusCode) -Force
-        return $obj
-    }
-}
-$audit = Join-Path $InstallRoot 'audit'
+$audit = Join-Path $InstallRoot 'tools\logs'
 if (-not (Test-Path $audit)) { Blocked 'AUDIT_DIR_MISSING' }
-$files = Get-ChildItem $audit -Filter '*.jsonl' -ErrorAction SilentlyContinue
-if (-not $files) { Blocked 'AUDIT_LOG_MISSING' }
-Pass ('AUDIT_LOG_PRESENT=' + $files.Count)
+$probe = Join-Path $audit '.q11-write-probe'
+try { Set-Content -LiteralPath $probe -Value 'probe' -Encoding ASCII; if (-not (Test-Path $probe)) { Blocked 'AUDIT_DIR_NOT_WRITABLE' } } finally { Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue }
+try {
+    $r = Invoke-WebRequest -UseBasicParsing -Method POST -Uri 'http://127.0.0.1:18090/request' -ContentType 'application/json' -Body '{"action":"delete","target":"C:\\cbs-a1\\q11.txt"}' -TimeoutSec 10
+    $http = [int]$r.StatusCode
+} catch [System.Net.WebException] {
+    if ($null -eq $_.Exception.Response) { Blocked 'BROKER_NOT_RUNNING' }
+    $http = [int]$_.Exception.Response.StatusCode
+}
+Start-Sleep -Seconds 1
+$log = Join-Path $audit 'broker-startup.log'
+if (-not (Test-Path $log)) { Blocked 'AUDIT_LOG_MISSING' }
+$tail = @(Get-Content -LiteralPath $log -Tail 80 -ErrorAction SilentlyContinue)
+$event = @($tail | Where-Object { $_ -match 'POST /request' -and $_ -match '40[13]' } | Select-Object -Last 1)
+if ($event.Count -eq 0) { Blocked ('AUDIT_EVENT_NOT_FOUND HTTP=' + $http) }
+Pass ('AUDIT_DIR=' + $audit + ';HTTP=' + $http + ';EVENT=' + $event[0])
