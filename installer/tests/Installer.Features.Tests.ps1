@@ -2,6 +2,8 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerRoot = Split-Path -Parent $here
 $manifestPath = Join-Path $installerRoot 'features.v1.json'
 . (Join-Path $installerRoot 'lib\Installer.Features.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Common.ps1')
+. (Join-Path $installerRoot 'lib\Installer.Core.ps1')
 
 Describe 'Cyber-Butler feature resolver v1.7.0' {
     It 'Light preset is the minimum feature set' {
@@ -73,6 +75,31 @@ Describe 'Cyber-Butler feature resolver v1.7.0' {
     It 'Uses the same resolver module for GUI and CLI' {
         $gui = Get-Content -LiteralPath (Join-Path $installerRoot 'CyberButler.Installer.GUI.ps1') -Raw
         (($gui -match 'Installer.Features.ps1') -or ($gui -match 'Resolve-CyberButlerFeatures')) | Should Be $true
+    }
+
+
+    It 'Does not leave unselected WebUI/Mailer/WFP/AuxRuntime payload on disk' {
+        $root = Join-Path $TestDrive 'payload'
+        New-Item -ItemType Directory -Path (Join-Path $root 'webui') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $root 'tools') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $root 'AgentRuntime') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $root 'webui/run.py') -Value 'x' -Encoding ASCII
+        Set-Content -LiteralPath (Join-Path $root 'webui/otp_mailer.py') -Value 'x' -Encoding ASCII
+        Set-Content -LiteralPath (Join-Path $root 'tools/wfp_guard.py') -Value 'x' -Encoding ASCII
+        $removed = @(Remove-CyberButlerUnselectedPayload -Root $root -Features @('core','broker','audit','approval.totp','approval.qq','webui'))
+        (Test-Path (Join-Path $root 'webui/run.py')) | Should Be $true
+        (Test-Path (Join-Path $root 'webui/otp_mailer.py')) | Should Be $false
+        (Test-Path (Join-Path $root 'tools/wfp_guard.py')) | Should Be $false
+        (Test-Path (Join-Path $root 'AgentRuntime')) | Should Be $false
+        ($removed -contains 'webui/otp_mailer.py') | Should Be $true
+    }
+
+    It 'Removes the whole WebUI tree when neither webui nor otp_mailer is selected' {
+        $root = Join-Path $TestDrive 'payload2'
+        New-Item -ItemType Directory -Path (Join-Path $root 'webui') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $root 'webui/run.py') -Value 'x' -Encoding ASCII
+        $null = Remove-CyberButlerUnselectedPayload -Root $root -Features @('core','broker','audit','approval.totp','approval.qq')
+        (Test-Path (Join-Path $root 'webui')) | Should Be $false
     }
 
     It 'Report model contains feature fields' {

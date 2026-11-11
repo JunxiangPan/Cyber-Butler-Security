@@ -23,8 +23,9 @@
 
 - Feature dialog now renders dynamic checkboxes, tier presets, disabled required items, QQ/Email conditional fields, Custom label and below-minimum waiver confirmation.
 - The main WPF form still shows email/SMTP fields; the feature dialog is the authoritative selection. Installer component branching is still tier-based.
-- Service task registration is now gated by selected features (broker/webui/otp_mailer/wfp_guard).
-- Core payload deployment still copies the common payload; WebUI/AuxRuntime files are not yet removed for unselected features.
+- Service task registration is gated by selected features (broker/webui/otp_mailer/wfp_guard).
+- Core payload is now post-filtered: unselected WebUI/Mailer/WFP/AuxRuntime payload is removed.
+- Automated payload-removal tests pass (14 resolver/payload tests).
 - WebUI login identity is not yet decoupled in the GUI; email/SMTP fields remain visible.
 
 These are release blockers for v1.7.0, not accepted as complete.

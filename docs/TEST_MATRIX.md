@@ -102,4 +102,4 @@ provide a restricted-token/AppContainer sandbox or syscall mediation. See
 real-machine row and the AppContainer non-claim. It does not turn documentation
 into a security test; it only prevents accidentally deleting the disclosure.
 
-| Feature resolver v1.7 | Preset/dependency/channel/floor tests | 12 PASS |
+| Feature resolver + payload gating v1.7 | Preset/dependency/channel/floor + unselected payload removal | 14 PASS |

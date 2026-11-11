@@ -515,7 +515,7 @@ $coreJournalDone = Test-MainStepDone -Journal $journal -Name 'core'
 $coreTree = if ($TestConfigPath) {
     [pscustomobject]@{ satisfied = $true; missing = @() }
 } else {
-    Test-CyberButlerCoreDeploy -InstallPath $InstallPath
+    Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Features $featureResolution.FeatureIds
 }
 $coreNeedsDeploy = (-not $coreJournalDone) -or (-not $coreTree.satisfied)
 if ($coreNeedsDeploy) {
@@ -586,6 +586,7 @@ if (-not $failure -and $coreNeedsDeploy) {
     Write-Output ('CORE start existing=' + $preflight.install_path.existing_state)
     $coreResult = Invoke-CyberButlerCoreDeploy -InstallPath $InstallPath `
         -ExistingState $preflight.install_path.existing_state -Tier $resolution.Tier `
+        -Features $featureResolution.FeatureIds `
         -AgentRuntimePackage $AgentRuntimePackage -AuxRuntimeApplicationPackage $AuxRuntimeApplicationPackage `
         -AgentRuntimeSha256 $AgentRuntimeSha256 -AuxRuntimeApplicationSha256 $AuxRuntimeApplicationSha256 `
         -CoreSourcesPath $CoreSourcesPath -SkipDependencyInstall:$SkipDependencyInstall `

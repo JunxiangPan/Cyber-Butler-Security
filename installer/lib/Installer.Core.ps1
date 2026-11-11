@@ -302,6 +302,7 @@ function Test-CyberButlerCoreDeploy {
     param(
         [Parameter(Mandatory = $true)]
         [string]$InstallPath,
+        [string[]]$Features = @(),
         $Handlers = @{}
     )
     if (Test-CyberButlerHandler -Handlers $Handlers -Name 'core.test') {
@@ -309,11 +310,18 @@ function Test-CyberButlerCoreDeploy {
     }
     $root = [IO.Path]::GetFullPath($InstallPath)
     $missing = New-Object System.Collections.Generic.List[string]
-    foreach ($rel in @('tools/broker.py','tools\email_approval.py','tools\wfp_guard.py','webui/run.py','webui/requirements.txt','workspace','data')) {
+    $featureSet = @($Features)
+    $allSelected = $featureSet.Count -eq 0
+    $needsWebUI = $allSelected -or ($featureSet -contains 'webui') -or ($featureSet -contains 'otp_mailer')
+    $needsWfp = $allSelected -or ($featureSet -contains 'wfp_guard')
+    $required = @('tools/broker.py','tools\email_approval.py','workspace','data')
+    if ($needsWfp) { $required += 'tools\wfp_guard.py' }
+    if ($needsWebUI) { $required += @('webui/run.py','webui/requirements.txt') }
+    foreach ($rel in $required) {
         if (-not (Test-Path -LiteralPath (Join-Path $root $rel))) { $missing.Add($rel) }
     }
     $venvPython = Join-Path $root 'webui\.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $venvPython)) { $missing.Add('webui/.venv/Scripts/python.exe') }
+    if ($needsWebUI -and -not (Test-Path -LiteralPath $venvPython)) { $missing.Add('webui/.venv/Scripts/python.exe') }
     if (-not (Test-Path -LiteralPath (Join-Path $root 'VERSION'))) { $missing.Add('VERSION') }
     $satisfied = $missing.Count -eq 0
     return [pscustomobject]@{
@@ -390,6 +398,36 @@ function Set-CyberButlerCorePlaceholders {
 .DESCRIPTION
     Internal installer/runtime helper. Parameters and return behavior are defined by the function body.
 #>
+function Remove-CyberButlerUnselectedPayload {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string[]]$Features = @()
+    )
+    $featureSet = @($Features)
+    if ($featureSet.Count -eq 0) { return @() }
+    $removed = New-Object System.Collections.Generic.List[string]
+    $needsWeb = $featureSet -contains 'webui'
+    $needsMailer = $featureSet -contains 'otp_mailer'
+    if (-not $needsWeb -and -not $needsMailer) {
+        $web = Join-Path $Root 'webui'
+        if (Test-Path -LiteralPath $web) { Remove-Item -LiteralPath $web -Recurse -Force -ErrorAction SilentlyContinue; $removed.Add('webui') }
+    } elseif (-not $needsMailer) {
+        $mailer = Join-Path $Root 'webui\otp_mailer.py'
+        if (Test-Path -LiteralPath $mailer) { Remove-Item -LiteralPath $mailer -Force -ErrorAction SilentlyContinue; $removed.Add('webui/otp_mailer.py') }
+    }
+    if (-not ($featureSet -contains 'wfp_guard')) {
+        $wfp = Join-Path $Root 'tools\wfp_guard.py'
+        if (Test-Path -LiteralPath $wfp) { Remove-Item -LiteralPath $wfp -Force -ErrorAction SilentlyContinue; $removed.Add('tools/wfp_guard.py') }
+    }
+    if (-not ($featureSet -contains 'auxruntime')) {
+        foreach ($aux in @('AgentRuntime','AuxRuntime')) {
+            $p = Join-Path $Root $aux
+            if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue; $removed.Add($aux) }
+        }
+    }
+    return $removed.ToArray()
+}
+
 function Invoke-CyberButlerCoreDeploy {
     [CmdletBinding()]
     param(
@@ -397,6 +435,7 @@ function Invoke-CyberButlerCoreDeploy {
         [string]$InstallPath,
         [string]$ExistingState = 'None',
         [string]$Tier = 'Medium',
+        [string[]]$Features = @(),
         [string]$AgentRuntimePackage = '',
         [string]$AuxRuntimeApplicationPackage = '',
         [string]$AgentRuntimeSha256 = '',
@@ -426,7 +465,7 @@ function Invoke-CyberButlerCoreDeploy {
         return (Invoke-CyberButlerHandler -Handlers $Handlers -Name 'core.deploy' -Context ([pscustomobject]@{ Root = $InstallPath; ExistingState = $ExistingState; Tier = $Tier }))
     }
 
-    $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Handlers $Handlers
+    $test = Test-CyberButlerCoreDeploy -InstallPath $InstallPath -Features $Features -Handlers $Handlers
     if ($test.satisfied -and -not $SkipDependencyInstall) {
         $dependencyProbe = Test-CyberButlerCbsPythonDependencies -PythonPath (Join-Path $InstallPath 'webui\.venv\Scripts\python.exe')
         if (-not $dependencyProbe.ok) {
@@ -519,12 +558,13 @@ function Invoke-CyberButlerCoreDeploy {
             Set-Content -LiteralPath (Join-Path $webVenv 'Scripts\python.exe') -Value '' -Encoding ASCII
         }
 
-        $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Handlers $Handlers
+        $asserted = Test-CyberButlerCoreDeploy -InstallPath $root -Features $Features -Handlers $Handlers
         if (-not $asserted.satisfied) { throw ('CBS core assertion failed: ' + ($asserted.missing -join ', ')) }
         if ($null -ne $Journal -and $stepStarted) {
             Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status completed -Details ([pscustomobject]@{ reason = 'independent CBS core deployed'; existing_state = $ExistingState }) | Out-Null
         }
-        return [pscustomobject]@{ status = 'completed'; changed = $true; exit_code = 0; test = $asserted; reason = 'independent CBS core deployed'; paths = $paths }
+        $removedPayload = @(Remove-CyberButlerUnselectedPayload -Root $root -Features $Features)
+        return [pscustomobject]@{ status = 'completed'; changed = $true; exit_code = 0; test = $asserted; reason = 'independent CBS core deployed'; paths = $paths; removed_payload = $removedPayload }
     } catch {
         if ($null -ne $Journal -and $stepStarted) {
             Add-CyberButlerJournalStep -Journal $Journal -Name $JournalStep -Status failed -Details ([pscustomobject]@{ error = [string]$_.Exception.Message }) | Out-Null
