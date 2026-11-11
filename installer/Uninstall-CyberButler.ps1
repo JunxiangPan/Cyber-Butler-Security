@@ -9,7 +9,9 @@
 #>
 [CmdletBinding()]
 param(
+    [Alias('InstallRoot')]
     [string]$InstallPath = 'C:\CyberButler',
+    [switch]$Silent,
     [switch]$KeepProgramData
 )
 $ErrorActionPreference = 'Stop'
@@ -26,8 +28,9 @@ foreach ($name in $taskNames) {
 }
 $escaped = [regex]::Escape($root)
 Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | ForEach-Object {
+    if ([int]$_.ProcessId -eq $PID) { return }
     $cmd = [string]$_.CommandLine
-    if ($cmd -and $cmd -match $escaped) {
+    if ($cmd -and $cmd -notmatch 'Uninstall-CyberButler' -and $cmd -match $escaped) {
         Stop-Process -Id ([int]$_.ProcessId) -Force -ErrorAction SilentlyContinue
     }
 }
