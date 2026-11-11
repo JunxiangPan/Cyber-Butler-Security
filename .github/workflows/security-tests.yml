@@ -1,3 +1,7 @@
+# CBF Phase 0 reservation: the job name "cbf-privacy-gate" is reserved.
+# It is deliberately NOT active until CBF 0.1.0rc1. Do not add
+# continue-on-error or if:false as a fake integration; see docs/CBF_ADOPTION.md.
+
 name: security-tests
 
 on:
