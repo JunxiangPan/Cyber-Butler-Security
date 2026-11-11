@@ -1,0 +1,19 @@
+name: cbf-privacy-gate
+
+# CBF Phase 0 reservation. CBF 0.1.0 has not been released, so this job must
+# NOT report PASS and must NOT be wired into a release as if it had passed.
+# Manual-only until Phase 1; no continue-on-error or if:false bypass.
+on:
+  workflow_dispatch:
+
+jobs:
+  cbf-privacy-gate:
+    name: cbf-privacy-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: CBF availability check
+        run: |
+          echo "CBF_PENDING_0.1.0: CBF has not been released."
+          echo "No CBF PASS exists. Planned: cbf gate --surface git"
+          echo "Evidence format: cbf-evidence/v1"
+          exit 1
