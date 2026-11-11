@@ -27,7 +27,7 @@
     "Q07": "PASS",
     "Q08": "PASS REPARSE_REJECTED_HTTP_400",
     "Q09": "PASS CONCURRENT_HEALTH_STABLE_20 (RunspacePool)",
-    "Q10": "RUNNING 60-minute soak started 2026-11-11T21:36:17Z",
+    "Q10": "BLOCKED SOAK_HEALTH_FAILED; start 2026-11-11T21:36:17Z; not PASS",
     "Q11": "PASS real POST /request 403 event in tools/logs",
     "Q12": "PASS unit evidence 3 passed",
     "Q13": "BLOCKED Q13_REQUEST_NOT_CREATED / no TOTP",
