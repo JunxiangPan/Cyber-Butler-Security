@@ -1,0 +1,16 @@
+{
+  "status": "A1_BLOCKED_MEDIA",
+  "attempt": "official Windows 11 Pro ISO via Microsoft Media Creation Tool 2156295",
+  "tool": "D:\\CB-Media\\MediaCreationTool.exe",
+  "tool_signature": "Valid; CN=Microsoft Corporation",
+  "command": "/Eula Accept /Retail /MediaLangCode en-US /MediaArch x64 /MediaEdition Professional /MediaType ISO",
+  "result": {
+    "exited": true,
+    "exit_code": "0xC180010A",
+    "iso_files": []
+  },
+  "reason": "MCT exited without ISO; no official Pro ISO obtained; no registration/account/paid license requested",
+  "existing_iso": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84 unusable 0xC004F009",
+  "third_party_activation": false,
+  "a1_pass": false
+}

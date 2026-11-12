@@ -17,6 +17,25 @@ if (Test-Path $runMarker) {
     & (Join-Path $PSScriptRoot 'run_a1.ps1') -VMName 'cbs-a1-clean' -BaseSnapshot 'a1-clean-base' -ArtifactZip '' -Nonce ('a1-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')) -OutputRoot $artifactRoot
     exit $LASTEXITCODE
 }
+$mctMarker = Join-Path $artifactRoot 'mct-request.json'
+if (Test-Path $mctMarker) {
+    $mct = 'D:\CB-Media\MediaCreationTool.exe'
+    $outDir = 'D:\CB-Media\LTSC-Pro-ISO'
+    New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+    $args = @('/Eula','Accept','/Retail','/MediaLangCode','en-US','/MediaArch','x64','/MediaEdition','Professional','/MediaType','ISO')
+    $p = Start-Process -FilePath $mct -ArgumentList $args -WorkingDirectory $outDir -PassThru
+    $null = $p.WaitForExit(900000)
+    [ordered]@{ pid = $p.Id; exited = $p.HasExited; exit_code = $(if ($p.HasExited) { $p.ExitCode } else { $null }); files = @(Get-ChildItem $outDir -File -ErrorAction SilentlyContinue | Select-Object Name,Length) } | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $artifactRoot 'mct-result.json') -Encoding UTF8
+    exit 0
+}
+$freshMarker = Join-Path $artifactRoot 'deploy-fresh-request.json'
+if (Test-Path $freshMarker) {
+    & (Join-Path $PSScriptRoot 'deploy_wim_vhdx.ps1') `
+        -IsoPath 'D:\CB-Media\Windows11\26300.9457.260913-1737.26h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso' `
+        -VhdPath 'D:\CB-Media\Windows11\cbs-a1-fresh.vhdx' `
+        -VMName 'cbs-a1-fresh'
+    exit $LASTEXITCODE
+}
 $deployMarker = Join-Path $artifactRoot 'deploy-wim-request.json'
 if (Test-Path $deployMarker) {
     & (Join-Path $PSScriptRoot 'deploy_wim_vhdx.ps1')
