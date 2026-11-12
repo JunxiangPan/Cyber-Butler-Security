@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Q05-Q09/Q11/Q12/Q14/Q17 PASS; Q10 restarted after audit-key fix; Q13 request ca464b08ba7d awaiting TOTP; Q15/Q16 BLOCKED; A1 9/13; no 26/26 |
+| A1 clean-VM acceptance | **A1_PRODUCT_INSTALLED_QA_PARTIAL** | Q05-Q09/Q11-Q15/Q17 PASS; Q10 60-minute soak restarted 2026-11-12T06:12:11Z; Q16 BLOCKED; A1 11/13; no 26/26 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
