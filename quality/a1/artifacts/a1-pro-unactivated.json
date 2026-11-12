@@ -1,0 +1,24 @@
+{
+  "status": "A1_UNLICENSED_TEST_SETUP_BLOCKED",
+  "LICENSE_MODE": "UNACTIVATED_TEST",
+  "LICENSE_COMPLIANCE": "NOT_ASSESSED",
+  "OS_EDITION": "Windows 11 Pro",
+  "ACTIVATION": "not activated",
+  "A1_LICENSE_RISK": "unlicensed test baseline",
+  "iso_sha256": "BD4307DF32BC8AF33B39CCECB1174AEB345386630F89A2B86C7A4E36B55EA650",
+  "wim_index": 6,
+  "vm": "cbs-a1-pro",
+  "vhd": "D:\\CB-Media\\Windows11\\cbs-a1-pro.vhdx",
+  "secure_boot": "On",
+  "install_date": "2026-11-12 22:58:17",
+  "slmgr_xpr": "Windows is in Notification mode",
+  "product_key_channel": "Retail",
+  "smoke": {
+    "start": "2026-11-12T15:00:37Z",
+    "end": "2026-11-12T15:10:37Z",
+    "result": "PASS; no WLMS shutdown"
+  },
+  "checkpoint": "a1-clean-base",
+  "cbs_install": "FAILED services (OTP Mailer missing/WFP task result); TOTP rerun failed material generation",
+  "a1_pass": false
+}
