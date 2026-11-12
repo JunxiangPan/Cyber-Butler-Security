@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; cbs-a1-clean boot failed; cbs-ipc-test not created; no two-account ACL test
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: A1_PRODUCT_INSTALLED_QA_PARTIAL (Q05-Q09/Q11-Q15/Q17 PASS; Q10 60-minute soak restarted; Q16 BLOCKED)
+A1 26/26: A1_BLOCKED_LICENSE (Q10 ABORTED_LICENSE_EXPIRED 0xC004F009; Q16 BLOCKED; 11/13)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is

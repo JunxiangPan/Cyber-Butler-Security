@@ -1,0 +1,15 @@
+{
+  "status": "A1_BLOCKED_LICENSE",
+  "xpr": "Windows \u5904\u4e8e\u901a\u77e5\u6a21\u5f0f",
+  "dlv": "\u8bb8\u53ef\u8bc1\u72b6\u6001=\u901a\u77e5; \u901a\u77e5\u539f\u56e0=0xC004F009 (\u5bbd\u9650\u671f\u8fc7\u671f)",
+  "ato": {
+    "exit": -2147012889,
+    "error": "0x80072EE7",
+    "meaning": "activation network/error; no KMS reachable"
+  },
+  "decision": "C \u2014 A1 blocked pending owner license/image decision",
+  "q10": "ABORTED_LICENSE_EXPIRED; not PASS",
+  "q16": "BLOCKED artifact zip / clean install",
+  "a1_pass": false,
+  "timestamp": "2026-11-12T12:25:00Z"
+}
