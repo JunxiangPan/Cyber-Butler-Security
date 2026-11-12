@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_UNLICENSED_TEST_SETUP_BLOCKED** | Windows 11 Pro unactivated; Secure Boot On; 10-min smoke PASS; a1-clean-base; CBS High install failed at TOTP/services; Q10/Q16 not run; no 26/26 |
+| A1 clean-VM acceptance | **A1_UNLICENSED_TEST_QA_RUNNING** | Windows 11 Pro unactivated; Secure Boot On; High install INSTALLER_OK; Q10 60-min soak running 16:46:39Z; Q05-Q17 on new base not yet run; no 26/26 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
