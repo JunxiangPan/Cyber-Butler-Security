@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_BLOCKED_LICENSE** | fresh cbs-a1-fresh rebuilt from ISO B37A...; Windows-only checkpoint a1-clean-base; slmgr 0xC004F009; CBS/Q10 not run; old 11/13 historical only |
+| A1 clean-VM acceptance | **A1_BLOCKED_LICENSE** | official LTSC 2024 link redirects to registration landing; no ISO downloaded; existing B37A... unusable (0xC004F009); Q10/Q16 not run; 26/26 not generated |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.
