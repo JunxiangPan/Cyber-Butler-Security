@@ -1,0 +1,5 @@
+Q10_ROUND_2026-11-12T07:16:44Z ABORTED_LICENSE_EXPIRED
+slmgr /xpr: Windows 处于通知模式
+slmgr /dlv: 许可证状态=通知 通知原因=0xC004F009 (宽限期过期)
+remaining Windows reset=1; SKU reset=1
+soak process stopped; no PASS
