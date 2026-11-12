@@ -1,0 +1,20 @@
+{
+  "status": "A1_BLOCKED_LICENSE",
+  "image": "D:\\CB-Media\\Windows11\u00b300.9457.260913-1737.26h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_zh-cn.iso",
+  "image_sha256": "B37A06D5121EEE017826C0B133250BBD21BEC694C2D607C60EDD29090E667A84",
+  "vhd": "D:\\CB-Media\\Windows11\\cbs-a1-fresh.vhdx",
+  "vm": "cbs-a1-fresh",
+  "generation": 2,
+  "checkpoint": "a1-clean-base",
+  "boot": {
+    "secureboot_on": "boot loop (Hyper-V splash)",
+    "secureboot_off": "desktop reached"
+  },
+  "license": {
+    "xpr": "Windows \u5904\u4e8e\u901a\u77e5\u6a21\u5f0f",
+    "dlv": "0xC004F009 (\u5bbd\u9650\u671f\u8fc7\u671f)",
+    "reset_counts": "Windows 2 / SKU 2"
+  },
+  "result": "fresh Windows-only base created but license already expired; CBS install/Q10 not run",
+  "a1_pass": false
+}
