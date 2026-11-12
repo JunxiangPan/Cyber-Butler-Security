@@ -1,0 +1,4 @@
+Q10 ABORTED_LICENSE_EXPIRED
+wlms shutdown at 2026-11-12T15:11:07 local
+after slmgr /rearm reboot
+restart 2026-11-12T07:16:44Z end 08:16:44Z
