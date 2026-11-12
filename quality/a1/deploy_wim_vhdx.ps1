@@ -71,6 +71,7 @@ try {
     New-VM -Name $VMName -Generation 2 -MemoryStartupBytes 4GB -VHDPath $VhdPath -SwitchName $SwitchName | Out-Null
     Set-VMProcessor -VMName $VMName -Count 2
     Set-VMMemory -VMName $VMName -StartupBytes 4GB -DynamicMemoryEnabled $false
+    Set-VMKeyProtector -VMName $VMName -NewLocalKeyProtector
     Set-VMFirmware -VMName $VMName -EnableSecureBoot On -SecureBootTemplate MicrosoftWindows
     Enable-VMTPM -VMName $VMName
     Set-VM -Name $VMName -AutomaticCheckpointsEnabled $false
