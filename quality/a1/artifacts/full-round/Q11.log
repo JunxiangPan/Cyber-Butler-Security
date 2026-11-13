@@ -1,0 +1,2 @@
+PASS:AUDIT_DIR=C:\CyberButler\tools\logs;HTTP=403;EVENT=[2026-11-13 16:34:44] http: "POST /request HTTP/1.1" 403 -
+EXIT=0

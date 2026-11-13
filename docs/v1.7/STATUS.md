@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_UNLICENSED_TEST_PARTIAL_FULL_QA_PENDING** | single-point Q05-Q17 PASS; full same-round rerun/certificate NOT_GENERATED; Q10 PASS 60m; Q16 prerequisites PASS; CBF smoke BLOCKED token; IPC BLOCKED |
+| A1 clean-VM acceptance | **A1_UNLICENSED_TEST** | full round Q05-Q17: 12/13 pass; Q06 BLOCKED CBS_DATA_ACL_MISSING_SERVICE_ACE; 26/26 NOT_GENERATED; CBF_SMOKE BLOCKED_MISSING_TOKEN; IPC DEFERRED IPC_DEFER_FOR_V1.7.0 |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.

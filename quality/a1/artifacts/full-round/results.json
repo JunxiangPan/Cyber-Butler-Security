@@ -1,0 +1,93 @@
+[
+  {
+    "id": "Q05",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q05.log",
+    "sha256": "c13e8b397a36e842349befd1c8cab2ac8839eb6ee1e1f1baf1a71f7622273ba6",
+    "timestamp": "2026-11-13T08:40:09.522016+00:00"
+  },
+  {
+    "id": "Q06",
+    "status": "blocked",
+    "log": "quality\\a1\\artifacts\\full-round\\Q06.log",
+    "sha256": "2cec4e33094fe789a7c5a959f66354a36ff2342a9e41ddf1068949b65dc2c22f",
+    "timestamp": "2026-11-13T08:40:09.523017+00:00"
+  },
+  {
+    "id": "Q07",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q07.log",
+    "sha256": "1ab5424089f6d71eb42aabc80e51fb03ef81b75a785dcfb4a893f40cf2b3a5cd",
+    "timestamp": "2026-11-13T08:40:09.523017+00:00"
+  },
+  {
+    "id": "Q08",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q08.log",
+    "sha256": "8e04a3de54ef5d0d160df8bce7517ceb7902b24b98cca42ca46097157f302142",
+    "timestamp": "2026-11-13T08:40:09.524016+00:00"
+  },
+  {
+    "id": "Q09",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q09.log",
+    "sha256": "7c3fde3c025bf33427d039f01e9aef93d7d82d15e89ce627b82e9accf31bf4cf",
+    "timestamp": "2026-11-13T08:40:09.525015+00:00"
+  },
+  {
+    "id": "Q10",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q10.log",
+    "sha256": "08e29b72cebd3193aef62608e1f7760020146515e0171312aedf23403b0f31f4",
+    "timestamp": "2026-11-13T08:40:09.526015+00:00"
+  },
+  {
+    "id": "Q11",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q11.log",
+    "sha256": "bcb92ca0f2fbd2223c10e74c2263db5c6809f516016714d25d9fc7d950ac1d04",
+    "timestamp": "2026-11-13T08:40:09.526015+00:00"
+  },
+  {
+    "id": "Q12",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q12.log",
+    "sha256": "729354a3095a9795f5b89f20d35c7843bd698e405ff48ac38241041addab692e",
+    "timestamp": "2026-11-13T08:40:09.527022+00:00"
+  },
+  {
+    "id": "Q13",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q13.log",
+    "sha256": "d4bf3a723ba784e8b350cb1e4cdf82e1570d02c811c00dd7b14825023f94479c",
+    "timestamp": "2026-11-13T08:40:09.527022+00:00"
+  },
+  {
+    "id": "Q14",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q14.log",
+    "sha256": "643d9a28da1d1a0f0089eca120609f1d35013da001580a84b9a19c7c406ccf00",
+    "timestamp": "2026-11-13T08:40:09.528021+00:00"
+  },
+  {
+    "id": "Q15",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q15.log",
+    "sha256": "84a5863ecc0e306049627e8fef1681d6bf235b3202ee955e03edd6a2937d96c5",
+    "timestamp": "2026-11-13T08:40:09.528021+00:00"
+  },
+  {
+    "id": "Q16",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q16.log",
+    "sha256": "c2a93b158a4c44081d323f1fe0101933acea8edb5e99949d7ef24a0849e07e74",
+    "timestamp": "2026-11-13T08:40:09.529020+00:00"
+  },
+  {
+    "id": "Q17",
+    "status": "passed",
+    "log": "quality\\a1\\artifacts\\full-round\\Q17.log",
+    "sha256": "66d2dc17d9d8f062b488d13fa442e6235b5f1206383c1a99273f7604160b11e5",
+    "timestamp": "2026-11-13T08:40:09.529020+00:00"
+  }
+]

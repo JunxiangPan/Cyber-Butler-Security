@@ -96,7 +96,7 @@ IPC / Named Pipe + Helper: BLOCKED
   pywin32 present; cbs-a1-clean boot failed; cbs-ipc-test not created; no two-account ACL test
 Optional MXC: OPTIONAL / DEFERRED
   owner decision: not part of v1.7.0 blocking scope
-A1 26/26: NOT_GENERATED (single-point Q05-Q17 pass; full same-round rerun pending; unactivated test only)
+A1 26/26: NOT_GENERATED (full round 12/13; Q06 BLOCKED; unactivated test only; CBF_SMOKE BLOCKED_MISSING_TOKEN; IPC DEFERRED)
 ```
 
 IPC_DEFER_FOR_V1.7.0 is recorded as a recommendation only; owner approval is
