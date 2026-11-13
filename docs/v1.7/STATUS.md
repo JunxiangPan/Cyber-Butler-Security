@@ -21,7 +21,7 @@ design exists; it is DONE only when its evidence is committed.
 
 | Item | Status | Evidence |
 |---|---|---|
-| A1 clean-VM acceptance | **A1_UNLICENSED_TEST_PARTIAL_FULL_QA_PENDING** | Win11 Pro unactivated; SecureBoot On; High INSTALLER_OK; Q10 PASS 60m; Q16 PASS prerequisites; full Q05-Q17 rerun on new base pending; no 26/26 |
+| A1 clean-VM acceptance | **A1_UNLICENSED_TEST_PARTIAL_FULL_QA_PENDING** | single-point Q05-Q17 PASS; full same-round rerun/certificate NOT_GENERATED; Q10 PASS 60m; Q16 prerequisites PASS; CBF smoke BLOCKED token; IPC BLOCKED |
 
 Do not retry the current ISO. Wait for a verified UEFI-bootable ISO or a clean
 VHDX. `cbs-acceptance-vm` and `CBS-Test` are not used as clean baselines.

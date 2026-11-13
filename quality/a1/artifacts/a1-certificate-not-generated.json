@@ -1,0 +1,36 @@
+{
+  "status": "A1_UNLICENSED_TEST_PARTIAL_FULL_QA_PENDING",
+  "a1_certificate": "NOT_GENERATED",
+  "single_point_pass": [
+    "Q05",
+    "Q06",
+    "Q07",
+    "Q08",
+    "Q09",
+    "Q10",
+    "Q11",
+    "Q12",
+    "Q13",
+    "Q14",
+    "Q15",
+    "Q16",
+    "Q17"
+  ],
+  "reason": "full same-round Q05-Q17 rerun on a1-clean-base / cbs-a1-pro not completed; single-point results cannot be concatenated into 26/26",
+  "Q10": {
+    "status": "PASS single",
+    "start": "2026-11-12T16:46:39Z",
+    "end": "2026-11-12T17:46:39Z"
+  },
+  "Q16": {
+    "status": "PASS prerequisites single",
+    "artifact_sha256": "2C5E5E76D9A79D044B31F24372ED80BE7A6EF6C46B91537662D0CD165A572470"
+  },
+  "license_mode": "UNACTIVATED_TEST",
+  "license_compliance": "NOT_ASSESSED",
+  "licensed_production": false,
+  "cbf_smoke": "BLOCKED missing CBF_READ_TOKEN",
+  "ipc": "BLOCKED",
+  "ipc_defer": false,
+  "timestamp": "2026-11-13T00:38:00Z"
+}
