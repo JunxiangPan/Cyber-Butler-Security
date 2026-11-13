@@ -17,6 +17,26 @@ if (Test-Path $runMarker) {
     & (Join-Path $PSScriptRoot 'run_a1.ps1') -VMName 'cbs-a1-clean' -BaseSnapshot 'a1-clean-base' -ArtifactZip '' -Nonce ('a1-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')) -OutputRoot $artifactRoot
     exit $LASTEXITCODE
 }
+$proMarker = Join-Path $artifactRoot 'deploy-pro-request.json'
+if (Test-Path $proMarker) {
+    & (Join-Path $PSScriptRoot 'deploy_wim_vhdx.ps1') `
+        -IsoPath 'D:\CB-Media\Windows11\Win11_Client_x64_en-us_26300_9457.iso' `
+        -VhdPath 'D:\CB-Media\Windows11\cbs-a1-pro.vhdx' `
+        -VMName 'cbs-a1-pro' `
+        -Index 6
+    exit $LASTEXITCODE
+}
+$dismMarker = Join-Path $artifactRoot 'dism-request.json'
+if (Test-Path $dismMarker) {
+    $isoPath = 'D:\CB-Media\Windows11\Win11_Client_x64_en-us_26300_9457.iso'
+    $m = Mount-DiskImage -ImagePath $isoPath -PassThru
+    Start-Sleep -Seconds 2
+    $drive = (Get-Volume -DiskImage $m).DriveLetter
+    $wimPath = ($drive + ':\sources\install.wim')
+    & dism.exe /Get-WimInfo "/WimFile:$wimPath" *> (Join-Path $artifactRoot 'wiminfo.txt')
+    Dismount-DiskImage -ImagePath $isoPath | Out-Null
+    exit 0
+}
 $mctMarker = Join-Path $artifactRoot 'mct-request.json'
 if (Test-Path $mctMarker) {
     $mct = 'D:\CB-Media\MediaCreationTool.exe'
