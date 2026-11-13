@@ -30,7 +30,7 @@
     "Q10": "PASS ONE_HOUR_SOAK_STABLE 2026-11-12T16:46:39Z..17:46:39Z",
     "Q11": "PASS real POST /request 403 event in tools/logs",
     "Q12": "PASS unit evidence 3 passed",
-    "Q13": "PASS TOTP_REPLAY_REJECTED first=200 second=404",
+    "Q13": "PASS on cbs-a1-pro TOTP_REPLAY_REJECTED",
     "Q14": "PASS NO_TOKEN_HTTP=403;BAD_TOKEN_HTTP=403;LOOPBACK",
     "Q15": "PASS UNINSTALL_CLEAN",
     "Q16": "PASS CLEAN_INSTALL_PREREQUISITES_MET",
