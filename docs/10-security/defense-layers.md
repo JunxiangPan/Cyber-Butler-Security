@@ -20,4 +20,4 @@ This release does not claim a native WFP filter, full audit-chain replacement, L
 
 ## Q11 status
 
-Q11a: BLOCKED (service-account child logon denied). Q11b: FAIL (synthetic Job owner left orphan child PID 6652). Q11 is not PASS. Job Object is lifetime containment only; write boundary remains ACL/service SID/Broker path guard. AppContainer is not implemented.
+Q11a: PASS (service-account child denied unauthorized writes; allowed workspace write succeeded). Q11b: FAIL (synthetic Job owner left orphan child PID 6860). Q11 is not PASS. Job Object is lifetime containment only; write boundary remains ACL/service SID/Broker path guard. AppContainer is not implemented.

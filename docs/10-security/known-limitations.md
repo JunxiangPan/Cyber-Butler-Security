@@ -55,8 +55,7 @@ AppContainer sandbox. Q11a (owner alive: write denied outside allowed roots)
 and Q11b (owner terminated: child tree cleaned) are separate acceptance items;
 either one passing alone does not make Q11 pass.
 
-Current Windows evidence: Q11a BLOCKED (service-account child logon denied),
-Q11b FAIL (synthetic Job Object child remained: PID 6652). Q11 is not PASS.
+Current Windows evidence: Q11a PASS (service-account child denied C:\Windows and user profile; allowed workspace write succeeded), Q11b FAIL (synthetic Job Object child remained: PID 6860). Q11 is not PASS.
 
 ## What is verified
 

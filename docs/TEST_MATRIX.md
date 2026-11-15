@@ -49,8 +49,8 @@ perform a real-machine Light acceptance. Those are manual release gates.
 | TOCTOU handle binding | `tests/test_toctou.py`, `test_toctou_broker.py`, `test_path_guard.py` | automated + High E2E |
 | quarantine on delete | `tests/test_toctou.py` (quarantine path) | automated; real restore gate pending |
 | 8.3 / symlink / traversal rejection | `tests/test_path_guard.py` | automated (Windows symlink case may skip) |
-| Q11a owner-alive write boundary | Q11a Windows E2E | **BLOCKED** — service-account child logon denied |
-| Q11b owner-terminated cleanup | Q11b Windows E2E | **FAIL** — synthetic Job Object child orphan remained (PID 6652) |
+| Q11a owner-alive write boundary | Q11a Windows E2E | **PASS** — service-account child write denied; allowed workspace write succeeded |
+| Q11b owner-terminated cleanup | Q11b Windows E2E | **FAIL** — synthetic Job Object child orphan remained (PID 6860) |
 | Job Object lifetime containment | `tests/test_job_limits.py`, future Windows Q11b | constants/unit only today; real handle-ownership + abnormal-exit E2E pending |
 | WFP policy and block plan | `tests/test_wfp_policy.py`, `test_wfp_guard.py` | policy/plan only; **native filter not integrated** |
 | Tripwire log rotation | `tests/test_wfp_tripwire.py` | parser/cursor only; real firewall log not yet wired |
