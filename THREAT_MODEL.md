@@ -76,6 +76,36 @@ no guarantee against every plugin, shell, GUI, or egress path
 QQ protocol account risk and model/provider behavior are external
 ```
 
+## 4.1 Job Object is lifetime containment, not a write filter
+
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` is **process lifetime containment only**:
+
+- it terminates the process tree when the **last** Job handle closes;
+- it does not grant or deny file writes;
+- it does not replace a token, an ACL, a path guard, or a TOCTOU check;
+- it does not protect files while the owner/Broker is alive.
+
+The file-write boundary is separate:
+
+```text
+CyberButlerSvc dedicated account
++ C:\CyberButler data-directory ACL
++ Broker path classification/allowed roots
++ reparse-point rejection
++ TOCTOU handle-bound checks
+```
+
+"Broker crashed -> children are cleaned up" only follows when:
+
+1. the Job handle is held only by the Broker;
+2. children do not inherit the handle;
+3. no duplicated handle exists;
+4. the last handle actually closes.
+
+Normal `CloseHandle` is not enough evidence: abnormal process termination and
+handle inheritance must also be tested. AppContainer is **not implemented**;
+the current write boundary is not an AppContainer sandbox.
+
 ## 5. AppContainer and MXC
 
 v1.6.x **does not** implement AppContainer. It uses ACL, WFP-backed egress

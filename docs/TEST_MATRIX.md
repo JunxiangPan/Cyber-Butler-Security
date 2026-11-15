@@ -49,7 +49,9 @@ perform a real-machine Light acceptance. Those are manual release gates.
 | TOCTOU handle binding | `tests/test_toctou.py`, `test_toctou_broker.py`, `test_path_guard.py` | automated + High E2E |
 | quarantine on delete | `tests/test_toctou.py` (quarantine path) | automated; real restore gate pending |
 | 8.3 / symlink / traversal rejection | `tests/test_path_guard.py` | automated (Windows symlink case may skip) |
-| Job Object resource limits | `tests/test_job_limits.py` | constants/policy only; Windows kill-limit integration pending |
+| Q11a owner-alive write boundary | Q11a Windows E2E | **BLOCKED** — service-account child logon denied |
+| Q11b owner-terminated cleanup | Q11b Windows E2E | **FAIL** — synthetic Job Object child orphan remained (PID 6652) |
+| Job Object lifetime containment | `tests/test_job_limits.py`, future Windows Q11b | constants/unit only today; real handle-ownership + abnormal-exit E2E pending |
 | WFP policy and block plan | `tests/test_wfp_policy.py`, `test_wfp_guard.py` | policy/plan only; **native filter not integrated** |
 | Tripwire log rotation | `tests/test_wfp_tripwire.py` | parser/cursor only; real firewall log not yet wired |
 | audit hash chain | `tests/test_audit_chain.py` | module; Broker mirror exists but full event coverage is partial |
@@ -91,8 +93,9 @@ perform a real-machine Light acceptance. Those are manual release gates.
 ## 5. AppContainer boundary
 
 AppContainer is **not implemented** in v1.6.x. Current controls are separate
-account + ACL + WFP-backed egress + Job Object + Broker approval. They do not
-provide a restricted-token/AppContainer sandbox or syscall mediation. See
+account + ACL + WFP-backed egress + Job Object + Broker approval. Job Object is
+lifetime containment only, not a write filter. They do not provide a
+restricted-token/AppContainer sandbox or syscall mediation. See
 [THREAT_MODEL.md](../THREAT_MODEL.md) and
 [SECURITY.md](../SECURITY.md) for residual risks.
 

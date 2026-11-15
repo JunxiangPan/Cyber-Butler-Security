@@ -55,7 +55,7 @@ The old VBS / `wscript.exe` launcher is gone. The only entry point is
 - **Scoped Token**：TOTP 审批时可回复 `SCOPED 30`，获得当前共享草稿目录
   30 分钟授权；仅限 `delete` / `overwrite` / `write_file`，不适用于
   memory/config、TOTP vault 或文件外发。
-- **Job Object**：Broker 使用 `KILL_ON_JOB_CLOSE`，Broker 退出时终止其子进程树。
+- **Job Object**：Broker 使用 `KILL_ON_JOB_CLOSE`，仅负责进程树生命周期；文件写边界由服务账户 SID、目录 ACL 和 Broker 路径检查负责，Job Object 不是写过滤器。
   AgentRuntime 是独立任务，不在该 Job 内。
 - **DSH / Cordis**：单独的 `dsh-cbs-gate` bundle 使用 approval-only 接口；
   需要额外安装，不随 CBS 安装包自动进入 DSH profile。

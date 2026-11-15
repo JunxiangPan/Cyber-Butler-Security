@@ -66,3 +66,5 @@ are either implemented with evidence or explicitly deferred by the owner.
 | CBF adoption | **PENDING_CBF_0.1.0** | Phase 0 docs-only; scans repo/package/fixtures/release zip only; no runtime dependency; no workflow yet; no CBF PASS |
 
 | A1 Q15 | **IMPLEMENTED, NOT YET RUN** | installer/Uninstall-CyberButler.ps1 added; uninstall test pending Q10 completion and A1 checkpoint restore |
+
+| Job Object review | **Q11a BLOCKED; Q11b FAIL** | Q11a service-account child logon denied; Q11b synthetic job owner child orphan (PID 6652); Q11 not PASS; Job Object remains lifetime containment only |
