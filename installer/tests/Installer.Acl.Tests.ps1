@@ -1,5 +1,15 @@
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $root 'installer\lib\Installer.Core.ps1')
+. (Join-Path $root 'installer\lib\Installer.Acl.ps1')
+
+Describe 'ACL target coverage' {
+    It 'includes the install root before its data directories' {
+        $targets = @(Get-CyberButlerAclTargets -InstallPath 'C:\CyberButler')
+        $targets[0] | Should Be ([IO.Path]::GetFullPath('C:\CyberButler'))
+        ($targets -contains ([IO.Path]::GetFullPath('C:\CyberButler\tools'))) | Should Be $true
+        ($targets -contains ([IO.Path]::GetFullPath('C:\CyberButler\workspace'))) | Should Be $true
+    }
+}
 
 Describe 'Broker token ACL checks' {
     It 'accepts DOMAIN\User and User forms using the account SID' {

@@ -8,6 +8,7 @@ function Get-CyberButlerAclTargets {
     )
     $root = [IO.Path]::GetFullPath($InstallPath)
     return @(
+        $root,
         (Join-Path $root 'tools'),
         (Join-Path $root 'webui'),
         (Join-Path $root 'data'),
