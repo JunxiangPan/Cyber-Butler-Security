@@ -11,12 +11,17 @@ function Blocked([string]$reason) { Write-Output ('BLOCKED:' + $reason); exit 3 
 function Failed([string]$reason) { Write-Output ('FAIL:' + $reason); exit 1 }
 function Pass([string]$reason) { Write-Output ('PASS:' + $reason); exit 0 }
 if (-not (Test-Path $InstallRoot)) { Blocked 'QA_VM_NOT_PROVISIONED' }
+$helperExe = 'C:\cbs-a1\job_owner.exe'
 $helper = 'C:\cbs-a1\job_owner.ps1'
-if (-not (Test-Path $helper)) { Blocked 'Q11B_JOB_OWNER_HELPER_MISSING' }
+if (-not (Test-Path $helperExe) -and -not (Test-Path $helper)) { Blocked 'Q11B_JOB_OWNER_HELPER_MISSING' }
 $token = [Guid]::NewGuid().ToString('N')
 $evidence = Join-Path 'C:\cbs-a1\evidence' "q11b-owner-$token.json"
 New-Item -ItemType Directory -Force -Path (Split-Path $evidence) | Out-Null
-$owner = Start-Process -FilePath 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$helper,'-Evidence',$evidence,'-ChildLog',(Join-Path 'C:\cbs-a1' "q11b-child-$token.log")) -PassThru -WindowStyle Hidden
+if (Test-Path $helperExe) {
+    $owner = Start-Process -FilePath $helperExe -ArgumentList @($evidence) -PassThru -WindowStyle Hidden
+} else {
+    $owner = Start-Process -FilePath 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$helper,'-Evidence',$evidence,'-ChildLog',(Join-Path 'C:\cbs-a1' "q11b-child-$token.log")) -PassThru -WindowStyle Hidden
+}
 $deadline = (Get-Date).AddSeconds(20)
 while ((Get-Date) -lt $deadline -and -not (Test-Path $evidence)) { Start-Sleep -Milliseconds 250 }
 if (-not (Test-Path $evidence)) { Stop-Process -Id $owner.Id -Force -ErrorAction SilentlyContinue; Failed 'Q11B_OWNER_EVIDENCE_MISSING' }

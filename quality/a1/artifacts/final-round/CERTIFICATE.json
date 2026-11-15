@@ -1,0 +1,119 @@
+{
+  "certificate": "A1_UNLICENSED_TEST",
+  "generated_at": "2026-11-15T15:37:34.509695+00:00",
+  "round": "final-round-2026-11-15",
+  "license_mode": "UNACTIVATED_TEST",
+  "license_compliance": "NOT_ASSESSED",
+  "os_edition": "Windows 11 Pro",
+  "activation": "not activated",
+  "secure_boot": "On",
+  "q_total": 14,
+  "q_passed": 14,
+  "q_failed": [],
+  "checks_passed": 14,
+  "checks_total": 14,
+  "26/26": "NOT_GENERATED",
+  "cbf_smoke": "BLOCKED_MISSING_TOKEN",
+  "ipc": "DEFERRED",
+  "ipc_defer": "IPC_DEFER_FOR_V1.7.0",
+  "results": [
+    {
+      "id": "Q05",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q05.log",
+      "sha256": "51181113d95837dccc19e51b778f73f31886a87e65b2aa7fed0ee0658bb35527",
+      "timestamp": "2026-11-15T15:37:34.506185+00:00"
+    },
+    {
+      "id": "Q06",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q06.log",
+      "sha256": "cb30d8e307f15e7b53c13769f7bea745e851913d1cb0fe2117595e1d56d2a0bf",
+      "timestamp": "2026-11-15T15:37:34.506185+00:00"
+    },
+    {
+      "id": "Q07",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q07.log",
+      "sha256": "8dbeb2c7f96c4d67dfaf5e5f8fd1b9aa52c87a23e5660d98085add5fd869dec2",
+      "timestamp": "2026-11-15T15:37:34.506185+00:00"
+    },
+    {
+      "id": "Q08",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q08.log",
+      "sha256": "385a8e51b8db9e4b0c66049bea536b3c9341b92f7ed77a26030e850e6f703eab",
+      "timestamp": "2026-11-15T15:37:34.506185+00:00"
+    },
+    {
+      "id": "Q09",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q09.log",
+      "sha256": "b6852269bac0d5b0d2cfbc7b535446b97fb2e8d82a1c3cd4fee606470603af48",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q10",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q10.log",
+      "sha256": "2f32abae1a880354deb0f7431a0a514f11c67904e02072bdc6cda2101153bf57",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q11a",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q11a.log",
+      "sha256": "24dc41a7b7e353dea491de060d4b68b15865c1501bbd41afaab5962e87a4d67b",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q11b",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q11b.log",
+      "sha256": "fa615db17822254a96517a14706d3dcc144796925c7896e47d212fdf2822ce48",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q12",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q12.log",
+      "sha256": "9fcc987d27879be12d06ffb55a509e361d4f1a702f23eb3049e056022921ff1f",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q13",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q13.log",
+      "sha256": "8f863241ccd87bc8f8ee3127e93582a9a4608afb850df930f5d95e9d2a548a5e",
+      "timestamp": "2026-11-15T15:37:34.507689+00:00"
+    },
+    {
+      "id": "Q14",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q14.log",
+      "sha256": "b7fc8f3ab781c21960891fdf3668ff4ca3b05f9d28b7518d09cd3b6e4fe8224c",
+      "timestamp": "2026-11-15T15:37:34.508693+00:00"
+    },
+    {
+      "id": "Q15",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q15.log",
+      "sha256": "7f8019f630252970a3152adbdb56ca0a7d7ae7510cc3fd1e9bc7af3f90679b30",
+      "timestamp": "2026-11-15T15:37:34.508693+00:00"
+    },
+    {
+      "id": "Q16",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q16.log",
+      "sha256": "0b79f59465a7d828983f65cf9ed85a41f33a20f2352a92376bc18e69196d2699",
+      "timestamp": "2026-11-15T15:37:34.508693+00:00"
+    },
+    {
+      "id": "Q17",
+      "status": "passed",
+      "log": "quality\\a1\\artifacts\\final-round\\Q17.log",
+      "sha256": "707349cc2acac39ab0adce73e1ddbb8fe06164ca0c2bbac1ae17f54947d32ca8",
+      "timestamp": "2026-11-15T15:37:34.508693+00:00"
+    }
+  ]
+}
