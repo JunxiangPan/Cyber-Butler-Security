@@ -1,3 +1,4 @@
+# SUPERSEDED by Q11a (write boundary) and Q11b (Job lifetime); do not use for A1.
 # A1 Q11: audit log evidence (real broker event)
 # Exit 0 only for a real PASS; exit 3 for blocked or failed prerequisites.
 param(

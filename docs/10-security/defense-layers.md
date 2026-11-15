@@ -17,3 +17,7 @@ Job Object shutdown kills the child tree; it is not a file-write authorization c
 ## Non-claims
 
 This release does not claim a native WFP filter, full audit-chain replacement, Light real-machine acceptance, or clean-VM acceptance.
+
+## Q11 status
+
+Q11a: BLOCKED (service-account child logon denied). Q11b: FAIL (synthetic Job owner left orphan child PID 6652). Q11 is not PASS. Job Object is lifetime containment only; write boundary remains ACL/service SID/Broker path guard. AppContainer is not implemented.

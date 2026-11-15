@@ -90,6 +90,25 @@ perform a real-machine Light acceptance. Those are manual release gates.
 [ ] threat model reviewed before v2.0 SDK work
 ```
 
+## 4.1 Q11 split and Job Object
+
+Q11 is split into two independent Windows E2E items:
+
+- **Q11a** — owner alive: a synthetic child running as `CyberButlerSvc` must
+  receive ACCESS_DENIED for `C:\Windows` and the user profile, while an allowed
+  data path remains writable.
+- **Q11b** — owner terminated: the child PID must disappear after the synthetic
+  Job owner is killed; handle inheritance/duplication and abnormal exit must be
+  checked, not only normal `CloseHandle`.
+
+Q11a PASS does not imply Q11b; Q11b PASS does not imply Q11a. Q11 is PASS only
+when both pass. Current evidence: Q11a BLOCKED (service-account logon type
+denied), Q11b FAIL (orphan child PID 6652). Q11 is not PASS.
+
+Job Object is lifetime containment only. The write boundary is ACL + service
+SID + Broker path guard + reparse/TOCTOU checks. AppContainer is not
+implemented.
+
 ## 5. AppContainer boundary
 
 AppContainer is **not implemented** in v1.6.x. Current controls are separate
