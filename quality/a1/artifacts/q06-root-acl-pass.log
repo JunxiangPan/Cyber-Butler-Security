@@ -1,0 +1,3 @@
+PASS:SID=local CyberButlerSvc;ACL_ACES=1;SERVICE_LOGON=YES;AGENTRUNTIME=EXTERNAL
+root_acl=CyberButlerSvc:RX
+note=validated after applying patched root ACL; clean reinstall/full round not rerun
