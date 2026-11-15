@@ -17,7 +17,7 @@ $cred = New-Object System.Management.Automation.PSCredential("$env:COMPUTERNAME\
 $token = [Guid]::NewGuid().ToString('N')
 $out = "C:\cbs-a1\evidence\q11a-$token.json"
 $winTarget = "C:\Windows\q11a-$token.txt"
-$userTarget = "C:\Users\Public\q11a-$token.txt"
+$userTarget = Join-Path $env:SystemDrive ("Users\Public\q11a-$token.txt")
 $allowed = "C:\CyberButler\workspace\q11a-$token.txt"
 New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $allowed) | Out-Null
